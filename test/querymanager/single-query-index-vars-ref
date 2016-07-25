@@ -1,0 +1,6 @@
+SELECT
+    a
+FROM
+    VI:0
+WHERE
+    VI:1 = VI:2

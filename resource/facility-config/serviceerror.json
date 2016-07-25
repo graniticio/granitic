@@ -1,0 +1,11 @@
+{
+  "ServiceErrorManager":{
+    "PanicOnMissing": true,
+    "ErrorDefinitions": "serviceErrors"
+  },
+  "FrameworkServiceErrors":{
+    "Messages": {
+      "Unmarshall": ["CODE","MESSAGE"]
+    }
+  }
+}

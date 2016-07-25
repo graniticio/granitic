@@ -1,0 +1,8 @@
+ID:SINGLE_QUERY_INDEX_VARS
+
+SELECT
+    a
+FROM
+    ${0}
+WHERE
+    ${1} = ${2}

@@ -1,0 +1,10 @@
+{
+  "JsonWs":{
+    "ResponseWrapping": {
+      "Wrap": true,
+      "IncludeEmptySections": false,
+      "ContentLabel": "Response",
+      "ErrorsLabel": "Errors"
+    }
+  }
+}

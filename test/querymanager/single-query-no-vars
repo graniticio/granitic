@@ -1,0 +1,8 @@
+ID:SINGLE_QUERY
+
+SELECT
+    a
+FROM
+    b
+WHERE
+    c = d

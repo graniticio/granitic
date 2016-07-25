@@ -1,0 +1,11 @@
+{
+  "Facilities": {
+    "HttpServer": false,
+    "JsonWs": false,
+    "FrameworkLogging": true,
+    "ApplicationLogging": true,
+    "QueryManager": false,
+    "RdbmsAccess": false,
+    "ServiceErrorManager": false
+  }
+}

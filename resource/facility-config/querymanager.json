@@ -1,0 +1,11 @@
+{
+  "QueryManager":{
+    "TemplateLocation": "resource/queries",
+    "QueryIdPrefix": "ID:",
+    "TrimIdWhiteSpace": true,
+    "VarMatchRegEx": "\\$\\{([^\\}]*)\\}",
+    "WrapStrings": true,
+    "StringWrapWith": "'",
+    "NewLine": "\n"
+  }
+}

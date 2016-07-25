@@ -1,0 +1,18 @@
+ID:MULTI_QUERY_INDEX_VARS_ONE
+
+SELECT
+    a
+FROM
+    ${b}
+WHERE
+    ${c} = ${d}
+
+
+ID:MULTI_QUERY_INDEX_VARS_TWO
+
+SELECT
+    v
+FROM
+    '${xa}'
+WHERE
+    '${y}' = ${z}

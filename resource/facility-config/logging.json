@@ -1,0 +1,8 @@
+{
+  "FrameworkLogger":{
+    "DefaultLogLevel": "INFO"
+  },
+  "ApplicationLogger":{
+    "DefaultLogLevel": "INFO"
+  }
+}

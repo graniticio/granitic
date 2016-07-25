@@ -1,0 +1,6 @@
+SELECT
+    v
+FROM
+    'VN:xa'
+WHERE
+    'VN:y' = VN:z
