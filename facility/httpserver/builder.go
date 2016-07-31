@@ -12,7 +12,7 @@ const accessLogWriterName = ioc.FrameworkPrefix + "AccessLogWriter"
 type HttpServerFacilityBuilder struct {
 }
 
-func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) {
+func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	httpServer := new(HttpServer)
 	ca.Populate("HttpServer", httpServer)
@@ -20,7 +20,7 @@ func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLog
 	cn.WrapAndAddProto(httpServerName, httpServer)
 
 	if !httpServer.AccessLogging {
-		return
+		return nil
 	}
 
 	accessLogWriter := new(AccessLogWriter)
@@ -29,6 +29,8 @@ func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLog
 	httpServer.AccessLogWriter = accessLogWriter
 
 	cn.WrapAndAddProto(accessLogWriterName, accessLogWriter)
+
+	return nil
 
 }
 

@@ -20,7 +20,7 @@ const wsFrameworkErrorGenerator = ioc.FrameworkPrefix + "FrameworkErrorGenerator
 type JsonWsFacilityBuilder struct {
 }
 
-func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) {
+func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	responseWriter := new(json.DefaultJsonResponseWriter)
 	cn.WrapAndAddProto(jsonResponseWriterComponentName, responseWriter)
@@ -44,6 +44,8 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	decoratorLogger := lm.CreateLogger(jsonHandlerDecoratorComponentName)
 	decorator := JsonWsHandlerDecorator{decoratorLogger, responseWriter, abnormalResponseWriter, statusDeterminer, jsonUnmarshaller, queryBinder, frameworkErrors}
 	cn.WrapAndAddProto(jsonHandlerDecoratorComponentName, &decorator)
+
+	return nil
 }
 
 func (fb *JsonWsFacilityBuilder) FacilityName() string {

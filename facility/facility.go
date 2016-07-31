@@ -7,7 +7,7 @@ import (
 )
 
 type FacilityBuilder interface {
-	BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer)
+	BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error
 	FacilityName() string
 	DependsOnFacilities() []string
 }

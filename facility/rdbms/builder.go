@@ -12,7 +12,7 @@ const rdbmsClientManagerName = ioc.FrameworkPrefix + "RdbmsClientManager"
 type RdbmsAccessFacilityBuilder struct {
 }
 
-func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) {
+func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	manager := new(DefaultRdbmsClientManager)
 	ca.Populate("RdbmsAccess", manager)
@@ -23,6 +23,8 @@ func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLo
 	proto.AddDependency("QueryManager", querymanager.QueryManagerComponentName)
 
 	cn.AddProto(proto)
+
+	return nil
 
 }
 

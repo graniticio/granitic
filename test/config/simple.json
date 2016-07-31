@@ -1,0 +1,11 @@
+{
+  "simpleOne": {
+    "String": "abc",
+    "Bool": true,
+    "Int": 32,
+    "Float": 32.22
+  },
+
+  "unset": {}
+
+}

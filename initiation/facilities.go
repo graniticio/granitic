@@ -73,7 +73,11 @@ func (fi *FacilitiesInitialisor) buildEnabledFacilities() error {
 
 			}
 
-			fb.BuildAndRegister(fi.FrameworkLoggingManager, fi.ConfigAccessor, fi.container)
+			err := fb.BuildAndRegister(fi.FrameworkLoggingManager, fi.ConfigAccessor, fi.container)
+
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -103,11 +107,16 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.ConfigAccessor) error {
 	return err
 }
 
-func (fi *FacilitiesInitialisor) updateFrameworkLogLevel() {
+func (fi *FacilitiesInitialisor) updateFrameworkLogLevel() error {
 
 	flm := fi.FrameworkLoggingManager
 
-	defaultLogLevelLabel := fi.ConfigAccessor.StringVal("FrameworkLogger.DefaultLogLevel")
+	defaultLogLevelLabel, err := fi.ConfigAccessor.StringVal("FrameworkLogger.DefaultLogLevel")
+
+	if err != nil {
+		return errors.New("Unable to configure framework logging: " + err.Error())
+	}
+
 	defaultLogLevel := logging.LogLevelFromLabel(defaultLogLevelLabel)
 
 	initialLogLevelsByComponent := fi.ConfigAccessor.ObjectVal("FrameworkLogger.ComponentLogLevels")
@@ -121,5 +130,7 @@ func (fi *FacilitiesInitialisor) updateFrameworkLogLevel() {
 	fld.LoggerManager = flm
 
 	fi.container.WrapAndAddProto(frameworkLoggerDecoratorName, fld)
+
+	return nil
 
 }

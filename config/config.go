@@ -1,6 +1,8 @@
 package config
 
 import (
+	"errors"
+	"fmt"
 	"github.com/graniticio/granitic/logging"
 	"os"
 	"reflect"
@@ -36,7 +38,7 @@ func (c *ConfigAccessor) Value(path string) ConfigValue {
 
 	splitPath := strings.Split(path, JsonPathSeparator)
 
-	return c.configValue(splitPath, c.JsonData)
+	return c.configVal(splitPath, c.JsonData)
 
 }
 
@@ -51,20 +53,66 @@ func (c *ConfigAccessor) ObjectVal(path string) map[string]interface{} {
 	}
 }
 
-func (c *ConfigAccessor) StringVal(path string) string {
-	return c.Value(path).(string)
+func (c *ConfigAccessor) StringVal(path string) (string, error) {
+
+	v := c.Value(path)
+
+	if v == nil {
+		return "", errors.New("No string value found at " + path)
+	}
+
+	s, found := v.(string)
+
+	if found {
+		return s, nil
+	} else {
+		message := fmt.Sprintf("Value at %s is %q and cannot be converted to a string", path, v)
+		return "", errors.New(message)
+
+	}
+
 }
 
 func (c *ConfigAccessor) StringFieldVal(field string, object map[string]interface{}) string {
 	return object[field].(string)
 }
 
-func (c *ConfigAccessor) IntValue(path string) int {
-	return int(c.Value(path).(float64))
+func (c *ConfigAccessor) IntValue(path string) (int, error) {
+
+	v := c.Value(path)
+
+	if v == nil {
+		return 0, errors.New("No such path " + path)
+	}
+
+	f, found := v.(float64)
+
+	if found {
+		return int(f), nil
+	} else {
+		message := fmt.Sprintf("Value at %s is %q and cannot be converted to an int", path, v)
+		return 0, errors.New(message)
+
+	}
 }
 
-func (c *ConfigAccessor) Float64Value(path string) float64 {
-	return c.Value(path).(float64)
+func (c *ConfigAccessor) Float64Val(path string) (float64, error) {
+
+	v := c.Value(path)
+
+	if v == nil {
+		return 0, errors.New("No such path " + path)
+	}
+
+	f, found := v.(float64)
+
+	if found {
+		return f, nil
+	} else {
+		message := fmt.Sprintf("Value at %s is %q and cannot be converted to a float64", path, v)
+		return 0, errors.New(message)
+
+	}
 }
 
 func (c *ConfigAccessor) Array(path string) []interface{} {
@@ -78,8 +126,25 @@ func (c *ConfigAccessor) Array(path string) []interface{} {
 	}
 }
 
-func (c *ConfigAccessor) BoolValue(path string) bool {
-	return c.Value(path).(bool)
+func (c *ConfigAccessor) BoolVal(path string) (bool, error) {
+
+	v := c.Value(path)
+
+	if v == nil {
+		return false, errors.New("No such path " + path)
+	}
+
+	b, found := v.(bool)
+
+	if found {
+		return b, nil
+	} else {
+		message := fmt.Sprintf("Value at %s is %q and cannot be converted to a bool", path, v)
+		return false, errors.New(message)
+
+	}
+
+	return v.(bool), nil
 }
 
 func JsonType(value interface{}) int {
@@ -98,7 +163,7 @@ func JsonType(value interface{}) int {
 	}
 }
 
-func (c *ConfigAccessor) configValue(path []string, jsonMap map[string]interface{}) interface{} {
+func (c *ConfigAccessor) configVal(path []string, jsonMap map[string]interface{}) interface{} {
 
 	var result interface{}
 	result = jsonMap[path[0]]
@@ -111,11 +176,15 @@ func (c *ConfigAccessor) configValue(path []string, jsonMap map[string]interface
 		return result
 	} else {
 		remainPath := path[1:len(path)]
-		return c.configValue(remainPath, result.(map[string]interface{}))
+		return c.configVal(remainPath, result.(map[string]interface{}))
 	}
 }
 
-func (ca *ConfigAccessor) SetField(fieldName string, path string, target interface{}) {
+func (ca *ConfigAccessor) SetField(fieldName string, path string, target interface{}) error {
+
+	if !ca.PathExists(path) {
+		return errors.New("No value found at " + path)
+	}
 
 	targetReflect := reflect.ValueOf(target).Elem()
 	targetField := targetReflect.FieldByName(fieldName)
@@ -124,11 +193,14 @@ func (ca *ConfigAccessor) SetField(fieldName string, path string, target interfa
 
 	switch k {
 	case reflect.String:
-		targetField.SetString(ca.StringVal(path))
+		s, _ := ca.StringVal(path)
+		targetField.SetString(s)
 	case reflect.Bool:
-		targetField.SetBool(ca.BoolValue(path))
+		b, _ := ca.BoolVal(path)
+		targetField.SetBool(b)
 	case reflect.Int:
-		targetField.SetInt(int64(ca.IntValue(path)))
+		i, _ := ca.IntValue(path)
+		targetField.SetInt(int64(i))
 	case reflect.Map:
 		ca.populateMapField(targetField, ca.ObjectVal(path))
 
@@ -136,6 +208,7 @@ func (ca *ConfigAccessor) SetField(fieldName string, path string, target interfa
 		ca.FrameworkLogger.LogErrorf("Unable to use value at path %s as target field %s is not a suppported type (%s)", path, fieldName, k)
 	}
 
+	return nil
 }
 
 func (ca *ConfigAccessor) populateMapField(targetField reflect.Value, contents map[string]interface{}) {
@@ -148,7 +221,7 @@ func (ca *ConfigAccessor) populateMapField(targetField reflect.Value, contents m
 		vVal := reflect.ValueOf(v)
 
 		if vVal.Kind() == reflect.Slice {
-			vVal = ca.arrayValue(vVal)
+			vVal = ca.arrayVal(vVal)
 		}
 
 		m.SetMapIndex(kVal, vVal)
@@ -158,7 +231,7 @@ func (ca *ConfigAccessor) populateMapField(targetField reflect.Value, contents m
 }
 
 //TODO support arrays other than string arrays
-func (ca *ConfigAccessor) arrayValue(a reflect.Value) reflect.Value {
+func (ca *ConfigAccessor) arrayVal(a reflect.Value) reflect.Value {
 
 	v := a.Interface().([]interface{})
 	l := len(v)

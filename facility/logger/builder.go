@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"errors"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility/decorator"
 	"github.com/graniticio/granitic/ioc"
@@ -13,8 +14,13 @@ const applicationLoggingManagerName = ioc.FrameworkPrefix + "ApplicationLoggingM
 type ApplicationLoggingFacilityBuilder struct {
 }
 
-func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) {
-	defaultLogLevelLabel := ca.StringVal("ApplicationLogger.DefaultLogLevel")
+func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+	defaultLogLevelLabel, err := ca.StringVal("ApplicationLogger.DefaultLogLevel")
+
+	if err != nil {
+		return alfb.error(err.Error())
+	}
+
 	defaultLogLevel := logging.LogLevelFromLabel(defaultLogLevelLabel)
 
 	initialLogLevelsByComponent := ca.ObjectVal("ApplicationLogger.ComponentLogLevels")
@@ -27,6 +33,14 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 	applicationLoggingDecorator.FrameworkLogger = lm.CreateLogger(applicationLoggingDecoratorName)
 
 	cn.WrapAndAddProto(applicationLoggingDecoratorName, applicationLoggingDecorator)
+
+	return nil
+}
+
+func (alfb *ApplicationLoggingFacilityBuilder) error(suffix string) error {
+
+	return errors.New("Unable to initialise application logging. " + suffix)
+
 }
 
 func (alfb *ApplicationLoggingFacilityBuilder) FacilityName() string {

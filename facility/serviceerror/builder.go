@@ -1,6 +1,7 @@
 package serviceerror
 
 import (
+	"errors"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
@@ -9,24 +10,39 @@ import (
 type ServiceErrorManagerFacilityBuilder struct {
 }
 
-func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) {
+func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	manager := new(ServiceErrorManager)
-	manager.PanicOnMissing = ca.BoolValue("ServiceErrorManager.PanicOnMissing")
+
+	panicOnMissing, err := ca.BoolVal("ServiceErrorManager.PanicOnMissing")
+
+	if err == nil {
+		return errors.New("Unable to build service error manager " + err.Error())
+	}
+
+	manager.PanicOnMissing = panicOnMissing
+
 	cn.WrapAndAddProto(serviceErrorManagerComponentName, manager)
 
 	decorator := new(ServiceErrorConsumerDecorator)
 	decorator.ErrorSource = manager
 	cn.WrapAndAddProto(serviceErrorDecoratorComponentName, decorator)
 
-	definitions := ca.StringVal("ServiceErrorManager.ErrorDefinitions")
-	errors := ca.Array(definitions)
+	definitionsPath, err := ca.StringVal("ServiceErrorManager.ErrorDefinitions")
 
-	if errors == nil {
-		manager.FrameworkLogger.LogWarnf("No error definitions found at config path %s", definitions)
-	} else {
-		manager.LoadErrors(errors)
+	if err != nil {
+		return errors.New("Unable to load service error messages from configuration: " + err.Error())
 	}
+
+	messages := ca.Array(definitionsPath)
+
+	if messages == nil {
+		manager.FrameworkLogger.LogWarnf("No error definitions found at config path %s", definitionsPath)
+	} else {
+		manager.LoadErrors(messages)
+	}
+
+	return nil
 }
 
 func (fb *ServiceErrorManagerFacilityBuilder) FacilityName() string {

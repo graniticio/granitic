@@ -12,13 +12,14 @@ const QueryManagerFacilityName = "QueryManager"
 type QueryManagerFacilityBuilder struct {
 }
 
-func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) {
+func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	queryManager := new(QueryManager)
 	ca.Populate("QueryManager", queryManager)
 
 	cn.WrapAndAddProto(QueryManagerComponentName, queryManager)
 
+	return nil
 }
 
 func (qmfb *QueryManagerFacilityBuilder) FacilityName() string {
