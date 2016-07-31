@@ -21,8 +21,6 @@ const (
 	JsonStringArray = 5
 )
 
-type ConfigValue interface{}
-
 type ConfigAccessor struct {
 	JsonData        map[string]interface{}
 	FrameworkLogger logging.Logger
@@ -34,7 +32,7 @@ func (c *ConfigAccessor) PathExists(path string) bool {
 	return value != nil
 }
 
-func (c *ConfigAccessor) Value(path string) ConfigValue {
+func (c *ConfigAccessor) Value(path string) interface{} {
 
 	splitPath := strings.Split(path, JsonPathSeparator)
 
@@ -73,11 +71,7 @@ func (c *ConfigAccessor) StringVal(path string) (string, error) {
 
 }
 
-func (c *ConfigAccessor) StringFieldVal(field string, object map[string]interface{}) string {
-	return object[field].(string)
-}
-
-func (c *ConfigAccessor) IntValue(path string) (int, error) {
+func (c *ConfigAccessor) IntVal(path string) (int, error) {
 
 	v := c.Value(path)
 
@@ -199,7 +193,7 @@ func (ca *ConfigAccessor) SetField(fieldName string, path string, target interfa
 		b, _ := ca.BoolVal(path)
 		targetField.SetBool(b)
 	case reflect.Int:
-		i, _ := ca.IntValue(path)
+		i, _ := ca.IntVal(path)
 		targetField.SetInt(int64(i))
 	case reflect.Map:
 		ca.populateMapField(targetField, ca.ObjectVal(path))

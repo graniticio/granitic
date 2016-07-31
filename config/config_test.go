@@ -43,7 +43,7 @@ func TestSimpleConfig(t *testing.T) {
 	test.ExpectBool(t, true, b)
 	test.ExpectNil(t, err)
 
-	i, err := ca.IntValue("simpleOne.Int")
+	i, err := ca.IntVal("simpleOne.Int")
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, 32, i)
 
@@ -61,7 +61,7 @@ func TestUnset(t *testing.T) {
 
 	ca.BoolVal("unset.Bool")
 
-	ca.IntValue("unset.Int")
+	ca.IntVal("unset.Int")
 
 	ca.Float64Val("unset.Float")
 
@@ -82,7 +82,7 @@ func TestPathExistence(t *testing.T) {
 func TestWrongType(t *testing.T) {
 	ca := LoadConfigFromFile("simple.json")
 
-	i, err := ca.IntValue("simpleOne.String")
+	i, err := ca.IntVal("simpleOne.String")
 	test.ExpectInt(t, 0, i)
 	test.ExpectNotNil(t, err)
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/graniticio/granitic/config"
@@ -325,7 +326,7 @@ func (cbc *CreateBindingsCommand) writeComponentWrapper(writer *bufio.Writer, co
 }
 
 func (cbc *CreateBindingsCommand) writeInstance(writer *bufio.Writer, configAccessor *config.ConfigAccessor, component map[string]interface{}, name string) string {
-	instanceType := configAccessor.StringFieldVal("type", component)
+	instanceType, _ := cbc.ObjectFieldAsStringVal("type", component)
 	instanceName := name + "Instance"
 	writer.WriteString("\t")
 	writer.WriteString(instanceName)
@@ -334,6 +335,25 @@ func (cbc *CreateBindingsCommand) writeInstance(writer *bufio.Writer, configAcce
 	writer.WriteString(")\n\t")
 
 	return instanceName
+}
+
+func (cbc *CreateBindingsCommand) ObjectFieldAsStringVal(field string, object map[string]interface{}) (string, error) {
+
+	v := object[field]
+
+	if v == nil {
+		message := fmt.Sprintf("No such field %s in JSON object", field)
+		return "", errors.New(message)
+	}
+
+	s, found := v.(string)
+
+	if found {
+		return s, nil
+	} else {
+		message := fmt.Sprintf("Field %s in JSON object in not a string", field)
+		return "", errors.New(message)
+	}
 }
 
 func (cbc *CreateBindingsCommand) writeImports(writer *bufio.Writer, configAccessor *config.ConfigAccessor) {
