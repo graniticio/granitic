@@ -39,9 +39,19 @@ func ExpectFloat(t *testing.T, check, actual float64) bool {
 }
 
 func ExpectNil(t *testing.T, check interface{}) bool {
-	return check == nil
+	if check == nil {
+		return true
+	} else {
+		t.Errorf("Expected nil, actual %q", check)
+		return false
+	}
 }
 
 func ExpectNotNil(t *testing.T, check interface{}) bool {
-	return check != nil
+	if check != nil {
+		return true
+	} else {
+		t.Errorf("Expected not nil")
+		return false
+	}
 }

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/logging"
@@ -195,6 +196,9 @@ func (ca *ConfigAccessor) SetField(fieldName string, path string, target interfa
 	case reflect.Int:
 		i, _ := ca.IntVal(path)
 		targetField.SetInt(int64(i))
+	case reflect.Float64:
+		f, _ := ca.Float64Val(path)
+		targetField.SetFloat(f)
 	case reflect.Map:
 		ca.populateMapField(targetField, ca.ObjectVal(path))
 
@@ -254,28 +258,17 @@ func (ca *ConfigAccessor) arrayVal(a reflect.Value) reflect.Value {
 	return s
 }
 
-func (ca *ConfigAccessor) Populate(path string, target interface{}) {
+func (ca *ConfigAccessor) Populate(path string, target interface{}) error {
 	exists := ca.PathExists(path)
 
-	if exists {
-		targetReflect := reflect.ValueOf(target).Elem()
-		targetType := targetReflect.Type()
-		numFields := targetType.NumField()
-
-		for i := 0; i < numFields; i++ {
-
-			fieldName := targetType.Field(i).Name
-
-			expectedConfigPath := path + JsonPathSeparator + fieldName
-
-			if ca.PathExists(expectedConfigPath) {
-				ca.SetField(fieldName, expectedConfigPath, target)
-			}
-
-		}
-
-	} else {
-		ca.FrameworkLogger.LogErrorf("Trying to populate an object from a JSON object, but the base path %s does not exist", path)
+	if !exists {
+		return errors.New("No such path: " + path)
 	}
 
+	object := ca.ObjectVal(path)
+	data, _ := json.Marshal(object)
+
+	json.Unmarshal(data, target)
+
+	return nil
 }

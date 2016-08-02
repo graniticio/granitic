@@ -9,10 +9,14 @@ import (
 )
 
 type SimpleConfig struct {
-	String string
-	Bool   bool
-	Int    int
-	Float  float64
+	String      string
+	Bool        bool
+	Int         int
+	Float       float64
+	StringArray []string
+	FloatArray  []float64
+	IntArray    []int
+	StringMap   map[string]string
 }
 
 func LoadConfigFromFile(f string) *ConfigAccessor {
@@ -97,4 +101,51 @@ func TestWrongType(t *testing.T) {
 	s, err := ca.StringVal("simpleOne.Bool")
 	test.ExpectString(t, "", s)
 	test.ExpectNotNil(t, err)
+}
+
+func TestPopulateObject(t *testing.T) {
+
+	ca := LoadConfigFromFile("simple.json")
+
+	var sc SimpleConfig
+
+	err := ca.Populate("simpleOne", &sc)
+
+	test.ExpectNil(t, err)
+
+	test.ExpectString(t, "abc", sc.String)
+
+	test.ExpectBool(t, true, sc.Bool)
+
+	test.ExpectInt(t, 32, sc.Int)
+
+	test.ExpectFloat(t, 32.22, sc.Float)
+
+	m := sc.StringMap
+
+	test.ExpectNotNil(t, m)
+
+	test.ExpectInt(t, 3, len(sc.FloatArray))
+
+}
+
+func TestPopulateObjectMissingPath(t *testing.T) {
+	ca := LoadConfigFromFile("simple.json")
+
+	var sc SimpleConfig
+
+	err := ca.Populate("undefined", &sc)
+
+	test.ExpectNotNil(t, err)
+
+}
+
+func TestPopulateInvalid(t *testing.T) {
+
+	ca := LoadConfigFromFile("simple.json")
+
+	var sc SimpleConfig
+
+	ca.Populate("invalidConfig", &sc)
+
 }

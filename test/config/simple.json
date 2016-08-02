@@ -3,9 +3,26 @@
     "String": "abc",
     "Bool": true,
     "Int": 32,
-    "Float": 32.22
+    "Float": 32.22,
+    "StringArray": ["a","b","c"],
+    "IntArray": [1,2,3],
+    "FloatArray": [1.0,2.0,3.0],
+    "StringMap": {
+      "key1": "val1",
+      "key1": "val2"
+    }
   },
 
-  "unset": {}
+  "unset": {},
+
+  "invalidConfig": {
+    "String": true,
+    "IntArray": 3,
+    "StringMap": {
+      "key1": 1,
+      "key2": "2"
+    }
+
+  }
 
 }
