@@ -16,7 +16,7 @@ func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.Compo
 
 	panicOnMissing, err := ca.BoolVal("ServiceErrorManager.PanicOnMissing")
 
-	if err == nil {
+	if err != nil {
 		return errors.New("Unable to build service error manager " + err.Error())
 	}
 
