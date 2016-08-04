@@ -19,6 +19,7 @@ type WsHandler struct {
 	Log                  logging.Logger
 	StatusDeterminer     HttpStatusCodeDeterminer
 	ErrorFinder          ServiceErrorFinder
+	FrameworkErrors		 *FrameworkErrorGenerator
 	RevealPanicDetails   bool
 	DisableQueryParsing  bool
 	DisablePathParsing   bool
@@ -162,8 +163,8 @@ func (wh *WsHandler) handleUnmarshallError(err error, w http.ResponseWriter, wsR
 		var se ServiceErrors
 		se.HttpStatus = http.StatusBadRequest
 
-		message := fmt.Sprintf("There is a problem with the body of the request: %s", err)
-		se.AddError(Client, "UNMARSH", message)
+		e := wh.FrameworkErrors.Error(UnableToParseRequest, Client)
+		se.AddError(e)
 
 		wh.writeErrorResponse(&se, w)
 	}
@@ -231,7 +232,7 @@ func (wh *WsHandler) writePanicResponse(r interface{}, w http.ResponseWriter) {
 
 	wh.Log.LogErrorf("Panic recovered but error response served. %s", r)
 
-	se.AddError(Unexpected, "UNXP", message)
+	se.AddNewError(Unexpected, "UNXP", message)
 
 	wh.writeErrorResponse(&se, w)
 }

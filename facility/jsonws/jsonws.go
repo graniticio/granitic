@@ -2,7 +2,6 @@ package jsonws
 
 import (
 	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/facility/serviceerror"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
@@ -37,7 +36,7 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	jsonUnmarshaller := new(json.DefaultJsonUnmarshaller)
 	cn.WrapAndAddProto(jsonUnmarshallerComponentName, jsonUnmarshaller)
 
-	frameworkErrors := new(serviceerror.FrameworkErrorGenerator)
+	frameworkErrors := new(ws.FrameworkErrorGenerator)
 	ca.Populate("FrameworkServiceErrors", frameworkErrors)
 	cn.WrapAndAddProto(wsFrameworkErrorGenerator, frameworkErrors)
 
@@ -63,7 +62,7 @@ type JsonWsHandlerDecorator struct {
 	StatusCodeDeterminer ws.HttpStatusCodeDeterminer
 	Unmarshaller         ws.WsUnmarshaller
 	QueryBinder          *ws.ParamBinder
-	FrameworkErrors      *serviceerror.FrameworkErrorGenerator
+	FrameworkErrors      *ws.FrameworkErrorGenerator
 }
 
 func (jwhd *JsonWsHandlerDecorator) OfInterest(component *ioc.Component) bool {
@@ -100,6 +99,10 @@ func (jwhd *JsonWsHandlerDecorator) DecorateComponent(component *ioc.Component, 
 
 	if h.ParamBinder == nil {
 		h.ParamBinder = jwhd.QueryBinder
+	}
+
+	if h.FrameworkErrors == nil {
+		h.FrameworkErrors = jwhd.FrameworkErrors
 	}
 
 }

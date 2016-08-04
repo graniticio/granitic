@@ -44,11 +44,17 @@ type ServiceErrors struct {
 	ErrorFinder ServiceErrorFinder
 }
 
-func (se *ServiceErrors) AddError(category ServiceErrorCategory, label string, message string) {
+func (se *ServiceErrors) AddNewError(category ServiceErrorCategory, label string, message string) {
 
 	error := CategorisedError{category, label, message}
 
 	se.Errors = append(se.Errors, error)
+
+}
+
+func (se *ServiceErrors) AddError(e *CategorisedError) {
+
+	se.Errors = append(se.Errors, *e)
 
 }
 

@@ -5,7 +5,7 @@
   },
   "FrameworkServiceErrors":{
     "Messages": {
-      "Unmarshall": ["CODE","MESSAGE"]
+      "UnableToParseRequest": ["PARSE","Unable to parse the body of the request. Please check the content you are sending."]
     }
   }
 }
