@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-type bindError func(string, string, string) *WsFrameworkError
+type bindError func(string, string, string, *WsParams) *WsFrameworkError
 
 type ParamBinder struct {
 	FrameworkLogger logging.Logger
@@ -18,12 +18,13 @@ func (pb *ParamBinder) AutoBindPathParameters(wsReq *WsRequest, p *WsParams) {
 
 	t := wsReq.RequestBody
 
-	for _, fieldName := range p.ParamNames() {
+	for i, fieldName := range p.ParamNames() {
 
 		if rt.HasFieldOfName(t, fieldName) {
-			fErr := pb.bindValueToField(fieldName, fieldName, p, t, pb.pathParamError)
+			fErr := pb.bindValueToField(strconv.Itoa(i), fieldName, p, t, pb.pathParamError)
 
 			if fErr != nil {
+				fErr.Position = i
 				wsReq.AddFrameworkError(fErr)
 			} else {
 				wsReq.RecordFieldAsPopulated(fieldName)
@@ -67,16 +68,29 @@ func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 	}
 }
 
-func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeName string) *WsFrameworkError {
+func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeName string, p *WsParams) *WsFrameworkError {
 
-	m, c := pb.FrameworkErrors.MessageCode(QueryWrongType, paramName, typeName)
+	var v = ""
+
+	if p.Exists(paramName) {
+		v, _ = p.StringValue(paramName)
+	}
+
+
+	m, c := pb.FrameworkErrors.MessageCode(QueryWrongType, paramName, typeName, v)
 	return NewQueryBindFrameworkError(m, c, paramName, fieldName)
 
 }
 
-func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeName string) *WsFrameworkError {
+func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeName string, p *WsParams) *WsFrameworkError {
 
-	m, c  := pb.FrameworkErrors.MessageCode(PathWrongType, typeName)
+	var v = ""
+
+	if p.Exists(paramName) {
+		v, _ = p.StringValue(paramName)
+	}
+
+	m, c  := pb.FrameworkErrors.MessageCode(PathWrongType, paramName, typeName, v)
 	return NewPathBindFrameworkError(m, c, fieldName)
 
 }
@@ -121,7 +135,7 @@ func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *Ws
 	s, err := qp.StringValue(paramName)
 
 	if err != nil {
-		return errorFn(paramName, fieldName, "string")
+		return errorFn(paramName, fieldName, "string", qp)
 	}
 
 	rt.SetString(t, fieldName, s)
@@ -133,7 +147,7 @@ func (pb *ParamBinder) setBoolField(paramName string, fieldName string, qp *WsPa
 	b, err := qp.BoolValue(paramName)
 
 	if err != nil {
-		return errorFn(paramName, fieldName, "boolean")
+		return errorFn(paramName, fieldName, "bool", qp)
 	}
 
 	rt.SetBool(t, fieldName, b)
@@ -144,7 +158,7 @@ func (pb *ParamBinder) setIntNField(paramName string, fieldName string, qp *WsPa
 	i, err := qp.IntNValue(paramName, bits)
 
 	if err != nil {
-		return errorFn(paramName, fieldName, pb.intTypeName("integer", bits))
+		return errorFn(paramName, fieldName, pb.intTypeName("int", bits), qp)
 	}
 
 	rt.SetInt64(t, fieldName, i)
@@ -155,7 +169,7 @@ func (pb *ParamBinder) setFloatNField(paramName string, fieldName string, qp *Ws
 	i, err := qp.FloatNValue(paramName, bits)
 
 	if err != nil {
-		return errorFn(paramName, fieldName, pb.intTypeName("floating-point", bits))
+		return errorFn(paramName, fieldName, pb.intTypeName("float", bits), qp)
 	}
 
 	rt.SetFloat64(t, fieldName, i)
@@ -166,7 +180,7 @@ func (pb *ParamBinder) setUintNField(paramName string, fieldName string, qp *WsP
 	i, err := qp.UIntNValue(paramName, bits)
 
 	if err != nil {
-		return errorFn(paramName, fieldName, pb.intTypeName("unsigned-integer", bits))
+		return errorFn(paramName, fieldName, pb.intTypeName("uint", bits), qp)
 	}
 
 	rt.SetUint64(t, fieldName, i)
@@ -177,6 +191,6 @@ func (pb *ParamBinder) intTypeName(prefix string, bits int) string {
 	if bits == 0 {
 		return prefix
 	} else {
-		return prefix + " (" + strconv.Itoa(bits) + "-bit)"
+		return prefix + strconv.Itoa(bits)
 	}
 }

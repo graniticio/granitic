@@ -16,7 +16,7 @@ func NewWsParamsForPath(keys []string, values []string) *WsParams {
 	for i, k := range keys {
 
 		if i < v {
-			contents[k] = []string{values[i]}
+			contents[strconv.Itoa(i)] = []string{values[i]}
 			names = append(names, k)
 		}
 

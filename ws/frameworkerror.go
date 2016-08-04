@@ -18,6 +18,8 @@ type WsFrameworkError struct {
 	ClientField string
 	TargetField string
 	Message     string
+	Value string
+	Position int
 	Code string
 }
 
