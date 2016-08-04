@@ -9,6 +9,9 @@ type FrameworkErrorEvent string
 
 const (
 	UnableToParseRequest = "UnableToParseRequest"
+	QueryTargetNotArray = "QueryTargetNotArray"
+	QueryWrongType = "QueryWrongType"
+	PathWrongType = "PathWrongType"
 )
 
 type FrameworkErrorGenerator struct {
@@ -32,5 +35,21 @@ func (feg *FrameworkErrorGenerator) Error(e FrameworkErrorEvent, c ServiceErrorC
 	fm := fmt.Sprintf(t, a...)
 
 	return NewCategorisedError(c, cd, fm)
+
+}
+
+func (feg *FrameworkErrorGenerator) Message(e FrameworkErrorEvent,  a ...interface{}) string {
+
+	l := feg.FrameworkLogger
+	mc := feg.Messages[e]
+
+	if mc == nil || len(mc) < 2{
+		l.LogWarnf("No framework error message defined for '%s'. Returning a default message.")
+		return "No error message defined for this error"
+	}
+
+	t := mc[1]
+
+	return fmt.Sprintf(t, a...)
 
 }

@@ -40,6 +40,8 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	ca.Populate("FrameworkServiceErrors", frameworkErrors)
 	cn.WrapAndAddProto(wsFrameworkErrorGenerator, frameworkErrors)
 
+	queryBinder.FrameworkErrors = frameworkErrors
+
 	decoratorLogger := lm.CreateLogger(jsonHandlerDecoratorComponentName)
 	decorator := JsonWsHandlerDecorator{decoratorLogger, responseWriter, abnormalResponseWriter, statusDeterminer, jsonUnmarshaller, queryBinder, frameworkErrors}
 	cn.WrapAndAddProto(jsonHandlerDecoratorComponentName, &decorator)

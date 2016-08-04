@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"fmt"
 	"github.com/graniticio/granitic/logging"
 	rt "github.com/graniticio/granitic/reflecttools"
 	"reflect"
@@ -12,6 +11,7 @@ type bindError func(string, string, string) *WsFrameworkError
 
 type ParamBinder struct {
 	FrameworkLogger logging.Logger
+	FrameworkErrors *FrameworkErrorGenerator
 }
 
 func (pb *ParamBinder) AutoBindPathParameters(wsReq *WsRequest, p *WsParams) {
@@ -47,7 +47,7 @@ func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 		if rt.HasFieldOfName(t, paramName) {
 
 			if !rt.TargetFieldIsArray(t, paramName) && p.MultipleValues(paramName) {
-				message := fmt.Sprintf("Multiple values for query parameter %s. The target field can only accept a single value.", paramName)
+				message := pb.FrameworkErrors.Message(QueryTargetNotArray, paramName)
 				wsReq.AddFrameworkError(NewQueryBindFrameworkError(message, paramName, paramName))
 				continue
 			}
@@ -67,14 +67,14 @@ func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 
 func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeName string) *WsFrameworkError {
 
-	message := fmt.Sprintf("Unable to convert the value of query parameter %s to %s", paramName, typeName)
+	message := pb.FrameworkErrors.Message(QueryWrongType, paramName, typeName)
 	return NewQueryBindFrameworkError(message, paramName, fieldName)
 
 }
 
 func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeName string) *WsFrameworkError {
 
-	message := fmt.Sprintf("Unable to convert the value of a path parameter to %s. Check the format of your request path", typeName)
+	message := pb.FrameworkErrors.Message(PathWrongType, typeName)
 	return NewPathBindFrameworkError(message, fieldName)
 
 }
@@ -119,7 +119,7 @@ func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *Ws
 	s, err := qp.StringValue(paramName)
 
 	if err != nil {
-		return errorFn(paramName, fieldName, "a string")
+		return errorFn(paramName, fieldName, "string")
 	}
 
 	rt.SetString(t, fieldName, s)
@@ -131,7 +131,7 @@ func (pb *ParamBinder) setBoolField(paramName string, fieldName string, qp *WsPa
 	b, err := qp.BoolValue(paramName)
 
 	if err != nil {
-		return errorFn(paramName, fieldName, "a boolean")
+		return errorFn(paramName, fieldName, "boolean")
 	}
 
 	rt.SetBool(t, fieldName, b)
@@ -142,7 +142,7 @@ func (pb *ParamBinder) setIntNField(paramName string, fieldName string, qp *WsPa
 	i, err := qp.IntNValue(paramName, bits)
 
 	if err != nil {
-		return errorFn(paramName, fieldName, pb.intTypeName("an integer", bits))
+		return errorFn(paramName, fieldName, pb.intTypeName("integer", bits))
 	}
 
 	rt.SetInt64(t, fieldName, i)
@@ -153,7 +153,7 @@ func (pb *ParamBinder) setFloatNField(paramName string, fieldName string, qp *Ws
 	i, err := qp.FloatNValue(paramName, bits)
 
 	if err != nil {
-		return errorFn(paramName, fieldName, pb.intTypeName("a floating-point number", bits))
+		return errorFn(paramName, fieldName, pb.intTypeName("floating-point", bits))
 	}
 
 	rt.SetFloat64(t, fieldName, i)
@@ -164,7 +164,7 @@ func (pb *ParamBinder) setUintNField(paramName string, fieldName string, qp *WsP
 	i, err := qp.UIntNValue(paramName, bits)
 
 	if err != nil {
-		return errorFn(paramName, fieldName, pb.intTypeName("an unsigned integer", bits))
+		return errorFn(paramName, fieldName, pb.intTypeName("unsigned-integer", bits))
 	}
 
 	rt.SetUint64(t, fieldName, i)
