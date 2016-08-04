@@ -5,6 +5,53 @@ import (
 	"fmt"
 )
 
+type WsFrameworkPhase int
+
+const (
+	Unmarshall = iota
+	QueryBind
+	PathBind
+)
+
+type WsFrameworkError struct {
+	Phase       WsFrameworkPhase
+	ClientField string
+	TargetField string
+	Message     string
+	Code string
+}
+
+func NewUnmarshallWsFrameworkError(message, code string) *WsFrameworkError {
+	f := new(WsFrameworkError)
+	f.Phase = Unmarshall
+	f.Message = message
+	f.Code = code
+
+	return f
+}
+
+func NewQueryBindFrameworkError(message, code, param, target string) *WsFrameworkError {
+	f := new(WsFrameworkError)
+	f.Phase = QueryBind
+	f.Message = message
+	f.ClientField = param
+	f.TargetField = target
+	f.Code = code
+
+	return f
+}
+
+func NewPathBindFrameworkError(message, code, target string) *WsFrameworkError {
+	f := new(WsFrameworkError)
+	f.Phase = PathBind
+	f.Message = message
+	f.TargetField = target
+	f.Code = code
+
+	return f
+}
+
+
 type FrameworkErrorEvent string
 
 const (
@@ -38,18 +85,18 @@ func (feg *FrameworkErrorGenerator) Error(e FrameworkErrorEvent, c ServiceErrorC
 
 }
 
-func (feg *FrameworkErrorGenerator) Message(e FrameworkErrorEvent,  a ...interface{}) string {
+func (feg *FrameworkErrorGenerator) MessageCode(e FrameworkErrorEvent,  a ...interface{}) (message string, code string) {
 
 	l := feg.FrameworkLogger
 	mc := feg.Messages[e]
 
 	if mc == nil || len(mc) < 2{
 		l.LogWarnf("No framework error message defined for '%s'. Returning a default message.")
-		return "No error message defined for this error"
+		return "No error message defined for this error", "UNKNOWN"
 	}
 
 	t := mc[1]
 
-	return fmt.Sprintf(t, a...)
+	return fmt.Sprintf(t, a...), mc[0]
 
 }

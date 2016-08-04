@@ -47,8 +47,10 @@ func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 		if rt.HasFieldOfName(t, paramName) {
 
 			if !rt.TargetFieldIsArray(t, paramName) && p.MultipleValues(paramName) {
-				message := pb.FrameworkErrors.Message(QueryTargetNotArray, paramName)
-				wsReq.AddFrameworkError(NewQueryBindFrameworkError(message, paramName, paramName))
+				m, c := pb.FrameworkErrors.MessageCode(QueryTargetNotArray, paramName)
+
+
+				wsReq.AddFrameworkError(NewQueryBindFrameworkError(m, c, paramName, paramName))
 				continue
 			}
 
@@ -67,15 +69,15 @@ func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 
 func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeName string) *WsFrameworkError {
 
-	message := pb.FrameworkErrors.Message(QueryWrongType, paramName, typeName)
-	return NewQueryBindFrameworkError(message, paramName, fieldName)
+	m, c := pb.FrameworkErrors.MessageCode(QueryWrongType, paramName, typeName)
+	return NewQueryBindFrameworkError(m, c, paramName, fieldName)
 
 }
 
 func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeName string) *WsFrameworkError {
 
-	message := pb.FrameworkErrors.Message(PathWrongType, typeName)
-	return NewPathBindFrameworkError(message, fieldName)
+	m, c  := pb.FrameworkErrors.MessageCode(PathWrongType, typeName)
+	return NewPathBindFrameworkError(m, c, fieldName)
 
 }
 

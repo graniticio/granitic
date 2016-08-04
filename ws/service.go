@@ -22,6 +22,10 @@ type WsRequest struct {
 	populatedFields map[string]bool
 }
 
+func (wsr *WsRequest) HasFrameworkErrors() bool {
+	return len(wsr.FrameworkErrors) > 0
+}
+
 func (wsr *WsRequest) AddFrameworkError(f *WsFrameworkError) {
 	wsr.FrameworkErrors = append(wsr.FrameworkErrors, f)
 }
@@ -44,47 +48,6 @@ type WsResponse struct {
 	Errors     *ServiceErrors
 }
 
-type WsFrameworkPhase int
-
-const (
-	Unmarshall = iota
-	QueryBind
-	PathBind
-)
-
-type WsFrameworkError struct {
-	Phase       WsFrameworkPhase
-	ClientField string
-	TargetField string
-	Message     string
-}
-
-func NewUnmarshallWsFrameworkError(message string) *WsFrameworkError {
-	f := new(WsFrameworkError)
-	f.Phase = Unmarshall
-	f.Message = message
-
-	return f
-}
-
-func NewQueryBindFrameworkError(message string, param string, target string) *WsFrameworkError {
-	f := new(WsFrameworkError)
-	f.Phase = QueryBind
-	f.Message = message
-	f.ClientField = param
-	f.TargetField = target
-
-	return f
-}
-
-func NewPathBindFrameworkError(message string, target string) *WsFrameworkError {
-	f := new(WsFrameworkError)
-	f.Phase = PathBind
-	f.Message = message
-	f.TargetField = target
-
-	return f
-}
 
 type WsRequestProcessor interface {
 	Process(request *WsRequest, response *WsResponse)

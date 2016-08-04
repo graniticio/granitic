@@ -8,7 +8,7 @@
       "UnableToParseRequest": ["PARSE","Unable to parse the body of the request. Please check the content you are sending."],
       "QueryTargetNotArray":  ["QUERYBIND", "Multiple values for query parameter %s. Only one value supported"],
       "QueryWrongType": ["QUERYBIND", "Unable to convert the value of query parameter %s to type %s"],
-      "PathWrongType": ["PATHBIND", "Unable to convert the value of a path parameter to type %s. Check the format of your request path"]
+      "PathWrongType": ["PATHBIND", "Unable to convert the value of a path parameter to type %s. Please check the format of your request path."]
     }
   }
 }

@@ -51,15 +51,15 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	wsReq := new(WsRequest)
 	wsReq.HttpMethod = req.Method
 
-	err := wh.unmarshall(req, wsReq)
+	wh.unmarshall(req, wsReq)
+	wh.processQueryParams(req, wsReq)
+	wh.processPathParams(req, wsReq)
 
-	if err != nil {
-		wh.handleUnmarshallError(err, w, wsReq)
+	if wsReq.HasFrameworkErrors() && !wh.DeferFrameworkErrors {
+		wh.handleFrameworkErrors(w, wsReq)
 		return
 	}
 
-	wh.processQueryParams(req, wsReq)
-	wh.processPathParams(req, wsReq)
 
 	var errors ServiceErrors
 	errors.ErrorFinder = wh.ErrorFinder
@@ -71,14 +71,12 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	if errors.HasErrors() {
 		wh.writeErrorResponse(&errors, w)
 	} else {
-
 		wh.process(wsReq, w)
-
 	}
 
 }
 
-func (wh *WsHandler) unmarshall(req *http.Request, wsReq *WsRequest) error {
+func (wh *WsHandler) unmarshall(req *http.Request, wsReq *WsRequest) {
 
 	targetSource, found := wh.Logic.(WsUnmarshallTarget)
 
@@ -87,13 +85,22 @@ func (wh *WsHandler) unmarshall(req *http.Request, wsReq *WsRequest) error {
 		wsReq.RequestBody = target
 
 		if req.ContentLength == 0 {
-			return nil
-		} else {
-			return wh.Unmarshaller.Unmarshall(req, wsReq)
+			return
 		}
-	}
 
-	return nil
+		err := wh.Unmarshaller.Unmarshall(req, wsReq)
+
+		if err != nil {
+
+			wh.Log.LogDebugf("Error unmarshalling request body for %s %s %s", req.URL.Path, req.Method, err)
+
+			m, c := wh.FrameworkErrors.MessageCode(UnableToParseRequest)
+
+			f := NewUnmarshallWsFrameworkError(m, c)
+			wsReq.AddFrameworkError(f)
+		}
+
+	}
 }
 
 func (wh *WsHandler) processPathParams(req *http.Request, wsReq *WsRequest) {
@@ -150,24 +157,20 @@ func (wh *WsHandler) RegexPattern() string {
 	return wh.PathMatchPattern
 }
 
-func (wh *WsHandler) handleUnmarshallError(err error, w http.ResponseWriter, wsReq *WsRequest) {
-	wh.Log.LogWarnf("Error unmarshalling request body %s", err)
 
-	if wh.DeferFrameworkErrors {
-		//Add a framework error for a validator to pick up later
-		f := NewUnmarshallWsFrameworkError(err.Error())
-		wsReq.AddFrameworkError(f)
 
-	} else {
 
-		var se ServiceErrors
-		se.HttpStatus = http.StatusBadRequest
+func (wh *WsHandler) handleFrameworkErrors(w http.ResponseWriter, wsReq *WsRequest) {
 
-		e := wh.FrameworkErrors.Error(UnableToParseRequest, Client)
-		se.AddError(e)
+	var se ServiceErrors
+	se.HttpStatus = http.StatusBadRequest
 
-		wh.writeErrorResponse(&se, w)
+
+	for _, fe := range wsReq.FrameworkErrors {
+		se.AddNewError(Client, fe.Code, fe.Message)
 	}
+
+	wh.writeErrorResponse(&se, w)
 
 }
 
