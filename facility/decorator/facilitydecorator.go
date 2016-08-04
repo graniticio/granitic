@@ -18,16 +18,29 @@ type ApplicationLogDecorator struct {
 
 func (ald *ApplicationLogDecorator) OfInterest(component *ioc.Component) bool {
 
-	result := reflecttools.HasFieldOfName(component.Instance, expectedApplicationLoggerFieldName)
+	result := false
+	fieldPresent := reflecttools.HasFieldOfName(component.Instance, expectedApplicationLoggerFieldName)
 
 	frameworkLog := ald.FrameworkLogger
+
+	if fieldPresent {
+
+		targetFieldType := reflecttools.TypeOfField(component.Instance, expectedApplicationLoggerFieldName)
+		typeOfLogger := reflect.TypeOf(ald.FrameworkLogger)
+
+		if typeOfLogger.AssignableTo(targetFieldType) {
+			result = true
+		}
+
+	}
+
 
 	if frameworkLog.IsLevelEnabled(logging.Trace) {
 		if result {
 			frameworkLog.LogTracef("%s NEEDS an ApplicationLogger", component.Name)
 
 		} else {
-			frameworkLog.LogTracef("%s does not need an ApplicationLogger (no field named %s)", component.Name, expectedApplicationLoggerFieldName)
+			frameworkLog.LogTracef("%s does not need an ApplicationLogger (either no field named %s or incompatible type)", component.Name, expectedApplicationLoggerFieldName)
 		}
 	}
 
@@ -37,15 +50,8 @@ func (ald *ApplicationLogDecorator) OfInterest(component *ioc.Component) bool {
 func (ald *ApplicationLogDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
 	logger := ald.LoggerManager.CreateLogger(component.Name)
 
-	targetFieldType := reflecttools.TypeOfField(component.Instance, expectedApplicationLoggerFieldName)
-	typeOfLogger := reflect.TypeOf(logger)
-
-	if typeOfLogger.AssignableTo(targetFieldType) {
-		reflectComponent := reflect.ValueOf(component.Instance).Elem()
-		reflectComponent.FieldByName(expectedApplicationLoggerFieldName).Set(reflect.ValueOf(logger))
-	} else {
-		ald.FrameworkLogger.LogErrorf("Unable to inject an ApplicationLogger into component %s because field %s is not of the expected type logger.Logger", component.Name, expectedApplicationLoggerFieldName)
-	}
+	reflectComponent := reflect.ValueOf(component.Instance).Elem()
+	reflectComponent.FieldByName(expectedApplicationLoggerFieldName).Set(reflect.ValueOf(logger))
 
 }
 

@@ -2,36 +2,36 @@ package test
 
 import "testing"
 
-func ExpectString(t *testing.T, check, actual string) bool {
-	if actual != check {
-		t.Errorf("Expected %s, actual %s", check, actual)
+func ExpectString(t *testing.T, check, expected string) bool {
+	if expected != check {
+		t.Errorf("Expected %s, actual %s", expected, check)
 		return false
 	} else {
 		return true
 	}
 }
 
-func ExpectBool(t *testing.T, check, actual bool) bool {
-	if actual != check {
-		t.Errorf("Expected %t, actual %t", check, actual)
+func ExpectBool(t *testing.T, check, expected bool) bool {
+	if expected != check {
+		t.Errorf("Expected %t, actual %t", expected, check)
 		return false
 	} else {
 		return true
 	}
 }
 
-func ExpectInt(t *testing.T, check, actual int) bool {
-	if actual != check {
-		t.Errorf("Expected %d, actual %d", check, actual)
+func ExpectInt(t *testing.T, check, expected int) bool {
+	if expected != check {
+		t.Errorf("Expected %d, actual %d", expected, check)
 		return false
 	} else {
 		return true
 	}
 }
 
-func ExpectFloat(t *testing.T, check, actual float64) bool {
-	if actual != check {
-		t.Errorf("Expected %e, actual %e", check, actual)
+func ExpectFloat(t *testing.T, check, expected float64) bool {
+	if expected != check {
+		t.Errorf("Expected %e, actual %e", expected, check)
 		return false
 	} else {
 		return true
