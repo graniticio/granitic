@@ -38,6 +38,35 @@ func (pb *ParamBinder) AutoBindPathParameters(wsReq *WsRequest, p *WsParams) {
 
 }
 
+func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]string ) {
+
+	t := wsReq.RequestBody
+	p := wsReq.QueryParams
+	l := pb.FrameworkLogger
+
+	for field, param := range targets {
+
+		if rt.HasFieldOfName(t, field) {
+
+			if p.Exists(param) {
+				fErr := pb.bindValueToField(param, field, p, t, pb.queryParamError)
+
+				if fErr != nil {
+					wsReq.AddFrameworkError(fErr)
+				} else {
+					wsReq.RecordFieldAsPopulated(field)
+				}
+			}
+
+		} else {
+			l.LogErrorf("No field named %s exists to bind a query parameter into", field)
+			m, c := pb.FrameworkErrors.MessageCode(QueryNoTargetField, field, param)
+			wsReq.AddFrameworkError(NewQueryBindFrameworkError(m, c, param, field))
+		}
+	}
+}
+
+
 func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 
 	t := wsReq.RequestBody
@@ -46,14 +75,6 @@ func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 	for _, paramName := range p.ParamNames() {
 
 		if rt.HasFieldOfName(t, paramName) {
-
-			if !rt.TargetFieldIsArray(t, paramName) && p.MultipleValues(paramName) {
-				m, c := pb.FrameworkErrors.MessageCode(QueryTargetNotArray, paramName)
-
-
-				wsReq.AddFrameworkError(NewQueryBindFrameworkError(m, c, paramName, paramName))
-				continue
-			}
 
 			fErr := pb.bindValueToField(paramName, paramName, p, t, pb.queryParamError)
 
@@ -96,6 +117,11 @@ func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeNa
 }
 
 func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *WsParams, t interface{}, errorFn bindError) *WsFrameworkError {
+
+	if !rt.TargetFieldIsArray(t, paramName) && p.MultipleValues(paramName) {
+		m, c := pb.FrameworkErrors.MessageCode(QueryTargetNotArray, paramName)
+		return NewQueryBindFrameworkError(m, c, paramName, paramName)
+	}
 
 	switch rt.TypeOfField(t, fieldName).Kind() {
 	case reflect.Int:

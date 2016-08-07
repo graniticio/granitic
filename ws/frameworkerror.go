@@ -61,6 +61,7 @@ const (
 	QueryTargetNotArray = "QueryTargetNotArray"
 	QueryWrongType = "QueryWrongType"
 	PathWrongType = "PathWrongType"
+	QueryNoTargetField = "QueryNoTargetField"
 )
 
 type FrameworkErrorGenerator struct {
