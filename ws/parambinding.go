@@ -49,6 +49,8 @@ func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]
 		if rt.HasFieldOfName(t, field) {
 
 			if p.Exists(param) {
+				l.LogTracef("Binding parameter %s to field %s", param, field)
+
 				fErr := pb.bindValueToField(param, field, p, t, pb.queryParamError)
 
 				if fErr != nil {
@@ -116,9 +118,9 @@ func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeNa
 
 func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *WsParams, t interface{}, errorFn bindError) *WsFrameworkError {
 
-	if !rt.TargetFieldIsArray(t, paramName) && p.MultipleValues(paramName) {
-		m, c := pb.FrameworkErrors.MessageCode(QueryTargetNotArray, paramName)
-		return NewQueryBindFrameworkError(m, c, paramName, paramName)
+	if !rt.TargetFieldIsArray(t, fieldName) && p.MultipleValues(paramName) {
+		m, c := pb.FrameworkErrors.MessageCode(QueryTargetNotArray, fieldName)
+		return NewQueryBindFrameworkError(m, c, paramName, fieldName)
 	}
 
 	switch rt.TypeOfField(t, fieldName).Kind() {

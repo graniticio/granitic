@@ -24,7 +24,7 @@ type WsHandler struct {
 	DisableQueryParsing  bool
 	DisablePathParsing   bool
 	DeferFrameworkErrors bool
-	BindQueryParams      map[string]string
+	FieldQueryParam      map[string]string
 	BindPathParams       []string
 	ParamBinder          *ParamBinder
 	AutoBindQuery        bool
@@ -44,6 +44,7 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	defer func() {
 		if r := recover(); r != nil {
+			wh.Log.LogErrorfWithTrace("Panic recovered while trying process a request or write its response %s", r)
 			wh.writePanicResponse(r, w)
 		}
 	}()
@@ -137,7 +138,7 @@ func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *WsRequest) {
 		if wh.AutoBindQuery {
 			wh.ParamBinder.AutoBindQueryParameters(wsReq)
 		} else {
-			wh.ParamBinder.BindQueryParameters(wsReq, wh.BindQueryParams)
+			wh.ParamBinder.BindQueryParameters(wsReq, wh.FieldQueryParam)
 		}
 
 	}
@@ -247,7 +248,7 @@ func (wh *WsHandler) StartComponent() error {
 		wh.validator = validator
 	}
 
-	wh.bindQuery = wh.AutoBindQuery || (wh.BindQueryParams != nil && len(wh.BindQueryParams) > 0)
+	wh.bindQuery = wh.AutoBindQuery || (wh.FieldQueryParam != nil && len(wh.FieldQueryParam) > 0)
 
 	if !wh.DisablePathParsing {
 
