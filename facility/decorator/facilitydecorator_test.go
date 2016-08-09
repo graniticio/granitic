@@ -1,10 +1,10 @@
 package decorator
 
 import (
-	"testing"
-	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ioc"
+	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/test"
+	"testing"
 )
 
 type AcceptLog struct {
@@ -19,7 +19,6 @@ type RejectLogPrim struct {
 	Log int
 }
 
-
 func TestMatcher(t *testing.T) {
 
 	d := new(ApplicationLogDecorator)
@@ -32,12 +31,12 @@ func TestMatcher(t *testing.T) {
 	test.ExpectBool(t, d.OfInterest(c), true)
 
 	c.Name = "NoMatch"
-	c.Instance = new (RejectLogStruct)
+	c.Instance = new(RejectLogStruct)
 
 	test.ExpectBool(t, d.OfInterest(c), false)
 
 	c.Name = "NoMatchPrim"
-	c.Instance = new (RejectLogPrim)
+	c.Instance = new(RejectLogPrim)
 
 	test.ExpectBool(t, d.OfInterest(c), false)
 

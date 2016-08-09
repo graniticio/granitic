@@ -34,7 +34,6 @@ func (ald *ApplicationLogDecorator) OfInterest(component *ioc.Component) bool {
 
 	}
 
-
 	if frameworkLog.IsLevelEnabled(logging.Trace) {
 		if result {
 			frameworkLog.LogTracef("%s NEEDS an ApplicationLogger", component.Name)

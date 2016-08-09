@@ -19,7 +19,7 @@ type WsHandler struct {
 	Log                  logging.Logger
 	StatusDeterminer     HttpStatusCodeDeterminer
 	ErrorFinder          ServiceErrorFinder
-	FrameworkErrors		 *FrameworkErrorGenerator
+	FrameworkErrors      *FrameworkErrorGenerator
 	RevealPanicDetails   bool
 	DisableQueryParsing  bool
 	DisablePathParsing   bool
@@ -59,7 +59,6 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		wh.handleFrameworkErrors(w, wsReq)
 		return
 	}
-
 
 	var errors ServiceErrors
 	errors.ErrorFinder = wh.ErrorFinder
@@ -159,14 +158,10 @@ func (wh *WsHandler) RegexPattern() string {
 	return wh.PathMatchPattern
 }
 
-
-
-
 func (wh *WsHandler) handleFrameworkErrors(w http.ResponseWriter, wsReq *WsRequest) {
 
 	var se ServiceErrors
 	se.HttpStatus = http.StatusBadRequest
-
 
 	for _, fe := range wsReq.FrameworkErrors {
 		se.AddNewError(Client, fe.Code, fe.Message)

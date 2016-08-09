@@ -38,7 +38,7 @@ func (pb *ParamBinder) AutoBindPathParameters(wsReq *WsRequest, p *WsParams) {
 
 }
 
-func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]string ) {
+func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]string) {
 
 	t := wsReq.RequestBody
 	p := wsReq.QueryParams
@@ -65,7 +65,6 @@ func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]
 		}
 	}
 }
-
 
 func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 
@@ -97,7 +96,6 @@ func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeN
 		v, _ = p.StringValue(paramName)
 	}
 
-
 	m, c := pb.FrameworkErrors.MessageCode(QueryWrongType, paramName, typeName, v)
 	return NewQueryBindFrameworkError(m, c, paramName, fieldName)
 
@@ -111,7 +109,7 @@ func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeNa
 		v, _ = p.StringValue(paramName)
 	}
 
-	m, c  := pb.FrameworkErrors.MessageCode(PathWrongType, paramName, typeName, v)
+	m, c := pb.FrameworkErrors.MessageCode(PathWrongType, paramName, typeName, v)
 	return NewPathBindFrameworkError(m, c, fieldName)
 
 }

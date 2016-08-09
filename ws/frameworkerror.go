@@ -1,8 +1,8 @@
 package ws
 
 import (
-	"github.com/graniticio/granitic/logging"
 	"fmt"
+	"github.com/graniticio/granitic/logging"
 )
 
 type WsFrameworkPhase int
@@ -18,9 +18,9 @@ type WsFrameworkError struct {
 	ClientField string
 	TargetField string
 	Message     string
-	Value string
-	Position int
-	Code string
+	Value       string
+	Position    int
+	Code        string
 }
 
 func NewUnmarshallWsFrameworkError(message, code string) *WsFrameworkError {
@@ -53,15 +53,14 @@ func NewPathBindFrameworkError(message, code, target string) *WsFrameworkError {
 	return f
 }
 
-
 type FrameworkErrorEvent string
 
 const (
 	UnableToParseRequest = "UnableToParseRequest"
-	QueryTargetNotArray = "QueryTargetNotArray"
-	QueryWrongType = "QueryWrongType"
-	PathWrongType = "PathWrongType"
-	QueryNoTargetField = "QueryNoTargetField"
+	QueryTargetNotArray  = "QueryTargetNotArray"
+	QueryWrongType       = "QueryWrongType"
+	PathWrongType        = "PathWrongType"
+	QueryNoTargetField   = "QueryNoTargetField"
 )
 
 type FrameworkErrorGenerator struct {
@@ -74,7 +73,7 @@ func (feg *FrameworkErrorGenerator) Error(e FrameworkErrorEvent, c ServiceErrorC
 	l := feg.FrameworkLogger
 	mc := feg.Messages[e]
 
-	if mc == nil || len(mc) < 2{
+	if mc == nil || len(mc) < 2 {
 		l.LogWarnf("No framework error message defined for '%s'. Returning a default message.")
 		return NewCategorisedError(c, "UNKNOWN", "No error message defined for this error")
 	}
@@ -88,12 +87,12 @@ func (feg *FrameworkErrorGenerator) Error(e FrameworkErrorEvent, c ServiceErrorC
 
 }
 
-func (feg *FrameworkErrorGenerator) MessageCode(e FrameworkErrorEvent,  a ...interface{}) (message string, code string) {
+func (feg *FrameworkErrorGenerator) MessageCode(e FrameworkErrorEvent, a ...interface{}) (message string, code string) {
 
 	l := feg.FrameworkLogger
 	mc := feg.Messages[e]
 
-	if mc == nil || len(mc) < 2{
+	if mc == nil || len(mc) < 2 {
 		l.LogWarnf("No framework error message defined for '%s'. Returning a default message.")
 		return "No error message defined for this error", "UNKNOWN"
 	}

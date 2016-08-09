@@ -48,7 +48,6 @@ type WsResponse struct {
 	Errors     *ServiceErrors
 }
 
-
 type WsRequestProcessor interface {
 	Process(request *WsRequest, response *WsResponse)
 }
