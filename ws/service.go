@@ -20,7 +20,7 @@ type WsRequest struct {
 	PathParams      []string
 	FrameworkErrors []*WsFrameworkError
 	populatedFields map[string]bool
-	UserIdentity    *WsIdentity
+	UserIdentity    WsIdentity
 }
 
 func (wsr *WsRequest) HasFrameworkErrors() bool {

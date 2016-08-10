@@ -3,7 +3,7 @@ package ws
 import "net/http"
 
 type WsIdentifier interface {
-	Identify(req *http.Request) *WsIdentity
+	Identify(req *http.Request) WsIdentity
 }
 
 const authenticated = "Authenticated"
