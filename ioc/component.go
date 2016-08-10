@@ -44,3 +44,8 @@ type Component struct {
 	Instance interface{}
 	Name     string
 }
+
+type ComponentNamer interface {
+	ComponentName() string
+	SetComponentName(name string)
+}

@@ -329,6 +329,12 @@ func (cc *ComponentContainer) addComponent(component *Component) {
 
 	l := cc.FrameworkLogger
 
+	n, nameable := component.Instance.(ComponentNamer)
+
+	if nameable {
+		n.SetComponentName(component.Name)
+	}
+
 	_, startable := component.Instance.(Startable)
 
 	if startable {

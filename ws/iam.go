@@ -21,3 +21,7 @@ func (ws WsIdentity) Authenticated() bool {
 	return a != nil && a.(bool)
 
 }
+
+type WsAccessChecker interface {
+	Allowed(r *WsRequest) bool
+}

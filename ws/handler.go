@@ -29,12 +29,15 @@ type WsHandler struct {
 	BindPathParams        []string
 	ParamBinder           *ParamBinder
 	UserIdentifier        WsIdentifier
+	AccessChecker         WsAccessChecker
+	CheckAccessAfterParse bool
 	AutoBindQuery         bool
 	validate              bool
 	validator             WsRequestValidator
 	bindQuery             bool
 	bindPathParams        bool
 	pathRegex             *regexp.Regexp
+	componentName         string
 }
 
 func (wh *WsHandler) ProvideErrorFinder(finder ServiceErrorFinder) {
@@ -54,7 +57,11 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	wsReq := new(WsRequest)
 	wsReq.HttpMethod = req.Method
 
-	if !wh.identifyAndAuthorize(w, req, wsReq) {
+	if !wh.identifyAndAuthenticate(w, req, wsReq) {
+		return
+	}
+
+	if !wh.CheckAccessAfterParse && !wh.checkAccess(w, wsReq) {
 		return
 	}
 
@@ -64,6 +71,10 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if wsReq.HasFrameworkErrors() && !wh.DeferFrameworkErrors {
 		wh.handleFrameworkErrors(w, wsReq)
+		return
+	}
+
+	if wh.CheckAccessAfterParse && !wh.checkAccess(w, wsReq) {
 		return
 	}
 
@@ -151,7 +162,29 @@ func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *WsRequest) {
 
 }
 
-func (wh *WsHandler) identifyAndAuthorize(w http.ResponseWriter, req *http.Request, wsReq *WsRequest) bool {
+func (wh *WsHandler) checkAccess(w http.ResponseWriter, wsReq *WsRequest) bool {
+
+	ac := wh.AccessChecker
+
+	if ac == nil {
+		return true
+	}
+
+	allowed := ac.Allowed(wsReq)
+
+	if allowed {
+		return true
+	} else {
+		var errors ServiceErrors
+		e := wh.FrameworkErrors.Error(HTTPForbidden, HTTP)
+		errors.AddError(e)
+
+		wh.writeErrorResponse(&errors, w)
+		return false
+	}
+}
+
+func (wh *WsHandler) identifyAndAuthenticate(w http.ResponseWriter, req *http.Request, wsReq *WsRequest) bool {
 
 	if wh.UserIdentifier != nil {
 		i := wh.UserIdentifier.Identify(req)
@@ -293,4 +326,12 @@ func (wh *WsHandler) StartComponent() error {
 
 	return nil
 
+}
+
+func (wh *WsHandler) ComponentName() string {
+	return wh.componentName
+}
+
+func (wh *WsHandler) SetComponentName(name string) {
+	wh.componentName = name
 }
