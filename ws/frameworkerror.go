@@ -61,6 +61,7 @@ const (
 	QueryWrongType       = "QueryWrongType"
 	PathWrongType        = "PathWrongType"
 	QueryNoTargetField   = "QueryNoTargetField"
+	HTTPUnauthorized     = "HTTPUnauthorized"
 )
 
 type FrameworkErrorGenerator struct {

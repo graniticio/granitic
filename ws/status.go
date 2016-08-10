@@ -1,6 +1,9 @@
 package ws
 
-import "net/http"
+import (
+	"net/http"
+	"strconv"
+)
 
 type HttpStatusCodeDeterminer interface {
 	DetermineCode(response *WsResponse) int
@@ -34,6 +37,9 @@ func (dhscd *DefaultHttpStatusCodeDeterminer) DetermineCodeFromErrors(errors *Se
 		switch error.Category {
 		case Unexpected:
 			return http.StatusInternalServerError
+		case HTTP:
+			i, _ := strconv.Atoi(error.Label)
+			return i
 		case Security:
 			sCount += 1
 		case Logic:

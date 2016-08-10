@@ -81,6 +81,8 @@ func (djerw *DefaultAbnormalResponseWriter) formatErrors(errors *ws.ServiceError
 			c = "L"
 		case ws.Client:
 			c = "C"
+		case ws.HTTP:
+			c = "H"
 		}
 
 		k := c + "-" + error.Label

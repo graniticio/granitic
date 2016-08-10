@@ -9,30 +9,32 @@ import (
 
 //Implements HttpEndpointProvider
 type WsHandler struct {
-	Unmarshaller         WsUnmarshaller
-	HttpMethod           string
-	HttpMethods          []string
-	PathMatchPattern     string
-	Logic                WsRequestProcessor
-	ResponseWriter       WsResponseWriter
-	ErrorResponseWriter  WsAbnormalResponseWriter
-	Log                  logging.Logger
-	StatusDeterminer     HttpStatusCodeDeterminer
-	ErrorFinder          ServiceErrorFinder
-	FrameworkErrors      *FrameworkErrorGenerator
-	RevealPanicDetails   bool
-	DisableQueryParsing  bool
-	DisablePathParsing   bool
-	DeferFrameworkErrors bool
-	FieldQueryParam      map[string]string
-	BindPathParams       []string
-	ParamBinder          *ParamBinder
-	AutoBindQuery        bool
-	validate             bool
-	validator            WsRequestValidator
-	bindQuery            bool
-	bindPathParams       bool
-	pathRegex            *regexp.Regexp
+	Unmarshaller          WsUnmarshaller
+	HttpMethod            string
+	HttpMethods           []string
+	PathMatchPattern      string
+	Logic                 WsRequestProcessor
+	ResponseWriter        WsResponseWriter
+	ErrorResponseWriter   WsAbnormalResponseWriter
+	Log                   logging.Logger
+	StatusDeterminer      HttpStatusCodeDeterminer
+	ErrorFinder           ServiceErrorFinder
+	FrameworkErrors       *FrameworkErrorGenerator
+	RevealPanicDetails    bool
+	DisableQueryParsing   bool
+	DisablePathParsing    bool
+	DeferFrameworkErrors  bool
+	RequireAuthentication bool
+	FieldQueryParam       map[string]string
+	BindPathParams        []string
+	ParamBinder           *ParamBinder
+	UserIdentifier        WsIdentifier
+	AutoBindQuery         bool
+	validate              bool
+	validator             WsRequestValidator
+	bindQuery             bool
+	bindPathParams        bool
+	pathRegex             *regexp.Regexp
 }
 
 func (wh *WsHandler) ProvideErrorFinder(finder ServiceErrorFinder) {
@@ -51,6 +53,10 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	wsReq := new(WsRequest)
 	wsReq.HttpMethod = req.Method
+
+	if !wh.identifyAndAuthorize(w, req, wsReq) {
+		return
+	}
 
 	wh.unmarshall(req, wsReq)
 	wh.processQueryParams(req, wsReq)
@@ -142,6 +148,27 @@ func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *WsRequest) {
 		}
 
 	}
+
+}
+
+func (wh *WsHandler) identifyAndAuthorize(w http.ResponseWriter, req *http.Request, wsReq *WsRequest) bool {
+
+	if wh.UserIdentifier != nil {
+		i := wh.UserIdentifier.Identify(req)
+		wsReq.UserIdentity = i
+
+		if wh.RequireAuthentication && !i.Authenticated() {
+			var errors ServiceErrors
+			e := wh.FrameworkErrors.Error(HTTPUnauthorized, HTTP)
+			errors.AddError(e)
+
+			wh.writeErrorResponse(&errors, w)
+			return false
+		}
+
+	}
+
+	return true
 
 }
 
