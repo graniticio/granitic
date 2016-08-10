@@ -10,6 +10,7 @@ import (
 type DefaultJsonResponseWriter struct {
 	FrameworkLogger  logging.Logger
 	StatusDeterminer ws.HttpStatusCodeDeterminer
+	FrameworkErrors  *ws.FrameworkErrorGenerator
 }
 
 func (djrw *DefaultJsonResponseWriter) Write(res *ws.WsResponse, w http.ResponseWriter) error {
@@ -42,6 +43,21 @@ func (djrw *DefaultJsonResponseWriter) Write(res *ws.WsResponse, w http.Response
 	_, err = w.Write(data)
 
 	return err
+}
+
+func (djrw *DefaultJsonResponseWriter) WriteAbnormalStatus(status int, w http.ResponseWriter) error {
+
+	res := new(ws.WsResponse)
+	res.HttpStatus = status
+	var errors ws.ServiceErrors
+
+	e := djrw.FrameworkErrors.HttpError(status)
+	errors.AddError(e)
+
+	res.Errors = &errors
+
+	return djrw.Write(res, w)
+
 }
 
 func (djrw *DefaultJsonResponseWriter) WriteErrors(errors *ws.ServiceErrors, w http.ResponseWriter) error {

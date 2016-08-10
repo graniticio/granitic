@@ -9,9 +9,12 @@
       "QueryTargetNotArray":  ["QUERYBIND", "Multiple values for query parameter %s. Only one value supported"],
       "QueryWrongType": ["QUERYBIND", "Unable to convert the value of query parameter %s to type %s. Value provided was %s"],
       "QueryNoTargetField": ["QUERYBIND", "No field named %s exists to bind query parameter %s into."],
-      "PathWrongType": ["PATHBIND", "Unable to convert the value of a path parameter (group %s) to type %s. Please check the format of your request path. Value provided was \"%s\""],
-      "HTTPUnauthorized": ["401", "Access to this resource requires authorization."],
-      "HTTPForbidden": ["403", "You do not have permission to interact with that resource."]
+      "PathWrongType": ["PATHBIND", "Unable to convert the value of a path parameter (group %s) to type %s. Please check the format of your request path. Value provided was \"%s\""]
+    },
+    "HttpMessages": {
+      "401": "Access to this resource requires authorization.",
+      "403": "You do not have permission to interact with that resource.",
+      "404": "No such resource."
     }
   }
 }

@@ -173,11 +173,7 @@ func (wh *WsHandler) checkAccess(w http.ResponseWriter, wsReq *WsRequest) bool {
 	if allowed {
 		return true
 	} else {
-		var errors ServiceErrors
-		e := wh.FrameworkErrors.Error(HTTPForbidden, HTTP)
-		errors.AddError(e)
-
-		wh.writeErrorResponse(&errors, w)
+		wh.ResponseWriter.WriteAbnormalStatus(http.StatusForbidden, w)
 		return false
 	}
 }
@@ -189,11 +185,7 @@ func (wh *WsHandler) identifyAndAuthenticate(w http.ResponseWriter, req *http.Re
 		wsReq.UserIdentity = i
 
 		if wh.RequireAuthentication && !i.Authenticated() {
-			var errors ServiceErrors
-			e := wh.FrameworkErrors.Error(HTTPUnauthorized, HTTP)
-			errors.AddError(e)
-
-			wh.writeErrorResponse(&errors, w)
+			wh.ResponseWriter.WriteAbnormalStatus(http.StatusUnauthorized, w)
 			return false
 		}
 

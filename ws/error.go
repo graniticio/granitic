@@ -3,7 +3,6 @@ package ws
 import (
 	"errors"
 	"fmt"
-	"strconv"
 )
 
 type ServiceErrorCategory int
@@ -27,16 +26,6 @@ func NewCategorisedError(category ServiceErrorCategory, label string, message st
 
 	ce.Category = category
 	ce.Label = label
-	ce.Message = message
-
-	return ce
-}
-
-func NewHTTPError(status int, message string) *CategorisedError {
-	ce := new(CategorisedError)
-
-	ce.Category = HTTP
-	ce.Label = strconv.Itoa(status)
 	ce.Message = message
 
 	return ce

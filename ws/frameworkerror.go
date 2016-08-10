@@ -3,6 +3,7 @@ package ws
 import (
 	"fmt"
 	"github.com/graniticio/granitic/logging"
+	"strconv"
 )
 
 type WsFrameworkPhase int
@@ -61,13 +62,34 @@ const (
 	QueryWrongType       = "QueryWrongType"
 	PathWrongType        = "PathWrongType"
 	QueryNoTargetField   = "QueryNoTargetField"
-	HTTPUnauthorized     = "HTTPUnauthorized"
-	HTTPForbidden        = "HTTPForbidden"
 )
 
 type FrameworkErrorGenerator struct {
 	Messages        map[FrameworkErrorEvent][]string
+	HttpMessages    map[string]string
 	FrameworkLogger logging.Logger
+}
+
+func (feg *FrameworkErrorGenerator) HttpError(status int, a ...interface{}) *CategorisedError {
+
+	s := strconv.Itoa(status)
+
+	m := feg.HttpMessages[s]
+
+	if m == "" {
+		m = "HTTP " + s
+	} else {
+		m = fmt.Sprintf(m, a...)
+	}
+
+	ce := new(CategorisedError)
+
+	ce.Category = HTTP
+	ce.Label = s
+	ce.Message = m
+
+	return ce
+
 }
 
 func (feg *FrameworkErrorGenerator) Error(e FrameworkErrorEvent, c ServiceErrorCategory, a ...interface{}) *CategorisedError {

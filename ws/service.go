@@ -68,4 +68,9 @@ type WsUnmarshaller interface {
 type WsResponseWriter interface {
 	Write(res *WsResponse, w http.ResponseWriter) error
 	WriteErrors(errors *ServiceErrors, w http.ResponseWriter) error
+	WriteAbnormalStatus(status int, w http.ResponseWriter) error
+}
+
+type AbnormalStatusWriter interface {
+	WriteAbnormalStatus(status int, w http.ResponseWriter) error
 }
