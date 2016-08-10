@@ -10,7 +10,6 @@ import (
 
 const jsonResponseWriterComponentName = ioc.FrameworkPrefix + "JsonResponseWriter"
 const jsonUnmarshallerComponentName = ioc.FrameworkPrefix + "JsonUnmarshaller"
-const jsonAbnormalResponseWriterComponentName = ioc.FrameworkPrefix + "JsonAbnormalResponseWriter"
 const jsonHandlerDecoratorComponentName = ioc.FrameworkPrefix + "JsonHandlerDecorator"
 const wsHttpStatusDeterminerComponentName = ioc.FrameworkPrefix + "HttpStatusDeterminer"
 const wsQueryBinderComponentName = ioc.FrameworkPrefix + "QueryBinder"
@@ -24,14 +23,12 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	responseWriter := new(json.DefaultJsonResponseWriter)
 	cn.WrapAndAddProto(jsonResponseWriterComponentName, responseWriter)
 
-	abnormalResponseWriter := new(json.DefaultAbnormalResponseWriter)
-	cn.WrapAndAddProto(jsonAbnormalResponseWriterComponentName, abnormalResponseWriter)
-
 	queryBinder := new(ws.ParamBinder)
 	cn.WrapAndAddProto(wsQueryBinderComponentName, queryBinder)
 
 	statusDeterminer := new(ws.DefaultHttpStatusCodeDeterminer)
 	cn.WrapAndAddProto(wsHttpStatusDeterminerComponentName, statusDeterminer)
+	responseWriter.StatusDeterminer = statusDeterminer
 
 	jsonUnmarshaller := new(json.DefaultJsonUnmarshaller)
 	cn.WrapAndAddProto(jsonUnmarshallerComponentName, jsonUnmarshaller)
@@ -43,7 +40,7 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	queryBinder.FrameworkErrors = frameworkErrors
 
 	decoratorLogger := lm.CreateLogger(jsonHandlerDecoratorComponentName)
-	decorator := JsonWsHandlerDecorator{decoratorLogger, responseWriter, abnormalResponseWriter, statusDeterminer, jsonUnmarshaller, queryBinder, frameworkErrors}
+	decorator := JsonWsHandlerDecorator{decoratorLogger, responseWriter, jsonUnmarshaller, queryBinder, frameworkErrors}
 	cn.WrapAndAddProto(jsonHandlerDecoratorComponentName, &decorator)
 
 	return nil
@@ -58,13 +55,11 @@ func (fb *JsonWsFacilityBuilder) DependsOnFacilities() []string {
 }
 
 type JsonWsHandlerDecorator struct {
-	FrameworkLogger      logging.Logger
-	ResponseWriter       ws.WsResponseWriter
-	ErrorResponseWriter  ws.WsAbnormalResponseWriter
-	StatusCodeDeterminer ws.HttpStatusCodeDeterminer
-	Unmarshaller         ws.WsUnmarshaller
-	QueryBinder          *ws.ParamBinder
-	FrameworkErrors      *ws.FrameworkErrorGenerator
+	FrameworkLogger logging.Logger
+	ResponseWriter  ws.WsResponseWriter
+	Unmarshaller    ws.WsUnmarshaller
+	QueryBinder     *ws.ParamBinder
+	FrameworkErrors *ws.FrameworkErrorGenerator
 }
 
 func (jwhd *JsonWsHandlerDecorator) OfInterest(component *ioc.Component) bool {
@@ -82,16 +77,8 @@ func (jwhd *JsonWsHandlerDecorator) DecorateComponent(component *ioc.Component, 
 	l := jwhd.FrameworkLogger
 	l.LogTracef("Decorating component %s", component.Name)
 
-	if h.StatusDeterminer == nil {
-		h.StatusDeterminer = jwhd.StatusCodeDeterminer
-	}
-
 	if h.ResponseWriter == nil {
 		h.ResponseWriter = jwhd.ResponseWriter
-	}
-
-	if h.ErrorResponseWriter == nil {
-		h.ErrorResponseWriter = jwhd.ErrorResponseWriter
 	}
 
 	if h.Unmarshaller == nil {

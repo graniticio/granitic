@@ -1,0 +1,99 @@
+package json
+
+import (
+	"encoding/json"
+	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/ws"
+	"net/http"
+)
+
+type DefaultJsonResponseWriter struct {
+	FrameworkLogger  logging.Logger
+	StatusDeterminer ws.HttpStatusCodeDeterminer
+}
+
+func (djrw *DefaultJsonResponseWriter) Write(res *ws.WsResponse, w http.ResponseWriter) error {
+
+	s := djrw.StatusDeterminer.DetermineCode(res)
+	w.WriteHeader(s)
+
+	e := res.Errors
+
+	if res.Body == nil && !e.HasErrors() {
+		return nil
+	}
+
+	var wrapper interface{}
+
+	if e.HasErrors() && res.Body != nil {
+		wrapper = wrapJsonResponse(djrw.formatErrors(e), res.Body)
+	} else if e.HasErrors() {
+		wrapper = wrapJsonResponse(djrw.formatErrors(e), nil)
+	} else {
+		wrapper = wrapJsonResponse(nil, res.Body)
+	}
+
+	data, err := json.Marshal(wrapper)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(data)
+
+	return err
+}
+
+func (djrw *DefaultJsonResponseWriter) WriteErrors(errors *ws.ServiceErrors, w http.ResponseWriter) error {
+
+	res := new(ws.WsResponse)
+	res.Errors = errors
+
+	return djrw.Write(res, w)
+}
+
+func (djrw *DefaultJsonResponseWriter) formatErrors(errors *ws.ServiceErrors) interface{} {
+
+	f := make(map[string][]string)
+
+	for _, error := range errors.Errors {
+
+		var c string
+
+		switch error.Category {
+		default:
+			c = "?"
+		case ws.Unexpected:
+			c = "U"
+		case ws.Security:
+			c = "S"
+		case ws.Logic:
+			c = "L"
+		case ws.Client:
+			c = "C"
+		case ws.HTTP:
+			c = "H"
+		}
+
+		k := c + "-" + error.Label
+		a := f[k]
+
+		f[k] = append(a, error.Message)
+	}
+
+	return f
+}
+
+func wrapJsonResponse(errors interface{}, body interface{}) interface{} {
+	f := make(map[string]interface{})
+
+	if errors != nil {
+		f["Errors"] = errors
+	}
+
+	if body != nil {
+		f["Response"] = body
+	}
+
+	return f
+}

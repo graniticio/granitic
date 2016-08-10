@@ -7,7 +7,6 @@ import (
 
 type HttpStatusCodeDeterminer interface {
 	DetermineCode(response *WsResponse) int
-	DetermineCodeFromErrors(errors *ServiceErrors) int
 }
 
 type DefaultHttpStatusCodeDeterminer struct {
@@ -17,12 +16,15 @@ func (dhscd *DefaultHttpStatusCodeDeterminer) DetermineCode(response *WsResponse
 	if response.HttpStatus != 0 {
 		return response.HttpStatus
 
+	} else if response.Errors.HasErrors() {
+		return dhscd.determineCodeFromErrors(response.Errors)
+
 	} else {
 		return http.StatusOK
 	}
 }
 
-func (dhscd *DefaultHttpStatusCodeDeterminer) DetermineCodeFromErrors(errors *ServiceErrors) int {
+func (dhscd *DefaultHttpStatusCodeDeterminer) determineCodeFromErrors(errors *ServiceErrors) int {
 
 	if errors.HttpStatus != 0 {
 		return errors.HttpStatus

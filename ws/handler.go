@@ -15,9 +15,7 @@ type WsHandler struct {
 	PathMatchPattern      string
 	Logic                 WsRequestProcessor
 	ResponseWriter        WsResponseWriter
-	ErrorResponseWriter   WsAbnormalResponseWriter
 	Log                   logging.Logger
-	StatusDeterminer      HttpStatusCodeDeterminer
 	ErrorFinder           ServiceErrorFinder
 	FrameworkErrors       *FrameworkErrorGenerator
 	RevealPanicDetails    bool
@@ -244,16 +242,7 @@ func (wh *WsHandler) process(jsonReq *WsRequest, w http.ResponseWriter) {
 	wsRes := NewWsResponse(wh.ErrorFinder)
 	wh.Logic.Process(jsonReq, wsRes)
 
-	errors := wsRes.Errors
-
-	if errors.HasErrors() {
-		wh.writeErrorResponse(errors, w)
-
-	} else {
-		status := wh.StatusDeterminer.DetermineCode(wsRes)
-		w.WriteHeader(status)
-		wh.ResponseWriter.Write(wsRes, w)
-	}
+	wh.ResponseWriter.Write(wsRes, w)
 
 }
 
@@ -267,9 +256,7 @@ func (wh *WsHandler) writeErrorResponse(errors *ServiceErrors, w http.ResponseWr
 		}
 	}()
 
-	status := wh.StatusDeterminer.DetermineCodeFromErrors(errors)
-
-	err := wh.ErrorResponseWriter.WriteWithErrors(status, errors, w)
+	err := wh.ResponseWriter.WriteErrors(errors, w)
 
 	if err != nil {
 		l.LogErrorf("Problem writing an HTTP response that was already in error", err)
