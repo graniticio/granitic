@@ -11,9 +11,12 @@ type DefaultJsonResponseWriter struct {
 	FrameworkLogger  logging.Logger
 	StatusDeterminer ws.HttpStatusCodeDeterminer
 	FrameworkErrors  *ws.FrameworkErrorGenerator
+	DefaultHeaders   map[string]string
 }
 
 func (djrw *DefaultJsonResponseWriter) Write(res *ws.WsResponse, w http.ResponseWriter) error {
+
+	ws.WriteMetaData(w, res, djrw.DefaultHeaders)
 
 	s := djrw.StatusDeterminer.DetermineCode(res)
 	w.WriteHeader(s)

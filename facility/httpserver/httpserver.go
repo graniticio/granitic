@@ -132,9 +132,6 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	received := time.Now()
 	matched := false
 
-	contentType := fmt.Sprintf("%s; charset=%s", h.ContentType, h.Encoding)
-	res.Header().Set("Content-Type", contentType)
-
 	providersByMethod := h.registeredProvidersByMethod[req.Method]
 
 	path := req.URL.Path

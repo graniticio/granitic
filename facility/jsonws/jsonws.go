@@ -21,6 +21,7 @@ type JsonWsFacilityBuilder struct {
 func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	responseWriter := new(json.DefaultJsonResponseWriter)
+	ca.Populate("JsonWs.ResponseWriter", responseWriter)
 	cn.WrapAndAddProto(jsonResponseWriterComponentName, responseWriter)
 
 	queryBinder := new(ws.ParamBinder)

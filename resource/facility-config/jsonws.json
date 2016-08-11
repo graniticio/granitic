@@ -5,6 +5,11 @@
       "IncludeEmptySections": false,
       "ContentLabel": "Response",
       "ErrorsLabel": "Errors"
+    },
+    "ResponseWriter": {
+      "DefaultHeaders": {
+        "Content-Type": "application/json; charset=utf-8"
+      }
     }
   }
 }

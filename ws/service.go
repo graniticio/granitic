@@ -1,6 +1,7 @@
 package ws
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -8,6 +9,8 @@ func NewWsResponse(errorFinder ServiceErrorFinder) *WsResponse {
 	r := new(WsResponse)
 	r.Errors = new(ServiceErrors)
 	r.Errors.ErrorFinder = errorFinder
+
+	r.Headers = make(map[string]string)
 
 	return r
 }
@@ -47,6 +50,7 @@ type WsResponse struct {
 	HttpStatus int
 	Body       interface{}
 	Errors     *ServiceErrors
+	Headers    map[string]string
 }
 
 type WsRequestProcessor interface {
@@ -73,4 +77,24 @@ type WsResponseWriter interface {
 
 type AbnormalStatusWriter interface {
 	WriteAbnormalStatus(status int, w http.ResponseWriter) error
+}
+
+func WriteMetaData(w http.ResponseWriter, r *WsResponse, defaultHeaders map[string]string) {
+
+	additionalHeaders := r.Headers
+
+	for k, v := range defaultHeaders {
+
+		if additionalHeaders == nil || additionalHeaders[k] == "" {
+			w.Header().Add(k, v)
+		}
+
+	}
+
+	if additionalHeaders != nil {
+		for k, v := range additionalHeaders {
+			w.Header().Add(k, v)
+		}
+	}
+
 }
