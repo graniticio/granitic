@@ -15,7 +15,8 @@
       "401": "Access to this resource requires authorization.",
       "403": "You do not have permission to interact with that resource.",
       "404": "No such resource.",
-      "500": "An unexpected error occurred."
+      "500": "An unexpected error occurred.",
+      "503": "The service is too busy to process your request or is temporarily unavailable."
     }
   }
 }

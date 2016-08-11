@@ -8,6 +8,7 @@ import (
 	"github.com/graniticio/granitic/ws"
 	"net/http"
 	"regexp"
+	"sync/atomic"
 	"time"
 )
 
@@ -23,11 +24,12 @@ type HttpServer struct {
 	AccessLogWriter             *AccessLogWriter
 	AccessLogging               bool
 	Port                        int
-	ContentType                 string
-	Encoding                    string
 	AbnormalStatusWriter        ws.AbnormalStatusWriter
 	AbnormalStatusWriterName    string
 	abnormalWriters             map[string]ws.AbnormalStatusWriter
+	ActiveRequests              int64
+	MaxConcurrent               int64
+	TooBusyStatus               int
 }
 
 func (h *HttpServer) Container(container *ioc.ComponentContainer) {
@@ -128,6 +130,13 @@ func (h *HttpServer) AllowAccess() error {
 }
 
 func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
+	rCount := atomic.AddInt64(&h.ActiveRequests, 1)
+	defer atomic.AddInt64(&h.ActiveRequests, -1)
+
+	if h.MaxConcurrent > 0 && rCount > h.MaxConcurrent {
+		h.AbnormalStatusWriter.WriteAbnormalStatus(h.TooBusyStatus, res)
+		return
+	}
 
 	received := time.Now()
 	matched := false

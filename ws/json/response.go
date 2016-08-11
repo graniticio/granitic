@@ -12,6 +12,7 @@ type DefaultJsonResponseWriter struct {
 	StatusDeterminer ws.HttpStatusCodeDeterminer
 	FrameworkErrors  *ws.FrameworkErrorGenerator
 	DefaultHeaders   map[string]string
+	WrapResponse     bool
 }
 
 func (djrw *DefaultJsonResponseWriter) Write(res *ws.WsResponse, w http.ResponseWriter) error {

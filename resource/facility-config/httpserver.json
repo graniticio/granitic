@@ -1,8 +1,7 @@
 {
   "HttpServer":{
     "Port": 8080,
-    "ContentType": "application/json",
-    "Encoding": "utf-8",
-    "AccessLogging": false
+    "AccessLogging": false,
+    "TooBusyStatus": 503
   }
 }
