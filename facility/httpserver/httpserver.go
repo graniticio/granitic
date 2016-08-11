@@ -30,6 +30,7 @@ type HttpServer struct {
 	ActiveRequests              int64
 	MaxConcurrent               int64
 	TooBusyStatus               int
+	available                   bool
 }
 
 func (h *HttpServer) Container(container *ioc.ComponentContainer) {
@@ -126,6 +127,8 @@ func (h *HttpServer) AllowAccess() error {
 
 	h.FrameworkLogger.LogInfof("HTTP server started listening on %d", h.Port)
 
+	h.available = true
+
 	return nil
 }
 
@@ -182,6 +185,28 @@ func (h *HttpServer) RegisterAbnormalStatusWriter(name string, w ws.AbnormalStat
 	}
 
 	h.abnormalWriters[name] = w
+}
+
+func (h *HttpServer) PrepareToStop() {
+	h.available = false
+}
+
+func (h *HttpServer) ReadyToStop() (bool, error) {
+	a := h.ActiveRequests
+	ready := a <= 0
+
+	if ready {
+		return true, nil
+	} else {
+
+		message := fmt.Sprintf("HTTP server listening on %d is still serving %d request(s)", h.Port, a)
+
+		return false, errors.New(message)
+	}
+}
+
+func (h *HttpServer) Stop() error {
+	return nil
 }
 
 type wrappedResponseWriter struct {
