@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
@@ -24,13 +25,16 @@ type HttpServer struct {
 	Port                        int
 	ContentType                 string
 	Encoding                    string
+	AbnormalStatusWriter        ws.AbnormalStatusWriter
+	AbnormalStatusWriterName    string
+	abnormalWriters             map[string]ws.AbnormalStatusWriter
 }
 
-func (hs *HttpServer) Container(container *ioc.ComponentContainer) {
-	hs.componentContainer = container
+func (h *HttpServer) Container(container *ioc.ComponentContainer) {
+	h.componentContainer = container
 }
 
-func (hs *HttpServer) registerProvider(endPointProvider HttpEndpointProvider) {
+func (h *HttpServer) registerProvider(endPointProvider HttpEndpointProvider) {
 
 	for _, method := range endPointProvider.SupportedHttpMethods() {
 
@@ -38,72 +42,107 @@ func (hs *HttpServer) registerProvider(endPointProvider HttpEndpointProvider) {
 		compiledRegex, regexError := regexp.Compile(pattern)
 
 		if regexError != nil {
-			hs.FrameworkLogger.LogErrorf("Unable to compile regular expression from pattern %s: %s", pattern, regexError.Error())
+			h.FrameworkLogger.LogErrorf("Unable to compile regular expression from pattern %s: %s", pattern, regexError.Error())
 		}
 
-		hs.FrameworkLogger.LogTracef("Registering %s %s", pattern, method)
+		h.FrameworkLogger.LogTracef("Registering %s %s", pattern, method)
 
 		rp := RegisteredProvider{endPointProvider, compiledRegex}
 
-		providersForMethod := hs.registeredProvidersByMethod[method]
+		providersForMethod := h.registeredProvidersByMethod[method]
 
 		if providersForMethod == nil {
 			providersForMethod = make([]*RegisteredProvider, 1)
 			providersForMethod[0] = &rp
-			hs.registeredProvidersByMethod[method] = providersForMethod
+			h.registeredProvidersByMethod[method] = providersForMethod
 		} else {
-			hs.registeredProvidersByMethod[method] = append(providersForMethod, &rp)
+			h.registeredProvidersByMethod[method] = append(providersForMethod, &rp)
 		}
 	}
 
 }
 
-func (hs *HttpServer) StartComponent() error {
+func (h *HttpServer) StartComponent() error {
 
-	hs.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
+	h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
 
-	for name, component := range hs.componentContainer.AllComponents() {
+	for name, component := range h.componentContainer.AllComponents() {
 		provider, found := component.Instance.(HttpEndpointProvider)
 
 		if found {
-			hs.FrameworkLogger.LogDebugf("Found HttpEndpointProvider %s", name)
+			h.FrameworkLogger.LogDebugf("Found HttpEndpointProvider %s", name)
 
-			hs.registerProvider(provider)
+			h.registerProvider(provider)
 
 		}
+	}
+
+	if h.AbnormalStatusWriter == nil {
+
+		m := h.abnormalWriters
+		l := len(m)
+
+		if l == 0 {
+			return errors.New("No instance of ws.AbnormalStatusWriter available.")
+		} else {
+
+			if l > 2 && h.AbnormalStatusWriterName == "" {
+				return errors.New("More than one instance of ws.AbnormalStatusWriter available, but AbnormalStatusWriterName is not set.")
+			}
+
+			for k, v := range m {
+
+				if l == 1 {
+					h.AbnormalStatusWriter = v
+					break
+				}
+
+				if k == h.AbnormalStatusWriterName {
+					h.AbnormalStatusWriter = v
+					break
+				}
+			}
+
+			if h.AbnormalStatusWriter == nil {
+				message := fmt.Sprintf("None of the available ws.AbnormalStatusWriter instances available have the name %s", h.AbnormalStatusWriterName)
+				return errors.New(message)
+			}
+
+		}
+
 	}
 
 	return nil
 }
 
-func (hs *HttpServer) AllowAccess() error {
-	http.Handle("/", http.HandlerFunc(hs.handleAll))
+func (h *HttpServer) AllowAccess() error {
+	http.Handle("/", http.HandlerFunc(h.handleAll))
 
-	listenAddress := fmt.Sprintf(":%d", hs.Port)
+	listenAddress := fmt.Sprintf(":%d", h.Port)
 
 	go http.ListenAndServe(listenAddress, nil)
 
-	hs.FrameworkLogger.LogInfof("HTTP server started listening on %d", hs.Port)
+	h.FrameworkLogger.LogInfof("HTTP server started listening on %d", h.Port)
 
 	return nil
 }
 
-func (h *HttpServer) handleAll(responseWriter http.ResponseWriter, request *http.Request) {
+func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	received := time.Now()
 	matched := false
 
 	contentType := fmt.Sprintf("%s; charset=%s", h.ContentType, h.Encoding)
-	responseWriter.Header().Set("Content-Type", contentType)
+	res.Header().Set("Content-Type", contentType)
 
-	providersByMethod := h.registeredProvidersByMethod[request.Method]
+	providersByMethod := h.registeredProvidersByMethod[req.Method]
 
-	path := request.URL.Path
+	path := req.URL.Path
 
-	h.FrameworkLogger.LogTracef("Finding provider to handle %s %s from %d providers", path, request.Method, len(providersByMethod))
+	h.FrameworkLogger.LogTracef("Finding provider to handle %s %s from %d providers", path, req.Method, len(providersByMethod))
 
 	wrw := new(wrappedResponseWriter)
-	wrw.rw = responseWriter
+	wrw.rw = res
 
 	var identity ws.WsIdentity
 
@@ -116,25 +155,27 @@ func (h *HttpServer) handleAll(responseWriter http.ResponseWriter, request *http
 		if pattern.MatchString(path) {
 			h.FrameworkLogger.LogTracef("Matches %s", pattern.String())
 			matched = true
-			identity = handlerPattern.Provider.ServeHTTP(wrw, request)
+			identity = handlerPattern.Provider.ServeHTTP(wrw, req)
 		}
 	}
 
 	if !matched {
-		h.handleNotFound(request, wrw)
+		h.AbnormalStatusWriter.WriteAbnormalStatus(http.StatusNotFound, res)
 	}
 
 	if h.AccessLogging {
 		finished := time.Now()
-		h.AccessLogWriter.LogRequest(request, wrw, &received, &finished, identity)
+		h.AccessLogWriter.LogRequest(req, wrw, &received, &finished, identity)
 	}
 
 }
 
-func (h *HttpServer) handleNotFound(req *http.Request, res *wrappedResponseWriter) {
+func (h *HttpServer) RegisterAbnormalStatusWriter(name string, w ws.AbnormalStatusWriter) {
+	if h.abnormalWriters == nil {
+		h.abnormalWriters = make(map[string]ws.AbnormalStatusWriter)
+	}
 
-	http.NotFound(res, req)
-
+	h.abnormalWriters[name] = w
 }
 
 type wrappedResponseWriter struct {
@@ -157,4 +198,26 @@ func (wrw *wrappedResponseWriter) Write(b []byte) (int, error) {
 func (wrw *wrappedResponseWriter) WriteHeader(i int) {
 	wrw.Status = i
 	wrw.rw.WriteHeader(i)
+}
+
+type AbnormalStatusWriterDecorator struct {
+	FrameworkLogger logging.Logger
+	HttpServer      *HttpServer
+}
+
+func (d *AbnormalStatusWriterDecorator) OfInterest(component *ioc.Component) bool {
+
+	i := component.Instance
+
+	_, found := i.(ws.AbnormalStatusWriter)
+
+	return found
+
+}
+
+func (d *AbnormalStatusWriterDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+
+	i := component.Instance.(ws.AbnormalStatusWriter)
+
+	d.HttpServer.RegisterAbnormalStatusWriter(component.Name, i)
 }
