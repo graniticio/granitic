@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/ws"
 	"net/http"
 	"regexp"
 	"time"
@@ -104,6 +105,8 @@ func (h *HttpServer) handleAll(responseWriter http.ResponseWriter, request *http
 	wrw := new(wrappedResponseWriter)
 	wrw.rw = responseWriter
 
+	var identity ws.WsIdentity
+
 	for _, handlerPattern := range providersByMethod {
 
 		pattern := handlerPattern.Pattern
@@ -113,7 +116,7 @@ func (h *HttpServer) handleAll(responseWriter http.ResponseWriter, request *http
 		if pattern.MatchString(path) {
 			h.FrameworkLogger.LogTracef("Matches %s", pattern.String())
 			matched = true
-			handlerPattern.Provider.ServeHTTP(wrw, request)
+			identity = handlerPattern.Provider.ServeHTTP(wrw, request)
 		}
 	}
 
@@ -123,7 +126,7 @@ func (h *HttpServer) handleAll(responseWriter http.ResponseWriter, request *http
 
 	if h.AccessLogging {
 		finished := time.Now()
-		h.AccessLogWriter.LogRequest(request, wrw, &received, &finished, nil)
+		h.AccessLogWriter.LogRequest(request, wrw, &received, &finished, identity)
 	}
 
 }

@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"github.com/graniticio/granitic/ws"
 	"net/http"
 )
 
@@ -12,7 +13,7 @@ type HttpEndPoint struct {
 type HttpEndpointProvider interface {
 	SupportedHttpMethods() []string
 	RegexPattern() string
-	ServeHTTP(w http.ResponseWriter, req *http.Request)
+	ServeHTTP(w http.ResponseWriter, req *http.Request) ws.WsIdentity
 }
 
 type ClientIdentity struct {
