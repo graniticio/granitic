@@ -133,6 +133,12 @@ func (h *HttpServer) AllowAccess() error {
 }
 
 func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
+
+	if !h.available {
+		h.AbnormalStatusWriter.WriteAbnormalStatus(h.TooBusyStatus, res)
+		return
+	}
+
 	rCount := atomic.AddInt64(&h.ActiveRequests, 1)
 	defer atomic.AddInt64(&h.ActiveRequests, -1)
 
