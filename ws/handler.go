@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"fmt"
 	"github.com/graniticio/granitic/logging"
 	"net/http"
 	"regexp"
@@ -18,7 +17,6 @@ type WsHandler struct {
 	Log                   logging.Logger
 	ErrorFinder           ServiceErrorFinder
 	FrameworkErrors       *FrameworkErrorGenerator
-	RevealPanicDetails    bool
 	DisableQueryParsing   bool
 	DisablePathParsing    bool
 	DeferFrameworkErrors  bool
@@ -55,14 +53,17 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	wsReq := new(WsRequest)
 	wsReq.HttpMethod = req.Method
 
+	//Try to identify and/or authenticate the caller
 	if !wh.identifyAndAuthenticate(w, req, wsReq) {
 		return
 	}
 
+	//Check caller has permission to use this resource
 	if !wh.CheckAccessAfterParse && !wh.checkAccess(w, wsReq) {
 		return
 	}
 
+	//Unmarshall body, query parameters and path parameters
 	wh.unmarshall(req, wsReq)
 	wh.processQueryParams(req, wsReq)
 	wh.processPathParams(req, wsReq)
@@ -72,10 +73,12 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	//Check caller has permission to use this resource
 	if wh.CheckAccessAfterParse && !wh.checkAccess(w, wsReq) {
 		return
 	}
 
+	//Validate request
 	var errors ServiceErrors
 	errors.ErrorFinder = wh.ErrorFinder
 
@@ -85,9 +88,12 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if errors.HasErrors() {
 		wh.writeErrorResponse(&errors, w)
-	} else {
-		wh.process(wsReq, w)
+
+		return
 	}
+
+	//Execute logic
+	wh.process(wsReq, w)
 
 }
 
@@ -258,23 +264,10 @@ func (wh *WsHandler) writeErrorResponse(errors *ServiceErrors, w http.ResponseWr
 
 func (wh *WsHandler) writePanicResponse(r interface{}, w http.ResponseWriter) {
 
-	var se ServiceErrors
-	se.HttpStatus = http.StatusInternalServerError
-
-	var message string
-
-	if wh.RevealPanicDetails {
-		message = fmt.Sprintf("Unhandled error %s", r)
-
-	} else {
-		message = "A unexpected error occured while processing this request."
-	}
+	wh.ResponseWriter.WriteAbnormalStatus(http.StatusInternalServerError, w)
 
 	wh.Log.LogErrorf("Panic recovered but error response served. %s", r)
 
-	se.AddNewError(Unexpected, "UNXP", message)
-
-	wh.writeErrorResponse(&se, w)
 }
 
 func (wh *WsHandler) StartComponent() error {
