@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"fmt"
 	"net/http"
 )
 
