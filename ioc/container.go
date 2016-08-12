@@ -14,15 +14,14 @@ const containerDecoratorComponentName = FrameworkPrefix + "ContainerDecorator"
 const containerComponentName = FrameworkPrefix + "Container"
 
 type ComponentContainer struct {
-	allComponents    map[string]*Component
-	protoComponents  map[string]*ProtoComponent
-	componentsByType map[string][]interface{}
-	FrameworkLogger  logging.Logger
-	configAccessor   *config.ConfigAccessor
-	startable        []*Component
-	stoppable        []*Component
-	blocker          []*Component
-	accessible       []*Component
+	allComponents   map[string]*Component
+	protoComponents map[string]*ProtoComponent
+	FrameworkLogger logging.Logger
+	configAccessor  *config.ConfigAccessor
+	startable       []*Component
+	stoppable       []*Component
+	blocker         []*Component
+	accessible      []*Component
 }
 
 func (cc *ComponentContainer) AllComponents() map[string]*Component {
@@ -45,10 +44,6 @@ func (cc *ComponentContainer) AddProtos(protos []*ProtoComponent) {
 	for _, p := range protos {
 		cc.AddProto(p)
 	}
-}
-
-func (cc *ComponentContainer) FindByType(typeName string) []interface{} {
-	return cc.componentsByType[typeName]
 }
 
 func (cc *ComponentContainer) StartComponents() error {
@@ -92,6 +87,8 @@ func (cc *ComponentContainer) StartComponents() error {
 		}
 
 	}
+
+	cc.startable = nil
 
 	return nil
 }
@@ -224,23 +221,21 @@ func (cc *ComponentContainer) Populate() error {
 		}
 	}()
 
-	decorators := make([]ComponentDecorator, 1)
+	decorators := make(map[string]ComponentDecorator)
 
 	containerDecorator := new(ContainerDecorator)
 	containerDecorator.container = cc
 
-	decorators[0] = containerDecorator
+	decorators[containerDecoratorComponentName] = containerDecorator
 
 	cc.allComponents = make(map[string]*Component)
-	cc.componentsByType = make(map[string][]interface{})
 
 	for _, protoComponent := range cc.protoComponents {
 
 		component := protoComponent.Component
 
 		cc.addComponent(component)
-		decorators = cc.captureDecorator(component, decorators)
-
+		cc.captureDecorator(component, decorators)
 	}
 
 	err := cc.resolveDependenciesAndConfig()
@@ -252,6 +247,8 @@ func (cc *ComponentContainer) Populate() error {
 	}
 
 	cc.decorateComponents(decorators)
+
+	cc.protoComponents = nil
 
 	return nil
 }
@@ -298,7 +295,7 @@ func (cc *ComponentContainer) resolveDependenciesAndConfig() error {
 	return nil
 }
 
-func (cc *ComponentContainer) decorateComponents(decorators []ComponentDecorator) {
+func (cc *ComponentContainer) decorateComponents(decorators map[string]ComponentDecorator) {
 
 	for _, component := range cc.allComponents {
 		for _, decorator := range decorators {
@@ -309,23 +306,23 @@ func (cc *ComponentContainer) decorateComponents(decorators []ComponentDecorator
 		}
 	}
 
+	for n, _ := range decorators {
+		delete(cc.allComponents, n)
+	}
 }
 
-func (cc *ComponentContainer) captureDecorator(component *Component, decorators []ComponentDecorator) []ComponentDecorator {
+func (cc *ComponentContainer) captureDecorator(component *Component, decorators map[string]ComponentDecorator) {
 
 	decorator, isDecorator := component.Instance.(ComponentDecorator)
 
 	if isDecorator {
 		cc.FrameworkLogger.LogTracef("Found decorator %s", component.Name)
-		return append(decorators, decorator)
-	} else {
-		return decorators
+		decorators[component.Name] = decorator
 	}
 }
 
 func (cc *ComponentContainer) addComponent(component *Component) {
 	cc.allComponents[component.Name] = component
-	cc.mapComponentToType(component)
 
 	l := cc.FrameworkLogger
 
@@ -361,24 +358,6 @@ func (cc *ComponentContainer) addComponent(component *Component) {
 	if accessible {
 		l.LogTracef("%s is a Accesible", component.Name)
 		cc.accessible = append(cc.accessible, component)
-	}
-
-}
-
-func (cc *ComponentContainer) mapComponentToType(component *Component) {
-	componentType := reflect.TypeOf(component.Instance)
-	typeName := componentType.String()
-
-	cc.FrameworkLogger.LogTracef("Storing component %s of type %s", component.Name, componentType.String())
-
-	componentsOfSameType := cc.componentsByType[typeName]
-
-	if componentsOfSameType == nil {
-		componentsOfSameType = make([]interface{}, 1)
-		componentsOfSameType[0] = component.Instance
-		cc.componentsByType[typeName] = componentsOfSameType
-	} else {
-		cc.componentsByType[typeName] = append(componentsOfSameType, component.Instance)
 	}
 
 }
