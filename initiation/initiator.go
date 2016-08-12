@@ -38,14 +38,8 @@ func (i *Initiator) Start(customComponents []*ioc.ProtoComponent) {
 		os.Exit(1)
 	}()
 
-	var memStats runtime.MemStats
-
 	for {
 		time.Sleep(10 * time.Second)
-		runtime.ReadMemStats(&memStats)
-
-		fmt.Printf("Allocated %d GC when %d \n", memStats.Alloc, memStats.NextGC)
-
 	}
 }
 
