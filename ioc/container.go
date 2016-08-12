@@ -89,6 +89,7 @@ func (cc *ComponentContainer) StartComponents() error {
 	}
 
 	cc.startable = nil
+	cc.configAccessor = nil
 
 	return nil
 }

@@ -26,6 +26,31 @@ type Initiator struct {
 
 func (i *Initiator) Start(customComponents []*ioc.ProtoComponent) {
 
+	container := i.buildContainer(customComponents)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, syscall.SIGTERM)
+
+	go func() {
+		<-c
+		i.shutdown(container)
+		os.Exit(1)
+	}()
+
+	var memStats runtime.MemStats
+
+	for {
+		time.Sleep(10 * time.Second)
+		runtime.ReadMemStats(&memStats)
+
+		fmt.Printf("Allocated %d GC when %d \n", memStats.Alloc, memStats.NextGC)
+
+	}
+}
+
+func (i *Initiator) buildContainer(customComponents []*ioc.ProtoComponent) *ioc.ComponentContainer {
+
 	start := time.Now()
 
 	if config.GraniticHome() == "" {
@@ -34,11 +59,6 @@ func (i *Initiator) Start(customComponents []*ioc.ProtoComponent) {
 	}
 
 	var params map[string]string
-	/*protoComponents := make(map[string]*ioc.ProtoComponent)
-
-	for _, c := range customComponents {
-		protoComponents[c.Component.Name] = c
-	}*/
 
 	params = i.parseArgs()
 
@@ -71,25 +91,7 @@ func (i *Initiator) Start(customComponents []*ioc.ProtoComponent) {
 	elapsed := time.Since(start)
 	i.logger.LogInfof("Ready (startup time %s)", elapsed)
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	signal.Notify(c, syscall.SIGTERM)
-
-	go func() {
-		<-c
-		i.shutdown(container)
-		os.Exit(1)
-	}()
-
-	var memStats runtime.MemStats
-
-	for {
-		time.Sleep(10 * time.Second)
-		runtime.ReadMemStats(&memStats)
-
-		fmt.Printf("Allocated %d GC when %d \n", memStats.Alloc, memStats.NextGC)
-
-	}
+	return container
 }
 
 func (i *Initiator) shutdownIfError(err error, c *ioc.ComponentContainer) {
