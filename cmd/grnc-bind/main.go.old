@@ -1,4 +1,4 @@
-package main
+package grnc_bind
 
 import (
 	"bufio"

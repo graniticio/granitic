@@ -1,0 +1,34 @@
+{
+  "packages": [
+    "github.com/graniticio/granitic/ws"
+  ],
+  "templates": {
+
+    "PrivateHandler": {
+      "template": "Handler",
+      "RequireAuthentication": true
+    },
+
+    "PublicHandler": {
+      "template": "Handler",
+      "RequireAuthentication": false
+    },
+
+    "Handler":{
+      "type": "ws.WsHandler"
+    }
+  },
+
+  "components": {
+
+    "LoginHandler": {
+      "template": "PublicHandler",
+      "type": true
+    },
+
+    "AccountHandler": {
+      "template": "PrivateHandler"
+    }
+
+  }
+}
