@@ -18,6 +18,8 @@ const (
 
 	packagesField = "packages"
 	componentsField = "components"
+	templatesField = "templates"
+	templateField = "template"
 	bindingsPackage = "bindings"
 	iocImport = "github.com/graniticio/granitic/ioc"
 	entryFuncSignature = "func Components() []*ioc.ProtoComponent {"
@@ -45,7 +47,6 @@ const (
 	confAlias      = "c"
 )
 
-type JObject map[string]interface{}
 
 func main() {
 
@@ -150,17 +151,30 @@ func writeEntryFunctionOpen(w *bufio.Writer, i int) {
 func writeComponent(w *bufio.Writer, name string, values map[string]interface{}, templates map[string]interface{}) {
 	baseIdent := 1
 
-	v := mergeValueSources(values, templates)
-	validateHasType(v, name)
+	mergeValueSources(values, templates)
+	validateHasType(values, name)
 
-	writeComponentName(w, name, baseIdent)
+	writeComponentNameComment(w, name, baseIdent)
+	writeInstanceVar(w, name, values[typeField].(string), baseIdent)
+
+
+
+
+	w.WriteString(newline)
 
 }
 
-func writeComponentName(w *bufio.Writer, n string, i int) {
+func writeComponentNameComment(w *bufio.Writer, n string, i int) {
 	s := fmt.Sprintf("//%s\n", n)
 	w.WriteString(tabIndent(s, i))
 }
+
+func writeInstanceVar(w *bufio.Writer, n string, t string, i int) {
+	s := fmt.Sprintf("%s := new(%s)\n",n,t)
+	w.WriteString(tabIndent(s, i))
+}
+
+
 
 func writeEntryFunctionClose(w *bufio.Writer) {
 	a := fmt.Sprintf("}\n")
@@ -185,8 +199,11 @@ func validateHasType(v map[string]interface{}, name string) {
 
 }
 
-func mergeValueSources(c map[string]interface{}, t map[string]interface{}) map[string]interface{}{
-	return c
+func mergeValueSources(c map[string]interface{}, t map[string]interface{}){
+
+	if c[templateField] != nil {
+		flatten(c, t, c[templateField].(string))
+	}
 }
 
 func quoteString(s string) string{
@@ -235,8 +252,87 @@ func openOutputFile(p string) *os.File {
 }
 
 func parseTemplates(ca *config.ConfigAccessor) map[string]interface{} {
-	return make(map[string]interface{})
+
+	flattened := make(map[string]interface{})
+
+	if !ca.PathExists(templatesField) {
+		return flattened
+	}
+
+	templates := ca.ObjectVal(templatesField)
+
+	for n, t := range templates {
+		checkForTemplateLoop(t.(map[string]interface{}), templates, []string{n})
+
+		ft := make(map[string]interface{})
+		flatten(ft, templates, n)
+
+		flattened[n] = ft
+
+	}
+
+
+	return flattened
+
 }
+
+func flatten(target map[string]interface{}, templates map[string]interface{}, tname string) {
+
+	if templates[tname] == nil{
+		fmt.Printf("No template %s\n", tname)
+		return
+	}
+
+	parent := templates[tname].(map[string]interface{})
+
+	for k, v := range parent {
+
+		if target[k] == nil && k != templateField{
+			target[k] = v
+		}
+
+	}
+
+	if parent[templateField] != nil {
+		flatten(target, templates, parent[templateField].(string))
+	}
+
+
+}
+
+func checkForTemplateLoop(template map[string]interface{}, templates map[string]interface{}, chain []string) {
+
+	if template[templateField] == nil {
+		return
+	}
+
+	p := template[templateField].(string)
+
+	if contains(chain, p) {
+		message := fmt.Sprintf("Invalid template inheritance %v\n", append(chain, p))
+		fatal(message)
+	}
+
+	if templates[p] ==  nil{
+		message := fmt.Sprintf("No template exists with name %s\n", p)
+		fatal(message)
+	}
+
+	checkForTemplateLoop(templates[p].(map[string]interface{}), templates, append(chain, p))
+
+
+}
+
+func contains(a []string, c string) bool{
+	for _, s := range a {
+		if s == c {
+			return true
+		}
+	}
+
+	return false
+}
+
 
 func fatal(m string) {
 	fmt.Printf(m)

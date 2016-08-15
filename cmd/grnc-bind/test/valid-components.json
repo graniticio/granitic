@@ -22,8 +22,7 @@
   "components": {
 
     "LoginHandler": {
-      "template": "PublicHandler",
-      "type": true
+      "template": "PublicHandler"
     },
 
     "AccountHandler": {
