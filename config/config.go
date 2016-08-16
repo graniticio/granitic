@@ -13,6 +13,7 @@ import (
 const JsonPathSeparator string = "."
 
 const (
+	Unset = - 2
 	JsonUnknown     = -1
 	JsonInt         = 0
 	JsonString      = 1

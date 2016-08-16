@@ -2,6 +2,21 @@ package ioc
 
 const FrameworkPrefix = "gntc"
 
+type ProtoComponents struct {
+	Components []*ProtoComponent
+}
+
+func (pc *ProtoComponents) Clear() {
+	pc.Components = nil
+}
+
+func NewProtoComponents(pc []*ProtoComponent) *ProtoComponents{
+	p := new(ProtoComponents)
+	p.Components = pc
+
+	return p
+}
+
 type ProtoComponent struct {
 	Component      *Component
 	Dependencies   map[string]string

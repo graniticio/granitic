@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"path"
 	"bufio"
+	"bytes"
 )
 
 const (
@@ -28,8 +29,8 @@ const (
 
 	bindingsPackage = "bindings"
 	iocImport = "github.com/graniticio/granitic/ioc"
-	entryFuncSignature = "func Components() []*ioc.ProtoComponent {"
-	protoArrayVar = "pc"
+	entryFuncSignature = "func Components() *ioc.ProtoComponents {"
+	protoArrayVar = "protoComponents"
 	confLocationFlag string = "c"
 	confLocationDefault string = "resource/components"
 	confLocationHelp string = "A comma separated list of component definition files or directories containing component definition files"
@@ -205,9 +206,76 @@ func writeDeferred(w *bufio.Writer, cName string, promises map[string]interface{
 }
 
 func asGoInit(v interface{}) string {
-	return ""
+
+
+	switch config.JsonType(v) {
+		case config.JsonMap:
+			return ""
+		case config.JsonArray:
+			return asGoArrayInit(v)
+		default:
+			return fmt.Sprintf("%#v", v)
+	}
 }
 
+func asGoArrayInit(v interface{}) string{
+	a := v.([]interface{})
+
+	at := assessArrayType(a)
+
+	var b bytes.Buffer
+
+	s := fmt.Sprintf("[]%s{", at)
+	b.WriteString(s)
+
+	for i, m := range a {
+
+		b.WriteString(asGoInit(m))
+
+		if i + 1 < len(a) {
+			b.WriteString(", ")
+		}
+
+	}
+
+	s = fmt.Sprintf("}\n")
+	b.WriteString(s)
+
+	return b.String()
+}
+
+func assessArrayType(a []interface{}) string {
+
+	var currentType = config.Unset
+
+	if len(a) == 0{
+		fatal("This tool does not support zero-length (empty) arrays as component values as the type can't be determined.")
+	}
+
+	for _, v := range a {
+
+		newType := config.JsonType(v)
+
+		if newType == config.JsonMap || newType == config.JsonArray {
+			fatal("This tool does not support multi-dimensional arrays or object arrays as component values\n")
+		}
+
+
+		if currentType == config.Unset {
+			currentType = newType
+			continue
+		}
+
+		if newType != currentType {
+			return "interface{}"
+		}
+	}
+
+	switch t := a[0].(type){
+		default:
+			return fmt.Sprintf("%T", t)
+	}
+}
 
 func writeComponentNameComment(w *bufio.Writer, n string, i int) {
 	s := fmt.Sprintf("//%s\n", n)
@@ -230,7 +298,7 @@ func writeProto(w *bufio.Writer, n string, index int, tabs int) {
 }
 
 func writeEntryFunctionClose(w *bufio.Writer) {
-	a := fmt.Sprintf("\treturn %s\n}\n", protoArrayVar)
+	a := fmt.Sprintf("\treturn ioc.NewProtoComponents(%s)\n}\n", protoArrayVar)
 	w.WriteString(a)
 }
 

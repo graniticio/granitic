@@ -24,9 +24,10 @@ type Initiator struct {
 	logger logging.Logger
 }
 
-func (i *Initiator) Start(customComponents []*ioc.ProtoComponent) {
+func (i *Initiator) Start(customComponents *ioc.ProtoComponents) {
 
-	container := i.buildContainer(customComponents)
+	container := i.buildContainer(customComponents.Components)
+	customComponents.Clear()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

@@ -16,7 +16,8 @@
     },
 
     "Handler":{
-      "t": "ws.WsHandler"
+      "t": "ws.WsHandler",
+      "HTTPMethod": "POST"
     }
   },
 
@@ -26,19 +27,27 @@
       "compTemplate": "PublicHandler",
       "PasswordManager": "ref:AuthManager",
       "SavePassword": false,
-      "LoginBanner": "c:messages.login.welcome"
+      "LoginBanner": "c:messages.login.welcome",
+      "HTTPMethod": "GET"
     },
 
     "AccountHandler": {
       "compTemplate": "PrivateHandler",
       "SessionTimeoutSeconds": 10
-
     },
 
     "AuthManager": {
       "t": "logic.PassMan",
       "Seed": 1.091223,
       "DataSourceURL": "conf:externals.passwords"
+    },
+
+    "TypeTester": {
+      "t": "logic.TypesTarget",
+      "IntArray": [0,1,2],
+      "FloatArray": [0.1,1.0,2.0],
+      "StringArray": ["0", "1", "2"],
+      "MixedArray": [true, 9, "test"]
     }
 
   }
