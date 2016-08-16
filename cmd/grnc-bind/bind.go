@@ -180,8 +180,15 @@ func writeValues(w *bufio.Writer, cName string, values map[string]interface{}, t
 			continue
 		}
 
-		s := fmt.Sprintf("%s.%s = %s\n", cName, k, asGoInit(v))
+		init, wasMap := asGoInit(v)
+
+		s := fmt.Sprintf("%s.%s = %s\n", cName, k, init)
 		w.WriteString(tabIndent(s, tabs))
+
+		if wasMap {
+
+		}
+
 	}
 
 }
@@ -205,18 +212,29 @@ func writeDeferred(w *bufio.Writer, cName string, promises map[string]interface{
 
 }
 
-func asGoInit(v interface{}) string {
+func asGoInit(v interface{}) (string, bool) {
 
 
 	switch config.JsonType(v) {
 		case config.JsonMap:
-			return ""
+			return asGoMapInit(v), true
 		case config.JsonArray:
-			return asGoArrayInit(v)
+			return asGoArrayInit(v), false
 		default:
-			return fmt.Sprintf("%#v", v)
+			return fmt.Sprintf("%#v", v), false
 	}
 }
+
+func asGoMapInit(v interface{}) string{
+	a := v.(map[string]interface{})
+
+	at := assessMapValueType(a)
+
+
+	s := fmt.Sprintf("make(map[string]%s)", at)
+	return s
+}
+
 
 func asGoArrayInit(v interface{}) string{
 	a := v.([]interface{})
@@ -229,8 +247,8 @@ func asGoArrayInit(v interface{}) string{
 	b.WriteString(s)
 
 	for i, m := range a {
-
-		b.WriteString(asGoInit(m))
+		gi, _ := asGoInit(m)
+		b.WriteString(gi)
 
 		if i + 1 < len(a) {
 			b.WriteString(", ")
@@ -238,11 +256,51 @@ func asGoArrayInit(v interface{}) string{
 
 	}
 
-	s = fmt.Sprintf("}\n")
+	s = fmt.Sprintf("}")
 	b.WriteString(s)
 
 	return b.String()
 }
+
+func assessMapValueType(a map[string]interface{}) string {
+
+	var currentType = config.Unset
+	var sampleVal interface{}
+
+	if len(a) == 0{
+		fatal("This tool does not support empty maps as component values as the type of the map can't be determined.")
+	}
+
+	for _, v := range a {
+
+		newType := config.JsonType(v)
+		sampleVal = v
+
+		if newType == config.JsonMap{
+			fatal("This tool does not support nested maps/objects as component values.\n")
+		}
+
+		if currentType == config.Unset {
+			currentType = newType
+			continue
+		}
+
+		if newType != currentType {
+			return "interface{}"
+		}
+	}
+
+	if currentType == config.JsonArray {
+		return "[]" + assessArrayType(sampleVal.([]interface{}))
+	}
+
+
+	switch t := sampleVal.(type){
+	default:
+		return fmt.Sprintf("%T", t)
+	}
+}
+
 
 func assessArrayType(a []interface{}) string {
 

@@ -47,7 +47,19 @@
       "IntArray": [0,1,2],
       "FloatArray": [0.1,1.0,2.0],
       "StringArray": ["0", "1", "2"],
-      "MixedArray": [true, 9, "test"]
+      "MixedArray": [true, 9, "test"],
+      "Map": {
+        "a": "b"
+      },
+      "ArrayMap": {
+        "a": [0,1,2]
+      },
+      "StringArrayMap": {
+        "a": ["0","1","2"]
+      },
+      "InterfaceArrayMap": {
+        "a": ["0",1,true]
+      }
     }
 
   }
