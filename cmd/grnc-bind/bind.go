@@ -19,7 +19,11 @@ const (
 	packagesField = "packages"
 	componentsField = "components"
 	templatesField = "templates"
-	templateField = "template"
+	templateField = "compTemplate"
+	templateFieldAlias = "ct"
+	typeField = "type"
+	typeFieldAlias = "t"
+
 	bindingsPackage = "bindings"
 	iocImport = "github.com/graniticio/granitic/ioc"
 	entryFuncSignature = "func Components() []*ioc.ProtoComponent {"
@@ -38,13 +42,13 @@ const (
 
 	newline = "\n"
 	nameField = "name"
-	typeField = "type"
 
-	deferSeparator = ":"
-	refPrefix      = "ref"
-	refAlias       = "r"
-	confPrefix     = "conf"
-	confAlias      = "c"
+
+	refPrefix      = "ref:"
+	refAlias       = "r:"
+	confPrefix     = "conf:"
+	confAlias      = "c:"
+
 )
 
 
@@ -141,28 +145,65 @@ func writeImports(w *bufio.Writer, configAccessor *config.ConfigAccessor) {
 	w.WriteString(")\n\n")
 }
 
-func writeEntryFunctionOpen(w *bufio.Writer, i int) {
+func writeEntryFunctionOpen(w *bufio.Writer, t int) {
 	w.WriteString(entryFuncSignature + newline)
 
-	a := fmt.Sprintf("%s := make([]*ioc.ProtoComponent, %d)\n\n", protoArrayVar, i)
+	a := fmt.Sprintf("%s := make([]*ioc.ProtoComponent, %d)\n\n", protoArrayVar, t)
 	w.WriteString(tabIndent(a, 1))
 }
 
-func writeComponent(w *bufio.Writer, name string, values map[string]interface{}, templates map[string]interface{}) {
+func writeComponent(w *bufio.Writer, name string, component map[string]interface{}, templates map[string]interface{}) {
 	baseIdent := 1
 
-	mergeValueSources(values, templates)
-	validateHasType(values, name)
+	values := make(map[string]interface{})
+	refs := make(map[string]interface{})
+	confPromises := make(map[string]interface{})
+
+	mergeValueSources(component, templates)
+	validateHasTypeField(component, name)
 
 	writeComponentNameComment(w, name, baseIdent)
-	writeInstanceVar(w, name, values[typeField].(string), baseIdent)
+	writeInstanceVar(w, name, component[typeField].(string), baseIdent)
 
 
+	for field, value := range component {
 
+		if isPromise(value) {
+			confPromises[field] = value
+
+		} else if isRef(value) {
+			refs[field] = value
+
+		} else {
+			values[field] = value
+		}
+
+	}
+
+	writeValues(w, name, values, baseIdent)
 
 	w.WriteString(newline)
 
 }
+
+func writeValues(w *bufio.Writer, cName string, values map[string]interface{}, t int) {
+
+	for k, v := range values {
+
+		if reservedFieldName(k) {
+			continue
+		}
+
+		s := fmt.Sprintf("%s.%s = %s\n", cName, k, asGoInit(v))
+		w.WriteString(tabIndent(s, t))
+	}
+
+}
+
+func asGoInit(v interface{}) string {
+	return ""
+}
+
 
 func writeComponentNameComment(w *bufio.Writer, n string, i int) {
 	s := fmt.Sprintf("//%s\n", n)
@@ -181,7 +222,33 @@ func writeEntryFunctionClose(w *bufio.Writer) {
 	w.WriteString(a)
 }
 
-func validateHasType(v map[string]interface{}, name string) {
+func isPromise(v interface{}) bool{
+
+	s, found := v.(string)
+
+	if !found {
+		return false
+	}
+
+	return strings.HasPrefix(s, confPrefix) || strings.HasPrefix(s, confAlias)
+}
+
+func isRef(v interface{}) bool{
+	s, found := v.(string)
+
+	if !found {
+		return false
+	}
+
+	return strings.HasPrefix(s, refPrefix) || strings.HasPrefix(s, refAlias)
+
+}
+
+func reservedFieldName(f string) bool {
+	return f == templateField || f == templateFieldAlias || f == typeField || f == typeFieldAlias
+}
+
+func validateHasTypeField(v map[string]interface{}, name string) {
 
 	t := v[typeField]
 
@@ -200,6 +267,9 @@ func validateHasType(v map[string]interface{}, name string) {
 }
 
 func mergeValueSources(c map[string]interface{}, t map[string]interface{}){
+
+	replaceAliases(c)
+
 
 	if c[templateField] != nil {
 		flatten(c, t, c[templateField].(string))
@@ -261,8 +331,16 @@ func parseTemplates(ca *config.ConfigAccessor) map[string]interface{} {
 
 	templates := ca.ObjectVal(templatesField)
 
-	for n, t := range templates {
-		checkForTemplateLoop(t.(map[string]interface{}), templates, []string{n})
+	for _, template := range templates {
+		replaceAliases(template.(map[string]interface{}))
+	}
+
+
+	for n, template := range templates {
+
+		t := template.(map[string]interface{})
+
+		checkForTemplateLoop(t, templates, []string{n})
 
 		ft := make(map[string]interface{})
 		flatten(ft, templates, n)
@@ -271,10 +349,28 @@ func parseTemplates(ca *config.ConfigAccessor) map[string]interface{} {
 
 	}
 
-
 	return flattened
 
 }
+
+func replaceAliases(vs map[string]interface{}){
+	tma := vs[templateFieldAlias]
+
+	if tma != nil {
+		delete(vs, templateFieldAlias)
+		vs[templateField] = tma
+	}
+
+	tya := vs[typeFieldAlias]
+
+	if tya != nil {
+
+		delete(vs, typeFieldAlias)
+		vs[typeField] = tya
+
+	}
+}
+
 
 func flatten(target map[string]interface{}, templates map[string]interface{}, tname string) {
 

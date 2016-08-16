@@ -1,32 +1,42 @@
 {
   "packages": [
-    "github.com/graniticio/granitic/ws"
+    "github.com/graniticio/granitic/ws",
+    "some/package/logic"
   ],
   "templates": {
 
     "PrivateHandler": {
-      "template": "Handler",
+      "ct": "Handler",
       "RequireAuthentication": true
     },
 
     "PublicHandler": {
-      "template": "Handler",
+      "compTemplate": "Handler",
       "RequireAuthentication": false
     },
 
     "Handler":{
-      "type": "ws.WsHandler"
+      "t": "ws.WsHandler"
     }
   },
 
   "components": {
 
     "LoginHandler": {
-      "template": "PublicHandler"
+      "compTemplate": "PublicHandler",
+      "PasswordManager": "ref:PasswordManager",
+      "SavePassword": false
     },
 
     "AccountHandler": {
-      "template": "PrivateHandler"
+      "compTemplate": "PrivateHandler",
+      "SessionTimeoutSeconds": 10
+
+    },
+
+    "PasswordManager": {
+      "t": "logic.PassMan",
+      "Seed": 1.091223
     }
 
   }

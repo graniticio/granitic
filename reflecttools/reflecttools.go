@@ -11,6 +11,13 @@ func HasFieldOfName(i interface{}, fieldName string) bool {
 	return f.IsValid()
 }
 
+func HasWritableFieldOfName(i interface{}, fieldName string) bool {
+	r := reflect.ValueOf(i).Elem()
+	f := r.FieldByName(fieldName)
+
+	return f.IsValid() && f.CanSet()
+}
+
 func TypeOfField(i interface{}, name string) reflect.Type {
 	r := reflect.ValueOf(i).Elem()
 	return r.FieldByName(name).Type()
