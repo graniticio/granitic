@@ -24,6 +24,8 @@ const (
 	typeField = "type"
 	typeFieldAlias = "t"
 
+	protoSuffix = "Proto"
+
 	bindingsPackage = "bindings"
 	iocImport = "github.com/graniticio/granitic/ioc"
 	entryFuncSignature = "func Components() []*ioc.ProtoComponent {"
@@ -41,8 +43,6 @@ const (
 	mergeLocationHelp string = "The path of a file where the merged component defintion file should be written to. Execution will halt after writing."
 
 	newline = "\n"
-	nameField = "name"
-
 
 	refPrefix      = "ref:"
 	refAlias       = "r:"
@@ -55,7 +55,7 @@ const (
 func main() {
 
 	var confLocation = flag.String(confLocationFlag, confLocationDefault, confLocationHelp)
-	var bindingsfile = flag.String(bindingsFileFlag, bindingsFileDefault, bindingsFileHelp)
+	var bindingsFile = flag.String(bindingsFileFlag, bindingsFileDefault, bindingsFileHelp)
 	var mergedComponentsFile = flag.String(mergeLocationFlag, mergeLocationDefault, mergeLocationHelp)
 
 	flag.Parse()
@@ -66,7 +66,7 @@ func main() {
 		writeMergedAndExit(ca, *mergedComponentsFile)
 	}
 
-	f := openOutputFile(*bindingsfile)
+	f := openOutputFile(*bindingsFile)
 	defer f.Close()
 
 	w := bufio.NewWriter(f)
@@ -82,9 +82,12 @@ func writeBindings(w *bufio.Writer, ca *config.ConfigAccessor) {
 
 	writeEntryFunctionOpen(w, len(c))
 
+	var i = 0
+
 	for name, v := range c {
 
-		writeComponent(w, name, v.((map[string]interface{})), t)
+		writeComponent(w, name, v.((map[string]interface{})), t, i)
+		i++
 	}
 
 	writeEntryFunctionClose(w)
@@ -92,33 +95,7 @@ func writeBindings(w *bufio.Writer, ca *config.ConfigAccessor) {
 }
 
 
-func loadConfig(l string) *config.ConfigAccessor{
 
-	s := strings.Split(l, ",")
-	fl, err := config.ExpandToFiles(s)
-
-	if err != nil {
-		m := fmt.Sprintf("Problem loading config from %s %s", l, err.Error())
-		fatal(m)
-	}
-
-	jm := new(jsonmerger.JsonMerger)
-	jm.Logger = new(logging.ConsoleErrorLogger)
-
-	mc := jm.LoadAndMergeConfig(fl)
-
-	ca := new(config.ConfigAccessor)
-	ca.JsonData = mc
-	ca.FrameworkLogger = new(logging.ConsoleErrorLogger)
-
-	if !ca.PathExists(packagesField) || !ca.PathExists(componentsField){
-		m := fmt.Sprintf("The merged component definition file must contain a %s and a %s section.\n", packagesField, componentsField)
-		fatal(m)
-
-	}
-
-	return ca
-}
 
 func writePackage(w *bufio.Writer) {
 
@@ -152,7 +129,7 @@ func writeEntryFunctionOpen(w *bufio.Writer, t int) {
 	w.WriteString(tabIndent(a, 1))
 }
 
-func writeComponent(w *bufio.Writer, name string, component map[string]interface{}, templates map[string]interface{}) {
+func writeComponent(w *bufio.Writer, name string, component map[string]interface{}, templates map[string]interface{}, index int) {
 	baseIdent := 1
 
 	values := make(map[string]interface{})
@@ -164,7 +141,7 @@ func writeComponent(w *bufio.Writer, name string, component map[string]interface
 
 	writeComponentNameComment(w, name, baseIdent)
 	writeInstanceVar(w, name, component[typeField].(string), baseIdent)
-
+	writeProto(w, name, index, baseIdent)
 
 	for field, value := range component {
 
@@ -181,12 +158,20 @@ func writeComponent(w *bufio.Writer, name string, component map[string]interface
 	}
 
 	writeValues(w, name, values, baseIdent)
+	writeDeferred(w, name, confPromises, baseIdent, "AddConfigPromise")
+	writeDeferred(w, name, refs, baseIdent, "AddDependency")
 
+	w.WriteString(newline)
 	w.WriteString(newline)
 
 }
 
-func writeValues(w *bufio.Writer, cName string, values map[string]interface{}, t int) {
+func writeValues(w *bufio.Writer, cName string, values map[string]interface{}, tabs int) {
+
+	if len(values) > 0 {
+		w.WriteString(newline)
+	}
+
 
 	for k, v := range values {
 
@@ -195,7 +180,26 @@ func writeValues(w *bufio.Writer, cName string, values map[string]interface{}, t
 		}
 
 		s := fmt.Sprintf("%s.%s = %s\n", cName, k, asGoInit(v))
-		w.WriteString(tabIndent(s, t))
+		w.WriteString(tabIndent(s, tabs))
+	}
+
+}
+
+func writeDeferred(w *bufio.Writer, cName string, promises map[string]interface{}, tabs int, funcName string) {
+
+	p := protoName(cName)
+
+	if len(promises) > 0 {
+		w.WriteString(newline)
+	}
+
+	for k, v := range promises {
+
+		fc := strings.SplitN(v.(string), ":", 2)[1]
+
+		s := fmt.Sprintf("%s.%s(%s, %s)\n", p, funcName, quoteString(k), quoteString(fc))
+		w.WriteString(tabIndent(s, tabs))
+
 	}
 
 }
@@ -210,17 +214,31 @@ func writeComponentNameComment(w *bufio.Writer, n string, i int) {
 	w.WriteString(tabIndent(s, i))
 }
 
-func writeInstanceVar(w *bufio.Writer, n string, t string, i int) {
-	s := fmt.Sprintf("%s := new(%s)\n",n,t)
-	w.WriteString(tabIndent(s, i))
+func writeInstanceVar(w *bufio.Writer, n string, ct string, tabs int) {
+	s := fmt.Sprintf("%s := new(%s)\n",n, ct)
+	w.WriteString(tabIndent(s, tabs))
 }
 
+func writeProto(w *bufio.Writer, n string, index int, tabs int) {
 
+	p := protoName(n)
+
+	s := fmt.Sprintf("%s := ioc.CreateProtoComponent(%s, %s)\n", p, n, quoteString(n))
+	w.WriteString(tabIndent(s, tabs))
+	s = fmt.Sprintf("%s[%d] = %s\n", protoArrayVar, index, p)
+	w.WriteString(tabIndent(s, tabs))
+}
 
 func writeEntryFunctionClose(w *bufio.Writer) {
-	a := fmt.Sprintf("}\n")
+	a := fmt.Sprintf("\treturn %s\n}\n", protoArrayVar)
 	w.WriteString(a)
 }
+
+
+func protoName(n string) string{
+	return n + protoSuffix
+}
+
 
 func isPromise(v interface{}) bool{
 
@@ -289,7 +307,6 @@ func tabIndent(s string, t int) string{
 	return s
 }
 
-
 func writeMergedAndExit(ca *config.ConfigAccessor, f string) {
 
 	b, err := json.MarshalIndent(ca.JsonData, "", "\t")
@@ -306,8 +323,6 @@ func writeMergedAndExit(ca *config.ConfigAccessor, f string) {
 
 	os.Exit(0)
 }
-
-
 
 func openOutputFile(p string) *os.File {
 	os.MkdirAll(path.Dir(p), 0777)
@@ -435,3 +450,30 @@ func fatal(m string) {
 	os.Exit(-1)
 }
 
+func loadConfig(l string) *config.ConfigAccessor{
+
+	s := strings.Split(l, ",")
+	fl, err := config.ExpandToFiles(s)
+
+	if err != nil {
+		m := fmt.Sprintf("Problem loading config from %s %s", l, err.Error())
+		fatal(m)
+	}
+
+	jm := new(jsonmerger.JsonMerger)
+	jm.Logger = new(logging.ConsoleErrorLogger)
+
+	mc := jm.LoadAndMergeConfig(fl)
+
+	ca := new(config.ConfigAccessor)
+	ca.JsonData = mc
+	ca.FrameworkLogger = new(logging.ConsoleErrorLogger)
+
+	if !ca.PathExists(packagesField) || !ca.PathExists(componentsField){
+		m := fmt.Sprintf("The merged component definition file must contain a %s and a %s section.\n", packagesField, componentsField)
+		fatal(m)
+
+	}
+
+	return ca
+}

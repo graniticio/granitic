@@ -24,8 +24,9 @@
 
     "LoginHandler": {
       "compTemplate": "PublicHandler",
-      "PasswordManager": "ref:PasswordManager",
-      "SavePassword": false
+      "PasswordManager": "ref:AuthManager",
+      "SavePassword": false,
+      "LoginBanner": "c:messages.login.welcome"
     },
 
     "AccountHandler": {
@@ -34,9 +35,10 @@
 
     },
 
-    "PasswordManager": {
+    "AuthManager": {
       "t": "logic.PassMan",
-      "Seed": 1.091223
+      "Seed": 1.091223,
+      "DataSourceURL": "conf:externals.passwords"
     }
 
   }
