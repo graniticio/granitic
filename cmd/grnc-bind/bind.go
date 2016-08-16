@@ -186,7 +186,7 @@ func writeValues(w *bufio.Writer, cName string, values map[string]interface{}, t
 		w.WriteString(tabIndent(s, tabs))
 
 		if wasMap {
-
+			writeMapContents(w, cName, k, v.(map[string]interface{}), tabs)
 		}
 
 	}
@@ -211,6 +211,19 @@ func writeDeferred(w *bufio.Writer, cName string, promises map[string]interface{
 	}
 
 }
+
+func writeMapContents(w *bufio.Writer, iName string, fName string, contents map[string]interface{}, tabs int) {
+
+
+	for k, v := range contents {
+
+		gi, _ := asGoInit(v)
+
+		s := fmt.Sprintf("%s.%s[%s] = %s\n", iName, fName, quoteString(k), gi)
+		w.WriteString(tabIndent(s, tabs))
+	}
+}
+
 
 func asGoInit(v interface{}) (string, bool) {
 
