@@ -6,8 +6,8 @@ import (
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/logging"
 	"os"
-	"reflect"
 	"time"
+	"github.com/graniticio/granitic/reflecttools"
 )
 
 const containerDecoratorComponentName = FrameworkPrefix + "ContainerDecorator"
@@ -258,36 +258,35 @@ func (cc *ComponentContainer) resolveDependenciesAndConfig() error {
 
 	fl := cc.FrameworkLogger
 
-	for _, proto := range cc.protoComponents {
+	for _, targetProto := range cc.protoComponents {
 
-		for fieldName, depName := range proto.Dependencies {
+		for fieldName, depName := range targetProto.Dependencies {
 
-			fl.LogTracef("%s needs %s", proto.Component.Name, depName)
+			fl.LogTracef("%s needs %s", targetProto.Component.Name, depName)
 
 			requiredComponent := cc.allComponents[depName]
 
 			if requiredComponent == nil {
-				message := fmt.Sprintf("No component named %s available (required by %s.%s)", depName, proto.Component.Name, fieldName)
+				message := fmt.Sprintf("No component named %s available (required by %s.%s)", depName, targetProto.Component.Name, fieldName)
 				return errors.New(message)
 			}
 
+			targetInstance := targetProto.Component.Instance
 			requiredInstance := requiredComponent.Instance
 
-			targetReflect := reflect.ValueOf(proto.Component.Instance).Elem()
+			err := reflecttools.SetPtrToStruct(targetInstance, fieldName, requiredInstance)
 
-			defer func() {
-				if r := recover(); r != nil {
-					fl.LogFatalf("Problem setting %s.%s: %s ", proto.Component.Name, fieldName, r)
-				}
-			}()
+			if err != nil {
+				m := fmt.Sprintf("Problem injecting dependency '%s' into %s.%s: %s", depName, targetProto.Component.Name, fieldName, err.Error() )
+				return errors.New(m)
+			}
 
-			targetReflect.FieldByName(fieldName).Set(reflect.ValueOf(requiredInstance))
 		}
 
-		for fieldName, configPath := range proto.ConfigPromises {
-			fl.LogTracef("%s needs %s", proto.Component.Name, fieldName, configPath)
+		for fieldName, configPath := range targetProto.ConfigPromises {
+			fl.LogTracef("%s needs %s", targetProto.Component.Name, fieldName, configPath)
 
-			cc.configAccessor.SetField(fieldName, configPath, proto.Component.Instance)
+			cc.configAccessor.SetField(fieldName, configPath, targetProto.Component.Instance)
 
 		}
 
