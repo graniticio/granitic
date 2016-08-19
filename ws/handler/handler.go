@@ -7,6 +7,18 @@ import (
 	"regexp"
 )
 
+type WsRequestProcessor interface {
+	Process(request *ws.WsRequest, response *ws.WsResponse)
+}
+
+type WsRequestValidator interface {
+	Validate(errors *ws.ServiceErrors, request *ws.WsRequest)
+}
+
+type WsUnmarshallTarget interface {
+	UnmarshallTarget() interface{}
+}
+
 //Implements HttpEndpointProvider
 type WsHandler struct {
 	AccessChecker         ws.WsAccessChecker //
@@ -22,7 +34,7 @@ type WsHandler struct {
 	FrameworkErrors       *ws.FrameworkErrorGenerator // An object that provides access to built-in error messages to use when an error is found during the automated phases of request processing.
 	HttpMethod            string // The HTTP method (GET, POST etc) that this handler supports.
 	Log                   logging.Logger //
-	Logic                 ws.WsRequestProcessor // The object representing the 'logic' behind this handler.
+	Logic                 WsRequestProcessor // The object representing the 'logic' behind this handler.
 	ParamBinder           *ws.ParamBinder //
 	PathMatchPattern      string // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
 	ResponseWriter        ws.WsResponseWriter //
@@ -35,7 +47,7 @@ type WsHandler struct {
 	componentName         string
 	pathRegex             *regexp.Regexp
 	validate              bool
-	validator             ws.WsRequestValidator
+	validator             WsRequestValidator
 }
 
 func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
@@ -111,7 +123,7 @@ func (wh *WsHandler) ServeHTTP(w *ws.WsHTTPResponseWriter, req *http.Request) ws
 
 func (wh *WsHandler) unmarshall(req *http.Request, wsReq *ws.WsRequest) {
 
-	targetSource, found := wh.Logic.(ws.WsUnmarshallTarget)
+	targetSource, found := wh.Logic.(WsUnmarshallTarget)
 
 	if found {
 		target := targetSource.UnmarshallTarget()
@@ -288,7 +300,7 @@ func (wh *WsHandler) writePanicResponse(r interface{}, w *ws.WsHTTPResponseWrite
 
 func (wh *WsHandler) StartComponent() error {
 
-	validator, found := wh.Logic.(ws.WsRequestValidator)
+	validator, found := wh.Logic.(WsRequestValidator)
 
 	wh.validate = found
 

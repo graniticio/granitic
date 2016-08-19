@@ -53,17 +53,7 @@ type WsResponse struct {
 	Headers    map[string]string
 }
 
-type WsRequestProcessor interface {
-	Process(request *WsRequest, response *WsResponse)
-}
 
-type WsRequestValidator interface {
-	Validate(errors *ServiceErrors, request *WsRequest)
-}
-
-type WsUnmarshallTarget interface {
-	UnmarshallTarget() interface{}
-}
 
 type WsUnmarshaller interface {
 	Unmarshall(req *http.Request, wsReq *WsRequest) error
