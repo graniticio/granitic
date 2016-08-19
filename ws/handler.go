@@ -9,32 +9,33 @@ import (
 
 //Implements HttpEndpointProvider
 type WsHandler struct {
-	Unmarshaller          WsUnmarshaller
-	HttpMethod            string
-	HttpMethods           []string
-	PathMatchPattern      string
-	Logic                 WsRequestProcessor
-	ResponseWriter        WsResponseWriter
-	Log                   logging.Logger
-	ErrorFinder           ServiceErrorFinder
-	FrameworkErrors       *FrameworkErrorGenerator
-	DisableQueryParsing   bool
-	DisablePathParsing    bool
-	DeferFrameworkErrors  bool
-	RequireAuthentication bool
-	FieldQueryParam       map[string]string
-	BindPathParams        []string
-	ParamBinder           *ParamBinder
-	UserIdentifier        WsIdentifier
-	AccessChecker         WsAccessChecker
-	CheckAccessAfterParse bool
-	AutoBindQuery         bool
+	AccessChecker         WsAccessChecker //
+	AllowDirectHTTPAccess bool // Whether or not the underlying HTTP request and response writer should be made available to request Logic.
+	AutoBindQuery         bool // Whether or not query parameters should be automatically injected into the request body.
+	BindPathParams        []string // A list of fields on the request body that should be populated using elements of the request path.
+	CheckAccessAfterParse bool // Check caller's permissions after request has been parsed (true) or before parsing (false).
+	DeferFrameworkErrors  bool // If true, do not automatically return an error response if errors are found during the automated phases of request processing.
+	DisableQueryParsing   bool // If true, discard the request's query parameters.
+	DisablePathParsing    bool // If true, discard any path parameters found by match the request URI against the PathMatchPattern regex.
+	ErrorFinder           ServiceErrorFinder // An object that provides access to application defined error messages for use during validation.
+	FieldQueryParam       map[string]string // A map of fields on the request body object and the names of query parameters that should be used to populate them
+	FrameworkErrors       *FrameworkErrorGenerator // An object that provides access to built-in error messages to use when an error is found during the automated phases of request processing.
+	HttpMethod            string // The HTTP method (GET, POST etc) that this handler supports.
+	Log                   logging.Logger //
+	Logic                 WsRequestProcessor // The object representing the 'logic' behind this handler.
+	ParamBinder           *ParamBinder //
+	PathMatchPattern      string // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
+	ResponseWriter        WsResponseWriter //
+	RequireAuthentication bool // Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
+	Unmarshaller          WsUnmarshaller //
+	UserIdentifier        WsIdentifier //
+	bindPathParams        bool
+	bindQuery             bool
+	httpMethods           []string
+	componentName         string
+	pathRegex             *regexp.Regexp
 	validate              bool
 	validator             WsRequestValidator
-	bindQuery             bool
-	bindPathParams        bool
-	pathRegex             *regexp.Regexp
-	componentName         string
 }
 
 func (wh *WsHandler) ProvideErrorFinder(finder ServiceErrorFinder) {
@@ -42,7 +43,7 @@ func (wh *WsHandler) ProvideErrorFinder(finder ServiceErrorFinder) {
 }
 
 //HttpEndpointProvider
-func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) WsIdentity {
+func (wh *WsHandler) ServeHTTP(w *WsHTTPResponseWriter, req *http.Request) WsIdentity {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -53,6 +54,15 @@ func (wh *WsHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) WsIdent
 
 	wsReq := new(WsRequest)
 	wsReq.HttpMethod = req.Method
+
+	if wh.AllowDirectHTTPAccess {
+		da := new(DirectHTTPAccess)
+		da.Request = req
+		da.ResponseWriter = w
+
+		wsReq.UnderlyingHTTP = da
+	}
+
 
 	//Try to identify and/or authenticate the caller
 	if !wh.identifyAndAuthenticate(w, req, wsReq) {
@@ -168,7 +178,7 @@ func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *WsRequest) {
 
 }
 
-func (wh *WsHandler) checkAccess(w http.ResponseWriter, wsReq *WsRequest) bool {
+func (wh *WsHandler) checkAccess(w *WsHTTPResponseWriter, wsReq *WsRequest) bool {
 
 	ac := wh.AccessChecker
 
@@ -186,7 +196,7 @@ func (wh *WsHandler) checkAccess(w http.ResponseWriter, wsReq *WsRequest) bool {
 	}
 }
 
-func (wh *WsHandler) identifyAndAuthenticate(w http.ResponseWriter, req *http.Request, wsReq *WsRequest) bool {
+func (wh *WsHandler) identifyAndAuthenticate(w *WsHTTPResponseWriter, req *http.Request, wsReq *WsRequest) bool {
 
 	if wh.UserIdentifier != nil {
 		i := wh.UserIdentifier.Identify(req)
@@ -209,8 +219,8 @@ func (wh *WsHandler) identifyAndAuthenticate(w http.ResponseWriter, req *http.Re
 
 //HttpEndpointProvider
 func (wh *WsHandler) SupportedHttpMethods() []string {
-	if len(wh.HttpMethods) > 0 {
-		return wh.HttpMethods
+	if len(wh.httpMethods) > 0 {
+		return wh.httpMethods
 	} else {
 		return []string{wh.HttpMethod}
 	}
@@ -221,7 +231,7 @@ func (wh *WsHandler) RegexPattern() string {
 	return wh.PathMatchPattern
 }
 
-func (wh *WsHandler) handleFrameworkErrors(w http.ResponseWriter, wsReq *WsRequest) {
+func (wh *WsHandler) handleFrameworkErrors(w *WsHTTPResponseWriter, wsReq *WsRequest) {
 
 	var se ServiceErrors
 	se.HttpStatus = http.StatusBadRequest
@@ -234,7 +244,7 @@ func (wh *WsHandler) handleFrameworkErrors(w http.ResponseWriter, wsReq *WsReque
 
 }
 
-func (wh *WsHandler) process(jsonReq *WsRequest, w http.ResponseWriter) {
+func (wh *WsHandler) process(jsonReq *WsRequest, w *WsHTTPResponseWriter) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -250,7 +260,7 @@ func (wh *WsHandler) process(jsonReq *WsRequest, w http.ResponseWriter) {
 
 }
 
-func (wh *WsHandler) writeErrorResponse(errors *ServiceErrors, w http.ResponseWriter) {
+func (wh *WsHandler) writeErrorResponse(errors *ServiceErrors, w *WsHTTPResponseWriter) {
 
 	l := wh.Log
 
@@ -268,7 +278,7 @@ func (wh *WsHandler) writeErrorResponse(errors *ServiceErrors, w http.ResponseWr
 
 }
 
-func (wh *WsHandler) writePanicResponse(r interface{}, w http.ResponseWriter) {
+func (wh *WsHandler) writePanicResponse(r interface{}, w *WsHTTPResponseWriter) {
 
 	wh.ResponseWriter.WriteAbnormalStatus(http.StatusInternalServerError, w)
 

@@ -23,6 +23,7 @@ type WsRequest struct {
 	FrameworkErrors []*WsFrameworkError
 	populatedFields map[string]bool
 	UserIdentity    WsIdentity
+	UnderlyingHTTP *DirectHTTPAccess
 }
 
 func (wsr *WsRequest) HasFrameworkErrors() bool {
@@ -69,13 +70,18 @@ type WsUnmarshaller interface {
 }
 
 type WsResponseWriter interface {
-	Write(res *WsResponse, w http.ResponseWriter) error
-	WriteErrors(errors *ServiceErrors, w http.ResponseWriter) error
-	WriteAbnormalStatus(status int, w http.ResponseWriter) error
+	Write(res *WsResponse, w *WsHTTPResponseWriter) error
+	WriteErrors(errors *ServiceErrors, w *WsHTTPResponseWriter) error
+	WriteAbnormalStatus(status int, w *WsHTTPResponseWriter) error
 }
 
 type AbnormalStatusWriter interface {
-	WriteAbnormalStatus(status int, w http.ResponseWriter) error
+	WriteAbnormalStatus(status int, w *WsHTTPResponseWriter) error
+}
+
+type DirectHTTPAccess struct {
+	ResponseWriter http.ResponseWriter
+	Request *http.Request
 }
 
 func WriteMetaData(w http.ResponseWriter, r *WsResponse, defaultHeaders map[string]string) {

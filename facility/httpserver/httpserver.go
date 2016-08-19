@@ -134,8 +134,10 @@ func (h *HTTPServer) AllowAccess() error {
 
 func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
+	wrw := ws.NewWsHTTPResponseWriter(res)
+
 	if !h.available {
-		h.AbnormalStatusWriter.WriteAbnormalStatus(h.TooBusyStatus, res)
+		h.AbnormalStatusWriter.WriteAbnormalStatus(h.TooBusyStatus, wrw)
 		return
 	}
 
@@ -143,7 +145,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	defer atomic.AddInt64(&h.ActiveRequests, -1)
 
 	if h.MaxConcurrent > 0 && rCount > h.MaxConcurrent {
-		h.AbnormalStatusWriter.WriteAbnormalStatus(h.TooBusyStatus, res)
+		h.AbnormalStatusWriter.WriteAbnormalStatus(h.TooBusyStatus, wrw)
 		return
 	}
 
@@ -156,7 +158,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	h.FrameworkLogger.LogTracef("Finding provider to handle %s %s from %d providers", path, req.Method, len(providersByMethod))
 
-	wrw := ws.NewWsHTTPResponseWriter(res)
+
 
 	var identity ws.WsIdentity
 
@@ -174,7 +176,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if !matched {
-		h.AbnormalStatusWriter.WriteAbnormalStatus(http.StatusNotFound, res)
+		h.AbnormalStatusWriter.WriteAbnormalStatus(http.StatusNotFound, wrw)
 	}
 
 	if h.AccessLogging {

@@ -13,7 +13,7 @@ type HttpEndPoint struct {
 type HttpEndpointProvider interface {
 	SupportedHttpMethods() []string
 	RegexPattern() string
-	ServeHTTP(w http.ResponseWriter, req *http.Request) ws.WsIdentity
+	ServeHTTP(w *ws.WsHTTPResponseWriter, req *http.Request) ws.WsIdentity
 }
 
 type ClientIdentity struct {
