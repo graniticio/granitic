@@ -32,7 +32,7 @@ func (lal *LevelAwareLogger) log(prefix string, level int, message string) {
 
 	if lal.IsLevelEnabled(level) {
 		t := time.Now()
-		fmt.Printf("%s %s %s %s\n", t.Format(time.RFC3339), prefix, lal.loggerName, message)
+		fmt.Printf("%s %s %s: %s\n", t.Format(time.RFC3339), prefix, lal.loggerName, message)
 	}
 
 }
@@ -41,7 +41,7 @@ func (lal *LevelAwareLogger) logf(levelLabel string, level int, format string, a
 	if lal.IsLevelEnabled(level) {
 		t := time.Now()
 		message := fmt.Sprintf(format, a...)
-		fmt.Printf("%s %s %s %s\n", t.Format(time.RFC3339), levelLabel, lal.loggerName, message)
+		fmt.Printf("%s %s %s: %s\n", t.Format(time.RFC3339), levelLabel, lal.loggerName, message)
 	}
 
 }

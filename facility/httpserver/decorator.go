@@ -33,6 +33,7 @@ func (d *AbnormalStatusWriterDecorator) DecorateComponent(component *ioc.Compone
 type VersionExtractorDecorator struct {
 	FrameworkLogger logging.Logger
 	HttpServer      *HTTPServer
+	ServerName string
 }
 
 func (v *VersionExtractorDecorator) OfInterest(component *ioc.Component) bool {
@@ -46,6 +47,9 @@ func (v *VersionExtractorDecorator) OfInterest(component *ioc.Component) bool {
 }
 
 func (v *VersionExtractorDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+
+	v.FrameworkLogger.LogInfof("%s will use %s as a RequestedVersionExtractor", v.ServerName, component.Name)
+
 
 	i := component.Instance.(httpendpoint.RequestedVersionExtractor)
 

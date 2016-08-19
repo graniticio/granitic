@@ -9,6 +9,7 @@ import (
 const httpServerName = ioc.FrameworkPrefix + "HttpServer"
 const accessLogWriterName = ioc.FrameworkPrefix + "AccessLogWriter"
 const abnormalStatusWriterDecoratorName = ioc.FrameworkPrefix + "AbnormalStatusWriterDecorator"
+const versionAssessorDecoratorName = ioc.FrameworkPrefix + "VersionAssessorDecorator"
 
 type HttpServerFacilityBuilder struct {
 }
@@ -23,6 +24,13 @@ func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLog
 	writerDecorator := new(AbnormalStatusWriterDecorator)
 	writerDecorator.HttpServer = httpServer
 	cn.WrapAndAddProto(abnormalStatusWriterDecoratorName, writerDecorator)
+
+	versionDecorator := new(VersionExtractorDecorator)
+	versionDecorator.HttpServer = httpServer
+	versionDecorator.ServerName = httpServerName
+	versionDecorator.FrameworkLogger = lm.CreateLogger(versionAssessorDecoratorName)
+	cn.WrapAndAddProto(versionAssessorDecoratorName, versionDecorator)
+
 
 	if !httpServer.AccessLogging {
 		return nil
