@@ -156,8 +156,7 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	h.FrameworkLogger.LogTracef("Finding provider to handle %s %s from %d providers", path, req.Method, len(providersByMethod))
 
-	wrw := new(wrappedResponseWriter)
-	wrw.rw = res
+	wrw := ws.NewWsHTTPResponseWriter(res)
 
 	var identity ws.WsIdentity
 
@@ -215,27 +214,7 @@ func (h *HttpServer) Stop() error {
 	return nil
 }
 
-type wrappedResponseWriter struct {
-	rw          http.ResponseWriter
-	Status      int
-	BytesServed int
-}
 
-func (wrw *wrappedResponseWriter) Header() http.Header {
-	return wrw.rw.Header()
-}
-
-func (wrw *wrappedResponseWriter) Write(b []byte) (int, error) {
-
-	wrw.BytesServed += len(b)
-
-	return wrw.rw.Write(b)
-}
-
-func (wrw *wrappedResponseWriter) WriteHeader(i int) {
-	wrw.Status = i
-	wrw.rw.WriteHeader(i)
-}
 
 type AbnormalStatusWriterDecorator struct {
 	FrameworkLogger logging.Logger

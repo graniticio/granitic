@@ -103,13 +103,13 @@ type AccessLogWriter struct {
 	lines         chan string
 }
 
-func (alw *AccessLogWriter) LogRequest(req *http.Request, res *wrappedResponseWriter, rec *time.Time, fin *time.Time, id ws.WsIdentity) {
+func (alw *AccessLogWriter) LogRequest(req *http.Request, res *ws.WsHTTPResponseWriter, rec *time.Time, fin *time.Time, id ws.WsIdentity) {
 
 	alw.lines <- alw.buildLine(req, res, rec, fin, id)
 
 }
 
-func (alw *AccessLogWriter) buildLine(req *http.Request, res *wrappedResponseWriter, rec *time.Time, fin *time.Time, id ws.WsIdentity) string {
+func (alw *AccessLogWriter) buildLine(req *http.Request, res *ws.WsHTTPResponseWriter, rec *time.Time, fin *time.Time, id ws.WsIdentity) string {
 	var b bytes.Buffer
 
 	if alw.UtcTimes {
@@ -364,7 +364,7 @@ func (alw *AccessLogWriter) mapPlaceholder(ph string) LogFormatPlaceHolder {
 
 }
 
-func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.Request, res *wrappedResponseWriter, received *time.Time, finished *time.Time, id ws.WsIdentity) string {
+func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.Request, res *ws.WsHTTPResponseWriter, received *time.Time, finished *time.Time, id ws.WsIdentity) string {
 	switch element.placeholderType {
 	case RequestHeader:
 		return alw.requestHeader(element.variable, req)
@@ -392,7 +392,7 @@ func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.
 	}
 }
 
-func (alw *AccessLogWriter) findValue(element *LogLineElement, req *http.Request, res *wrappedResponseWriter, received *time.Time, finished *time.Time, id ws.WsIdentity) string {
+func (alw *AccessLogWriter) findValue(element *LogLineElement, req *http.Request, res *ws.WsHTTPResponseWriter, received *time.Time, finished *time.Time, id ws.WsIdentity) string {
 
 	switch element.placeholderType {
 
