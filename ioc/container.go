@@ -235,6 +235,12 @@ func (cc *ComponentContainer) Populate() error {
 
 		component := protoComponent.Component
 
+		if ! reflecttools.IsPointerToStruct(component.Instance) {
+			m := fmt.Sprintf("Component %s is not a pointer to a struct.", component.Name)
+			return errors.New(m)
+		}
+
+
 		cc.addComponent(component)
 		cc.captureDecorator(component, decorators)
 	}
