@@ -1,15 +1,16 @@
 // Package ws provides components for building web services and automating the processing of web service requests.
-package ws
+package handler
 
 import (
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/ws"
 	"net/http"
 	"regexp"
 )
 
 //Implements HttpEndpointProvider
 type WsHandler struct {
-	AccessChecker         WsAccessChecker //
+	AccessChecker         ws.WsAccessChecker //
 	AllowDirectHTTPAccess bool // Whether or not the underlying HTTP request and response writer should be made available to request Logic.
 	AutoBindQuery         bool // Whether or not query parameters should be automatically injected into the request body.
 	BindPathParams        []string // A list of fields on the request body that should be populated using elements of the request path.
@@ -17,33 +18,33 @@ type WsHandler struct {
 	DeferFrameworkErrors  bool // If true, do not automatically return an error response if errors are found during the automated phases of request processing.
 	DisableQueryParsing   bool // If true, discard the request's query parameters.
 	DisablePathParsing    bool // If true, discard any path parameters found by match the request URI against the PathMatchPattern regex.
-	ErrorFinder           ServiceErrorFinder // An object that provides access to application defined error messages for use during validation.
+	ErrorFinder           ws.ServiceErrorFinder // An object that provides access to application defined error messages for use during validation.
 	FieldQueryParam       map[string]string // A map of fields on the request body object and the names of query parameters that should be used to populate them
-	FrameworkErrors       *FrameworkErrorGenerator // An object that provides access to built-in error messages to use when an error is found during the automated phases of request processing.
+	FrameworkErrors       *ws.FrameworkErrorGenerator // An object that provides access to built-in error messages to use when an error is found during the automated phases of request processing.
 	HttpMethod            string // The HTTP method (GET, POST etc) that this handler supports.
 	Log                   logging.Logger //
-	Logic                 WsRequestProcessor // The object representing the 'logic' behind this handler.
-	ParamBinder           *ParamBinder //
+	Logic                 ws.WsRequestProcessor // The object representing the 'logic' behind this handler.
+	ParamBinder           *ws.ParamBinder //
 	PathMatchPattern      string // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
-	ResponseWriter        WsResponseWriter //
+	ResponseWriter        ws.WsResponseWriter //
 	RequireAuthentication bool // Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
-	Unmarshaller          WsUnmarshaller //
-	UserIdentifier        WsIdentifier //
+	Unmarshaller          ws.WsUnmarshaller //
+	UserIdentifier        ws.WsIdentifier //
 	bindPathParams        bool
 	bindQuery             bool
 	httpMethods           []string
 	componentName         string
 	pathRegex             *regexp.Regexp
 	validate              bool
-	validator             WsRequestValidator
+	validator             ws.WsRequestValidator
 }
 
-func (wh *WsHandler) ProvideErrorFinder(finder ServiceErrorFinder) {
+func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
 	wh.ErrorFinder = finder
 }
 
 //HttpEndpointProvider
-func (wh *WsHandler) ServeHTTP(w *WsHTTPResponseWriter, req *http.Request) WsIdentity {
+func (wh *WsHandler) ServeHTTP(w *ws.WsHTTPResponseWriter, req *http.Request) ws.WsIdentity {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -52,11 +53,11 @@ func (wh *WsHandler) ServeHTTP(w *WsHTTPResponseWriter, req *http.Request) WsIde
 		}
 	}()
 
-	wsReq := new(WsRequest)
+	wsReq := new(ws.WsRequest)
 	wsReq.HttpMethod = req.Method
 
 	if wh.AllowDirectHTTPAccess {
-		da := new(DirectHTTPAccess)
+		da := new(ws.DirectHTTPAccess)
 		da.Request = req
 		da.ResponseWriter = w
 
@@ -90,7 +91,7 @@ func (wh *WsHandler) ServeHTTP(w *WsHTTPResponseWriter, req *http.Request) WsIde
 	}
 
 	//Validate request
-	var errors ServiceErrors
+	var errors ws.ServiceErrors
 	errors.ErrorFinder = wh.ErrorFinder
 
 	if wh.validate {
@@ -109,9 +110,9 @@ func (wh *WsHandler) ServeHTTP(w *WsHTTPResponseWriter, req *http.Request) WsIde
 	return wsReq.UserIdentity
 }
 
-func (wh *WsHandler) unmarshall(req *http.Request, wsReq *WsRequest) {
+func (wh *WsHandler) unmarshall(req *http.Request, wsReq *ws.WsRequest) {
 
-	targetSource, found := wh.Logic.(WsUnmarshallTarget)
+	targetSource, found := wh.Logic.(ws.WsUnmarshallTarget)
 
 	if found {
 		target := targetSource.UnmarshallTarget()
@@ -127,16 +128,16 @@ func (wh *WsHandler) unmarshall(req *http.Request, wsReq *WsRequest) {
 
 			wh.Log.LogDebugf("Error unmarshalling request body for %s %s %s", req.URL.Path, req.Method, err)
 
-			m, c := wh.FrameworkErrors.MessageCode(UnableToParseRequest)
+			m, c := wh.FrameworkErrors.MessageCode(ws.UnableToParseRequest)
 
-			f := NewUnmarshallWsFrameworkError(m, c)
+			f := ws.NewUnmarshallWsFrameworkError(m, c)
 			wsReq.AddFrameworkError(f)
 		}
 
 	}
 }
 
-func (wh *WsHandler) processPathParams(req *http.Request, wsReq *WsRequest) {
+func (wh *WsHandler) processPathParams(req *http.Request, wsReq *ws.WsRequest) {
 
 	if wh.DisablePathParsing {
 		return
@@ -147,20 +148,20 @@ func (wh *WsHandler) processPathParams(req *http.Request, wsReq *WsRequest) {
 	wsReq.PathParams = params[1:]
 
 	if wh.bindPathParams && len(wsReq.PathParams) > 0 {
-		pp := NewWsParamsForPath(wh.BindPathParams, wsReq.PathParams)
+		pp := ws.NewWsParamsForPath(wh.BindPathParams, wsReq.PathParams)
 		wh.ParamBinder.AutoBindPathParameters(wsReq, pp)
 	}
 
 }
 
-func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *WsRequest) {
+func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *ws.WsRequest) {
 
 	if wh.DisableQueryParsing {
 		return
 	}
 
 	values := req.URL.Query()
-	wsReq.QueryParams = NewWsParamsForQuery(values)
+	wsReq.QueryParams = ws.NewWsParamsForQuery(values)
 
 	if wh.bindQuery {
 		if wsReq.RequestBody == nil {
@@ -178,7 +179,7 @@ func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *WsRequest) {
 
 }
 
-func (wh *WsHandler) checkAccess(w *WsHTTPResponseWriter, wsReq *WsRequest) bool {
+func (wh *WsHandler) checkAccess(w *ws.WsHTTPResponseWriter, wsReq *ws.WsRequest) bool {
 
 	ac := wh.AccessChecker
 
@@ -196,7 +197,7 @@ func (wh *WsHandler) checkAccess(w *WsHTTPResponseWriter, wsReq *WsRequest) bool
 	}
 }
 
-func (wh *WsHandler) identifyAndAuthenticate(w *WsHTTPResponseWriter, req *http.Request, wsReq *WsRequest) bool {
+func (wh *WsHandler) identifyAndAuthenticate(w *ws.WsHTTPResponseWriter, req *http.Request, wsReq *ws.WsRequest) bool {
 
 	if wh.UserIdentifier != nil {
 		i := wh.UserIdentifier.Identify(req)
@@ -210,7 +211,7 @@ func (wh *WsHandler) identifyAndAuthenticate(w *WsHTTPResponseWriter, req *http.
 	}
 
 	if wsReq.UserIdentity == nil {
-		wsReq.UserIdentity = NewAnonymousIdentity()
+		wsReq.UserIdentity = ws.NewAnonymousIdentity()
 	}
 
 	return true
@@ -231,20 +232,20 @@ func (wh *WsHandler) RegexPattern() string {
 	return wh.PathMatchPattern
 }
 
-func (wh *WsHandler) handleFrameworkErrors(w *WsHTTPResponseWriter, wsReq *WsRequest) {
+func (wh *WsHandler) handleFrameworkErrors(w *ws.WsHTTPResponseWriter, wsReq *ws.WsRequest) {
 
-	var se ServiceErrors
+	var se ws.ServiceErrors
 	se.HttpStatus = http.StatusBadRequest
 
 	for _, fe := range wsReq.FrameworkErrors {
-		se.AddNewError(Client, fe.Code, fe.Message)
+		se.AddNewError(ws.Client, fe.Code, fe.Message)
 	}
 
 	wh.writeErrorResponse(&se, w)
 
 }
 
-func (wh *WsHandler) process(jsonReq *WsRequest, w *WsHTTPResponseWriter) {
+func (wh *WsHandler) process(jsonReq *ws.WsRequest, w *ws.WsHTTPResponseWriter) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -253,14 +254,14 @@ func (wh *WsHandler) process(jsonReq *WsRequest, w *WsHTTPResponseWriter) {
 		}
 	}()
 
-	wsRes := NewWsResponse(wh.ErrorFinder)
+	wsRes := ws.NewWsResponse(wh.ErrorFinder)
 	wh.Logic.Process(jsonReq, wsRes)
 
 	wh.ResponseWriter.Write(wsRes, w)
 
 }
 
-func (wh *WsHandler) writeErrorResponse(errors *ServiceErrors, w *WsHTTPResponseWriter) {
+func (wh *WsHandler) writeErrorResponse(errors *ws.ServiceErrors, w *ws.WsHTTPResponseWriter) {
 
 	l := wh.Log
 
@@ -278,7 +279,7 @@ func (wh *WsHandler) writeErrorResponse(errors *ServiceErrors, w *WsHTTPResponse
 
 }
 
-func (wh *WsHandler) writePanicResponse(r interface{}, w *WsHTTPResponseWriter) {
+func (wh *WsHandler) writePanicResponse(r interface{}, w *ws.WsHTTPResponseWriter) {
 
 	wh.ResponseWriter.WriteAbnormalStatus(http.StatusInternalServerError, w)
 
@@ -288,7 +289,7 @@ func (wh *WsHandler) writePanicResponse(r interface{}, w *WsHTTPResponseWriter) 
 
 func (wh *WsHandler) StartComponent() error {
 
-	validator, found := wh.Logic.(WsRequestValidator)
+	validator, found := wh.Logic.(ws.WsRequestValidator)
 
 	wh.validate = found
 
@@ -323,3 +324,4 @@ func (wh *WsHandler) ComponentName() string {
 func (wh *WsHandler) SetComponentName(name string) {
 	wh.componentName = name
 }
+

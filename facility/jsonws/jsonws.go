@@ -5,6 +5,7 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
+	"github.com/graniticio/granitic/ws/handler"
 	"github.com/graniticio/granitic/ws/json"
 )
 
@@ -69,13 +70,13 @@ func (jwhd *JsonWsHandlerDecorator) OfInterest(component *ioc.Component) bool {
 	default:
 		jwhd.FrameworkLogger.LogTracef("No interest %s", component.Name)
 		return false
-	case *ws.WsHandler:
+	case *handler.WsHandler:
 		return true
 	}
 }
 
 func (jwhd *JsonWsHandlerDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
-	h := component.Instance.(*ws.WsHandler)
+	h := component.Instance.(*handler.WsHandler)
 	l := jwhd.FrameworkLogger
 	l.LogTracef("Decorating component %s", component.Name)
 
