@@ -7,8 +7,19 @@ import (
 	"regexp"
 )
 
+
+// Indicates that an object is able to continue the processing of a web service request after the automated phases of
+// parsing, binding, authenticating, authorising and auto-validating have been completed.
 type WsRequestProcessor interface {
 	Process(request *ws.WsRequest, response *ws.WsResponse)
+}
+
+// Indicates that an object is interested in observing/modifying a web service request after processing has been completed,
+// but before the HTTP response is written. Typical uses are the writing of response headers that are generic to all/most handlers or the recording of metrics.
+//
+// It is expected that WsPostProcessors may be shared between multiple instances of WsHandler
+type WsPostProcessor interface {
+	PostProcess(handlerName string, request *ws.WsRequest, response *ws.WsResponse)
 }
 
 type WsRequestValidator interface {
@@ -19,7 +30,8 @@ type WsUnmarshallTarget interface {
 	UnmarshallTarget() interface{}
 }
 
-//Implements HttpEndpointProvider
+//  WsHandler co-ordinates the processing of a web service request for a particular endpoint.
+// Implements ws.HttpEndpointProvider
 type WsHandler struct {
 	AccessChecker         ws.WsAccessChecker //
 	AllowDirectHTTPAccess bool // Whether or not the underlying HTTP request and response writer should be made available to request Logic.
@@ -37,6 +49,7 @@ type WsHandler struct {
 	Logic                 WsRequestProcessor // The object representing the 'logic' behind this handler.
 	ParamBinder           *ws.ParamBinder //
 	PathMatchPattern      string // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
+	WsPostProcessor		  WsPostProcessor //
 	ResponseWriter        ws.WsResponseWriter //
 	RequireAuthentication bool // Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
 	Unmarshaller          ws.WsUnmarshaller //
@@ -256,7 +269,7 @@ func (wh *WsHandler) handleFrameworkErrors(w *ws.WsHTTPResponseWriter, wsReq *ws
 
 }
 
-func (wh *WsHandler) process(jsonReq *ws.WsRequest, w *ws.WsHTTPResponseWriter) {
+func (wh *WsHandler) process(request *ws.WsRequest, w *ws.WsHTTPResponseWriter) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -266,7 +279,13 @@ func (wh *WsHandler) process(jsonReq *ws.WsRequest, w *ws.WsHTTPResponseWriter) 
 	}()
 
 	wsRes := ws.NewWsResponse(wh.ErrorFinder)
-	wh.Logic.Process(jsonReq, wsRes)
+	wh.Logic.Process(request, wsRes)
+
+
+	if wh.WsPostProcessor != nil {
+		wh.WsPostProcessor.PostProcess(wh.ComponentName(), request, wsRes)
+	}
+
 
 	wh.ResponseWriter.Write(wsRes, w)
 
