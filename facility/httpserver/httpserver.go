@@ -136,7 +136,7 @@ func (h *HTTPServer) AllowAccess() error {
 
 func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
-	wrw := ws.NewWsHTTPResponseWriter(res)
+	wrw := httpendpoint.NewHTTPResponseWriter(res)
 
 	if !h.available {
 		h.AbnormalStatusWriter.WriteAbnormalStatus(h.TooBusyStatus, wrw)

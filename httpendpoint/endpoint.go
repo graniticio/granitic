@@ -2,7 +2,6 @@ package httpendpoint
 
 import (
 	"net/http"
-	"github.com/graniticio/granitic/ws"
 	"github.com/graniticio/granitic/iam"
 )
 
@@ -14,11 +13,10 @@ type HttpEndPoint struct {
 type HttpEndpointProvider interface {
 	SupportedHttpMethods() []string
 	RegexPattern() string
-	ServeHTTP(w *ws.WsHTTPResponseWriter, req *http.Request) iam.ClientIdentity
+	ServeHTTP(w *HTTPResponseWriter, req *http.Request) iam.ClientIdentity
 	VersionAware() bool
-	SupportsVersion(version RequiredVersion)
+	SupportsVersion(version RequiredVersion) bool
 }
-
 
 
 type RequiredVersion map[string]interface{}

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"github.com/graniticio/granitic/iam"
+	"github.com/graniticio/granitic/httpendpoint"
 )
 
 
@@ -39,6 +40,11 @@ type WsUnmarshallTarget interface {
 	UnmarshallTarget() interface{}
 }
 
+// Indicates that an object can determine whether or a handler supports a given version of a request.
+type WsVersionAssessor interface {
+	SupportsVersion(handlerName string, version httpendpoint.RequiredVersion) bool
+}
+
 //  WsHandler co-ordinates the processing of a web service request for a particular endpoint.
 // Implements ws.HttpEndpointProvider
 type WsHandler struct {
@@ -59,11 +65,12 @@ type WsHandler struct {
 	ParamBinder           *ws.ParamBinder             //
 	PathMatchPattern      string                      // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
 	PostProcessor         WsPostProcessor             //
-	PreValidateManipulator WsPreValidateManipulator	//
+	PreValidateManipulator WsPreValidateManipulator	  //
 	ResponseWriter        ws.WsResponseWriter         //
 	RequireAuthentication bool                        // Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
 	Unmarshaller          ws.WsUnmarshaller           //
 	UserIdentifier        ws.WsIdentifier             //
+	VersionAssessor 	  WsVersionAssessor		   	  //
 	bindPathParams        bool
 	bindQuery             bool
 	httpMethods           []string
@@ -78,7 +85,7 @@ func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
 }
 
 //HttpEndpointProvider
-func (wh *WsHandler) ServeHTTP(w *ws.WsHTTPResponseWriter, req *http.Request) iam.ClientIdentity {
+func (wh *WsHandler) ServeHTTP(w *httpendpoint.HTTPResponseWriter, req *http.Request) iam.ClientIdentity {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -221,7 +228,7 @@ func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *ws.WsRequest) 
 
 }
 
-func (wh *WsHandler) checkAccess(w *ws.WsHTTPResponseWriter, wsReq *ws.WsRequest) bool {
+func (wh *WsHandler) checkAccess(w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) bool {
 
 	ac := wh.AccessChecker
 
@@ -239,7 +246,7 @@ func (wh *WsHandler) checkAccess(w *ws.WsHTTPResponseWriter, wsReq *ws.WsRequest
 	}
 }
 
-func (wh *WsHandler) identifyAndAuthenticate(w *ws.WsHTTPResponseWriter, req *http.Request, wsReq *ws.WsRequest) bool {
+func (wh *WsHandler) identifyAndAuthenticate(w *httpendpoint.HTTPResponseWriter, req *http.Request, wsReq *ws.WsRequest) bool {
 
 	if wh.UserIdentifier != nil {
 		i := wh.UserIdentifier.Identify(req)
@@ -274,7 +281,17 @@ func (wh *WsHandler) RegexPattern() string {
 	return wh.PathMatchPattern
 }
 
-func (wh *WsHandler) handleFrameworkErrors(w *ws.WsHTTPResponseWriter, wsReq *ws.WsRequest) {
+//HttpEndpointProvider
+func (wh *WsHandler) VersionAware() bool{
+	return wh.VersionAssessor != nil
+}
+
+//HttpEndpointProvider
+func (wh *WsHandler) SupportsVersion(version httpendpoint.RequiredVersion) bool{
+	return wh.VersionAssessor.SupportsVersion(wh.ComponentName(), version)
+}
+
+func (wh *WsHandler) handleFrameworkErrors(w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) {
 
 	var se ws.ServiceErrors
 	se.HttpStatus = http.StatusBadRequest
@@ -287,7 +304,7 @@ func (wh *WsHandler) handleFrameworkErrors(w *ws.WsHTTPResponseWriter, wsReq *ws
 
 }
 
-func (wh *WsHandler) process(request *ws.WsRequest, w *ws.WsHTTPResponseWriter) {
+func (wh *WsHandler) process(request *ws.WsRequest, w *httpendpoint.HTTPResponseWriter) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -309,7 +326,7 @@ func (wh *WsHandler) process(request *ws.WsRequest, w *ws.WsHTTPResponseWriter) 
 
 }
 
-func (wh *WsHandler) writeErrorResponse(errors *ws.ServiceErrors, w *ws.WsHTTPResponseWriter) {
+func (wh *WsHandler) writeErrorResponse(errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter) {
 
 	l := wh.Log
 
@@ -327,7 +344,7 @@ func (wh *WsHandler) writeErrorResponse(errors *ws.ServiceErrors, w *ws.WsHTTPRe
 
 }
 
-func (wh *WsHandler) writePanicResponse(r interface{}, w *ws.WsHTTPResponseWriter) {
+func (wh *WsHandler) writePanicResponse(r interface{}, w *httpendpoint.HTTPResponseWriter) {
 
 	wh.ResponseWriter.WriteAbnormalStatus(http.StatusInternalServerError, w)
 

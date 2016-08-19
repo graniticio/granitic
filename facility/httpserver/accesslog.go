@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/ws"
 	"net/http"
 	"os"
 	"regexp"
@@ -12,6 +11,7 @@ import (
 	"strings"
 	"time"
 	"github.com/graniticio/granitic/iam"
+	"github.com/graniticio/granitic/httpendpoint"
 )
 
 const DefaultLogBufferLength = 10
@@ -104,13 +104,13 @@ type AccessLogWriter struct {
 	lines         chan string
 }
 
-func (alw *AccessLogWriter) LogRequest(req *http.Request, res *ws.WsHTTPResponseWriter, rec *time.Time, fin *time.Time, id iam.ClientIdentity) {
+func (alw *AccessLogWriter) LogRequest(req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time, id iam.ClientIdentity) {
 
 	alw.lines <- alw.buildLine(req, res, rec, fin, id)
 
 }
 
-func (alw *AccessLogWriter) buildLine(req *http.Request, res *ws.WsHTTPResponseWriter, rec *time.Time, fin *time.Time, id iam.ClientIdentity) string {
+func (alw *AccessLogWriter) buildLine(req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time, id iam.ClientIdentity) string {
 	var b bytes.Buffer
 
 	if alw.UtcTimes {
@@ -365,7 +365,7 @@ func (alw *AccessLogWriter) mapPlaceholder(ph string) LogFormatPlaceHolder {
 
 }
 
-func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.Request, res *ws.WsHTTPResponseWriter, received *time.Time, finished *time.Time, id iam.ClientIdentity) string {
+func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, id iam.ClientIdentity) string {
 	switch element.placeholderType {
 	case RequestHeader:
 		return alw.requestHeader(element.variable, req)
@@ -393,7 +393,7 @@ func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.
 	}
 }
 
-func (alw *AccessLogWriter) findValue(element *LogLineElement, req *http.Request, res *ws.WsHTTPResponseWriter, received *time.Time, finished *time.Time, id iam.ClientIdentity) string {
+func (alw *AccessLogWriter) findValue(element *LogLineElement, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, id iam.ClientIdentity) string {
 
 	switch element.placeholderType {
 

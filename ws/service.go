@@ -3,6 +3,7 @@ package ws
 import (
 	"net/http"
 	"github.com/graniticio/granitic/iam"
+	"github.com/graniticio/granitic/httpendpoint"
 )
 
 func NewWsResponse(errorFinder ServiceErrorFinder) *WsResponse {
@@ -61,13 +62,13 @@ type WsUnmarshaller interface {
 }
 
 type WsResponseWriter interface {
-	Write(res *WsResponse, w *WsHTTPResponseWriter) error
-	WriteErrors(errors *ServiceErrors, w *WsHTTPResponseWriter) error
-	WriteAbnormalStatus(status int, w *WsHTTPResponseWriter) error
+	Write(res *WsResponse, w *httpendpoint.HTTPResponseWriter) error
+	WriteErrors(errors *ServiceErrors, w *httpendpoint.HTTPResponseWriter) error
+	WriteAbnormalStatus(status int, w *httpendpoint.HTTPResponseWriter) error
 }
 
 type AbnormalStatusWriter interface {
-	WriteAbnormalStatus(status int, w *WsHTTPResponseWriter) error
+	WriteAbnormalStatus(status int, w *httpendpoint.HTTPResponseWriter) error
 }
 
 type DirectHTTPAccess struct {

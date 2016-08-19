@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
+	"github.com/graniticio/granitic/httpendpoint"
 )
 
 type DefaultJsonResponseWriter struct {
@@ -14,7 +15,7 @@ type DefaultJsonResponseWriter struct {
 	WrapResponse     bool
 }
 
-func (djrw *DefaultJsonResponseWriter) Write(res *ws.WsResponse, w *ws.WsHTTPResponseWriter) error {
+func (djrw *DefaultJsonResponseWriter) Write(res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -58,7 +59,7 @@ func (djrw *DefaultJsonResponseWriter) Write(res *ws.WsResponse, w *ws.WsHTTPRes
 	return err
 }
 
-func (djrw *DefaultJsonResponseWriter) WriteAbnormalStatus(status int, w *ws.WsHTTPResponseWriter) error {
+func (djrw *DefaultJsonResponseWriter) WriteAbnormalStatus(status int, w *httpendpoint.HTTPResponseWriter) error {
 
 	res := new(ws.WsResponse)
 	res.HttpStatus = status
@@ -73,7 +74,7 @@ func (djrw *DefaultJsonResponseWriter) WriteAbnormalStatus(status int, w *ws.WsH
 
 }
 
-func (djrw *DefaultJsonResponseWriter) WriteErrors(errors *ws.ServiceErrors, w *ws.WsHTTPResponseWriter) error {
+func (djrw *DefaultJsonResponseWriter) WriteErrors(errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter) error {
 
 	res := new(ws.WsResponse)
 	res.Errors = errors
