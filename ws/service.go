@@ -2,6 +2,7 @@ package ws
 
 import (
 	"net/http"
+	"github.com/graniticio/granitic/iam"
 )
 
 func NewWsResponse(errorFinder ServiceErrorFinder) *WsResponse {
@@ -22,8 +23,8 @@ type WsRequest struct {
 	PathParams      []string
 	FrameworkErrors []*WsFrameworkError
 	populatedFields map[string]bool
-	UserIdentity    WsIdentity
-	UnderlyingHTTP *DirectHTTPAccess
+	UserIdentity    iam.ClientIdentity
+	UnderlyingHTTP  *DirectHTTPAccess
 }
 
 func (wsr *WsRequest) HasFrameworkErrors() bool {

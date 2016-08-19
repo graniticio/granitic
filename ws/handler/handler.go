@@ -5,6 +5,7 @@ import (
 	"github.com/graniticio/granitic/ws"
 	"net/http"
 	"regexp"
+	"github.com/graniticio/granitic/iam"
 )
 
 
@@ -77,7 +78,7 @@ func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
 }
 
 //HttpEndpointProvider
-func (wh *WsHandler) ServeHTTP(w *ws.WsHTTPResponseWriter, req *http.Request) ws.WsIdentity {
+func (wh *WsHandler) ServeHTTP(w *ws.WsHTTPResponseWriter, req *http.Request) iam.ClientIdentity {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -252,7 +253,7 @@ func (wh *WsHandler) identifyAndAuthenticate(w *ws.WsHTTPResponseWriter, req *ht
 	}
 
 	if wsReq.UserIdentity == nil {
-		wsReq.UserIdentity = ws.NewAnonymousIdentity()
+		wsReq.UserIdentity = iam.NewAnonymousIdentity()
 	}
 
 	return true

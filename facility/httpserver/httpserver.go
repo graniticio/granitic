@@ -10,10 +10,12 @@ import (
 	"regexp"
 	"sync/atomic"
 	"time"
+	"github.com/graniticio/granitic/httpendpoint"
+	"github.com/graniticio/granitic/iam"
 )
 
 type RegisteredProvider struct {
-	Provider HttpEndpointProvider
+	Provider httpendpoint.HttpEndpointProvider
 	Pattern  *regexp.Regexp
 }
 
@@ -37,7 +39,7 @@ func (h *HTTPServer) Container(container *ioc.ComponentContainer) {
 	h.componentContainer = container
 }
 
-func (h *HTTPServer) registerProvider(endPointProvider HttpEndpointProvider) {
+func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HttpEndpointProvider) {
 
 	for _, method := range endPointProvider.SupportedHttpMethods() {
 
@@ -70,7 +72,7 @@ func (h *HTTPServer) StartComponent() error {
 	h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
 
 	for name, component := range h.componentContainer.AllComponents() {
-		provider, found := component.Instance.(HttpEndpointProvider)
+		provider, found := component.Instance.(httpendpoint.HttpEndpointProvider)
 
 		if found {
 			h.FrameworkLogger.LogDebugf("Found HttpEndpointProvider %s", name)
@@ -160,7 +162,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 
 
-	var identity ws.WsIdentity
+	var identity iam.ClientIdentity
 
 	for _, handlerPattern := range providersByMethod {
 
