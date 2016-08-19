@@ -22,6 +22,14 @@ type WsPostProcessor interface {
 	PostProcess(handlerName string, request *ws.WsRequest, response *ws.WsResponse)
 }
 
+
+// Indicates that an object is interested in observing/modifying a web service request after it has been unmarshalled and parsed, but before automatic and
+// application-defined validation takes place. If an error is encountered, or if the object decides that processing should be halted, it is expected that
+// the implementing object adds one or more errors to the ws.WsResponse and returns false.
+type WsPreValidateManipulator interface{
+	PreValidate(request *ws.WsRequest, errors *ws.ServiceErrors) (proceed bool)
+}
+
 type WsRequestValidator interface {
 	Validate(errors *ws.ServiceErrors, request *ws.WsRequest)
 }
@@ -33,27 +41,28 @@ type WsUnmarshallTarget interface {
 //  WsHandler co-ordinates the processing of a web service request for a particular endpoint.
 // Implements ws.HttpEndpointProvider
 type WsHandler struct {
-	AccessChecker         ws.WsAccessChecker //
-	AllowDirectHTTPAccess bool // Whether or not the underlying HTTP request and response writer should be made available to request Logic.
-	AutoBindQuery         bool // Whether or not query parameters should be automatically injected into the request body.
-	BindPathParams        []string // A list of fields on the request body that should be populated using elements of the request path.
-	CheckAccessAfterParse bool // Check caller's permissions after request has been parsed (true) or before parsing (false).
-	DeferFrameworkErrors  bool // If true, do not automatically return an error response if errors are found during the automated phases of request processing.
-	DisableQueryParsing   bool // If true, discard the request's query parameters.
-	DisablePathParsing    bool // If true, discard any path parameters found by match the request URI against the PathMatchPattern regex.
-	ErrorFinder           ws.ServiceErrorFinder // An object that provides access to application defined error messages for use during validation.
-	FieldQueryParam       map[string]string // A map of fields on the request body object and the names of query parameters that should be used to populate them
+	AccessChecker         ws.WsAccessChecker          //
+	AllowDirectHTTPAccess bool                        // Whether or not the underlying HTTP request and response writer should be made available to request Logic.
+	AutoBindQuery         bool                        // Whether or not query parameters should be automatically injected into the request body.
+	BindPathParams        []string                    // A list of fields on the request body that should be populated using elements of the request path.
+	CheckAccessAfterParse bool                        // Check caller's permissions after request has been parsed (true) or before parsing (false).
+	DeferFrameworkErrors  bool                        // If true, do not automatically return an error response if errors are found during the automated phases of request processing.
+	DisableQueryParsing   bool                        // If true, discard the request's query parameters.
+	DisablePathParsing    bool                        // If true, discard any path parameters found by match the request URI against the PathMatchPattern regex.
+	ErrorFinder           ws.ServiceErrorFinder       // An object that provides access to application defined error messages for use during validation.
+	FieldQueryParam       map[string]string           // A map of fields on the request body object and the names of query parameters that should be used to populate them
 	FrameworkErrors       *ws.FrameworkErrorGenerator // An object that provides access to built-in error messages to use when an error is found during the automated phases of request processing.
-	HttpMethod            string // The HTTP method (GET, POST etc) that this handler supports.
-	Log                   logging.Logger //
-	Logic                 WsRequestProcessor // The object representing the 'logic' behind this handler.
-	ParamBinder           *ws.ParamBinder //
-	PathMatchPattern      string // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
-	WsPostProcessor		  WsPostProcessor //
-	ResponseWriter        ws.WsResponseWriter //
-	RequireAuthentication bool // Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
-	Unmarshaller          ws.WsUnmarshaller //
-	UserIdentifier        ws.WsIdentifier //
+	HttpMethod            string                      // The HTTP method (GET, POST etc) that this handler supports.
+	Log                   logging.Logger              //
+	Logic                 WsRequestProcessor          // The object representing the 'logic' behind this handler.
+	ParamBinder           *ws.ParamBinder             //
+	PathMatchPattern      string                      // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
+	PostProcessor         WsPostProcessor             //
+	PreValidateManipulator WsPreValidateManipulator	//
+	ResponseWriter        ws.WsResponseWriter         //
+	RequireAuthentication bool                        // Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
+	Unmarshaller          ws.WsUnmarshaller           //
+	UserIdentifier        ws.WsIdentifier             //
 	bindPathParams        bool
 	bindQuery             bool
 	httpMethods           []string
@@ -119,7 +128,15 @@ func (wh *WsHandler) ServeHTTP(w *ws.WsHTTPResponseWriter, req *http.Request) ws
 	errors.ErrorFinder = wh.ErrorFinder
 
 	if wh.validate {
-		wh.validator.Validate(&errors, wsReq)
+		proceed := true
+
+		if wh.PreValidateManipulator != nil {
+			proceed = wh.PreValidateManipulator.PreValidate(wsReq, &errors)
+		}
+
+		if proceed {
+			wh.validator.Validate(&errors, wsReq)
+		}
 	}
 
 	if errors.HasErrors() {
@@ -282,8 +299,8 @@ func (wh *WsHandler) process(request *ws.WsRequest, w *ws.WsHTTPResponseWriter) 
 	wh.Logic.Process(request, wsRes)
 
 
-	if wh.WsPostProcessor != nil {
-		wh.WsPostProcessor.PostProcess(wh.ComponentName(), request, wsRes)
+	if wh.PostProcessor != nil {
+		wh.PostProcessor.PostProcess(wh.ComponentName(), request, wsRes)
 	}
 
 
