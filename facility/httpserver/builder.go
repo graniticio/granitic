@@ -15,7 +15,7 @@ type HttpServerFacilityBuilder struct {
 
 func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	httpServer := new(HttpServer)
+	httpServer := new(HTTPServer)
 	ca.Populate("HttpServer", httpServer)
 
 	cn.WrapAndAddProto(httpServerName, httpServer)

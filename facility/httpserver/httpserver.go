@@ -17,7 +17,7 @@ type RegisteredProvider struct {
 	Pattern  *regexp.Regexp
 }
 
-type HttpServer struct {
+type HTTPServer struct {
 	registeredProvidersByMethod map[string][]*RegisteredProvider
 	componentContainer          *ioc.ComponentContainer
 	FrameworkLogger             logging.Logger
@@ -33,11 +33,11 @@ type HttpServer struct {
 	available                   bool
 }
 
-func (h *HttpServer) Container(container *ioc.ComponentContainer) {
+func (h *HTTPServer) Container(container *ioc.ComponentContainer) {
 	h.componentContainer = container
 }
 
-func (h *HttpServer) registerProvider(endPointProvider HttpEndpointProvider) {
+func (h *HTTPServer) registerProvider(endPointProvider HttpEndpointProvider) {
 
 	for _, method := range endPointProvider.SupportedHttpMethods() {
 
@@ -65,7 +65,7 @@ func (h *HttpServer) registerProvider(endPointProvider HttpEndpointProvider) {
 
 }
 
-func (h *HttpServer) StartComponent() error {
+func (h *HTTPServer) StartComponent() error {
 
 	h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
 
@@ -118,7 +118,7 @@ func (h *HttpServer) StartComponent() error {
 	return nil
 }
 
-func (h *HttpServer) AllowAccess() error {
+func (h *HTTPServer) AllowAccess() error {
 	http.Handle("/", http.HandlerFunc(h.handleAll))
 
 	listenAddress := fmt.Sprintf(":%d", h.Port)
@@ -132,7 +132,7 @@ func (h *HttpServer) AllowAccess() error {
 	return nil
 }
 
-func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
+func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	if !h.available {
 		h.AbnormalStatusWriter.WriteAbnormalStatus(h.TooBusyStatus, res)
@@ -184,7 +184,7 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func (h *HttpServer) RegisterAbnormalStatusWriter(name string, w ws.AbnormalStatusWriter) {
+func (h *HTTPServer) RegisterAbnormalStatusWriter(name string, w ws.AbnormalStatusWriter) {
 	if h.abnormalWriters == nil {
 		h.abnormalWriters = make(map[string]ws.AbnormalStatusWriter)
 	}
@@ -192,11 +192,11 @@ func (h *HttpServer) RegisterAbnormalStatusWriter(name string, w ws.AbnormalStat
 	h.abnormalWriters[name] = w
 }
 
-func (h *HttpServer) PrepareToStop() {
+func (h *HTTPServer) PrepareToStop() {
 	h.available = false
 }
 
-func (h *HttpServer) ReadyToStop() (bool, error) {
+func (h *HTTPServer) ReadyToStop() (bool, error) {
 	a := h.ActiveRequests
 	ready := a <= 0
 
@@ -210,7 +210,7 @@ func (h *HttpServer) ReadyToStop() (bool, error) {
 	}
 }
 
-func (h *HttpServer) Stop() error {
+func (h *HTTPServer) Stop() error {
 	return nil
 }
 
@@ -218,7 +218,7 @@ func (h *HttpServer) Stop() error {
 
 type AbnormalStatusWriterDecorator struct {
 	FrameworkLogger logging.Logger
-	HttpServer      *HttpServer
+	HttpServer      *HTTPServer
 }
 
 func (d *AbnormalStatusWriterDecorator) OfInterest(component *ioc.Component) bool {
