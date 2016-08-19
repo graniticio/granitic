@@ -1,10 +1,9 @@
-package initiation
+package facility
 
 import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/facility"
 	"github.com/graniticio/granitic/facility/decorator"
 	"github.com/graniticio/granitic/facility/httpserver"
 	"github.com/graniticio/granitic/facility/jsonws"
@@ -24,7 +23,7 @@ type FacilitiesInitialisor struct {
 	FrameworkLoggingManager *logging.ComponentLoggerManager
 	Logger                  logging.Logger
 	container               *ioc.ComponentContainer
-	facilities              []facility.FacilityBuilder
+	facilities              []FacilityBuilder
 	facilityStatus          map[string]interface{}
 }
 
@@ -45,7 +44,7 @@ func BootstrapFrameworkLogging(bootStrapLogLevel int) (*logging.ComponentLoggerM
 
 }
 
-func (fi *FacilitiesInitialisor) AddFacility(f facility.FacilityBuilder) {
+func (fi *FacilitiesInitialisor) AddFacility(f FacilityBuilder) {
 	fi.facilities = append(fi.facilities, f)
 }
 

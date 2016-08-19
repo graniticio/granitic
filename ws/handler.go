@@ -1,3 +1,4 @@
+// Package ws provides components for building web services and automating the processing of web service requests.
 package ws
 
 import (

@@ -1,4 +1,4 @@
-package initiation
+package granitic
 
 import (
 	"flag"
@@ -13,12 +13,19 @@ import (
 	"strings"
 	"syscall"
 	"time"
+	"github.com/graniticio/granitic/facility"
 )
 
 const initiatorComponentName string = ioc.FrameworkPrefix + "FrameworkInitiator"
 const jsonMergerComponentName string = ioc.FrameworkPrefix + "JsonMerger"
 const configAccessorComponentName string = ioc.FrameworkPrefix + "ConfigAccessor"
 const facilityInitialisorComponentName string = ioc.FrameworkPrefix + "FacilityInitialisor"
+
+func StartGranitic(customComponents *ioc.ProtoComponents) {
+	i := new(Initiator)
+	i.Start(customComponents)
+}
+
 
 type Initiator struct {
 	logger logging.Logger
@@ -58,7 +65,7 @@ func (i *Initiator) buildContainer(customComponents []*ioc.ProtoComponent) *ioc.
 	params = i.parseArgs()
 
 	bootstrapLogLevel := logging.LogLevelFromLabel(params["logLevel"])
-	frameworkLoggingManager, logManageProto := BootstrapFrameworkLogging(bootstrapLogLevel)
+	frameworkLoggingManager, logManageProto := facility.BootstrapFrameworkLogging(bootstrapLogLevel)
 	i.logger = frameworkLoggingManager.CreateLogger(initiatorComponentName)
 
 	i.logger.LogInfof("Starting components")
@@ -69,7 +76,7 @@ func (i *Initiator) buildContainer(customComponents []*ioc.ProtoComponent) *ioc.
 	container.AddProto(logManageProto)
 	container.AddProtos(customComponents)
 
-	facilitiesInitialisor := NewFacilitiesInitialisor(container, frameworkLoggingManager)
+	facilitiesInitialisor := facility.NewFacilitiesInitialisor(container, frameworkLoggingManager)
 	facilitiesInitialisor.Logger = frameworkLoggingManager.CreateLogger(facilityInitialisorComponentName)
 
 	err := facilitiesInitialisor.Initialise(configAccessor)
