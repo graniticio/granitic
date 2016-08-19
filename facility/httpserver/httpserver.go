@@ -32,6 +32,7 @@ type HTTPServer struct {
 	ActiveRequests              int64
 	MaxConcurrent               int64
 	TooBusyStatus               int
+	VersionExtractor			httpendpoint.RequestedVersionExtractor
 	available                   bool
 }
 
@@ -170,7 +171,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 		h.FrameworkLogger.LogTracef("Testing %s", pattern.String())
 
-		if pattern.MatchString(path) {
+		if pattern.MatchString(path) && h.versionMatch(req, handlerPattern.Provider ){
 			h.FrameworkLogger.LogTracef("Matches %s", pattern.String())
 			matched = true
 			identity = handlerPattern.Provider.ServeHTTP(wrw, req)
@@ -187,6 +188,19 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	}
 
 }
+
+func (h *HTTPServer) versionMatch(r *http.Request, p httpendpoint.HttpEndpointProvider) bool{
+
+	if h.VersionExtractor == nil || !p.VersionAware() {
+		return true
+	}
+
+	version := h.VersionExtractor.Extract(r)
+
+	return p.SupportsVersion(version)
+
+}
+
 
 func (h *HTTPServer) RegisterAbnormalStatusWriter(name string, w ws.AbnormalStatusWriter) {
 	if h.abnormalWriters == nil {
@@ -220,24 +234,3 @@ func (h *HTTPServer) Stop() error {
 
 
 
-type AbnormalStatusWriterDecorator struct {
-	FrameworkLogger logging.Logger
-	HttpServer      *HTTPServer
-}
-
-func (d *AbnormalStatusWriterDecorator) OfInterest(component *ioc.Component) bool {
-
-	i := component.Instance
-
-	_, found := i.(ws.AbnormalStatusWriter)
-
-	return found
-
-}
-
-func (d *AbnormalStatusWriterDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
-
-	i := component.Instance.(ws.AbnormalStatusWriter)
-
-	d.HttpServer.RegisterAbnormalStatusWriter(component.Name, i)
-}

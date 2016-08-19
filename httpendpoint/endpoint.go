@@ -19,4 +19,9 @@ type HttpEndpointProvider interface {
 }
 
 
+
 type RequiredVersion map[string]interface{}
+
+type RequestedVersionExtractor interface {
+	Extract(*http.Request) RequiredVersion
+}
