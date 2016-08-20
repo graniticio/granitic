@@ -5,6 +5,7 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
 	"github.com/graniticio/granitic/httpendpoint"
+	"errors"
 )
 
 type DefaultJsonResponseWriter struct {
@@ -15,7 +16,23 @@ type DefaultJsonResponseWriter struct {
 	WrapResponse     bool
 }
 
-func (djrw *DefaultJsonResponseWriter) Write(res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter) error {
+func (djrw *DefaultJsonResponseWriter)  Write(state *ws.WsProcessState, outcome ws.WsOutcome) error{
+
+	switch outcome {
+	case ws.Normal:
+		return djrw.write(state.WsResponse, state.HTTPResponseWriter)
+	case ws.Error:
+		return djrw.writeErrors(state.ServiceErrors, state.HTTPResponseWriter)
+	case ws.Abnormal:
+		return djrw.writeAbnormalStatus(state.Status, state.HTTPResponseWriter)
+	}
+
+
+	return errors.New("Unsuported ws.WsOutcome value")
+}
+
+
+func (djrw *DefaultJsonResponseWriter) write(res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -59,7 +76,12 @@ func (djrw *DefaultJsonResponseWriter) Write(res *ws.WsResponse, w *httpendpoint
 	return err
 }
 
-func (djrw *DefaultJsonResponseWriter) WriteAbnormalStatus(status int, w *httpendpoint.HTTPResponseWriter) error {
+func (djrw *DefaultJsonResponseWriter) WriteAbnormalStatus(state *ws.WsProcessState) error {
+	return djrw.Write(state, ws.Abnormal)
+}
+
+
+func (djrw *DefaultJsonResponseWriter) writeAbnormalStatus(status int, w *httpendpoint.HTTPResponseWriter) error {
 
 	res := new(ws.WsResponse)
 	res.HttpStatus = status
@@ -70,16 +92,16 @@ func (djrw *DefaultJsonResponseWriter) WriteAbnormalStatus(status int, w *httpen
 
 	res.Errors = &errors
 
-	return djrw.Write(res, w)
+	return djrw.write(res, w)
 
 }
 
-func (djrw *DefaultJsonResponseWriter) WriteErrors(errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter) error {
+func (djrw *DefaultJsonResponseWriter) writeErrors(errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter) error {
 
 	res := new(ws.WsResponse)
 	res.Errors = errors
 
-	return djrw.Write(res, w)
+	return djrw.write(res, w)
 }
 
 func (djrw *DefaultJsonResponseWriter) formatErrors(errors *ws.ServiceErrors) interface{} {

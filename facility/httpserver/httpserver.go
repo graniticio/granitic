@@ -108,7 +108,8 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	wrw := httpendpoint.NewHTTPResponseWriter(res)
 
 	if !h.available {
-		h.AbnormalStatusWriter.WriteAbnormalStatus(h.TooBusyStatus, wrw)
+		state := ws.NewAbnormalState(h.TooBusyStatus, wrw)
+		h.AbnormalStatusWriter.WriteAbnormalStatus(state)
 		return
 	}
 
@@ -116,7 +117,8 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	defer atomic.AddInt64(&h.ActiveRequests, -1)
 
 	if h.MaxConcurrent > 0 && rCount > h.MaxConcurrent {
-		h.AbnormalStatusWriter.WriteAbnormalStatus(h.TooBusyStatus, wrw)
+		state := ws.NewAbnormalState(h.TooBusyStatus, wrw)
+		h.AbnormalStatusWriter.WriteAbnormalStatus(state)
 		return
 	}
 
@@ -147,7 +149,8 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if !matched {
-		h.AbnormalStatusWriter.WriteAbnormalStatus(http.StatusNotFound, wrw)
+		state := ws.NewAbnormalState(http.StatusNotFound, wrw)
+		h.AbnormalStatusWriter.WriteAbnormalStatus(state)
 	}
 
 	if h.AccessLogging {

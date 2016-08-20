@@ -148,7 +148,7 @@ func (wh *WsHandler) ServeHTTP(w *httpendpoint.HTTPResponseWriter, req *http.Req
 	}
 
 	if errors.HasErrors() {
-		wh.writeErrorResponse(&errors, w)
+		wh.writeErrorResponse(&errors, w, wsReq)
 
 		return wsReq.UserIdentity
 	}
@@ -241,7 +241,12 @@ func (wh *WsHandler) checkAccess(w *httpendpoint.HTTPResponseWriter, wsReq *ws.W
 	if allowed {
 		return true
 	} else {
-		wh.ResponseWriter.WriteAbnormalStatus(http.StatusForbidden, w)
+
+		state := ws.NewAbnormalState(http.StatusForbidden, w)
+		state.Identity = wsReq.UserIdentity
+		state.WsRequest = wsReq
+
+		wh.ResponseWriter.Write(state, ws.Abnormal)
 		return false
 	}
 }
@@ -253,7 +258,12 @@ func (wh *WsHandler) identifyAndAuthenticate(w *httpendpoint.HTTPResponseWriter,
 		wsReq.UserIdentity = i
 
 		if wh.RequireAuthentication && !i.Authenticated() {
-			wh.ResponseWriter.WriteAbnormalStatus(http.StatusUnauthorized, w)
+
+			state := ws.NewAbnormalState(http.StatusUnauthorized, w)
+			state.Identity = wsReq.UserIdentity
+			state.WsRequest = wsReq
+
+			wh.ResponseWriter.Write(state, ws.Abnormal)
 			return false
 		}
 
@@ -300,7 +310,7 @@ func (wh *WsHandler) handleFrameworkErrors(w *httpendpoint.HTTPResponseWriter, w
 		se.AddNewError(ws.Client, fe.Code, fe.Message)
 	}
 
-	wh.writeErrorResponse(&se, w)
+	wh.writeErrorResponse(&se, w, wsReq)
 
 }
 
@@ -321,12 +331,17 @@ func (wh *WsHandler) process(request *ws.WsRequest, w *httpendpoint.HTTPResponse
 		wh.PostProcessor.PostProcess(wh.ComponentName(), request, wsRes)
 	}
 
+	state := new(ws.WsProcessState)
+	state.Identity = request.UserIdentity
+	state.HTTPResponseWriter = w
+	state.WsResponse = wsRes
+	state.WsRequest = request
 
-	wh.ResponseWriter.Write(wsRes, w)
+	wh.ResponseWriter.Write(state, ws.Normal)
 
 }
 
-func (wh *WsHandler) writeErrorResponse(errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter) {
+func (wh *WsHandler) writeErrorResponse(errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) {
 
 	l := wh.Log
 
@@ -336,7 +351,12 @@ func (wh *WsHandler) writeErrorResponse(errors *ws.ServiceErrors, w *httpendpoin
 		}
 	}()
 
-	err := wh.ResponseWriter.WriteErrors(errors, w)
+	state := new(ws.WsProcessState)
+	state.ServiceErrors = errors
+	state.WsRequest = wsReq
+	state.HTTPResponseWriter = w
+
+	err := wh.ResponseWriter.Write(state, ws.Error)
 
 	if err != nil {
 		l.LogErrorf("Problem writing an HTTP response that was already in error", err)
@@ -346,7 +366,9 @@ func (wh *WsHandler) writeErrorResponse(errors *ws.ServiceErrors, w *httpendpoin
 
 func (wh *WsHandler) writePanicResponse(r interface{}, w *httpendpoint.HTTPResponseWriter) {
 
-	wh.ResponseWriter.WriteAbnormalStatus(http.StatusInternalServerError, w)
+	state := ws.NewAbnormalState(http.StatusInternalServerError, w)
+
+	wh.ResponseWriter.Write(state, ws.Abnormal)
 
 	wh.Log.LogErrorf("Panic recovered but error response served. %s", r)
 
