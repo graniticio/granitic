@@ -7,6 +7,7 @@ import (
 	"github.com/graniticio/granitic/ws"
 	"github.com/graniticio/granitic/ws/handler"
 	"github.com/graniticio/granitic/ws/json"
+	"github.com/graniticio/granitic/facility/httpserver"
 )
 
 const jsonResponseWriterComponentName = ioc.FrameworkPrefix + "JsonResponseWriter"
@@ -45,6 +46,12 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	decoratorLogger := lm.CreateLogger(jsonHandlerDecoratorComponentName)
 	decorator := JsonWsHandlerDecorator{decoratorLogger, responseWriter, jsonUnmarshaller, queryBinder, frameworkErrors}
 	cn.WrapAndAddProto(jsonHandlerDecoratorComponentName, &decorator)
+
+	if ! cn.ModifierExists(httpserver.HttpServerComponentName, httpserver.HttpServerAbnormalStatusFieldName) {
+		//The HTTP server does not have an AbnormalStatusWriter defined
+		cn.AddModifier(httpserver.HttpServerComponentName, httpserver.HttpServerAbnormalStatusFieldName, jsonResponseWriterComponentName)
+	}
+
 
 	return nil
 }

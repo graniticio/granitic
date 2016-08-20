@@ -22,10 +22,53 @@ type ComponentContainer struct {
 	stoppable       []*Component
 	blocker         []*Component
 	accessible      []*Component
+	modifiers	map[string]map[string]string
 }
 
 func (cc *ComponentContainer) AllComponents() map[string]*Component {
 	return cc.allComponents
+}
+
+func (cc *ComponentContainer) AddModifier(comp string, field string, dep string){
+
+	m := cc.modifiers
+	cm := m[comp]
+
+	if cm == nil {
+		cm = make(map[string]string)
+		m[comp] = cm
+	}
+
+	cm[field] = dep
+
+}
+
+func (cc *ComponentContainer) AddModifiers(mods map[string]map[string]string) {
+
+	for c, cm := range mods {
+
+		for f, d := range cm {
+			cc.AddModifier(c, f, d)
+		}
+
+	}
+
+}
+
+func (cc *ComponentContainer) ModifierExists(comp string, field string) bool {
+
+	m := cc.modifiers[comp]
+
+	return m != nil && m[field] != ""
+
+}
+
+func (cc *ComponentContainer) ModifiersExist(comp string) bool {
+	return cc.modifiers[comp] != nil
+}
+
+func (cc *ComponentContainer) Modifiers(comp string) map[string]string {
+	return  cc.modifiers[comp]
 }
 
 func (cc *ComponentContainer) AddProto(proto *ProtoComponent) {
@@ -266,14 +309,17 @@ func (cc *ComponentContainer) resolveDependenciesAndConfig() error {
 
 	for _, targetProto := range cc.protoComponents {
 
-		for fieldName, depName := range targetProto.Dependencies {
+		compName := targetProto.Component.Name
+		deps := cc.mergeDependencies(compName, targetProto.Dependencies)
 
-			fl.LogTracef("%s needs %s", targetProto.Component.Name, depName)
+		for fieldName, depName := range deps {
+
+			fl.LogTracef("%s needs %s", compName, depName)
 
 			requiredComponent := cc.allComponents[depName]
 
 			if requiredComponent == nil {
-				message := fmt.Sprintf("No component named %s available (required by %s.%s)", depName, targetProto.Component.Name, fieldName)
+				message := fmt.Sprintf("No component named %s available (required by %s.%s)", depName, compName, fieldName)
 				return errors.New(message)
 			}
 
@@ -283,7 +329,7 @@ func (cc *ComponentContainer) resolveDependenciesAndConfig() error {
 			err := reflecttools.SetPtrToStruct(targetInstance, fieldName, requiredInstance)
 
 			if err != nil {
-				m := fmt.Sprintf("Problem injecting dependency '%s' into %s.%s: %s", depName, targetProto.Component.Name, fieldName, err.Error() )
+				m := fmt.Sprintf("Problem injecting dependency '%s' into %s.%s: %s", depName, compName, fieldName, err.Error() )
 				return errors.New(m)
 			}
 
@@ -299,6 +345,25 @@ func (cc *ComponentContainer) resolveDependenciesAndConfig() error {
 	}
 
 	return nil
+}
+
+// Combines dependencies attached to the proto components with any available framework modifiers
+func (cc *ComponentContainer) mergeDependencies(comp string, cd map[string]string) map[string]string {
+
+	merged := make(map[string]string)
+
+	for k, v := range cd {
+		merged[k] = v
+	}
+
+
+	if cc.ModifiersExist(comp) {
+		for k, v := range cc.Modifiers(comp) {
+			merged[k] = v
+		}
+	}
+
+	return merged
 }
 
 func (cc *ComponentContainer) decorateComponents(decorators map[string]ComponentDecorator) {
@@ -374,6 +439,7 @@ func NewContainer(loggingManager *logging.ComponentLoggerManager, configAccessor
 	container.protoComponents = make(map[string]*ProtoComponent)
 	container.FrameworkLogger = loggingManager.CreateLogger(containerComponentName)
 	container.configAccessor = configAccessor
+	container.modifiers = make(map[string]map[string]string)
 
 	return container
 

@@ -33,7 +33,7 @@ type Initiator struct {
 
 func (i *Initiator) Start(customComponents *ioc.ProtoComponents) {
 
-	container := i.buildContainer(customComponents.Components)
+	container := i.buildContainer(customComponents)
 	customComponents.Clear()
 
 	c := make(chan os.Signal, 1)
@@ -51,7 +51,7 @@ func (i *Initiator) Start(customComponents *ioc.ProtoComponents) {
 	}
 }
 
-func (i *Initiator) buildContainer(customComponents []*ioc.ProtoComponent) *ioc.ComponentContainer {
+func (i *Initiator) buildContainer(ac *ioc.ProtoComponents) *ioc.ComponentContainer {
 
 	start := time.Now()
 
@@ -74,7 +74,8 @@ func (i *Initiator) buildContainer(customComponents []*ioc.ProtoComponent) *ioc.
 	container := ioc.NewContainer(frameworkLoggingManager, configAccessor)
 
 	container.AddProto(logManageProto)
-	container.AddProtos(customComponents)
+	container.AddProtos(ac.Components)
+	container.AddModifiers(ac.FrameworkDependencies)
 
 	facilitiesInitialisor := facility.NewFacilitiesInitialisor(container, frameworkLoggingManager)
 	facilitiesInitialisor.Logger = frameworkLoggingManager.CreateLogger(facilityInitialisorComponentName)

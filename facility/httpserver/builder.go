@@ -6,10 +6,9 @@ import (
 	"github.com/graniticio/granitic/logging"
 )
 
-const httpServerName = ioc.FrameworkPrefix + "HttpServer"
+const HttpServerComponentName = ioc.FrameworkPrefix + "HttpServer"
+const HttpServerAbnormalStatusFieldName = "AbnormalStatusWriter"
 const accessLogWriterName = ioc.FrameworkPrefix + "AccessLogWriter"
-const abnormalStatusWriterDecoratorName = ioc.FrameworkPrefix + "AbnormalStatusWriterDecorator"
-const versionAssessorDecoratorName = ioc.FrameworkPrefix + "VersionAssessorDecorator"
 
 type HttpServerFacilityBuilder struct {
 }
@@ -19,17 +18,7 @@ func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLog
 	httpServer := new(HTTPServer)
 	ca.Populate("HttpServer", httpServer)
 
-	cn.WrapAndAddProto(httpServerName, httpServer)
-
-	writerDecorator := new(AbnormalStatusWriterDecorator)
-	writerDecorator.HttpServer = httpServer
-	cn.WrapAndAddProto(abnormalStatusWriterDecoratorName, writerDecorator)
-
-	versionDecorator := new(VersionExtractorDecorator)
-	versionDecorator.HttpServer = httpServer
-	versionDecorator.ServerName = httpServerName
-	versionDecorator.FrameworkLogger = lm.CreateLogger(versionAssessorDecoratorName)
-	cn.WrapAndAddProto(versionAssessorDecoratorName, versionDecorator)
+	cn.WrapAndAddProto(HttpServerComponentName, httpServer)
 
 
 	if !httpServer.AccessLogging {

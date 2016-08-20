@@ -28,7 +28,6 @@ type HTTPServer struct {
 	Port                        int
 	AbnormalStatusWriter        ws.AbnormalStatusWriter
 	AbnormalStatusWriterName    string
-	abnormalWriters             map[string]ws.AbnormalStatusWriter
 	ActiveRequests              int64
 	MaxConcurrent               int64
 	TooBusyStatus               int
@@ -84,38 +83,7 @@ func (h *HTTPServer) StartComponent() error {
 	}
 
 	if h.AbnormalStatusWriter == nil {
-
-		m := h.abnormalWriters
-		l := len(m)
-
-		if l == 0 {
-			return errors.New("No instance of ws.AbnormalStatusWriter available.")
-		} else {
-
-			if l > 2 && h.AbnormalStatusWriterName == "" {
-				return errors.New("More than one instance of ws.AbnormalStatusWriter available, but AbnormalStatusWriterName is not set.")
-			}
-
-			for k, v := range m {
-
-				if l == 1 {
-					h.AbnormalStatusWriter = v
-					break
-				}
-
-				if k == h.AbnormalStatusWriterName {
-					h.AbnormalStatusWriter = v
-					break
-				}
-			}
-
-			if h.AbnormalStatusWriter == nil {
-				message := fmt.Sprintf("None of the available ws.AbnormalStatusWriter instances available have the name %s", h.AbnormalStatusWriterName)
-				return errors.New(message)
-			}
-
-		}
-
+		return errors.New("No AbnormalStatusWriter set.")
 	}
 
 	return nil
@@ -201,14 +169,6 @@ func (h *HTTPServer) versionMatch(r *http.Request, p httpendpoint.HttpEndpointPr
 
 }
 
-
-func (h *HTTPServer) RegisterAbnormalStatusWriter(name string, w ws.AbnormalStatusWriter) {
-	if h.abnormalWriters == nil {
-		h.abnormalWriters = make(map[string]ws.AbnormalStatusWriter)
-	}
-
-	h.abnormalWriters[name] = w
-}
 
 func (h *HTTPServer) PrepareToStop() {
 	h.available = false
