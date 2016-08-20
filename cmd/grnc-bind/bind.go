@@ -539,7 +539,7 @@ func writeFrameworkModifiers(w *bufio.Writer, ca *config.ConfigAccessor) {
 
 		for f, d := range mods.(map[string]interface{}) {
 
-			s := fmt.Sprintf("%s[%s] := %s\n", n, quoteString(f), quoteString(d.(string)))
+			s := fmt.Sprintf("%s[%s] = %s\n", n, quoteString(f), quoteString(d.(string)))
 			w.WriteString(tabIndent(s, tabs))
 
 		}

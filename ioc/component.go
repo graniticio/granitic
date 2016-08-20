@@ -1,6 +1,6 @@
 package ioc
 
-const FrameworkPrefix = "gntc"
+const FrameworkPrefix = "grnc"
 
 type ProtoComponents struct {
 	Components []*ProtoComponent
