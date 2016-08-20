@@ -19,6 +19,7 @@ const (
 
 	packagesField = "packages"
 	componentsField = "components"
+	frameworkField = "frameworkModifiers"
 	templatesField = "templates"
 	templateField = "compTemplate"
 	templateFieldAlias = "ct"
@@ -26,11 +27,13 @@ const (
 	typeFieldAlias = "t"
 
 	protoSuffix = "Proto"
+	modsSuffix = "Mods"
 
 	bindingsPackage = "bindings"
 	iocImport = "github.com/graniticio/granitic/ioc"
 	entryFuncSignature = "func Components() *ioc.ProtoComponents {"
 	protoArrayVar = "protoComponents"
+	modifierVar = "frameworkModifiers"
 	confLocationFlag string = "c"
 	confLocationDefault string = "resource/components"
 	confLocationHelp string = "A comma separated list of component definition files or directories containing component definition files"
@@ -90,6 +93,9 @@ func writeBindings(w *bufio.Writer, ca *config.ConfigAccessor) {
 		writeComponent(w, name, v.((map[string]interface{})), t, i)
 		i++
 	}
+
+
+	writeFrameworkModifiers(w, ca)
 
 	writeEntryFunctionClose(w)
 	w.Flush()
@@ -369,7 +375,7 @@ func writeProto(w *bufio.Writer, n string, index int, tabs int) {
 }
 
 func writeEntryFunctionClose(w *bufio.Writer) {
-	a := fmt.Sprintf("\treturn ioc.NewProtoComponents(%s)\n}\n", protoArrayVar)
+	a := fmt.Sprintf("\treturn ioc.NewProtoComponents(%s, %s)\n}\n", protoArrayVar, modifierVar)
 	w.WriteString(a)
 }
 
@@ -504,6 +510,45 @@ func parseTemplates(ca *config.ConfigAccessor) map[string]interface{} {
 	}
 
 	return flattened
+
+}
+
+func writeFrameworkModifiers(w *bufio.Writer, ca *config.ConfigAccessor) {
+
+	tabs := 1
+
+	s := fmt.Sprintf("%s := make(map[string]map[string]string)\n", modifierVar)
+	w.WriteString(tabIndent(s, tabs))
+	w.WriteString(newline)
+
+	if !ca.PathExists(frameworkField) {
+		return
+	}
+
+	fm := ca.ObjectVal(frameworkField)
+
+	for fc, mods := range fm {
+
+		n := fc + modsSuffix
+
+		s := fmt.Sprintf("%s := make(map[string]string)\n", n)
+		w.WriteString(tabIndent(s, tabs))
+
+		s = fmt.Sprintf("%s[%s] = %s\n", modifierVar, quoteString(fc), n)
+		w.WriteString(tabIndent(s, tabs))
+
+		for f, d := range mods.(map[string]interface{}) {
+
+			s := fmt.Sprintf("%s[%s] := %s\n", n, quoteString(f), quoteString(d.(string)))
+			w.WriteString(tabIndent(s, tabs))
+
+		}
+
+
+		w.WriteString(newline)
+
+	}
+
 
 }
 

@@ -4,16 +4,17 @@ const FrameworkPrefix = "gntc"
 
 type ProtoComponents struct {
 	Components []*ProtoComponent
+	FrameworkDependencies map[string]map[string]string
 }
 
 func (pc *ProtoComponents) Clear() {
 	pc.Components = nil
 }
 
-func NewProtoComponents(pc []*ProtoComponent) *ProtoComponents{
+func NewProtoComponents(pc []*ProtoComponent, fd map[string]map[string]string) *ProtoComponents{
 	p := new(ProtoComponents)
 	p.Components = pc
-
+	p.FrameworkDependencies = fd
 	return p
 }
 
