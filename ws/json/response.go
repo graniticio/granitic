@@ -84,6 +84,10 @@ func (djrw *DefaultJsonResponseWriter) write(res *ws.WsResponse, w *httpendpoint
 	return err
 }
 
+
+// Merges together the headers that have been defined on the WsResponse, the static default headers attache to this writer
+// and (optionally) those constructed by the  ws.WsCommonResponseHeaderBuilder attached to this writer. The order of precedence,
+// from lowest to highest, is static headers, constructed headers, headers in the WsResponse.
 func (djrw *DefaultJsonResponseWriter) mergeHeaders(res *ws.WsResponse, ch map[string]string) map[string]string {
 
 	merged := make(map[string]string)
@@ -94,14 +98,14 @@ func (djrw *DefaultJsonResponseWriter) mergeHeaders(res *ws.WsResponse, ch map[s
 		}
 	}
 
-	if res.Headers != nil {
-		for k, v := range res.Headers {
+	if ch != nil {
+		for k, v := range ch {
 			merged[k] = v
 		}
 	}
 
-	if ch != nil {
-		for k, v := range ch {
+	if res.Headers != nil {
+		for k, v := range res.Headers {
 			merged[k] = v
 		}
 	}
