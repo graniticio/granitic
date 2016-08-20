@@ -17,6 +17,7 @@ type WsRequest struct {
 	populatedFields map[string]bool
 	UserIdentity    iam.ClientIdentity
 	UnderlyingHTTP  *DirectHTTPAccess
+	ServingHandler	string
 }
 
 func (wsr *WsRequest) HasFrameworkErrors() bool {

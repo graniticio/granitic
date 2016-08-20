@@ -150,6 +150,8 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	if !matched {
 		state := ws.NewAbnormalState(http.StatusNotFound, wrw)
+		state.Identity = identity
+
 		h.AbnormalStatusWriter.WriteAbnormalStatus(state)
 	}
 

@@ -14,17 +14,25 @@ type DefaultJsonResponseWriter struct {
 	FrameworkErrors  *ws.FrameworkErrorGenerator
 	DefaultHeaders   map[string]string
 	WrapResponse     bool
+	HeaderBuilder ws.WsCommonResponseHeaderBuilder
 }
 
 func (djrw *DefaultJsonResponseWriter)  Write(state *ws.WsProcessState, outcome ws.WsOutcome) error{
 
+	var ch map[string]string
+
+	if djrw.HeaderBuilder != nil {
+		ch = djrw.HeaderBuilder.BuildHeaders(state)
+	}
+
+
 	switch outcome {
 	case ws.Normal:
-		return djrw.write(state.WsResponse, state.HTTPResponseWriter)
+		return djrw.write(state.WsResponse, state.HTTPResponseWriter, ch)
 	case ws.Error:
-		return djrw.writeErrors(state.ServiceErrors, state.HTTPResponseWriter)
+		return djrw.writeErrors(state.ServiceErrors, state.HTTPResponseWriter, ch)
 	case ws.Abnormal:
-		return djrw.writeAbnormalStatus(state.Status, state.HTTPResponseWriter)
+		return djrw.writeAbnormalStatus(state.Status, state.HTTPResponseWriter, ch)
 	}
 
 
@@ -32,7 +40,7 @@ func (djrw *DefaultJsonResponseWriter)  Write(state *ws.WsProcessState, outcome 
 }
 
 
-func (djrw *DefaultJsonResponseWriter) write(res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter) error {
+func (djrw *DefaultJsonResponseWriter) write(res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -43,8 +51,8 @@ func (djrw *DefaultJsonResponseWriter) write(res *ws.WsResponse, w *httpendpoint
 		return nil
 	}
 
-
-	ws.WriteMetaData(w, res, djrw.DefaultHeaders)
+	headers := djrw.mergeHeaders(res, ch)
+	ws.WriteHeaders(w, headers)
 
 	s := djrw.StatusDeterminer.DetermineCode(res)
 	w.WriteHeader(s)
@@ -76,12 +84,37 @@ func (djrw *DefaultJsonResponseWriter) write(res *ws.WsResponse, w *httpendpoint
 	return err
 }
 
+func (djrw *DefaultJsonResponseWriter) mergeHeaders(res *ws.WsResponse, ch map[string]string) map[string]string {
+
+	merged := make(map[string]string)
+
+	if djrw.DefaultHeaders != nil {
+		for k, v := range djrw.DefaultHeaders {
+			merged[k] = v
+		}
+	}
+
+	if res.Headers != nil {
+		for k, v := range res.Headers {
+			merged[k] = v
+		}
+	}
+
+	if ch != nil {
+		for k, v := range ch {
+			merged[k] = v
+		}
+	}
+
+	return merged
+}
+
 func (djrw *DefaultJsonResponseWriter) WriteAbnormalStatus(state *ws.WsProcessState) error {
 	return djrw.Write(state, ws.Abnormal)
 }
 
 
-func (djrw *DefaultJsonResponseWriter) writeAbnormalStatus(status int, w *httpendpoint.HTTPResponseWriter) error {
+func (djrw *DefaultJsonResponseWriter) writeAbnormalStatus(status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	res := new(ws.WsResponse)
 	res.HttpStatus = status
@@ -92,16 +125,16 @@ func (djrw *DefaultJsonResponseWriter) writeAbnormalStatus(status int, w *httpen
 
 	res.Errors = &errors
 
-	return djrw.write(res, w)
+	return djrw.write(res, w, ch)
 
 }
 
-func (djrw *DefaultJsonResponseWriter) writeErrors(errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter) error {
+func (djrw *DefaultJsonResponseWriter) writeErrors(errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	res := new(ws.WsResponse)
 	res.Errors = errors
 
-	return djrw.write(res, w)
+	return djrw.write(res, w, ch)
 }
 
 func (djrw *DefaultJsonResponseWriter) formatErrors(errors *ws.ServiceErrors) interface{} {

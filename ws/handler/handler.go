@@ -96,6 +96,7 @@ func (wh *WsHandler) ServeHTTP(w *httpendpoint.HTTPResponseWriter, req *http.Req
 
 	wsReq := new(ws.WsRequest)
 	wsReq.HttpMethod = req.Method
+	wsReq.ServingHandler = wh.ComponentName()
 
 	if wh.AllowDirectHTTPAccess {
 		da := new(ws.DirectHTTPAccess)

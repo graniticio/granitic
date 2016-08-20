@@ -56,22 +56,16 @@ type AbnormalStatusWriter interface {
 	WriteAbnormalStatus(state *WsProcessState) error
 }
 
-func WriteMetaData(w http.ResponseWriter, r *WsResponse, defaultHeaders map[string]string) {
+// An object that constructs response headers that are common to all web service requests. These may typically be
+// caching instructions or 'processing server' records. Implementations must be extremely cautious when using
+// the information in the supplied WsProcess state as some values may be nil.
+type WsCommonResponseHeaderBuilder interface {
+	BuildHeaders(state *WsProcessState) map[string]string
+}
 
-	additionalHeaders := r.Headers
+func WriteHeaders(w http.ResponseWriter, headers map[string]string) {
 
-	for k, v := range defaultHeaders {
-
-		if additionalHeaders == nil || additionalHeaders[k] == "" {
-			w.Header().Add(k, v)
-		}
-
+	for k, v := range headers {
+		w.Header().Add(k, v)
 	}
-
-	if additionalHeaders != nil {
-		for k, v := range additionalHeaders {
-			w.Header().Add(k, v)
-		}
-	}
-
 }
