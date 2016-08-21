@@ -61,18 +61,11 @@ func (rw *StandardJSONResponseWriter) write(res *ws.WsResponse, w *httpendpoint.
 		return nil
 	}
 
-	var wrapper interface{}
-
 	ef := rw.ErrorFormatter
 	wrap := rw.ResponseWrapper
 
-	if e.HasErrors() && res.Body != nil {
-		wrapper = wrap.WrapResponse(ef.FormatErrors(e), res.Body)
-	} else if e.HasErrors() {
-		wrapper = wrap.WrapResponse(ef.FormatErrors(e), nil)
-	} else {
-		wrapper = wrap.WrapResponse(nil, res.Body)
-	}
+	fe := ef.FormatErrors(e)
+	wrapper := wrap.WrapResponse(res.Body, fe)
 
 	data, err := json.Marshal(wrapper)
 
@@ -144,27 +137,15 @@ type StandardJSONErrorFormatter struct{}
 
 func (ef *StandardJSONErrorFormatter) FormatErrors(errors *ws.ServiceErrors) interface{} {
 
+	if errors == nil || !errors.HasErrors() {
+		return nil
+	}
+
 	f := make(map[string][]string)
 
 	for _, error := range errors.Errors {
 
-		var c string
-
-		switch error.Category {
-		default:
-			c = "?"
-		case ws.Unexpected:
-			c = "U"
-		case ws.Security:
-			c = "S"
-		case ws.Logic:
-			c = "L"
-		case ws.Client:
-			c = "C"
-		case ws.HTTP:
-			c = "H"
-		}
-
+		c := ws.CategoryToCode(error.Category)
 		k := c + "-" + error.Label
 		a := f[k]
 

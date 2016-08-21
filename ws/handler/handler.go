@@ -1,14 +1,14 @@
 package handler
 
 import (
+	"errors"
+	"github.com/graniticio/granitic/httpendpoint"
+	"github.com/graniticio/granitic/iam"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
 	"net/http"
 	"regexp"
-	"github.com/graniticio/granitic/iam"
-	"github.com/graniticio/granitic/httpendpoint"
 )
-
 
 // Indicates that an object is able to continue the processing of a web service request after the automated phases of
 // parsing, binding, authenticating, authorising and auto-validating have been completed.
@@ -24,11 +24,10 @@ type WsPostProcessor interface {
 	PostProcess(handlerName string, request *ws.WsRequest, response *ws.WsResponse)
 }
 
-
 // Indicates that an object is interested in observing/modifying a web service request after it has been unmarshalled and parsed, but before automatic and
 // application-defined validation takes place. If an error is encountered, or if the object decides that processing should be halted, it is expected that
 // the implementing object adds one or more errors to the ws.WsResponse and returns false.
-type WsPreValidateManipulator interface{
+type WsPreValidateManipulator interface {
 	PreValidate(request *ws.WsRequest, errors *ws.ServiceErrors) (proceed bool)
 }
 
@@ -48,36 +47,36 @@ type WsVersionAssessor interface {
 //  WsHandler co-ordinates the processing of a web service request for a particular endpoint.
 // Implements ws.HttpEndpointProvider
 type WsHandler struct {
-	AccessChecker         ws.WsAccessChecker          //
-	AllowDirectHTTPAccess bool                        // Whether or not the underlying HTTP request and response writer should be made available to request Logic.
-	AutoBindQuery         bool                        // Whether or not query parameters should be automatically injected into the request body.
-	BindPathParams        []string                    // A list of fields on the request body that should be populated using elements of the request path.
-	CheckAccessAfterParse bool                        // Check caller's permissions after request has been parsed (true) or before parsing (false).
-	DeferFrameworkErrors  bool                        // If true, do not automatically return an error response if errors are found during the automated phases of request processing.
-	DisableQueryParsing   bool                        // If true, discard the request's query parameters.
-	DisablePathParsing    bool                        // If true, discard any path parameters found by match the request URI against the PathMatchPattern regex.
-	ErrorFinder           ws.ServiceErrorFinder       // An object that provides access to application defined error messages for use during validation.
-	FieldQueryParam       map[string]string           // A map of fields on the request body object and the names of query parameters that should be used to populate them
-	FrameworkErrors       *ws.FrameworkErrorGenerator // An object that provides access to built-in error messages to use when an error is found during the automated phases of request processing.
-	HttpMethod            string                      // The HTTP method (GET, POST etc) that this handler supports.
-	Log                   logging.Logger              //
-	Logic                 WsRequestProcessor          // The object representing the 'logic' behind this handler.
-	ParamBinder           *ws.ParamBinder             //
-	PathMatchPattern      string                      // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
-	PostProcessor         WsPostProcessor             //
-	PreValidateManipulator WsPreValidateManipulator	  //
-	ResponseWriter        ws.WsResponseWriter         //
-	RequireAuthentication bool                        // Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
-	Unmarshaller          ws.WsUnmarshaller           //
-	UserIdentifier        ws.WsIdentifier             //
-	VersionAssessor 	  WsVersionAssessor		   	  //
-	bindPathParams        bool
-	bindQuery             bool
-	httpMethods           []string
-	componentName         string
-	pathRegex             *regexp.Regexp
-	validate              bool
-	validator             WsRequestValidator
+	AccessChecker          ws.WsAccessChecker          //
+	AllowDirectHTTPAccess  bool                        // Whether or not the underlying HTTP request and response writer should be made available to request Logic.
+	AutoBindQuery          bool                        // Whether or not query parameters should be automatically injected into the request body.
+	BindPathParams         []string                    // A list of fields on the request body that should be populated using elements of the request path.
+	CheckAccessAfterParse  bool                        // Check caller's permissions after request has been parsed (true) or before parsing (false).
+	DeferFrameworkErrors   bool                        // If true, do not automatically return an error response if errors are found during the automated phases of request processing.
+	DisableQueryParsing    bool                        // If true, discard the request's query parameters.
+	DisablePathParsing     bool                        // If true, discard any path parameters found by match the request URI against the PathMatchPattern regex.
+	ErrorFinder            ws.ServiceErrorFinder       // An object that provides access to application defined error messages for use during validation.
+	FieldQueryParam        map[string]string           // A map of fields on the request body object and the names of query parameters that should be used to populate them
+	FrameworkErrors        *ws.FrameworkErrorGenerator // An object that provides access to built-in error messages to use when an error is found during the automated phases of request processing.
+	HttpMethod             string                      // The HTTP method (GET, POST etc) that this handler supports.
+	Log                    logging.Logger              //
+	Logic                  WsRequestProcessor          // The object representing the 'logic' behind this handler.
+	ParamBinder            *ws.ParamBinder             //
+	PathMatchPattern       string                      // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
+	PostProcessor          WsPostProcessor             //
+	PreValidateManipulator WsPreValidateManipulator    //
+	ResponseWriter         ws.WsResponseWriter         //
+	RequireAuthentication  bool                        // Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
+	Unmarshaller           ws.WsUnmarshaller           //
+	UserIdentifier         ws.WsIdentifier             //
+	VersionAssessor        WsVersionAssessor           //
+	bindPathParams         bool
+	bindQuery              bool
+	httpMethods            []string
+	componentName          string
+	pathRegex              *regexp.Regexp
+	validate               bool
+	validator              WsRequestValidator
 }
 
 func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
@@ -105,7 +104,6 @@ func (wh *WsHandler) ServeHTTP(w *httpendpoint.HTTPResponseWriter, req *http.Req
 
 		wsReq.UnderlyingHTTP = da
 	}
-
 
 	//Try to identify and/or authenticate the caller
 	if !wh.identifyAndAuthenticate(w, req, wsReq) {
@@ -293,12 +291,12 @@ func (wh *WsHandler) RegexPattern() string {
 }
 
 //HttpEndpointProvider
-func (wh *WsHandler) VersionAware() bool{
+func (wh *WsHandler) VersionAware() bool {
 	return wh.VersionAssessor != nil
 }
 
 //HttpEndpointProvider
-func (wh *WsHandler) SupportsVersion(version httpendpoint.RequiredVersion) bool{
+func (wh *WsHandler) SupportsVersion(version httpendpoint.RequiredVersion) bool {
 	return wh.VersionAssessor.SupportsVersion(wh.ComponentName(), version)
 }
 
@@ -326,7 +324,6 @@ func (wh *WsHandler) process(request *ws.WsRequest, w *httpendpoint.HTTPResponse
 
 	wsRes := ws.NewWsResponse(wh.ErrorFinder)
 	wh.Logic.Process(request, wsRes)
-
 
 	if wh.PostProcessor != nil {
 		wh.PostProcessor.PostProcess(wh.ComponentName(), request, wsRes)
@@ -377,6 +374,10 @@ func (wh *WsHandler) writePanicResponse(r interface{}, w *httpendpoint.HTTPRespo
 
 func (wh *WsHandler) StartComponent() error {
 
+	if wh.PathMatchPattern == "" || wh.HttpMethod == "" || wh.Logic == nil {
+		return errors.New("Handlers must have at least a PathMatchPattern string, HttpMethod string and Logic component set.")
+	}
+
 	validator, found := wh.Logic.(WsRequestValidator)
 
 	wh.validate = found
@@ -412,4 +413,3 @@ func (wh *WsHandler) ComponentName() string {
 func (wh *WsHandler) SetComponentName(name string) {
 	wh.componentName = name
 }
-

@@ -99,3 +99,20 @@ func CodeToCategory(code string) (ServiceErrorCategory, error) {
 	}
 
 }
+
+func CategoryToCode(c ServiceErrorCategory) string {
+	switch c {
+	default:
+		return "?"
+	case Unexpected:
+		return "U"
+	case Security:
+		return "S"
+	case Logic:
+		return "L"
+	case Client:
+		return "C"
+	case HTTP:
+		return "H"
+	}
+}
