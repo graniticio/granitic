@@ -63,6 +63,11 @@ type WsCommonResponseHeaderBuilder interface {
 	BuildHeaders(state *WsProcessState) map[string]string
 }
 
+// Interface for components able to convert a set of service errors into a structure suitable for serialisation.
+type ErrorFormatter interface {
+	FormatErrors(errors *ServiceErrors) interface{}
+}
+
 func WriteHeaders(w http.ResponseWriter, headers map[string]string) {
 
 	for k, v := range headers {

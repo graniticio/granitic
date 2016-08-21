@@ -7,11 +7,11 @@ import (
 	"net/http"
 )
 
-type DefaultJsonUnmarshaller struct {
+type StandardJSONUnmarshaller struct {
 	FrameworkLogger logging.Logger
 }
 
-func (jdu *DefaultJsonUnmarshaller) Unmarshall(req *http.Request, wsReq *ws.WsRequest) error {
+func (ju *StandardJSONUnmarshaller) Unmarshall(req *http.Request, wsReq *ws.WsRequest) error {
 
 	err := json.NewDecoder(req.Body).Decode(&wsReq.RequestBody)
 

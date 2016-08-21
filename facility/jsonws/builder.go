@@ -2,17 +2,18 @@ package jsonws
 
 import (
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/facility/httpserver"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
 	"github.com/graniticio/granitic/ws/handler"
 	"github.com/graniticio/granitic/ws/json"
-	"github.com/graniticio/granitic/facility/httpserver"
 )
 
 const jsonResponseWriterComponentName = ioc.FrameworkPrefix + "JsonResponseWriter"
 const jsonUnmarshallerComponentName = ioc.FrameworkPrefix + "JsonUnmarshaller"
 const jsonHandlerDecoratorComponentName = ioc.FrameworkPrefix + "JsonHandlerDecorator"
+const jsonErrorFormatterName = ioc.FrameworkPrefix + "JsonErrorFormatter"
 const wsHttpStatusDeterminerComponentName = ioc.FrameworkPrefix + "HttpStatusDeterminer"
 const wsQueryBinderComponentName = ioc.FrameworkPrefix + "QueryBinder"
 const wsFrameworkErrorGenerator = ioc.FrameworkPrefix + "FrameworkErrorGenerator"
@@ -22,7 +23,7 @@ type JsonWsFacilityBuilder struct {
 
 func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	responseWriter := new(json.DefaultJsonResponseWriter)
+	responseWriter := new(json.StandardJSONResponseWriter)
 	ca.Populate("JsonWs.ResponseWriter", responseWriter)
 	cn.WrapAndAddProto(jsonResponseWriterComponentName, responseWriter)
 
@@ -33,7 +34,7 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	cn.WrapAndAddProto(wsHttpStatusDeterminerComponentName, statusDeterminer)
 	responseWriter.StatusDeterminer = statusDeterminer
 
-	jsonUnmarshaller := new(json.DefaultJsonUnmarshaller)
+	jsonUnmarshaller := new(json.StandardJSONUnmarshaller)
 	cn.WrapAndAddProto(jsonUnmarshallerComponentName, jsonUnmarshaller)
 
 	frameworkErrors := new(ws.FrameworkErrorGenerator)
@@ -47,11 +48,14 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	decorator := JsonWsHandlerDecorator{decoratorLogger, responseWriter, jsonUnmarshaller, queryBinder, frameworkErrors}
 	cn.WrapAndAddProto(jsonHandlerDecoratorComponentName, &decorator)
 
-	if ! cn.ModifierExists(httpserver.HttpServerComponentName, httpserver.HttpServerAbnormalStatusFieldName) {
+	if !cn.ModifierExists(jsonResponseWriterComponentName, "ErrorFormatter") {
+		responseWriter.ErrorFormatter = new(json.StandardJSONErrorFormatter)
+	}
+
+	if !cn.ModifierExists(httpserver.HttpServerComponentName, httpserver.HttpServerAbnormalStatusFieldName) {
 		//The HTTP server does not have an AbnormalStatusWriter defined
 		cn.AddModifier(httpserver.HttpServerComponentName, httpserver.HttpServerAbnormalStatusFieldName, jsonResponseWriterComponentName)
 	}
-
 
 	return nil
 }
