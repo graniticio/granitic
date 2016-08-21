@@ -1,9 +1,9 @@
 package ws
 
 import (
-	"net/http"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/iam"
+	"net/http"
 )
 
 type WsOutcome uint
@@ -15,12 +15,12 @@ const (
 )
 
 type WsProcessState struct {
-	WsRequest *WsRequest
-	WsResponse *WsResponse
+	WsRequest          *WsRequest
+	WsResponse         *WsResponse
 	HTTPResponseWriter *httpendpoint.HTTPResponseWriter
-	ServiceErrors *ServiceErrors
-	Identity iam.ClientIdentity
-	Status int
+	ServiceErrors      *ServiceErrors
+	Identity           iam.ClientIdentity
+	Status             int
 }
 
 func NewAbnormalState(status int, w *httpendpoint.HTTPResponseWriter) *WsProcessState {
@@ -73,4 +73,8 @@ func WriteHeaders(w http.ResponseWriter, headers map[string]string) {
 	for k, v := range headers {
 		w.Header().Add(k, v)
 	}
+}
+
+type ResponseWrapper interface {
+	WrapResponse(body interface{}, errors interface{}) interface{}
 }

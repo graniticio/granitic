@@ -13,7 +13,7 @@ type StandardJSONResponseWriter struct {
 	StatusDeterminer ws.HttpStatusCodeDeterminer
 	FrameworkErrors  *ws.FrameworkErrorGenerator
 	DefaultHeaders   map[string]string
-	WrapResponse     bool
+	ResponseWrapper  ws.ResponseWrapper
 	HeaderBuilder    ws.WsCommonResponseHeaderBuilder
 	ErrorFormatter   ws.ErrorFormatter
 }
@@ -64,13 +64,14 @@ func (rw *StandardJSONResponseWriter) write(res *ws.WsResponse, w *httpendpoint.
 	var wrapper interface{}
 
 	ef := rw.ErrorFormatter
+	wrap := rw.ResponseWrapper
 
 	if e.HasErrors() && res.Body != nil {
-		wrapper = wrapJsonResponse(ef.FormatErrors(e), res.Body)
+		wrapper = wrap.WrapResponse(ef.FormatErrors(e), res.Body)
 	} else if e.HasErrors() {
-		wrapper = wrapJsonResponse(ef.FormatErrors(e), nil)
+		wrapper = wrap.WrapResponse(ef.FormatErrors(e), nil)
 	} else {
-		wrapper = wrapJsonResponse(nil, res.Body)
+		wrapper = wrap.WrapResponse(nil, res.Body)
 	}
 
 	data, err := json.Marshal(wrapper)
@@ -139,22 +140,7 @@ func (rw *StandardJSONResponseWriter) writeErrors(errors *ws.ServiceErrors, w *h
 	return rw.write(res, w, ch)
 }
 
-func wrapJsonResponse(errors interface{}, body interface{}) interface{} {
-	f := make(map[string]interface{})
-
-	if errors != nil {
-		f["Errors"] = errors
-	}
-
-	if body != nil {
-		f["Response"] = body
-	}
-
-	return f
-}
-
-type StandardJSONErrorFormatter struct {
-}
+type StandardJSONErrorFormatter struct{}
 
 func (ef *StandardJSONErrorFormatter) FormatErrors(errors *ws.ServiceErrors) interface{} {
 
@@ -183,6 +169,25 @@ func (ef *StandardJSONErrorFormatter) FormatErrors(errors *ws.ServiceErrors) int
 		a := f[k]
 
 		f[k] = append(a, error.Message)
+	}
+
+	return f
+}
+
+type StandardJSONResponseWrapper struct {
+	ErrorsFieldName string
+	BodyFieldName   string
+}
+
+func (rw *StandardJSONResponseWrapper) WrapResponse(body interface{}, errors interface{}) interface{} {
+	f := make(map[string]interface{})
+
+	if errors != nil {
+		f[rw.ErrorsFieldName] = errors
+	}
+
+	if body != nil {
+		f[rw.BodyFieldName] = body
 	}
 
 	return f

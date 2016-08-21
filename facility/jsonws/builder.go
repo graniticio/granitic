@@ -13,7 +13,6 @@ import (
 const jsonResponseWriterComponentName = ioc.FrameworkPrefix + "JsonResponseWriter"
 const jsonUnmarshallerComponentName = ioc.FrameworkPrefix + "JsonUnmarshaller"
 const jsonHandlerDecoratorComponentName = ioc.FrameworkPrefix + "JsonHandlerDecorator"
-const jsonErrorFormatterName = ioc.FrameworkPrefix + "JsonErrorFormatter"
 const wsHttpStatusDeterminerComponentName = ioc.FrameworkPrefix + "HttpStatusDeterminer"
 const wsQueryBinderComponentName = ioc.FrameworkPrefix + "QueryBinder"
 const wsFrameworkErrorGenerator = ioc.FrameworkPrefix + "FrameworkErrorGenerator"
@@ -50,6 +49,12 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "ErrorFormatter") {
 		responseWriter.ErrorFormatter = new(json.StandardJSONErrorFormatter)
+	}
+
+	if !cn.ModifierExists(jsonResponseWriterComponentName, "ResponseWrapper") {
+		wrap := new(json.StandardJSONResponseWrapper)
+		ca.Populate("JsonWs.ResponseWrapper", wrap)
+		responseWriter.ResponseWrapper = wrap
 	}
 
 	if !cn.ModifierExists(httpserver.HttpServerComponentName, httpserver.HttpServerAbnormalStatusFieldName) {
