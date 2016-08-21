@@ -3,6 +3,7 @@ package ws
 import (
 	"github.com/graniticio/granitic/logging"
 	rt "github.com/graniticio/granitic/reflecttools"
+	"github.com/graniticio/granitic/ws/nillable"
 	"reflect"
 	"strconv"
 )
@@ -150,11 +151,58 @@ func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *W
 		return pb.setFloatNField(paramName, fieldName, p, t, 32, errorFn)
 	case reflect.Float64:
 		return pb.setFloatNField(paramName, fieldName, p, t, 64, errorFn)
+	case reflect.Ptr:
+		return pb.considerStructField(paramName, fieldName, p, t, errorFn)
 
 	}
 
 	return nil
 
+}
+
+func (pb *ParamBinder) considerStructField(paramName string, fieldName string, qp *WsParams, t interface{}, errorFn bindError) *WsFrameworkError {
+
+	tf := reflect.ValueOf(t).Elem().FieldByName(fieldName)
+	tv := tf.Interface()
+
+	switch tv.(type) {
+	case *nillable.NillableString, *nillable.NillableBool, *nillable.NillableFloat64, *nillable.NillableInt64:
+		return pb.setNillableField(paramName, fieldName, qp, tf, tv, errorFn, t)
+	}
+
+	return nil
+}
+
+func (pb *ParamBinder) setNillableField(paramName string, fieldName string, p *WsParams, tf reflect.Value, tv interface{}, errorFn bindError, parent interface{}) *WsFrameworkError {
+	np := new(nillableProxy)
+
+	var e *WsFrameworkError
+	var nv interface{}
+
+	switch tv.(type) {
+
+	case *nillable.NillableString:
+		e = pb.setStringField(paramName, "S", p, np, errorFn)
+		nv = nillable.NewNillableString(np.S)
+
+	case *nillable.NillableBool:
+		e = pb.setBoolField(paramName, "B", p, np, errorFn)
+		nv = nillable.NewNillableBool(np.B)
+
+	case *nillable.NillableInt64:
+		e = pb.setIntNField(paramName, "I", p, np, 64, errorFn)
+		nv = nillable.NewNillableInt64(np.I)
+
+	case *nillable.NillableFloat64:
+		e = pb.setFloatNField(paramName, "F", p, np, 64, errorFn)
+		nv = nillable.NewNillableFloat64(np.F)
+	}
+
+	if e == nil {
+		rt.SetPtrToStruct(parent, fieldName, nv)
+	}
+
+	return e
 }
 
 func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *WsParams, t interface{}, errorFn bindError) *WsFrameworkError {
@@ -219,4 +267,11 @@ func (pb *ParamBinder) intTypeName(prefix string, bits int) string {
 	} else {
 		return prefix + strconv.Itoa(bits)
 	}
+}
+
+type nillableProxy struct {
+	S string
+	B bool
+	I int64
+	F float64
 }

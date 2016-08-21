@@ -1,6 +1,7 @@
 package nillable
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -14,7 +15,7 @@ type NillableString struct {
 func (ns *NillableString) MarshalJSON() ([]byte, error) {
 
 	if ns.set {
-		return []byte(ns.val), nil
+		return json.Marshal(ns.val)
 	} else {
 		return nil, nil
 	}
@@ -31,6 +32,10 @@ func (ns *NillableString) UnmarshalJSON(b []byte) error {
 func (ns *NillableString) Set(v string) {
 	ns.val = v
 	ns.set = true
+}
+
+func (ns *NillableString) String() string {
+	return ns.val
 }
 
 func NewNillableString(v string) *NillableString {
@@ -135,7 +140,7 @@ type NillableFloat64 struct {
 func (nf *NillableFloat64) MarshalJSON() ([]byte, error) {
 
 	if nf.set {
-		return []byte(strconv.FormatFloat(nf.val, 'E', -1, 64)), nil
+		return json.Marshal(nf.val)
 	} else {
 		return nil, nil
 	}

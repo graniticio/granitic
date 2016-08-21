@@ -335,7 +335,11 @@ func (wh *WsHandler) process(request *ws.WsRequest, w *httpendpoint.HTTPResponse
 	state.WsResponse = wsRes
 	state.WsRequest = request
 
-	wh.ResponseWriter.Write(state, ws.Normal)
+	err := wh.ResponseWriter.Write(state, ws.Normal)
+
+	if err != nil {
+		wh.Log.LogErrorf("Problem writing response: %s", err.Error())
+	}
 
 }
 
