@@ -82,6 +82,10 @@ func (nb *NillableBool) Set(v bool) {
 	nb.set = true
 }
 
+func (nb *NillableBool) Bool() bool {
+	return nb.val
+}
+
 func NewNillableBool(b bool) *NillableBool {
 	nb := new(NillableBool)
 	nb.Set(b)
@@ -125,6 +129,10 @@ func (ni *NillableInt64) Set(v int64) {
 	ni.set = true
 }
 
+func (ni *NillableInt64) Int64() int64 {
+	return ni.val
+}
+
 func NewNillableInt64(i int64) *NillableInt64 {
 	ni := new(NillableInt64)
 	ni.Set(i)
@@ -166,6 +174,10 @@ func (nf *NillableFloat64) UnmarshalJSON(b []byte) error {
 func (nf *NillableFloat64) Set(v float64) {
 	nf.val = v
 	nf.set = true
+}
+
+func (ni *NillableFloat64) Float64() float64 {
+	return ni.val
 }
 
 func NewNillableFloat64(f float64) *NillableFloat64 {

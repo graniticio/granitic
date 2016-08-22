@@ -200,6 +200,8 @@ func (pb *ParamBinder) setNillableField(paramName string, fieldName string, p *W
 
 	if e == nil {
 		rt.SetPtrToStruct(parent, fieldName, nv)
+	} else {
+		e.TargetField = fieldName
 	}
 
 	return e
