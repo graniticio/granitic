@@ -1,6 +1,13 @@
 package test
 
-import "testing"
+import (
+	"os"
+	"testing"
+)
+
+func TestFilePath(file string) string {
+	return os.Getenv("GRANITIC_HOME") + "/test/" + file
+}
 
 func ExpectString(t *testing.T, check, expected string) bool {
 	if expected != check {
