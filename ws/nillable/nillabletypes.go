@@ -38,6 +38,10 @@ func (ns *NillableString) String() string {
 	return ns.val
 }
 
+func (ns *NillableString) IsSet() bool {
+	return ns.set
+}
+
 func NewNillableString(v string) *NillableString {
 	ns := new(NillableString)
 	ns.Set(v)
