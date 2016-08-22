@@ -197,7 +197,7 @@ func (wh *WsHandler) processPathParams(req *http.Request, wsReq *ws.WsRequest) {
 
 	if wh.bindPathParams && len(wsReq.PathParams) > 0 {
 		pp := ws.NewWsParamsForPath(wh.BindPathParams, wsReq.PathParams)
-		wh.ParamBinder.AutoBindPathParameters(wsReq, pp)
+		wh.ParamBinder.BindPathParameters(wsReq, pp)
 	}
 
 }

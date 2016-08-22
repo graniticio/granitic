@@ -51,7 +51,25 @@ func TestQueryAutoBinding(t *testing.T) {
 
 }
 
-func TestInvlaidQueryAutoBinding(t *testing.T) {
+func TestInvalidTargetObjectsAutoBinding(t *testing.T) {
+
+	q := "ITP=0&ITV=1&ITI2"
+
+	v, _ := url.ParseQuery(q)
+	qp := NewWsParamsForQuery(v)
+	it := new(InvalidTargets)
+
+	pb := createParamBinder()
+
+	req := new(WsRequest)
+	req.QueryParams = qp
+	req.RequestBody = it
+
+	pb.AutoBindQueryParameters(req)
+
+}
+
+func TestInvalidValuesQueryAutoBinding(t *testing.T) {
 
 	q := "I=A&I8=B&I16=C6&I32=D&I64=F&F32=G&F64=H&B=10&NI=J&NF=K&NB=11"
 
@@ -224,6 +242,97 @@ func createParamBinder() *ParamBinder {
 
 }
 
+func TestPathBinding(t *testing.T) {
+
+	targets := []string{"S", "I", "I8", "I16", "I32", "I64", "F32", "F64", "B", "NS", "NI", "NF", "NB"}
+	values := []string{"s", "1", "8", "16", "32", "64", "32.0", "64.0", "true", "ns", "-1", "-64.0", "false"}
+
+	p := NewWsParamsForPath(targets, values)
+	bt := new(BindingTarget)
+
+	pb := createParamBinder()
+
+	req := new(WsRequest)
+	req.RequestBody = bt
+
+	pb.BindPathParameters(req, p)
+	fe := req.FrameworkErrors
+
+	errorCount := len(fe)
+	test.ExpectInt(t, errorCount, 0)
+
+	test.ExpectString(t, bt.S, "s")
+
+	test.ExpectInt(t, bt.I, 1)
+	test.ExpectInt(t, int(bt.I8), 8)
+	test.ExpectInt(t, int(bt.I16), 16)
+	test.ExpectInt(t, int(bt.I32), 32)
+	test.ExpectInt(t, int(bt.I64), 64)
+
+	test.ExpectFloat(t, float64(bt.F32), 32.0)
+	test.ExpectFloat(t, bt.F64, 64.0)
+
+	test.ExpectBool(t, bt.B, true)
+
+	test.ExpectString(t, bt.NS.String(), "ns")
+	test.ExpectBool(t, bt.NB.Bool(), false)
+	test.ExpectInt(t, int(bt.NI.Int64()), -1)
+	test.ExpectFloat(t, bt.NF.Float64(), -64.0)
+
+}
+
+func TestMorePathTargetsThanValues(t *testing.T) {
+
+	targets := []string{"S", "I", "I8"}
+	values := []string{"s", "1"}
+
+	p := NewWsParamsForPath(targets, values)
+	bt := new(BindingTarget)
+
+	pb := createParamBinder()
+
+	req := new(WsRequest)
+	req.RequestBody = bt
+
+	pb.BindPathParameters(req, p)
+	fe := req.FrameworkErrors
+
+	errorCount := len(fe)
+	test.ExpectInt(t, errorCount, 0)
+
+	test.ExpectString(t, bt.S, "s")
+
+	test.ExpectInt(t, bt.I, 1)
+	test.ExpectInt(t, int(bt.I8), 0)
+
+}
+
+func TestMorePathValuesThanTargets(t *testing.T) {
+
+	targets := []string{"S", "I"}
+	values := []string{"s", "1", "8"}
+
+	p := NewWsParamsForPath(targets, values)
+	bt := new(BindingTarget)
+
+	pb := createParamBinder()
+
+	req := new(WsRequest)
+	req.RequestBody = bt
+
+	pb.BindPathParameters(req, p)
+	fe := req.FrameworkErrors
+
+	errorCount := len(fe)
+	test.ExpectInt(t, errorCount, 0)
+
+	test.ExpectString(t, bt.S, "s")
+
+	test.ExpectInt(t, bt.I, 1)
+	test.ExpectInt(t, int(bt.I8), 0)
+
+}
+
 func printErrs(errs []*WsFrameworkError) {
 
 	for _, e := range errs {
@@ -246,3 +355,13 @@ type BindingTarget struct {
 	NF  *nillable.NillableFloat64
 	NB  *nillable.NillableBool
 }
+
+type InvalidTargets struct {
+	ITP *InvalidTargetField
+	ITV InvalidTargetField
+	ITI InvalidInterface
+}
+
+type InvalidTargetField struct{}
+
+type InvalidInterface interface{}

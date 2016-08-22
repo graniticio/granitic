@@ -1,14 +1,11 @@
 package ws
 
 import (
-	"net/http"
 	"github.com/graniticio/granitic/iam"
+	"net/http"
 )
 
-
-
 type WsRequest struct {
-	PathParameters  map[string]string
 	HttpMethod      string
 	RequestBody     interface{}
 	QueryParams     *WsParams
@@ -17,7 +14,7 @@ type WsRequest struct {
 	populatedFields map[string]bool
 	UserIdentity    iam.ClientIdentity
 	UnderlyingHTTP  *DirectHTTPAccess
-	ServingHandler	string
+	ServingHandler  string
 }
 
 func (wsr *WsRequest) HasFrameworkErrors() bool {
@@ -40,16 +37,11 @@ func (wsr *WsRequest) WasFieldPopulated(fieldName string) bool {
 	return wsr.populatedFields[fieldName] != false
 }
 
-
-
 type WsUnmarshaller interface {
 	Unmarshall(req *http.Request, wsReq *WsRequest) error
 }
 
-
 type DirectHTTPAccess struct {
 	ResponseWriter http.ResponseWriter
-	Request *http.Request
+	Request        *http.Request
 }
-
-

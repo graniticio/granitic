@@ -15,7 +15,7 @@ type ParamBinder struct {
 	FrameworkErrors *FrameworkErrorGenerator
 }
 
-func (pb *ParamBinder) AutoBindPathParameters(wsReq *WsRequest, p *WsParams) {
+func (pb *ParamBinder) BindPathParameters(wsReq *WsRequest, p *WsParams) {
 
 	t := wsReq.RequestBody
 

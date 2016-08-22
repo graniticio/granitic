@@ -7,13 +7,13 @@ import (
 	"strconv"
 )
 
-func NewWsParamsForPath(keys []string, values []string) *WsParams {
+func NewWsParamsForPath(targets []string, values []string) *WsParams {
 
 	contents := make(url.Values)
 	v := len(values)
 	var names []string
 
-	for i, k := range keys {
+	for i, k := range targets {
 
 		if i < v {
 			contents[strconv.Itoa(i)] = []string{values[i]}
