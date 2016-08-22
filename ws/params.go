@@ -56,6 +56,18 @@ func (wp *WsParams) ParamNames() []string {
 	return wp.paramNames
 }
 
+func (wp *WsParams) NotEmpty(key string) bool {
+
+	if !wp.Exists(key) {
+		return false
+	}
+
+	s, _ := wp.StringValue(key)
+
+	return s != ""
+
+}
+
 func (wp *WsParams) Exists(key string) bool {
 	return wp.values[key] != nil
 }

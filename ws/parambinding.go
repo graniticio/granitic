@@ -186,16 +186,22 @@ func (pb *ParamBinder) setNillableField(paramName string, fieldName string, p *W
 		nv = nillable.NewNillableString(np.S)
 
 	case *nillable.NillableBool:
-		e = pb.setBoolField(paramName, "B", p, np, errorFn)
-		nv = nillable.NewNillableBool(np.B)
+		if p.NotEmpty(paramName) {
+			e = pb.setBoolField(paramName, "B", p, np, errorFn)
+			nv = nillable.NewNillableBool(np.B)
+		}
 
 	case *nillable.NillableInt64:
-		e = pb.setIntNField(paramName, "I", p, np, 64, errorFn)
-		nv = nillable.NewNillableInt64(np.I)
+		if p.NotEmpty(paramName) {
+			e = pb.setIntNField(paramName, "I", p, np, 64, errorFn)
+			nv = nillable.NewNillableInt64(np.I)
+		}
 
 	case *nillable.NillableFloat64:
-		e = pb.setFloatNField(paramName, "F", p, np, 64, errorFn)
-		nv = nillable.NewNillableFloat64(np.F)
+		if p.NotEmpty(paramName) {
+			e = pb.setFloatNField(paramName, "F", p, np, 64, errorFn)
+			nv = nillable.NewNillableFloat64(np.F)
+		}
 	}
 
 	if e == nil {

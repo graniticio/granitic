@@ -49,7 +49,158 @@ func TestQueryAutoBinding(t *testing.T) {
 	test.ExpectInt(t, int(bt.NI.Int64()), -64)
 	test.ExpectFloat(t, bt.NF.Float64(), -10.0E2)
 
-	printErrs(fe)
+}
+
+func TestInvlaidQueryAutoBinding(t *testing.T) {
+
+	q := "I=A&I8=B&I16=C6&I32=D&I64=F&F32=G&F64=H&B=10&NI=J&NF=K&NB=11"
+
+	v, _ := url.ParseQuery(q)
+	qp := NewWsParamsForQuery(v)
+	bt := new(BindingTarget)
+
+	pb := createParamBinder()
+
+	req := new(WsRequest)
+	req.QueryParams = qp
+	req.RequestBody = bt
+
+	pb.AutoBindQueryParameters(req)
+
+	fe := req.FrameworkErrors
+
+	errorCount := len(fe)
+
+	test.ExpectInt(t, errorCount, 11)
+
+}
+
+func TestManualBinding(t *testing.T) {
+
+	q := "SX=s&IX=1&I8X=8&I16X=16&I32X=32&I64X=64&F32X=32.0&F64X=64.0&BX=true&NSX=ns&NIX=-64&NFX=-10.0E2&NBX=false"
+
+	v, _ := url.ParseQuery(q)
+	qp := NewWsParamsForQuery(v)
+	bt := new(BindingTarget)
+
+	pb := createParamBinder()
+
+	req := new(WsRequest)
+	req.QueryParams = qp
+	req.RequestBody = bt
+
+	targets := make(map[string]string)
+
+	targets["S"] = "SX"
+	targets["I"] = "IX"
+	targets["I8"] = "I8X"
+	targets["I16"] = "I16X"
+	targets["I32"] = "I32X"
+	targets["I64"] = "I64X"
+	targets["F32"] = "F32X"
+	targets["F64"] = "F64X"
+	targets["B"] = "BX"
+	targets["NS"] = "NSX"
+	targets["NI"] = "NIX"
+	targets["NF"] = "NFX"
+	targets["NB"] = "NBX"
+
+	pb.BindQueryParameters(req, targets)
+	fe := req.FrameworkErrors
+
+	errorCount := len(fe)
+
+	test.ExpectInt(t, errorCount, 0)
+
+	test.ExpectString(t, bt.S, "s")
+
+	test.ExpectInt(t, bt.I, 1)
+	test.ExpectInt(t, int(bt.I8), 8)
+	test.ExpectInt(t, int(bt.I16), 16)
+	test.ExpectInt(t, int(bt.I32), 32)
+	test.ExpectInt(t, int(bt.I64), 64)
+
+	test.ExpectFloat(t, float64(bt.F32), 32.0)
+	test.ExpectFloat(t, bt.F64, 64.0)
+
+	test.ExpectBool(t, bt.B, true)
+
+	test.ExpectString(t, bt.NS.String(), "ns")
+	test.ExpectBool(t, bt.NB.Bool(), false)
+	test.ExpectInt(t, int(bt.NI.Int64()), -64)
+	test.ExpectFloat(t, bt.NF.Float64(), -10.0E2)
+
+}
+
+func TestMissingFieldManualBinding(t *testing.T) {
+	q := "S=s"
+
+	v, _ := url.ParseQuery(q)
+	qp := NewWsParamsForQuery(v)
+	bt := new(BindingTarget)
+
+	pb := createParamBinder()
+
+	req := new(WsRequest)
+	req.QueryParams = qp
+	req.RequestBody = bt
+
+	targets := make(map[string]string)
+
+	targets["XX"] = "S"
+
+	pb.BindQueryParameters(req, targets)
+	fe := req.FrameworkErrors
+
+	errorCount := len(fe)
+	test.ExpectInt(t, errorCount, 1)
+
+}
+
+func TestWrongTypeManualBinding(t *testing.T) {
+	q := "S=s"
+
+	v, _ := url.ParseQuery(q)
+	qp := NewWsParamsForQuery(v)
+	bt := new(BindingTarget)
+
+	pb := createParamBinder()
+
+	req := new(WsRequest)
+	req.QueryParams = qp
+	req.RequestBody = bt
+
+	targets := make(map[string]string)
+
+	targets["NB"] = "S"
+
+	pb.BindQueryParameters(req, targets)
+	fe := req.FrameworkErrors
+
+	errorCount := len(fe)
+	test.ExpectInt(t, errorCount, 1)
+
+}
+
+func TestSetToNilNillable(t *testing.T) {
+
+	q := "NS=&NI=&NF=&NB="
+
+	v, _ := url.ParseQuery(q)
+	qp := NewWsParamsForQuery(v)
+	bt := new(BindingTarget)
+
+	pb := createParamBinder()
+
+	req := new(WsRequest)
+	req.QueryParams = qp
+	req.RequestBody = bt
+
+	pb.AutoBindQueryParameters(req)
+	fe := req.FrameworkErrors
+
+	errorCount := len(fe)
+	test.ExpectInt(t, errorCount, 0)
 
 }
 
@@ -76,7 +227,7 @@ func createParamBinder() *ParamBinder {
 func printErrs(errs []*WsFrameworkError) {
 
 	for _, e := range errs {
-		fmt.Printf("%s->%s %s", e.ClientField, e.TargetField, e.Message)
+		fmt.Printf("%s->%s %s\n", e.ClientField, e.TargetField, e.Message)
 	}
 }
 
