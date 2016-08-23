@@ -21,7 +21,12 @@
     ],
     "hint": [
       "STR",
-      "OPT"
+      "OPT",
+      "LEN:-50"
+    ],
+    "securityPhrase": [
+      "STR:SEC",
+      "LEN:5-"
     ],
     "profile": {
       "email": ["STR", "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:"]
