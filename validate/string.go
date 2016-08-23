@@ -60,8 +60,6 @@ func (sv *StringValidator) Length(min, max int, code ...string) *StringValidator
 	o := new(stringOperation)
 	o.ErrCode = ec
 
-	fmt.Printf("Adding %d %d, %s\n", min, max, ec)
-
 	sv.addOperation(o)
 
 	return sv

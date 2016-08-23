@@ -1,7 +1,6 @@
 package validate
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -16,6 +15,7 @@ const (
 
 const commandSep = ":"
 const StringRuleCode = "STR"
+const RuleRefCode = "RULE"
 
 type Validator interface {
 	Validate(field string, object interface{}) (errorCodes []string, unexpected error)
@@ -38,70 +38,45 @@ type ObjectValidator struct {
 	RuleManager      *UnparsedRuleRuleManager
 	stringBuilder    *stringValidatorBuilder
 	DefaultErrorCode string
-}
-
-func (ov *ObjectValidator) UnmarshalJSON(b []byte) error {
-
-	var jc interface{}
-	json.Unmarshal(b, &jc)
-
-	ov.jsonConfig = jc
-
-	return nil
+	Rules            [][]string
 }
 
 func (ov *ObjectValidator) StartComponent() error {
 
-	m, found := ov.jsonConfig.(map[string]interface{})
-
-	if !found {
-		return errors.New("Unexpected config format for rules (was expecting JSON map/object)\n")
-	}
-
 	ov.stringBuilder = newStringValidatorBuilder(ov.DefaultErrorCode)
 
-	return ov.parseRules(m)
+	return ov.parseRules()
 
 }
 
-func (ov *ObjectValidator) parseRules(m map[string]interface{}) error {
+func (ov *ObjectValidator) parseRules() error {
 
 	var err error
 
-	for f, v := range m {
+	for _, rule := range ov.Rules {
 
-		var rule []string
+		var ruleToParse []string
 
-		if ov.isNestedField(v) {
-			continue
+		if len(rule) < 2 {
+			m := fmt.Sprintf("Rule is invlaid (must have at least an identifier and a type). Supplied rule is: %q", rule)
+			return errors.New(m)
 		}
 
-		if ov.isRuleRef(v) {
-			rule, err = ov.findRule(f, v.(string))
+		field := rule[0]
+		ruleType := rule[1]
+
+		if ov.isRuleRef(ruleType) {
+			ruleToParse, err = ov.findRule(field, ruleType)
 
 			if err != nil {
 				break
 			}
 
 		} else {
-
-			isRule, err := ov.isRule(v)
-
-			if err != nil {
-				break
-			}
-
-			if isRule {
-				rule = ToStringArray(v.([]interface{}))
-			}
+			ruleToParse = rule[1:]
 		}
 
-		if len(rule) == 0 {
-			m := fmt.Sprintf("Rule for field %s is empty", f)
-			return errors.New(m)
-		}
-
-		err = ov.parseRule(f, rule)
+		err = ov.parseRule(field, ruleToParse)
 
 		if err != nil {
 			break
@@ -112,40 +87,17 @@ func (ov *ObjectValidator) parseRules(m map[string]interface{}) error {
 	return err
 }
 
-func (ov *ObjectValidator) isRule(v interface{}) (bool, error) {
+func (ov *ObjectValidator) isRuleRef(op string) bool {
 
-	a, found := v.([]interface{})
+	s := strings.SplitN(op, commandSep, -1)
 
-	if found {
+	return len(s) == 2 && s[0] == RuleRefCode
 
-		for _, ve := range a {
-			_, foundStr := ve.(string)
-
-			if !foundStr {
-				m := fmt.Sprintf("Rule %q contains elements that are not strings\n", v)
-				return false, errors.New(m)
-			}
-
-		}
-
-	}
-
-	return found, nil
 }
 
-func (ov *ObjectValidator) isRuleRef(v interface{}) bool {
-	_, found := v.(string)
+func (ov *ObjectValidator) findRule(field, op string) ([]string, error) {
 
-	return found
-}
-
-func (ov *ObjectValidator) isNestedField(v interface{}) bool {
-	_, found := v.(map[string]interface{})
-
-	return found
-}
-
-func (ov *ObjectValidator) findRule(field, ref string) ([]string, error) {
+	ref := strings.SplitN(op, commandSep, -1)[1]
 
 	rf := ov.RuleManager
 
@@ -221,16 +173,6 @@ func DetermineDefaultErrorCode(vt string, rule []string, defaultCode string) str
 	}
 
 	return defaultCode
-}
-
-func ToStringArray(v []interface{}) []string {
-	sa := make([]string, len(v))
-
-	for i, m := range v {
-		sa[i] = m.(string)
-	}
-
-	return sa
 }
 
 func DecomposeOperation(r string) []string {

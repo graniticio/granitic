@@ -10,27 +10,14 @@
   },
 
   "profileValidator": {
-    "userName": "userName",
-    "role": [
-      "STR:INVROLE",
-      "IN:USER,ADMIN"
-    ],
-    "password": [
-      "STR",
-      "EXT:Password"
-    ],
-    "hint": [
-      "STR",
-      "OPT",
-      "LEN:-50"
-    ],
-    "securityPhrase": [
-      "STR:SEC",
-      "LEN:5-"
-    ],
-    "profile": {
-      "email": ["STR", "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:"]
-    }
+    "Rules": [
+      ["userName",        "RULE:userName"],
+      ["role",            "STR:INVROLE",  "IN:USER,ADMIN"],
+      ["password",        "STR",          "EXT:Password"],
+      ["hint",            "STR",          "OPT", "LEN:-50"],
+      ["securityPhrase",  "STR:SEC",      "LEN:5-"],
+      ["profile.email",   "STR",          "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:10-100"]
+    ]
   }
 
 }
