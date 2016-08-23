@@ -1,0 +1,31 @@
+{
+  "ruleManager": {
+    "Rules": {
+      "userName": [
+        "STR",
+        "TRIM",
+        "LEN:4-20"
+      ]
+    }
+  },
+
+  "profileValidator": {
+    "userName": "userName",
+    "role": [
+      "STR:INVROLE",
+      "IN:USER,ADMIN"
+    ],
+    "password": [
+      "STR",
+      "EXT:Password"
+    ],
+    "hint": [
+      "STR",
+      "OPT"
+    ],
+    "profile": {
+      "email": ["STR", "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:"]
+    }
+  }
+
+}
