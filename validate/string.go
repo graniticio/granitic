@@ -3,6 +3,8 @@ package validate
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 )
 
 const NoLimit = -1
@@ -112,4 +114,93 @@ func (sv *StringValidator) chooseErrorCode(v []string) string {
 type stringOperation struct {
 	OpType  StringValidationOperation
 	ErrCode string
+}
+
+type stringValidatorBuilder struct {
+	strLenRegex      *regexp.Regexp
+	defaultErrorCode string
+}
+
+func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) error {
+
+	sv := new(StringValidator)
+	sv.DefaultErrorcode = DetermineDefaultErrorCode(StringRuleCode, rule, vb.defaultErrorCode)
+
+	for _, v := range rule {
+
+		ops := DecomposeOperation(v)
+		opCode := ops[0]
+
+		if IsTypeIndicator(StringRuleCode, opCode) {
+			continue
+		}
+
+		op, err := sv.Operation(opCode)
+
+		if err != nil {
+			return err
+		}
+
+		switch op {
+		case StringOpBreak:
+			sv.Break()
+		case StringOpLen:
+			err = vb.addStringLenOperation(field, ops, sv)
+		}
+
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
+
+}
+
+func (vb *stringValidatorBuilder) addStringLenOperation(field string, ops []string, sv *StringValidator) error {
+
+	opParams := len(ops)
+
+	if opParams < 2 || opParams > 3 {
+		m := fmt.Sprintf("Length operation for field %s is invalid", field)
+		return errors.New(m)
+	}
+
+	vals := ops[1]
+
+	if !vb.strLenRegex.MatchString(vals) {
+		m := fmt.Sprintf("Length parameters for field %s are invalid. Values provided: %s", field, vals)
+		return errors.New(m)
+	}
+
+	min := NoLimit
+	max := NoLimit
+
+	groups := vb.strLenRegex.FindStringSubmatch(vals)
+
+	if groups[1] != "" {
+		min, _ = strconv.Atoi(groups[1])
+	}
+
+	if groups[2] != "" {
+		max, _ = strconv.Atoi(groups[2])
+	}
+
+	if opParams == 2 {
+		sv.Length(min, max)
+	} else {
+		sv.Length(min, max, ops[2])
+	}
+
+	return nil
+
+}
+
+func newStringValidatorBuilder(defaultErrorCode string) *stringValidatorBuilder {
+	vb := new(stringValidatorBuilder)
+	vb.strLenRegex = regexp.MustCompile("^(\\d*)-(\\d*)$")
+	vb.defaultErrorCode = defaultErrorCode
+
+	return vb
 }

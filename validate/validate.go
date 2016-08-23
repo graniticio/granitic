@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -17,8 +15,11 @@ const (
 )
 
 const commandSep = ":"
-const rangeSep = ":"
 const StringRuleCode = "STR"
+
+type Validator interface {
+	Validate(field string, object interface{}) (errorCodes []string, unexpected error)
+}
 
 type UnparsedRuleRuleManager struct {
 	Rules map[string][]string
@@ -35,8 +36,8 @@ func (rm *UnparsedRuleRuleManager) Rule(ref string) []string {
 type ObjectValidator struct {
 	jsonConfig       interface{}
 	RuleManager      *UnparsedRuleRuleManager
+	stringBuilder    *stringValidatorBuilder
 	DefaultErrorCode string
-	strLenRegex      *regexp.Regexp
 }
 
 func (ov *ObjectValidator) UnmarshalJSON(b []byte) error {
@@ -57,7 +58,7 @@ func (ov *ObjectValidator) StartComponent() error {
 		return errors.New("Unexpected config format for rules (was expecting JSON map/object)\n")
 	}
 
-	ov.strLenRegex = regexp.MustCompile("^(\\d*)-(\\d*)$")
+	ov.stringBuilder = newStringValidatorBuilder(ov.DefaultErrorCode)
 
 	return ov.parseRules(m)
 
@@ -172,7 +173,7 @@ func (ov *ObjectValidator) parseRule(field string, rule []string) error {
 
 	switch rt {
 	case StringRule:
-		err = ov.parseStringRule(field, rule)
+		err = ov.stringBuilder.parseStringRule(field, rule)
 	default:
 		m := fmt.Sprintf("Unsupported rule type for field %s\n", field)
 		return errors.New(m)
@@ -199,89 +200,13 @@ func (ov *ObjectValidator) extractType(field string, rule []string) (ValidationR
 	return UnknownRuleType, errors.New(m)
 }
 
-func (ov *ObjectValidator) parseStringRule(field string, rule []string) error {
-
-	sv := new(StringValidator)
-	sv.DefaultErrorcode = ov.determineDefaultErrorCode(StringRuleCode, rule)
-
-	for _, v := range rule {
-
-		ops := DecomposeOperation(v)
-		opCode := ops[0]
-
-		if ov.isTypeIndicator(StringRuleCode, opCode) {
-			continue
-		}
-
-		op, err := sv.Operation(opCode)
-
-		if err != nil {
-			return err
-		}
-
-		switch op {
-		case StringOpBreak:
-			sv.Break()
-		case StringOpLen:
-			err = ov.addStringLenOperation(field, ops, sv)
-		}
-
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return nil
-
-}
-
-func (ov *ObjectValidator) isTypeIndicator(vType, op string) bool {
+func IsTypeIndicator(vType, op string) bool {
 
 	return DecomposeOperation(op)[0] == vType
 
 }
 
-func (ov *ObjectValidator) addStringLenOperation(field string, ops []string, sv *StringValidator) error {
-
-	opParams := len(ops)
-
-	if opParams < 2 || opParams > 3 {
-		m := fmt.Sprintf("Length operation for field %s is invalid", field)
-		return errors.New(m)
-	}
-
-	vals := ops[1]
-
-	if !ov.strLenRegex.MatchString(vals) {
-		m := fmt.Sprintf("Length parameters for field %s are invalid. Values provided: %s", field, vals)
-		return errors.New(m)
-	}
-
-	min := NoLimit
-	max := NoLimit
-
-	groups := ov.strLenRegex.FindStringSubmatch(vals)
-
-	if groups[1] != "" {
-		min, _ = strconv.Atoi(groups[1])
-	}
-
-	if groups[2] != "" {
-		max, _ = strconv.Atoi(groups[2])
-	}
-
-	if opParams == 2 {
-		sv.Length(min, max)
-	} else {
-		sv.Length(min, max, ops[2])
-	}
-
-	return nil
-
-}
-
-func (ov *ObjectValidator) determineDefaultErrorCode(vt string, rule []string) string {
+func DetermineDefaultErrorCode(vt string, rule []string, defaultCode string) string {
 	for _, v := range rule {
 
 		f := DecomposeOperation(v)
@@ -295,7 +220,7 @@ func (ov *ObjectValidator) determineDefaultErrorCode(vt string, rule []string) s
 
 	}
 
-	return ov.DefaultErrorCode
+	return defaultCode
 }
 
 func ToStringArray(v []interface{}) []string {
