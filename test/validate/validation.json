@@ -1,8 +1,7 @@
 {
   "ruleManager": {
     "Rules": {
-      "userName": ["STR", "TRIM", "LEN:4-20"
-      ]
+      "userName": ["STR", "TRIM", "LEN:4-20", "STOPALL"]
     }
   },
 

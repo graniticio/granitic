@@ -20,6 +20,7 @@ const (
 	stringOpOptionalCode = "OPT"
 	stringOpBreakCode    = "BREAK"
 	stringOpRegCode      = "REG"
+	stringOpStopAllCode  = "STOPALL"
 )
 
 type StringValidationOperation uint
@@ -34,6 +35,7 @@ const (
 	StringOpOptional
 	StringOpBreak
 	StringOpReg
+	StringOpStopAll
 )
 
 type ExternalStringValidator interface {
@@ -55,12 +57,17 @@ type StringValidator struct {
 	maxLen           int
 	trim             trimMode
 	optional         bool
+	stopAll          bool
 }
 
 func (sv *StringValidator) Validate(vc *ValidationContext) (errorCodes []string, unexpected error) {
 
-	return nil, nil
+	return []string{}, nil
 
+}
+
+func (sv *StringValidator) StopAllOnFail() bool {
+	return sv.stopAll
 }
 
 func (sv *StringValidator) Break() *StringValidator {
@@ -116,6 +123,13 @@ func (sv *StringValidator) HardTrim() *StringValidator {
 }
 
 func (sv *StringValidator) Trim() *StringValidator {
+
+	sv.trim = softTrim
+
+	return sv
+}
+
+func (sv *StringValidator) StopAll() *StringValidator {
 
 	sv.trim = softTrim
 
@@ -181,6 +195,8 @@ func (sv *StringValidator) Operation(c string) (StringValidationOperation, error
 		return StringOpBreak, nil
 	case stringOpRegCode:
 		return StringOpReg, nil
+	case stringOpStopAllCode:
+		return StringOpStopAll, nil
 	}
 
 	m := fmt.Sprintf("Unsupported string validation operation %s", c)
@@ -212,7 +228,7 @@ type stringValidatorBuilder struct {
 	componentFinder  ioc.ComponentByNameFinder
 }
 
-func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) error {
+func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (Validator, error) {
 
 	sv := new(StringValidator)
 	sv.DefaultErrorcode = DetermineDefaultErrorCode(StringRuleCode, rule, vb.defaultErrorCode)
@@ -229,7 +245,7 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) e
 		op, err := sv.Operation(opCode)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		switch op {
@@ -247,15 +263,17 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) e
 			sv.Trim()
 		case StringOpOptional:
 			sv.Optional()
+		case StringOpStopAll:
+			sv.StopAll()
 		}
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 	}
 
-	return nil
+	return sv, nil
 
 }
 

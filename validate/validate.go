@@ -9,6 +9,8 @@ import (
 
 type ValidationRuleType uint
 
+type parseAndBuild func(string, []string) (Validator, error)
+
 const (
 	UnknownRuleType = iota
 	StringRule
@@ -27,6 +29,12 @@ type ValidationContext struct {
 
 type Validator interface {
 	Validate(vc *ValidationContext) (errorCodes []string, unexpected error)
+	StopAllOnFail() bool
+}
+
+type validatorLink struct {
+	validator Validator
+	field     string
 }
 
 type UnparsedRuleRuleManager struct {
@@ -48,12 +56,15 @@ type ObjectValidator struct {
 	DefaultErrorCode string
 	Rules            [][]string
 	ComponentFinder  ioc.ComponentByNameFinder
+	validatorChain   []*validatorLink
 }
 
 func (ov *ObjectValidator) StartComponent() error {
 
 	ov.stringBuilder = newStringValidatorBuilder(ov.DefaultErrorCode)
 	ov.stringBuilder.componentFinder = ov.ComponentFinder
+
+	ov.validatorChain = make([]*validatorLink, 0)
 
 	return ov.parseRules()
 
@@ -97,6 +108,16 @@ func (ov *ObjectValidator) parseRules() error {
 	return err
 }
 
+func (ov *ObjectValidator) addValidator(field string, v Validator) {
+
+	vl := new(validatorLink)
+	vl.field = field
+	vl.validator = v
+
+	ov.validatorChain = append(ov.validatorChain, vl)
+
+}
+
 func (ov *ObjectValidator) isRuleRef(op string) bool {
 
 	s := strings.SplitN(op, commandSep, -1)
@@ -135,14 +156,26 @@ func (ov *ObjectValidator) parseRule(field string, rule []string) error {
 
 	switch rt {
 	case StringRule:
-		err = ov.stringBuilder.parseStringRule(field, rule)
+		err = ov.parseAndAdd(field, rule, ov.stringBuilder.parseStringRule)
+
 	default:
 		m := fmt.Sprintf("Unsupported rule type for field %s\n", field)
 		return errors.New(m)
 	}
 
-	return err
+	return nil
 
+}
+
+func (ov *ObjectValidator) parseAndAdd(field string, rule []string, pf parseAndBuild) error {
+	v, err := pf(field, rule)
+
+	if err != nil {
+		return err
+	} else {
+		ov.addValidator(field, v)
+		return nil
+	}
 }
 
 func (ov *ObjectValidator) extractType(field string, rule []string) (ValidationRuleType, error) {
