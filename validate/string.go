@@ -10,9 +10,11 @@ import (
 	"reflect"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 const NoLimit = -1
+const setMemberSep = ","
 
 const (
 	stringOpTrimCode     = "TRIM"
@@ -68,8 +70,6 @@ func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string,
 	f := vc.Field
 	sub := vc.Subject
 
-	fmt.Printf("Validating %s\n", f)
-
 	fv, err := rt.FindNestedField(rt.ExtractDotPath(f), sub)
 
 	if err != nil {
@@ -91,7 +91,7 @@ func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string,
 	s, found := fv.Interface().(string)
 
 	if found {
-		return sv.validateStandard(vc, fv, s)
+		return sv.validateStandard(vc, fv, s, f)
 	} else {
 		m := fmt.Sprintf("%s is not a string or a NillableString\n", f, err)
 		return nil, errors.New(m)
@@ -100,11 +100,111 @@ func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string,
 }
 
 func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *nillable.NillableString) (errorCodes []string, unexpected error) {
-	return []string{}, nil
+
+	if !ns.IsSet() && !sv.optional {
+		return []string{sv.DefaultErrorcode}, nil
+	}
+
+	toValidate := ns.String()
+
+	if sv.trim == hardTrim || sv.trim == softTrim {
+		toValidate = strings.TrimSpace(toValidate)
+
+		if sv.trim == hardTrim {
+			ns.Set(toValidate)
+		}
+	}
+
+	return sv.runOperations(toValidate)
 }
 
-func (sv *StringValidator) validateStandard(vc *validationContext, rv reflect.Value, s string) (errorCodes []string, unexpected error) {
-	return []string{}, nil
+func (sv *StringValidator) validateStandard(vc *validationContext, rv reflect.Value, s string, field string) (errorCodes []string, unexpected error) {
+
+	if !sv.wasStringSet(s, field, vc.KnownSetFields) && !sv.optional {
+		return []string{sv.DefaultErrorcode}, nil
+	}
+
+	toValidate := s
+
+	if sv.trim == hardTrim || sv.trim == softTrim {
+		toValidate = strings.TrimSpace(toValidate)
+
+		if sv.trim == hardTrim {
+			rv.SetString(toValidate)
+		}
+	}
+
+	return sv.runOperations(toValidate)
+}
+
+func (sv *StringValidator) runOperations(s string) (errorCodes []string, unexpected error) {
+
+	ec := new(types.OrderedStringSet)
+
+	for _, op := range sv.operations {
+
+		switch op.OpType {
+		case StringOpLen:
+			if !sv.lengthOkay(s) {
+				ec.Add(op.ErrCode)
+			}
+		case StringOpIn:
+			if !op.InSet.Contains(s) {
+				ec.Add(op.ErrCode)
+			}
+
+		case StringOpExt:
+			if !op.External.ValidString(s) {
+
+				ec.Add(op.ErrCode)
+			}
+
+		case StringOpBreak:
+			if ec.Size() > 0 {
+				break
+			}
+
+		case StringOpReg:
+			if !op.Regex.MatchString(s) {
+				ec.Add(op.ErrCode)
+			}
+		}
+
+	}
+
+	return ec.Contents(), nil
+
+}
+
+func (sv *StringValidator) lengthOkay(s string) bool {
+
+	if sv.minLen == NoLimit && sv.maxLen == NoLimit {
+		return true
+	}
+
+	sl := len(s)
+
+	minOkay := sv.minLen == NoLimit || sl > sv.minLen
+	maxOkay := sv.maxLen == NoLimit || sl < sv.maxLen
+
+	return minOkay && maxOkay
+
+}
+
+func (sv *StringValidator) wasStringSet(s string, field string, knownSet types.Set) bool {
+
+	l := len(s)
+
+	if l >= 0 {
+		return true
+	} else if knownSet != nil && knownSet.Contains(field) {
+		return true
+	} else if sv.minLen <= 0 {
+		return true
+	}
+
+	return false
+
 }
 
 func (sv *StringValidator) StopAllOnFail() bool {
@@ -172,7 +272,7 @@ func (sv *StringValidator) Trim() *StringValidator {
 
 func (sv *StringValidator) StopAll() *StringValidator {
 
-	sv.trim = softTrim
+	sv.stopAll = true
 
 	return sv
 }
@@ -298,6 +398,8 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (
 			err = vb.addStringRegexOperation(field, ops, sv)
 		case StringOpExt:
 			err = vb.addStringExternalOperation(field, ops, sv)
+		case StringOpIn:
+			err = vb.addStringInOperation(field, ops, sv)
 		case StringOpHardTrim:
 			sv.HardTrim()
 		case StringOpTrim:
@@ -315,6 +417,26 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (
 	}
 
 	return sv, nil
+
+}
+
+func (vb *stringValidatorBuilder) addStringInOperation(field string, ops []string, sv *StringValidator) error {
+	opParams := len(ops)
+
+	if opParams < 2 || opParams > 3 {
+		m := fmt.Sprintf("In operation for field %s is invalid (too few or too many parameters)", field)
+		return errors.New(m)
+	}
+
+	members := strings.SplitN(ops[1], setMemberSep, -1)
+
+	if opParams == 2 {
+		sv.In(members)
+	} else {
+		sv.In(members, ops[2])
+	}
+
+	return nil
 
 }
 

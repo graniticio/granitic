@@ -26,9 +26,16 @@ func TestConfigParsing(t *testing.T) {
 
 	ov, u := validatorAndUser(t)
 
-	fe, err := ov.Validate(u)
+	sc := new(SubjectContext)
+	sc.Subject = u
+
+	fe, err := ov.Validate(sc)
 
 	test.ExpectInt(t, len(fe), 0)
+
+	for _, e := range fe {
+		fmt.Printf("%s %q", e.field, e.errorCodes)
+	}
 
 	test.ExpectNil(t, err)
 
@@ -36,6 +43,71 @@ func TestConfigParsing(t *testing.T) {
 		fmt.Println(err.Error())
 	}
 
+}
+
+func TestLengthViolations(t *testing.T) {
+	ov, u := validatorAndUser(t)
+
+	sc := new(SubjectContext)
+	sc.Subject = u
+
+	u.UserName = "012"
+	u.Hint = "012345678901234567890123456789012345678901234567890"
+	u.SecurityPhrase = "0123"
+	u.Profile.Email = "a@b"
+
+	fe, err := ov.Validate(sc)
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(fe), 4)
+
+	u.UserName = "012345678901234567890"
+	u.Hint = ""
+	u.SecurityPhrase = "01234"
+	u.Profile.Email = "0123456789@01234567890123456789012345678901234567890123456789012345678901234567890123456789"
+
+	fe, err = ov.Validate(sc)
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(fe), 2)
+}
+
+func TestRegexViolations(t *testing.T) {
+	ov, u := validatorAndUser(t)
+
+	sc := new(SubjectContext)
+	sc.Subject = u
+
+	u.Profile.Website = nillable.NewNillableString("www.example.com")
+	fe, err := ov.Validate(sc)
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(fe), 1)
+
+	u.Profile.Website = nillable.NewNillableString("http://www.example.com")
+	fe, err = ov.Validate(sc)
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(fe), 0)
+}
+
+func TestSetMembershipViolations(t *testing.T) {
+	ov, u := validatorAndUser(t)
+
+	sc := new(SubjectContext)
+	sc.Subject = u
+
+	u.Role = nillable.NewNillableString("GUEST")
+	fe, err := ov.Validate(sc)
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(fe), 1)
+
+	u.Role = nillable.NewNillableString("ADMIN")
+	fe, err = ov.Validate(sc)
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(fe), 0)
 }
 
 func validatorAndUser(t *testing.T) (*ObjectValidator, *User) {
@@ -49,6 +121,7 @@ func validatorAndUser(t *testing.T) (*ObjectValidator, *User) {
 	ov := new(ObjectValidator)
 	ov.RuleManager = rm
 	ov.ComponentFinder = new(TestComponentFinder)
+	ov.DefaultErrorCode = "DEFAULT"
 
 	ca.Populate("profileValidator", ov)
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
+	"github.com/graniticio/granitic/types"
 	"strings"
 )
 
@@ -22,9 +23,15 @@ const escapedCommandReplace = "||ESC||"
 const StringRuleCode = "STR"
 const RuleRefCode = "RULE"
 
+type SubjectContext struct {
+	Subject        interface{}
+	KnownSetFields types.Set
+}
+
 type validationContext struct {
-	Field   string
-	Subject interface{}
+	Field          string
+	Subject        interface{}
+	KnownSetFields types.Set
 }
 
 type Validator interface {
@@ -64,7 +71,7 @@ type ObjectValidator struct {
 	validatorChain   []*validatorLink
 }
 
-func (ov *ObjectValidator) Validate(subject interface{}) ([]*FieldErrors, error) {
+func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, error) {
 
 	fieldErrors := make([]*FieldErrors, 0)
 
@@ -72,7 +79,8 @@ func (ov *ObjectValidator) Validate(subject interface{}) ([]*FieldErrors, error)
 
 		vc := new(validationContext)
 		vc.Field = vl.field
-		vc.Subject = subject
+		vc.Subject = subject.Subject
+		vc.KnownSetFields = subject.KnownSetFields
 
 		ec, err := vl.validator.Validate(vc)
 
@@ -88,6 +96,7 @@ func (ov *ObjectValidator) Validate(subject interface{}) ([]*FieldErrors, error)
 			fieldErrors = append(fieldErrors, fe)
 
 			if vl.validator.StopAllOnFail() {
+				fmt.Printf("Stopping after %s", vc.Field)
 				break
 			}
 

@@ -1,7 +1,29 @@
 package types
 
+type Set interface {
+	Contains(m string) bool
+	Add(s string)
+	Contents() []string
+	Size() int
+}
+
 type StringSet struct {
 	members map[string]bool
+}
+
+func (ss *StringSet) Size() int {
+	return len(ss.members)
+}
+
+func (ss *StringSet) Contents() []string {
+	c := make([]string, 0)
+
+	for k, _ := range ss.members {
+		c = append(c, k)
+	}
+
+	return c
+
 }
 
 func (ss *StringSet) Contains(m string) bool {
@@ -32,12 +54,12 @@ func (os *OrderedStringSet) Contains(m string) bool {
 }
 
 func (os *OrderedStringSet) Add(s string) {
-	if os.members.Contains(s) {
-		return
-	}
 
 	if os.ordered == nil {
 		os.ordered = make([]string, 0)
+		os.members = NewStringSet(os.ordered)
+	} else if os.members.Contains(s) {
+		return
 	}
 
 	os.ordered = append(os.ordered, s)
@@ -46,4 +68,8 @@ func (os *OrderedStringSet) Add(s string) {
 
 func (os *OrderedStringSet) Contents() []string {
 	return os.ordered
+}
+
+func (os *OrderedStringSet) Size() int {
+	return len(os.ordered)
 }
