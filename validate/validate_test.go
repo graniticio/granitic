@@ -50,5 +50,22 @@ type TestComponentFinder struct {
 }
 
 func (cf *TestComponentFinder) ComponentByName(name string) *ioc.Component {
+
+	if name == "Password" {
+		return ioc.NewComponent(name, new(PasswordValidator))
+	}
+
 	return nil
+}
+
+type PasswordValidator struct {
+}
+
+func (pv *PasswordValidator) ValidString(p string) bool {
+
+	if p == "password" {
+		return false
+	}
+
+	return true
 }

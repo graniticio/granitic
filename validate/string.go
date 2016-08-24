@@ -264,7 +264,7 @@ func (vb *stringValidatorBuilder) addStringRegexOperation(field string, ops []st
 	opParams := len(ops)
 
 	if opParams < 2 || opParams > 3 {
-		m := fmt.Sprintf("Length operation for field %s is invalid", field)
+		m := fmt.Sprintf("Regex operation for field %s is invalid (too few or too many parameters)", field)
 		return errors.New(m)
 	}
 
@@ -296,6 +296,34 @@ func (vb *stringValidatorBuilder) addStringExternalOperation(field string, ops [
 		return errors.New(m)
 	}
 
+	opParams := len(ops)
+
+	if opParams < 2 || opParams > 3 {
+		m := fmt.Sprintf("External operation for field %s is invalid (too few or too many parameters)", field)
+		return errors.New(m)
+	}
+
+	ref := ops[1]
+	component := cf.ComponentByName(ref)
+
+	if component == nil {
+		m := fmt.Sprintf("No external component named %s available to validate field %s", ref, field)
+		return errors.New(m)
+	}
+
+	ev, found := component.Instance.(ExternalStringValidator)
+
+	if !found {
+		m := fmt.Sprintf("Component %s to validate field %s does not implement ExternalStringValidator", ref, field)
+		return errors.New(m)
+	}
+
+	if opParams == 2 {
+		sv.ExternalValidation(ev)
+	} else {
+		sv.ExternalValidation(ev, ops[2])
+	}
+
 	return nil
 
 }
@@ -305,7 +333,7 @@ func (vb *stringValidatorBuilder) addStringLenOperation(field string, ops []stri
 	opParams := len(ops)
 
 	if opParams < 2 || opParams > 3 {
-		m := fmt.Sprintf("Length operation for field %s is invalid", field)
+		m := fmt.Sprintf("Length operation for field %s is invalid (too few or too many parameters)", field)
 		return errors.New(m)
 	}
 

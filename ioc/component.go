@@ -3,7 +3,7 @@ package ioc
 const FrameworkPrefix = "grnc"
 
 type ProtoComponents struct {
-	Components []*ProtoComponent
+	Components            []*ProtoComponent
 	FrameworkDependencies map[string]map[string]string
 }
 
@@ -11,7 +11,7 @@ func (pc *ProtoComponents) Clear() {
 	pc.Components = nil
 }
 
-func NewProtoComponents(pc []*ProtoComponent, fd map[string]map[string]string) *ProtoComponents{
+func NewProtoComponents(pc []*ProtoComponent, fd map[string]map[string]string) *ProtoComponents {
 	p := new(ProtoComponents)
 	p.Components = pc
 	p.FrameworkDependencies = fd
@@ -64,4 +64,12 @@ type Component struct {
 type ComponentNamer interface {
 	ComponentName() string
 	SetComponentName(name string)
+}
+
+func NewComponent(name string, instance interface{}) *Component {
+	c := new(Component)
+	c.Instance = instance
+	c.Name = name
+
+	return c
 }
