@@ -23,3 +23,4 @@ Additionally, Granitic is designed to be 'DevOps friendly' and offers:
 * Runtime control of deployed applications (including suspension/resumption).
 * Runtime control of log levels (e.g. temporarily enable debugging without restarts).
 
+Twitter: @GraniticIO
