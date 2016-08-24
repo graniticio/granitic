@@ -3,6 +3,7 @@ package validate
 import (
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/ioc"
 	"strings"
 )
 
@@ -14,12 +15,10 @@ const (
 )
 
 const commandSep = ":"
+const escapedCommandSep = "::"
+const escapedCommandReplace = "||ESC||"
 const StringRuleCode = "STR"
 const RuleRefCode = "RULE"
-
-type ExternalStringValidator interface {
-	ValidString([]string) bool
-}
 
 type ValidationContext struct {
 	Field   string
@@ -48,11 +47,13 @@ type ObjectValidator struct {
 	stringBuilder    *stringValidatorBuilder
 	DefaultErrorCode string
 	Rules            [][]string
+	ComponentFinder  ioc.ComponentByNameFinder
 }
 
 func (ov *ObjectValidator) StartComponent() error {
 
 	ov.stringBuilder = newStringValidatorBuilder(ov.DefaultErrorCode)
+	ov.stringBuilder.componentFinder = ov.ComponentFinder
 
 	return ov.parseRules()
 
@@ -185,5 +186,16 @@ func DetermineDefaultErrorCode(vt string, rule []string, defaultCode string) str
 }
 
 func DecomposeOperation(r string) []string {
-	return strings.SplitN(r, commandSep, -1)
+
+	removeEscaped := strings.Replace(r, escapedCommandSep, escapedCommandReplace, -1)
+	split := strings.SplitN(removeEscaped, commandSep, -1)
+
+	decomposed := make([]string, len(split))
+
+	for i, v := range split {
+		decomposed[i] = strings.Replace(v, escapedCommandReplace, commandSep, -1)
+	}
+
+	return decomposed
+
 }

@@ -5,13 +5,17 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/reflecttools"
 	"os"
 	"time"
-	"github.com/graniticio/granitic/reflecttools"
 )
 
 const containerDecoratorComponentName = FrameworkPrefix + "ContainerDecorator"
 const containerComponentName = FrameworkPrefix + "Container"
+
+type ComponentByNameFinder interface {
+	ComponentByName(string) *Component
+}
 
 type ComponentContainer struct {
 	allComponents   map[string]*Component
@@ -22,14 +26,18 @@ type ComponentContainer struct {
 	stoppable       []*Component
 	blocker         []*Component
 	accessible      []*Component
-	modifiers	map[string]map[string]string
+	modifiers       map[string]map[string]string
+}
+
+func (cc *ComponentContainer) ComponentByName(name string) *Component {
+	return cc.allComponents[name]
 }
 
 func (cc *ComponentContainer) AllComponents() map[string]*Component {
 	return cc.allComponents
 }
 
-func (cc *ComponentContainer) AddModifier(comp string, field string, dep string){
+func (cc *ComponentContainer) AddModifier(comp string, field string, dep string) {
 
 	m := cc.modifiers
 	cm := m[comp]
@@ -68,7 +76,7 @@ func (cc *ComponentContainer) ModifiersExist(comp string) bool {
 }
 
 func (cc *ComponentContainer) Modifiers(comp string) map[string]string {
-	return  cc.modifiers[comp]
+	return cc.modifiers[comp]
 }
 
 func (cc *ComponentContainer) AddProto(proto *ProtoComponent) {
@@ -278,11 +286,10 @@ func (cc *ComponentContainer) Populate() error {
 
 		component := protoComponent.Component
 
-		if ! reflecttools.IsPointerToStruct(component.Instance) {
+		if !reflecttools.IsPointerToStruct(component.Instance) {
 			m := fmt.Sprintf("Component %s is not a pointer to a struct.", component.Name)
 			return errors.New(m)
 		}
-
 
 		cc.addComponent(component)
 		cc.captureDecorator(component, decorators)
@@ -329,7 +336,7 @@ func (cc *ComponentContainer) resolveDependenciesAndConfig() error {
 			err := reflecttools.SetPtrToStruct(targetInstance, fieldName, requiredInstance)
 
 			if err != nil {
-				m := fmt.Sprintf("Problem injecting dependency '%s' into %s.%s: %s", depName, compName, fieldName, err.Error() )
+				m := fmt.Sprintf("Problem injecting dependency '%s' into %s.%s: %s", depName, compName, fieldName, err.Error())
 				return errors.New(m)
 			}
 
@@ -355,7 +362,6 @@ func (cc *ComponentContainer) mergeDependencies(comp string, cd map[string]strin
 	for k, v := range cd {
 		merged[k] = v
 	}
-
 
 	if cc.ModifiersExist(comp) {
 		for k, v := range cc.Modifiers(comp) {

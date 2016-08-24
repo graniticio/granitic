@@ -3,6 +3,7 @@ package validate
 import (
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/types"
 	"regexp"
 	"strconv"
@@ -34,6 +35,10 @@ const (
 	StringOpBreak
 	StringOpReg
 )
+
+type ExternalStringValidator interface {
+	ValidString(string) bool
+}
 
 type trimMode uint
 
@@ -204,6 +209,7 @@ type stringOperation struct {
 type stringValidatorBuilder struct {
 	strLenRegex      *regexp.Regexp
 	defaultErrorCode string
+	componentFinder  ioc.ComponentByNameFinder
 }
 
 func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) error {
@@ -231,16 +237,63 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) e
 			sv.Break()
 		case StringOpLen:
 			err = vb.addStringLenOperation(field, ops, sv)
+		case StringOpReg:
+			err = vb.addStringRegexOperation(field, ops, sv)
+		case StringOpExt:
+			err = vb.addStringExternalOperation(field, ops, sv)
 		case StringOpHardTrim:
 			sv.HardTrim()
 		case StringOpTrim:
 			sv.Trim()
+		case StringOpOptional:
+			sv.Optional()
 		}
 
 		if err != nil {
 			return err
 		}
 
+	}
+
+	return nil
+
+}
+
+func (vb *stringValidatorBuilder) addStringRegexOperation(field string, ops []string, sv *StringValidator) error {
+
+	opParams := len(ops)
+
+	if opParams < 2 || opParams > 3 {
+		m := fmt.Sprintf("Length operation for field %s is invalid", field)
+		return errors.New(m)
+	}
+
+	pattern := ops[1]
+
+	r, err := regexp.Compile(pattern)
+
+	if err != nil {
+		m := fmt.Sprintf("Regex for field %s could not be compiled. Pattern provided was ", field, pattern)
+		return errors.New(m)
+	}
+
+	if opParams == 2 {
+		sv.Regex(r)
+	} else {
+		sv.Regex(r, ops[2])
+	}
+
+	return nil
+
+}
+
+func (vb *stringValidatorBuilder) addStringExternalOperation(field string, ops []string, sv *StringValidator) error {
+
+	cf := vb.componentFinder
+
+	if cf == nil {
+		m := fmt.Sprintf("Field %s relies on an external component to validate, but no ioc.ComponentByNameFinder is available.", field)
+		return errors.New(m)
 	}
 
 	return nil

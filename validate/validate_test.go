@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility/jsonmerger"
+	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/test"
 	"testing"
@@ -31,6 +32,7 @@ func TestConfigParsing(t *testing.T) {
 
 	ov := new(ObjectValidator)
 	ov.RuleManager = rm
+	ov.ComponentFinder = new(TestComponentFinder)
 
 	ca.Populate("profileValidator", ov)
 
@@ -42,4 +44,11 @@ func TestConfigParsing(t *testing.T) {
 		fmt.Println(err.Error())
 	}
 
+}
+
+type TestComponentFinder struct {
+}
+
+func (cf *TestComponentFinder) ComponentByName(name string) *ioc.Component {
+	return nil
 }
