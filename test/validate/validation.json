@@ -10,10 +10,10 @@
       ["UserName",          "RULE:userName"],
       ["Role",              "STR:INVROLE",  "IN:USER,ADMIN"],
       ["Password",          "STR",          "EXT:Password"],
-      ["Hint",              "STR",          "OPT", "LEN:-50"],
+      ["Hint",              "STR",          "OPT", "HARDTRIM", "LEN:-50"],
       ["SecurityPhrase",    "STR:SEC",      "LEN:5-"],
       ["Profile.Email",     "STR",          "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:10-100"],
-      ["Profile.Website",   "STR",          "OPT", "REG:http:://.*:WEB", "BREAK", "LEN:10-100"]
+      ["Profile.Website",   "STR",          "OPT", "HARDTRIM", "REG:^http:://.*:WEB", "BREAK", "LEN:10-100"]
     ]
   }
 

@@ -4,7 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
+	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
+	"github.com/graniticio/granitic/ws/nillable"
+	"reflect"
 	"regexp"
 	"strconv"
 )
@@ -62,10 +65,46 @@ type StringValidator struct {
 
 func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string, unexpected error) {
 
-	fmt.Printf("Validating %s\n", vc.Field)
+	f := vc.Field
+	sub := vc.Subject
 
+	fmt.Printf("Validating %s\n", f)
+
+	fv, err := rt.FindNestedField(rt.ExtractDotPath(f), sub)
+
+	if err != nil {
+		m := fmt.Sprintf("Problem trying to find value of %s: %s\n", f, err)
+		return nil, errors.New(m)
+	}
+
+	if !fv.IsValid() {
+		m := fmt.Sprintf("%s is not a usable type\n", f, err)
+		return nil, errors.New(m)
+	}
+
+	ns, found := fv.Interface().(*nillable.NillableString)
+
+	if found {
+		return sv.validateNillable(vc, fv, ns)
+	}
+
+	s, found := fv.Interface().(string)
+
+	if found {
+		return sv.validateStandard(vc, fv, s)
+	} else {
+		m := fmt.Sprintf("%s is not a string or a NillableString\n", f, err)
+		return nil, errors.New(m)
+	}
+
+}
+
+func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *nillable.NillableString) (errorCodes []string, unexpected error) {
 	return []string{}, nil
+}
 
+func (sv *StringValidator) validateStandard(vc *validationContext, rv reflect.Value, s string) (errorCodes []string, unexpected error) {
+	return []string{}, nil
 }
 
 func (sv *StringValidator) StopAllOnFail() bool {

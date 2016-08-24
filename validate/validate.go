@@ -72,6 +72,7 @@ func (ov *ObjectValidator) Validate(subject interface{}) ([]*FieldErrors, error)
 
 		vc := new(validationContext)
 		vc.Field = vl.field
+		vc.Subject = subject
 
 		ec, err := vl.validator.Validate(vc)
 
