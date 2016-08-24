@@ -16,7 +16,7 @@ It features:
 * RDMBS integration with an interface designed to promote more readable code.
 
 
-Additionally, Granitic is designed to 'DevOps friendly' and offers:
+Additionally, Granitic is designed to be 'DevOps friendly' and offers:
 
 * Fully externalised configuration, with support for configuration files stored locally or served over HTTP.
 * Low memory footprint and fast startup times (compared to JVM/CLR equivalents).

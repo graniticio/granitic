@@ -3,6 +3,7 @@ package validate
 import (
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/types"
 	"regexp"
 	"strconv"
 )
@@ -34,17 +35,35 @@ const (
 	StringOpReg
 )
 
+type trimMode uint
+
+const (
+	noTrim   = 0
+	softTrim = 1
+	hardTrim = 2
+)
+
 type StringValidator struct {
 	DefaultErrorcode string
 	operations       []*stringOperation
 	minLen           int
 	maxLen           int
+	trim             trimMode
+	optional         bool
+}
+
+func (sv *StringValidator) Validate(vc *ValidationContext) (errorCodes []string, unexpected error) {
+
+	return nil, nil
+
 }
 
 func (sv *StringValidator) Break() *StringValidator {
 
 	o := new(stringOperation)
 	o.OpType = StringOpBreak
+
+	sv.addOperation(o)
 
 	return sv
 
@@ -58,12 +77,77 @@ func (sv *StringValidator) Length(min, max int, code ...string) *StringValidator
 	ec := sv.chooseErrorCode(code)
 
 	o := new(stringOperation)
+	o.OpType = StringOpLen
 	o.ErrCode = ec
 
 	sv.addOperation(o)
 
 	return sv
 
+}
+
+func (sv *StringValidator) In(set []string, code ...string) *StringValidator {
+
+	ss := types.NewStringSet(set)
+
+	ec := sv.chooseErrorCode(code)
+
+	o := new(stringOperation)
+	o.OpType = StringOpIn
+	o.ErrCode = ec
+	o.InSet = ss
+
+	sv.addOperation(o)
+
+	return sv
+
+}
+
+func (sv *StringValidator) HardTrim() *StringValidator {
+
+	sv.trim = hardTrim
+
+	return sv
+}
+
+func (sv *StringValidator) Trim() *StringValidator {
+
+	sv.trim = softTrim
+
+	return sv
+}
+
+func (sv *StringValidator) Optional() *StringValidator {
+
+	sv.optional = true
+
+	return sv
+}
+
+func (sv *StringValidator) ExternalValidation(v ExternalStringValidator, code ...string) *StringValidator {
+	ec := sv.chooseErrorCode(code)
+
+	o := new(stringOperation)
+	o.OpType = StringOpExt
+	o.ErrCode = ec
+	o.External = v
+
+	sv.addOperation(o)
+
+	return sv
+}
+
+func (sv *StringValidator) Regex(r *regexp.Regexp, code ...string) *StringValidator {
+	ec := sv.chooseErrorCode(code)
+
+	o := new(stringOperation)
+	o.OpType = StringOpReg
+	o.ErrCode = ec
+	o.Regex = r
+
+	sv.addOperation(o)
+
+	return sv
 }
 
 func (sv *StringValidator) addOperation(o *stringOperation) {
@@ -110,8 +194,11 @@ func (sv *StringValidator) chooseErrorCode(v []string) string {
 }
 
 type stringOperation struct {
-	OpType  StringValidationOperation
-	ErrCode string
+	OpType   StringValidationOperation
+	ErrCode  string
+	InSet    *types.StringSet
+	External ExternalStringValidator
+	Regex    *regexp.Regexp
 }
 
 type stringValidatorBuilder struct {
@@ -144,6 +231,10 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) e
 			sv.Break()
 		case StringOpLen:
 			err = vb.addStringLenOperation(field, ops, sv)
+		case StringOpHardTrim:
+			sv.HardTrim()
+		case StringOpTrim:
+			sv.Trim()
 		}
 
 		if err != nil {

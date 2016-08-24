@@ -17,8 +17,17 @@ const commandSep = ":"
 const StringRuleCode = "STR"
 const RuleRefCode = "RULE"
 
+type ExternalStringValidator interface {
+	ValidString([]string) bool
+}
+
+type ValidationContext struct {
+	Field   string
+	Subject interface{}
+}
+
 type Validator interface {
-	Validate(field string, object interface{}) (errorCodes []string, unexpected error)
+	Validate(vc *ValidationContext) (errorCodes []string, unexpected error)
 }
 
 type UnparsedRuleRuleManager struct {
