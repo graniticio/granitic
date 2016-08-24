@@ -7,13 +7,13 @@
 
   "profileValidator": {
     "Rules": [
-      ["userName",        "RULE:userName"],
-      ["role",            "STR:INVROLE",  "IN:USER,ADMIN"],
-      ["password",        "STR",          "EXT:Password"],
-      ["hint",            "STR",          "OPT", "LEN:-50"],
-      ["securityPhrase",  "STR:SEC",      "LEN:5-"],
-      ["profile.email",   "STR",          "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:10-100"],
-      ["profile.website",   "STR",        "OPT", "REG:http:://.*:WEB", "BREAK", "LEN:10-100"]
+      ["UserName",          "RULE:userName"],
+      ["Role",              "STR:INVROLE",  "IN:USER,ADMIN"],
+      ["Password",          "STR",          "EXT:Password"],
+      ["Hint",              "STR",          "OPT", "LEN:-50"],
+      ["SecurityPhrase",    "STR:SEC",      "LEN:5-"],
+      ["Profile.Email",     "STR",          "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:10-100"],
+      ["Profile.Website",   "STR",          "OPT", "REG:http:://.*:WEB", "BREAK", "LEN:10-100"]
     ]
   }
 

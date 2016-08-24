@@ -60,7 +60,9 @@ type StringValidator struct {
 	stopAll          bool
 }
 
-func (sv *StringValidator) Validate(vc *ValidationContext) (errorCodes []string, unexpected error) {
+func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string, unexpected error) {
+
+	fmt.Printf("Validating %s\n", vc.Field)
 
 	return []string{}, nil
 

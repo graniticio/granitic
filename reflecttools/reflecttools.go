@@ -1,10 +1,13 @@
 package reflecttools
 
 import (
-	"reflect"
 	"errors"
 	"fmt"
+	"reflect"
+	"strings"
 )
+
+const dotPathSep = "."
 
 func SetPtrToStruct(target interface{}, field string, valuePointer interface{}) error {
 
@@ -19,8 +22,7 @@ func SetPtrToStruct(target interface{}, field string, valuePointer interface{}) 
 	tv := reflect.ValueOf(target).Elem()
 	vp := reflect.ValueOf(valuePointer)
 
-
-	if !HasFieldOfName(target, field){
+	if !HasFieldOfName(target, field) {
 		m := fmt.Sprintf("Target does not have a field called %s", field)
 		return errors.New(m)
 	}
@@ -49,8 +51,7 @@ func SetPtrToStruct(target interface{}, field string, valuePointer interface{}) 
 	return nil
 }
 
-
-func IsPointerToStruct(p interface{}) bool{
+func IsPointerToStruct(p interface{}) bool {
 
 	pv := reflect.ValueOf(p)
 	pvk := pv.Kind()
@@ -114,10 +115,46 @@ func SetString(i interface{}, name string, s string) {
 }
 
 func FieldValue(i interface{}, name string) reflect.Value {
-	r := reflect.ValueOf(i).Elem()
+
+	var r reflect.Value
+
+	r = reflect.ValueOf(i)
+
+	if r.Kind() != reflect.Struct {
+		r = r.Elem()
+	}
+
 	return r.FieldByName(name)
 }
 
 func TargetFieldIsArray(i interface{}, name string) bool {
 	return TypeOfField(i, name).Kind() == reflect.Array
+}
+
+func ExtractDotPath(path string) []string {
+	return strings.SplitN(path, dotPathSep, -1)
+}
+
+func FindNestedField(path []string, v interface{}) (reflect.Value, error) {
+
+	pl := len(path)
+	head := path[0]
+
+	if pl == 1 {
+		return FieldValue(v, head), nil
+	} else {
+		fv := FieldValue(v, head)
+		next := fv.Interface()
+
+		if !IsPointerToStruct(next) && fv.Kind() != reflect.Struct {
+			m := fmt.Sprintf("%s is not a struct or a pointer to a struct", head)
+			var zero reflect.Value
+
+			return zero, errors.New(m)
+		}
+
+		return FindNestedField(path[1:], next)
+
+	}
+
 }

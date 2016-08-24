@@ -22,13 +22,13 @@ const escapedCommandReplace = "||ESC||"
 const StringRuleCode = "STR"
 const RuleRefCode = "RULE"
 
-type ValidationContext struct {
+type validationContext struct {
 	Field   string
 	Subject interface{}
 }
 
 type Validator interface {
-	Validate(vc *ValidationContext) (errorCodes []string, unexpected error)
+	Validate(vc *validationContext) (errorCodes []string, unexpected error)
 	StopAllOnFail() bool
 }
 
@@ -49,6 +49,11 @@ func (rm *UnparsedRuleRuleManager) Rule(ref string) []string {
 	return rm.Rules[ref]
 }
 
+type FieldErrors struct {
+	field      string
+	errorCodes []string
+}
+
 type ObjectValidator struct {
 	jsonConfig       interface{}
 	RuleManager      *UnparsedRuleRuleManager
@@ -57,6 +62,40 @@ type ObjectValidator struct {
 	Rules            [][]string
 	ComponentFinder  ioc.ComponentByNameFinder
 	validatorChain   []*validatorLink
+}
+
+func (ov *ObjectValidator) Validate(subject interface{}) ([]*FieldErrors, error) {
+
+	fieldErrors := make([]*FieldErrors, 0)
+
+	for _, vl := range ov.validatorChain {
+
+		vc := new(validationContext)
+		vc.Field = vl.field
+
+		ec, err := vl.validator.Validate(vc)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if ec != nil && len(ec) > 0 {
+			fe := new(FieldErrors)
+			fe.field = vl.field
+			fe.errorCodes = ec
+
+			fieldErrors = append(fieldErrors, fe)
+
+			if vl.validator.StopAllOnFail() {
+				break
+			}
+
+		}
+
+	}
+
+	return fieldErrors, nil
+
 }
 
 func (ov *ObjectValidator) StartComponent() error {

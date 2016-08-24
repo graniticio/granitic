@@ -23,6 +23,21 @@ func LoadTestConfig() *config.ConfigAccessor {
 
 func TestConfigParsing(t *testing.T) {
 
+	ov, u := validatorAndUser(t)
+
+	fe, err := ov.Validate(u)
+
+	test.ExpectInt(t, len(fe), 0)
+
+	test.ExpectNil(t, err)
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+}
+
+func validatorAndUser(t *testing.T) (*ObjectValidator, *User) {
 	ca := LoadTestConfig()
 
 	test.ExpectBool(t, ca.PathExists("profileValidator"), true)
@@ -44,6 +59,39 @@ func TestConfigParsing(t *testing.T) {
 		fmt.Println(err.Error())
 	}
 
+	return ov, validUser()
+
+}
+
+func validUser() *User {
+	u := new(User)
+	p := new(Profile)
+
+	u.Profile = p
+
+	u.UserName = "Valid User"
+	u.Role = "ADMIN"
+	u.Password = "sadas*dasd1"
+	u.Hint = "Sad"
+	u.SecurityPhrase = "Is this your account?"
+	p.Email = "email@example.com"
+	p.Website = "http://www.example.com"
+
+	return u
+}
+
+type User struct {
+	UserName       string
+	Role           string
+	Password       string
+	Hint           string
+	SecurityPhrase string
+	Profile        *Profile
+}
+
+type Profile struct {
+	Email   string
+	Website string
 }
 
 type TestComponentFinder struct {
