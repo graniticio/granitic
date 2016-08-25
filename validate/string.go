@@ -63,6 +63,11 @@ type StringValidator struct {
 	trim             trimMode
 	optional         bool
 	stopAll          bool
+	codesInUse       types.StringSet
+}
+
+func (sv *StringValidator) CodesInUse() types.StringSet {
+	return sv.codesInUse
 }
 
 func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string, unexpected error) {
@@ -191,7 +196,7 @@ func (sv *StringValidator) lengthOkay(s string) bool {
 
 }
 
-func (sv *StringValidator) wasStringSet(s string, field string, knownSet types.Set) bool {
+func (sv *StringValidator) wasStringSet(s string, field string, knownSet types.StringSet) bool {
 
 	l := len(s)
 
@@ -241,7 +246,7 @@ func (sv *StringValidator) Length(min, max int, code ...string) *StringValidator
 
 func (sv *StringValidator) In(set []string, code ...string) *StringValidator {
 
-	ss := types.NewStringSet(set)
+	ss := types.NewUnorderedStringSet(set)
 
 	ec := sv.chooseErrorCode(code)
 
@@ -315,7 +320,12 @@ func (sv *StringValidator) addOperation(o *stringOperation) {
 		sv.operations = make([]*stringOperation, 0)
 	}
 
+	if sv.codesInUse == nil {
+		sv.codesInUse = types.NewUnorderedStringSet([]string{})
+	}
+
 	sv.operations = append(sv.operations, o)
+	sv.codesInUse.Add(o.ErrCode)
 }
 
 func (sv *StringValidator) Operation(c string) (StringValidationOperation, error) {
@@ -358,7 +368,7 @@ func (sv *StringValidator) chooseErrorCode(v []string) string {
 type stringOperation struct {
 	OpType   StringValidationOperation
 	ErrCode  string
-	InSet    *types.StringSet
+	InSet    *types.UnorderedStringSet
 	External ExternalStringValidator
 	Regex    *regexp.Regexp
 }

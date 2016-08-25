@@ -25,18 +25,19 @@ const RuleRefCode = "RULE"
 
 type SubjectContext struct {
 	Subject        interface{}
-	KnownSetFields types.Set
+	KnownSetFields types.StringSet
 }
 
 type validationContext struct {
 	Field          string
 	Subject        interface{}
-	KnownSetFields types.Set
+	KnownSetFields types.StringSet
 }
 
 type Validator interface {
 	Validate(vc *validationContext) (errorCodes []string, unexpected error)
 	StopAllOnFail() bool
+	CodesInUse() types.StringSet
 }
 
 type validatorLink struct {
@@ -69,6 +70,20 @@ type ObjectValidator struct {
 	Rules            [][]string
 	ComponentFinder  ioc.ComponentByNameFinder
 	validatorChain   []*validatorLink
+	componentName    string
+	codesInUse       types.StringSet
+}
+
+func (ov *ObjectValidator) ComponentName() string {
+	return ov.componentName
+}
+
+func (ov *ObjectValidator) SetComponentName(name string) {
+	ov.componentName = name
+}
+
+func (ov *ObjectValidator) ErrorCodesInUse() (codes types.StringSet, sourceName string) {
+	return ov.codesInUse, ov.componentName
 }
 
 func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, error) {
@@ -112,6 +127,12 @@ func (ov *ObjectValidator) StartComponent() error {
 
 	if ov.Rules == nil {
 		return errors.New("No Rules specified for validator.")
+	}
+
+	ov.codesInUse = types.NewUnorderedStringSet([]string{})
+
+	if ov.DefaultErrorCode != "" {
+		ov.codesInUse.Add(ov.DefaultErrorCode)
 	}
 
 	ov.stringBuilder = newStringValidatorBuilder(ov.DefaultErrorCode)
@@ -168,6 +189,12 @@ func (ov *ObjectValidator) addValidator(field string, v Validator) {
 	vl.validator = v
 
 	ov.validatorChain = append(ov.validatorChain, vl)
+
+	c := v.CodesInUse()
+
+	if c != nil {
+		ov.codesInUse.AddAll(c)
+	}
 
 }
 

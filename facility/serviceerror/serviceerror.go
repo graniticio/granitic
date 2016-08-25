@@ -1,22 +1,21 @@
 package serviceerror
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/types"
 	"github.com/graniticio/granitic/ws"
 	"strings"
 )
 
-const (
-	serviceErrorManagerComponentName   = ioc.FrameworkPrefix + "ServiceErrorManager"
-	serviceErrorDecoratorComponentName = ioc.FrameworkPrefix + "ServiceErrorSourceDecorator"
-)
-
 type ServiceErrorManager struct {
-	errors          map[string]*ws.CategorisedError
-	FrameworkLogger logging.Logger
-	PanicOnMissing  bool
+	errors           map[string]*ws.CategorisedError
+	FrameworkLogger  logging.Logger
+	PanicOnMissing   bool
+	errorCodeSources []ErrorCodeSource
 }
 
 func (sem *ServiceErrorManager) Find(code string) *ws.CategorisedError {
@@ -80,6 +79,64 @@ func (sem *ServiceErrorManager) LoadErrors(definitions []interface{}) {
 	}
 }
 
+func (sem *ServiceErrorManager) RegisterCodeSource(ecs ErrorCodeSource) {
+	if sem.errorCodeSources == nil {
+		sem.errorCodeSources = make([]ErrorCodeSource, 0)
+	}
+
+	sem.errorCodeSources = append(sem.errorCodeSources, ecs)
+}
+
+func (sem *ServiceErrorManager) AllowAccess() error {
+
+	failed := make(map[string][]string)
+
+	for _, es := range sem.errorCodeSources {
+
+		c, n := es.ErrorCodesInUse()
+
+		for _, ec := range c.Contents() {
+
+			if sem.errors[ec] == nil {
+				addMissingCode(n, ec, failed)
+			}
+
+		}
+
+	}
+
+	if len(failed) > 0 {
+
+		var m bytes.Buffer
+
+		m.WriteString(fmt.Sprintf("Some components are using error codes that do not have a corresponding error message: \n"))
+
+		for k, v := range failed {
+
+			m.WriteString(fmt.Sprintf("%s: %q\n", k, v))
+		}
+
+		return errors.New(m.String())
+
+	}
+
+	return nil
+}
+
+func addMissingCode(source, code string, failed map[string][]string) {
+
+	fs := failed[source]
+
+	if fs == nil {
+		fs = make([]string, 0)
+	}
+
+	fs = append(fs, code)
+
+	failed[source] = fs
+
+}
+
 type ServiceErrorConsumerDecorator struct {
 	ErrorSource *ServiceErrorManager
 }
@@ -95,6 +152,26 @@ func (secd *ServiceErrorConsumerDecorator) DecorateComponent(component *ioc.Comp
 	c.ProvideErrorFinder(secd.ErrorSource)
 }
 
+type ErrorCodeSourceDecorator struct {
+	ErrorSource *ServiceErrorManager
+}
+
+func (ecs *ErrorCodeSourceDecorator) OfInterest(component *ioc.Component) bool {
+	_, found := component.Instance.(ErrorCodeSource)
+
+	return found
+}
+
+func (ecs *ErrorCodeSourceDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+	c := component.Instance.(ErrorCodeSource)
+
+	ecs.ErrorSource.RegisterCodeSource(c)
+}
+
 type FrameworkServiceErrorFinder interface {
 	UnmarshallError() *ws.CategorisedError
+}
+
+type ErrorCodeSource interface {
+	ErrorCodesInUse() (codes types.StringSet, sourceName string)
 }

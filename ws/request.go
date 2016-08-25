@@ -12,7 +12,7 @@ type WsRequest struct {
 	QueryParams     *WsParams
 	PathParams      []string
 	FrameworkErrors []*WsFrameworkError
-	populatedFields types.Set
+	populatedFields types.StringSet
 	UserIdentity    iam.ClientIdentity
 	UnderlyingHTTP  *DirectHTTPAccess
 	ServingHandler  string
@@ -38,7 +38,7 @@ func (wsr *WsRequest) WasFieldBound(fieldName string) bool {
 	return wsr.populatedFields.Contains(fieldName)
 }
 
-func (wsr *WsRequest) BoundFields() types.Set {
+func (wsr *WsRequest) BoundFields() types.StringSet {
 
 	if wsr.populatedFields == nil {
 		return types.NewOrderedStringSet([]string{})

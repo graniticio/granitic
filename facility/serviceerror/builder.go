@@ -7,13 +7,19 @@ import (
 	"github.com/graniticio/granitic/logging"
 )
 
+const (
+	serviceErrorManagerComponentName      = ioc.FrameworkPrefix + "ServiceErrorManager"
+	serviceErrorDecoratorComponentName    = ioc.FrameworkPrefix + "ServiceErrorSourceDecorator"
+	errorCodeSourceDecoratorComponentName = ioc.FrameworkPrefix + "ErrorCodeSourceDecorator"
+)
+
 type ServiceErrorManagerFacilityBuilder struct {
 }
 
 func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	manager := new(ServiceErrorManager)
-	manager.FrameworkLogger = lm.CreateLogger(serviceErrorDecoratorComponentName)
+	manager.FrameworkLogger = lm.CreateLogger(serviceErrorManagerComponentName)
 
 	panicOnMissing, err := ca.BoolVal("ServiceErrorManager.PanicOnMissing")
 
@@ -25,9 +31,13 @@ func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.Compo
 
 	cn.WrapAndAddProto(serviceErrorManagerComponentName, manager)
 
-	decorator := new(ServiceErrorConsumerDecorator)
-	decorator.ErrorSource = manager
-	cn.WrapAndAddProto(serviceErrorDecoratorComponentName, decorator)
+	errorDecorator := new(ServiceErrorConsumerDecorator)
+	errorDecorator.ErrorSource = manager
+	cn.WrapAndAddProto(serviceErrorDecoratorComponentName, errorDecorator)
+
+	codeDecorator := new(ErrorCodeSourceDecorator)
+	codeDecorator.ErrorSource = manager
+	cn.WrapAndAddProto(errorCodeSourceDecoratorComponentName, codeDecorator)
 
 	definitionsPath, err := ca.StringVal("ServiceErrorManager.ErrorDefinitions")
 

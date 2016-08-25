@@ -1,21 +1,29 @@
 package types
 
-type Set interface {
+type StringSet interface {
 	Contains(m string) bool
 	Add(s string)
 	Contents() []string
 	Size() int
+	AddAll(os StringSet)
 }
 
-type StringSet struct {
+type UnorderedStringSet struct {
 	members map[string]bool
 }
 
-func (ss *StringSet) Size() int {
+func (us *UnorderedStringSet) AddAll(ss StringSet) {
+
+	for _, m := range ss.Contents() {
+		us.Add(m)
+	}
+}
+
+func (ss *UnorderedStringSet) Size() int {
 	return len(ss.members)
 }
 
-func (ss *StringSet) Contents() []string {
+func (ss *UnorderedStringSet) Contents() []string {
 	c := make([]string, 0)
 
 	for k, _ := range ss.members {
@@ -26,16 +34,16 @@ func (ss *StringSet) Contents() []string {
 
 }
 
-func (ss *StringSet) Contains(m string) bool {
+func (ss *UnorderedStringSet) Contains(m string) bool {
 	return ss.members[m]
 }
 
-func (ss *StringSet) Add(s string) {
+func (ss *UnorderedStringSet) Add(s string) {
 	ss.members[s] = true
 }
 
-func NewStringSet(m []string) *StringSet {
-	ss := new(StringSet)
+func NewUnorderedStringSet(m []string) *UnorderedStringSet {
+	ss := new(UnorderedStringSet)
 	ss.members = make(map[string]bool)
 	for _, v := range m {
 		ss.members[v] = true
@@ -54,8 +62,15 @@ func NewOrderedStringSet(m []string) *OrderedStringSet {
 }
 
 type OrderedStringSet struct {
-	members *StringSet
+	members *UnorderedStringSet
 	ordered []string
+}
+
+func (os *OrderedStringSet) AddAll(ss StringSet) {
+
+	for _, m := range ss.Contents() {
+		os.Add(m)
+	}
 }
 
 func (os *OrderedStringSet) Contains(m string) bool {
@@ -66,7 +81,7 @@ func (os *OrderedStringSet) Add(s string) {
 
 	if os.ordered == nil {
 		os.ordered = make([]string, 0)
-		os.members = NewStringSet(os.ordered)
+		os.members = NewUnorderedStringSet(os.ordered)
 	} else if os.members.Contains(s) {
 		return
 	}
