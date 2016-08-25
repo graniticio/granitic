@@ -115,7 +115,7 @@ func validatorAndUser(t *testing.T) (*ObjectValidator, *User) {
 
 	test.ExpectBool(t, ca.PathExists("profileValidator"), true)
 
-	rm := new(UnparsedRuleRuleManager)
+	rm := new(UnparsedRuleManager)
 	ca.Populate("ruleManager", rm)
 
 	ov := new(ObjectValidator)

@@ -44,15 +44,15 @@ type validatorLink struct {
 	field     string
 }
 
-type UnparsedRuleRuleManager struct {
+type UnparsedRuleManager struct {
 	Rules map[string][]string
 }
 
-func (rm *UnparsedRuleRuleManager) Exists(ref string) bool {
+func (rm *UnparsedRuleManager) Exists(ref string) bool {
 	return rm.Rules[ref] != nil
 }
 
-func (rm *UnparsedRuleRuleManager) Rule(ref string) []string {
+func (rm *UnparsedRuleManager) Rule(ref string) []string {
 	return rm.Rules[ref]
 }
 
@@ -63,7 +63,7 @@ type FieldErrors struct {
 
 type ObjectValidator struct {
 	jsonConfig       interface{}
-	RuleManager      *UnparsedRuleRuleManager
+	RuleManager      *UnparsedRuleManager
 	stringBuilder    *stringValidatorBuilder
 	DefaultErrorCode string
 	Rules            [][]string
@@ -109,6 +109,10 @@ func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, er
 }
 
 func (ov *ObjectValidator) StartComponent() error {
+
+	if ov.Rules == nil {
+		return errors.New("No Rules specified for validator.")
+	}
 
 	ov.stringBuilder = newStringValidatorBuilder(ov.DefaultErrorCode)
 	ov.stringBuilder.componentFinder = ov.ComponentFinder

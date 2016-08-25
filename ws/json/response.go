@@ -151,18 +151,48 @@ func (ef *StandardJSONErrorFormatter) FormatErrors(errors *ws.ServiceErrors) int
 		return nil
 	}
 
-	f := make(map[string][]string)
+	f := make(map[string]interface{})
+
+	generalErrors := make([]errorWrapper, 0)
+	fieldErrors := make(map[string][]errorWrapper, 0)
 
 	for _, error := range errors.Errors {
 
 		c := ws.CategoryToCode(error.Category)
-		k := c + "-" + error.Label
-		a := f[k]
+		displayCode := c + "-" + error.Label
 
-		f[k] = append(a, error.Message)
+		field := error.Field
+
+		if field == "" {
+			generalErrors = append(generalErrors, errorWrapper{displayCode, error.Message})
+		} else {
+
+			fe := fieldErrors[field]
+
+			if fe == nil {
+				fe = make([]errorWrapper, 0)
+				fieldErrors[field] = fe
+			}
+
+			fe = append(fe, errorWrapper{displayCode, error.Message})
+
+		}
+	}
+
+	if len(generalErrors) > 0 {
+		f["General"] = generalErrors
+	}
+
+	if len(fieldErrors) > 0 {
+		f["ByField"] = fieldErrors
 	}
 
 	return f
+}
+
+type errorWrapper struct {
+	Code    string
+	Message string
 }
 
 type StandardJSONResponseWrapper struct {

@@ -19,6 +19,7 @@ type CategorisedError struct {
 	Category ServiceErrorCategory
 	Label    string
 	Message  string
+	Field    string
 }
 
 func NewCategorisedError(category ServiceErrorCategory, label string, message string) *CategorisedError {
@@ -47,7 +48,7 @@ type ServiceErrors struct {
 
 func (se *ServiceErrors) AddNewError(category ServiceErrorCategory, label string, message string) {
 
-	error := CategorisedError{category, label, message}
+	error := CategorisedError{category, label, message, ""}
 
 	se.Errors = append(se.Errors, error)
 

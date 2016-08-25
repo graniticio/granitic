@@ -13,7 +13,7 @@ import (
 const JsonPathSeparator string = "."
 
 const (
-	Unset = - 2
+	Unset           = -2
 	JsonUnknown     = -1
 	JsonInt         = 0
 	JsonString      = 1
@@ -202,12 +202,31 @@ func (ca *ConfigAccessor) SetField(fieldName string, path string, target interfa
 		targetField.SetFloat(f)
 	case reflect.Map:
 		ca.populateMapField(targetField, ca.ObjectVal(path))
+	case reflect.Slice:
+		ca.populateSlice(targetField, path, target)
 
 	default:
 		ca.FrameworkLogger.LogErrorf("Unable to use value at path %s as target field %s is not a suppported type (%s)", path, fieldName, k)
 	}
 
 	return nil
+}
+
+func (ca *ConfigAccessor) populateSlice(targetField reflect.Value, path string, target interface{}) {
+
+	v := ca.Value(path)
+
+	data, _ := json.Marshal(v)
+
+	vt := targetField.Type()
+	nt := reflect.New(vt)
+
+	jTarget := nt.Interface()
+	json.Unmarshal(data, &jTarget)
+
+	vr := reflect.ValueOf(jTarget)
+	targetField.Set(vr.Elem())
+
 }
 
 func (ca *ConfigAccessor) populateMapField(targetField reflect.Value, contents map[string]interface{}) {
