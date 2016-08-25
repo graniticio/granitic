@@ -74,6 +74,10 @@ type ObjectValidator struct {
 	codesInUse       types.StringSet
 }
 
+func (ov *ObjectValidator) Container(container *ioc.ComponentContainer) {
+	ov.ComponentFinder = container
+}
+
 func (ov *ObjectValidator) ComponentName() string {
 	return ov.componentName
 }
@@ -111,7 +115,6 @@ func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, er
 			fieldErrors = append(fieldErrors, fe)
 
 			if vl.validator.StopAllOnFail() {
-				fmt.Printf("Stopping after %s", vc.Field)
 				break
 			}
 
@@ -243,7 +246,7 @@ func (ov *ObjectValidator) parseRule(field string, rule []string) error {
 		return errors.New(m)
 	}
 
-	return nil
+	return err
 
 }
 

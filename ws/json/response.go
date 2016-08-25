@@ -171,10 +171,11 @@ func (ef *StandardJSONErrorFormatter) FormatErrors(errors *ws.ServiceErrors) int
 
 			if fe == nil {
 				fe = make([]errorWrapper, 0)
-				fieldErrors[field] = fe
+
 			}
 
 			fe = append(fe, errorWrapper{displayCode, error.Message})
+			fieldErrors[field] = fe
 
 		}
 	}

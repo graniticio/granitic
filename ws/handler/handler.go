@@ -54,7 +54,8 @@ type WsHandler struct {
 	AutoValidator          *validate.ObjectValidator   //
 	BindPathParams         []string                    // A list of fields on the request body that should be populated using elements of the request path.
 	CheckAccessAfterParse  bool                        // Check caller's permissions after request has been parsed (true) or before parsing (false).
-	DeferFrameworkErrors   bool                        // If true, do not automatically return an error response if errors are found during the automated phases of request processing.
+	DeferFrameworkErrors   bool                        // If true, do not automatically return an error response if errors are found during the parsing and binding phases of request processing.
+	DeferAutoErrors        bool                        // If true, do not automatically return an error response if errors are found during auto validation.
 	DisableQueryParsing    bool                        // If true, discard the request's query parameters.
 	DisablePathParsing     bool                        // If true, discard any path parameters found by match the request URI against the PathMatchPattern regex.
 	ErrorFinder            ws.ServiceErrorFinder       // An object that provides access to application defined error messages for use during validation.
@@ -192,7 +193,7 @@ func (wh *WsHandler) validateRequest(wsReq *ws.WsRequest, errors *ws.ServiceErro
 					for _, code := range e.ErrorCodes {
 
 						ce := ef.Find(code)
-
+						ce.Field = e.Field
 						errors.AddError(ce)
 
 					}
@@ -202,7 +203,13 @@ func (wh *WsHandler) validateRequest(wsReq *ws.WsRequest, errors *ws.ServiceErro
 
 		}
 
-		wh.validator.Validate(errors, wsReq)
+		if errors.HasErrors() && (!wh.DeferAutoErrors) {
+			return
+		}
+
+		if wh.validator != nil {
+			wh.validator.Validate(errors, wsReq)
+		}
 	}
 
 }
@@ -457,6 +464,10 @@ func (wh *WsHandler) StartComponent() error {
 			wh.pathRegex = r
 		}
 
+	}
+
+	if wh.DeferAutoErrors && wh.validator == nil {
+		return errors.New("If you want to defer errors generated during auto validation, your logic component must implement WsRequestValidator.")
 	}
 
 	return nil

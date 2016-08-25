@@ -421,6 +421,7 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (
 		}
 
 		if err != nil {
+
 			return nil, err
 		}
 
