@@ -44,6 +44,15 @@ func NewStringSet(m []string) *StringSet {
 	return ss
 }
 
+func NewOrderedStringSet(m []string) *OrderedStringSet {
+	os := new(OrderedStringSet)
+	for _, v := range m {
+		os.Add(v)
+	}
+
+	return os
+}
+
 type OrderedStringSet struct {
 	members *StringSet
 	ordered []string

@@ -16,6 +16,9 @@ type StandardJSONResponseWriter struct {
 	ResponseWrapper  ws.ResponseWrapper
 	HeaderBuilder    ws.WsCommonResponseHeaderBuilder
 	ErrorFormatter   ws.ErrorFormatter
+	PrettyPrint      bool
+	IndentString     string
+	PrefixString     string
 }
 
 func (rw *StandardJSONResponseWriter) Write(state *ws.WsProcessState, outcome ws.WsOutcome) error {
@@ -67,7 +70,14 @@ func (rw *StandardJSONResponseWriter) write(res *ws.WsResponse, w *httpendpoint.
 	fe := ef.FormatErrors(e)
 	wrapper := wrap.WrapResponse(res.Body, fe)
 
-	data, err := json.Marshal(wrapper)
+	var data []byte
+	var err error
+
+	if rw.PrettyPrint {
+		data, err = json.MarshalIndent(wrapper, rw.PrefixString, rw.IndentString)
+	} else {
+		data, err = json.Marshal(wrapper)
+	}
 
 	if err != nil {
 		return err

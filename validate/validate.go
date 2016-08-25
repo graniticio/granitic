@@ -57,8 +57,8 @@ func (rm *UnparsedRuleRuleManager) Rule(ref string) []string {
 }
 
 type FieldErrors struct {
-	field      string
-	errorCodes []string
+	Field      string
+	ErrorCodes []string
 }
 
 type ObjectValidator struct {
@@ -90,8 +90,8 @@ func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, er
 
 		if ec != nil && len(ec) > 0 {
 			fe := new(FieldErrors)
-			fe.field = vl.field
-			fe.errorCodes = ec
+			fe.Field = vl.field
+			fe.ErrorCodes = ec
 
 			fieldErrors = append(fieldErrors, fe)
 

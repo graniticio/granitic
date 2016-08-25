@@ -13,6 +13,7 @@ type ServiceErrorManagerFacilityBuilder struct {
 func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	manager := new(ServiceErrorManager)
+	manager.FrameworkLogger = lm.CreateLogger(serviceErrorDecoratorComponentName)
 
 	panicOnMissing, err := ca.BoolVal("ServiceErrorManager.PanicOnMissing")
 

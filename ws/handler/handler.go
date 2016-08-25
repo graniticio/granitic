@@ -5,6 +5,7 @@ import (
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/iam"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/validate"
 	"github.com/graniticio/granitic/ws"
 	"net/http"
 	"regexp"
@@ -50,6 +51,7 @@ type WsHandler struct {
 	AccessChecker          ws.WsAccessChecker          //
 	AllowDirectHTTPAccess  bool                        // Whether or not the underlying HTTP request and response writer should be made available to request Logic.
 	AutoBindQuery          bool                        // Whether or not query parameters should be automatically injected into the request body.
+	AutoValidator          *validate.ObjectValidator   //
 	BindPathParams         []string                    // A list of fields on the request body that should be populated using elements of the request path.
 	CheckAccessAfterParse  bool                        // Check caller's permissions after request has been parsed (true) or before parsing (false).
 	DeferFrameworkErrors   bool                        // If true, do not automatically return an error response if errors are found during the automated phases of request processing.
@@ -75,7 +77,7 @@ type WsHandler struct {
 	httpMethods            []string
 	componentName          string
 	pathRegex              *regexp.Regexp
-	validate               bool
+	validationEnabled      bool
 	validator              WsRequestValidator
 }
 
@@ -134,17 +136,7 @@ func (wh *WsHandler) ServeHTTP(w *httpendpoint.HTTPResponseWriter, req *http.Req
 	var errors ws.ServiceErrors
 	errors.ErrorFinder = wh.ErrorFinder
 
-	if wh.validate {
-		proceed := true
-
-		if wh.PreValidateManipulator != nil {
-			proceed = wh.PreValidateManipulator.PreValidate(wsReq, &errors)
-		}
-
-		if proceed {
-			wh.validator.Validate(&errors, wsReq)
-		}
-	}
+	wh.validateRequest(wsReq, &errors)
 
 	if errors.HasErrors() {
 		wh.writeErrorResponse(&errors, w, wsReq)
@@ -156,6 +148,63 @@ func (wh *WsHandler) ServeHTTP(w *httpendpoint.HTTPResponseWriter, req *http.Req
 	wh.process(wsReq, w)
 
 	return wsReq.UserIdentity
+}
+
+func (wh *WsHandler) validateRequest(wsReq *ws.WsRequest, errors *ws.ServiceErrors) {
+	if wh.validationEnabled {
+		proceed := true
+
+		if wh.PreValidateManipulator != nil {
+			proceed = wh.PreValidateManipulator.PreValidate(wsReq, errors)
+		}
+
+		if !proceed {
+			return
+		}
+
+		body := wsReq.RequestBody
+		ov := wh.AutoValidator
+
+		if body == nil && ov != nil {
+			wh.Log.LogWarnf("Request body is nil but an ObjectValidator is set on the handler. Automatic body validation skipped.")
+		} else if ov != nil {
+			sc := new(validate.SubjectContext)
+			sc.Subject = body
+			sc.KnownSetFields = wsReq.BoundFields()
+
+			fe, err := ov.Validate(sc)
+
+			if err != nil {
+
+				wh.Log.LogErrorf("Problem encountered during automatic body validation", err)
+
+				ce := wh.FrameworkErrors.HttpError(http.StatusInternalServerError)
+				errors.AddError(ce)
+				return
+			}
+
+			if fe != nil && len(fe) > 0 {
+
+				ef := wh.ErrorFinder
+
+				for _, e := range fe {
+
+					for _, code := range e.ErrorCodes {
+
+						ce := ef.Find(code)
+
+						errors.AddError(ce)
+
+					}
+
+				}
+			}
+
+		}
+
+		wh.validator.Validate(errors, wsReq)
+	}
+
 }
 
 func (wh *WsHandler) unmarshall(req *http.Request, wsReq *ws.WsRequest) {
@@ -382,9 +431,13 @@ func (wh *WsHandler) StartComponent() error {
 		return errors.New("Handlers must have at least a PathMatchPattern string, HttpMethod string and Logic component set.")
 	}
 
+	if wh.AutoValidator != nil && wh.ErrorFinder == nil {
+		return errors.New("You must set ErrorFinder if you set AutoValidator. Is the ServiceErrorManager facility enabled?")
+	}
+
 	validator, found := wh.Logic.(WsRequestValidator)
 
-	wh.validate = found
+	wh.validationEnabled = found || wh.AutoValidator != nil
 
 	if found {
 		wh.validator = validator

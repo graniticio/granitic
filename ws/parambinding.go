@@ -28,7 +28,7 @@ func (pb *ParamBinder) BindPathParameters(wsReq *WsRequest, p *WsParams) {
 				fErr.Position = i
 				wsReq.AddFrameworkError(fErr)
 			} else {
-				wsReq.RecordFieldAsPopulated(fieldName)
+				wsReq.RecordFieldAsBound(fieldName)
 			}
 
 		} else {
@@ -57,7 +57,7 @@ func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]
 				if fErr != nil {
 					wsReq.AddFrameworkError(fErr)
 				} else {
-					wsReq.RecordFieldAsPopulated(field)
+					wsReq.RecordFieldAsBound(field)
 				}
 			}
 
@@ -83,7 +83,7 @@ func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 			if fErr != nil {
 				wsReq.AddFrameworkError(fErr)
 			} else {
-				wsReq.RecordFieldAsPopulated(paramName)
+				wsReq.RecordFieldAsBound(paramName)
 			}
 
 		}

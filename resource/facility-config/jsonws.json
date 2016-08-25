@@ -1,6 +1,9 @@
 {
   "JsonWs":{
     "ResponseWriter": {
+      "PrettyPrint": false,
+      "IndentString": "  ",
+      "PrefixString": "",
       "DefaultHeaders": {
         "Content-Type": "application/json; charset=utf-8"
       }

@@ -34,7 +34,7 @@ func TestConfigParsing(t *testing.T) {
 	test.ExpectInt(t, len(fe), 0)
 
 	for _, e := range fe {
-		fmt.Printf("%s %q", e.field, e.errorCodes)
+		fmt.Printf("%s %q", e.Field, e.ErrorCodes)
 	}
 
 	test.ExpectNil(t, err)

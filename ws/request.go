@@ -2,6 +2,7 @@ package ws
 
 import (
 	"github.com/graniticio/granitic/iam"
+	"github.com/graniticio/granitic/types"
 	"net/http"
 )
 
@@ -11,7 +12,7 @@ type WsRequest struct {
 	QueryParams     *WsParams
 	PathParams      []string
 	FrameworkErrors []*WsFrameworkError
-	populatedFields map[string]bool
+	populatedFields types.Set
 	UserIdentity    iam.ClientIdentity
 	UnderlyingHTTP  *DirectHTTPAccess
 	ServingHandler  string
@@ -25,16 +26,26 @@ func (wsr *WsRequest) AddFrameworkError(f *WsFrameworkError) {
 	wsr.FrameworkErrors = append(wsr.FrameworkErrors, f)
 }
 
-func (wsr *WsRequest) RecordFieldAsPopulated(fieldName string) {
+func (wsr *WsRequest) RecordFieldAsBound(fieldName string) {
 	if wsr.populatedFields == nil {
-		wsr.populatedFields = make(map[string]bool)
+		wsr.populatedFields = new(types.OrderedStringSet)
 	}
 
-	wsr.populatedFields[fieldName] = true
+	wsr.populatedFields.Add(fieldName)
 }
 
-func (wsr *WsRequest) WasFieldPopulated(fieldName string) bool {
-	return wsr.populatedFields[fieldName] != false
+func (wsr *WsRequest) WasFieldBound(fieldName string) bool {
+	return wsr.populatedFields.Contains(fieldName)
+}
+
+func (wsr *WsRequest) BoundFields() types.Set {
+
+	if wsr.populatedFields == nil {
+		return types.NewOrderedStringSet([]string{})
+	} else {
+		return wsr.populatedFields
+	}
+
 }
 
 type WsUnmarshaller interface {
