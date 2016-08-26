@@ -115,6 +115,12 @@ func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, er
 		vc.Subject = subject.Subject
 		vc.KnownSetFields = subject.KnownSetFields
 
+		v := vl.validator
+
+		if !ov.parentsOkay(v, fieldsWithProblems, unsetFields) {
+			log.LogDebugf("Skipping field %s as one or more parent objects invalid", f)
+		}
+
 		r, err := vl.validator.Validate(vc)
 		ec := r.ErrorCodes
 
@@ -150,6 +156,25 @@ func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, er
 
 	return fieldErrors, nil
 
+}
+
+func (ov *ObjectValidator) parentsOkay(v Validator, fieldsWithProblems types.StringSet, unsetFields types.StringSet) bool {
+
+	d := v.DependsOnFields()
+
+	if d == nil || d.Size() == 0 {
+		return true
+	}
+
+	for _, f := range d.Contents() {
+
+		if fieldsWithProblems.Contains(f) || unsetFields.Contains(f) {
+			return false
+		}
+
+	}
+
+	return true
 }
 
 func (ov *ObjectValidator) StartComponent() error {
