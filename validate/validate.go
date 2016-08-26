@@ -29,7 +29,6 @@ type SubjectContext struct {
 }
 
 type validationContext struct {
-	Field          string
 	Subject        interface{}
 	KnownSetFields types.StringSet
 }
@@ -97,7 +96,6 @@ func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, er
 	for _, vl := range ov.validatorChain {
 
 		vc := new(validationContext)
-		vc.Field = vl.field
 		vc.Subject = subject.Subject
 		vc.KnownSetFields = subject.KnownSetFields
 

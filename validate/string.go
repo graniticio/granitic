@@ -56,14 +56,25 @@ const (
 )
 
 type StringValidator struct {
-	DefaultErrorcode string
-	operations       []*stringOperation
-	minLen           int
-	maxLen           int
-	trim             trimMode
-	required         bool
-	stopAll          bool
-	codesInUse       types.StringSet
+	defaultErrorcode    string
+	missingRequiredCode string
+	field               string
+	operations          []*stringOperation
+	minLen              int
+	maxLen              int
+	trim                trimMode
+	required            bool
+	stopAll             bool
+	codesInUse          types.StringSet
+}
+
+func NewStringValidator(field, defaultErrorCode string) *StringValidator {
+	sv := new(StringValidator)
+	sv.defaultErrorcode = defaultErrorCode
+	sv.field = field
+	sv.codesInUse = types.NewOrderedStringSet([]string{})
+
+	return sv
 }
 
 func (sv *StringValidator) CodesInUse() types.StringSet {
@@ -72,7 +83,7 @@ func (sv *StringValidator) CodesInUse() types.StringSet {
 
 func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string, unexpected error) {
 
-	f := vc.Field
+	f := sv.field
 	sub := vc.Subject
 
 	fv, err := rt.FindNestedField(rt.ExtractDotPath(f), sub)
@@ -83,7 +94,7 @@ func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string,
 	}
 
 	if !fv.IsValid() {
-		m := fmt.Sprintf("%s is not a usable type\n", f, err)
+		m := fmt.Sprintf("Field %s is not a usable type\n", f)
 		return nil, errors.New(m)
 	}
 
@@ -107,7 +118,7 @@ func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string,
 func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *nillable.NillableString) (errorCodes []string, unexpected error) {
 
 	if !ns.IsSet() && sv.required {
-		return []string{sv.DefaultErrorcode}, nil
+		return []string{sv.missingRequiredCode}, nil
 	}
 
 	toValidate := ns.String()
@@ -126,7 +137,7 @@ func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Va
 func (sv *StringValidator) validateStandard(vc *validationContext, rv reflect.Value, s string, field string) (errorCodes []string, unexpected error) {
 
 	if !sv.wasStringSet(s, field, vc.KnownSetFields) && sv.required {
-		return []string{sv.DefaultErrorcode}, nil
+		return []string{sv.missingRequiredCode}, nil
 	}
 
 	toValidate := s
@@ -200,7 +211,7 @@ func (sv *StringValidator) wasStringSet(s string, field string, knownSet types.S
 
 	l := len(s)
 
-	if l >= 0 {
+	if l > 0 {
 		return true
 	} else if knownSet != nil && knownSet.Contains(field) {
 		return true
@@ -282,9 +293,15 @@ func (sv *StringValidator) StopAll() *StringValidator {
 	return sv
 }
 
-func (sv *StringValidator) Required() *StringValidator {
+func (sv *StringValidator) Required(code ...string) *StringValidator {
 
 	sv.required = true
+
+	if code != nil {
+		sv.missingRequiredCode = code[0]
+	} else {
+		sv.missingRequiredCode = sv.defaultErrorcode
+	}
 
 	return sv
 }
@@ -360,7 +377,7 @@ func (sv *StringValidator) chooseErrorCode(v []string) string {
 	if len(v) > 0 {
 		return v[0]
 	} else {
-		return sv.DefaultErrorcode
+		return sv.defaultErrorcode
 	}
 
 }
@@ -381,8 +398,8 @@ type stringValidatorBuilder struct {
 
 func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (Validator, error) {
 
-	sv := new(StringValidator)
-	sv.DefaultErrorcode = DetermineDefaultErrorCode(StringRuleCode, rule, vb.defaultErrorCode)
+	defaultErrorcode := DetermineDefaultErrorCode(StringRuleCode, rule, vb.defaultErrorCode)
+	sv := NewStringValidator(field, defaultErrorcode)
 
 	for _, v := range rule {
 
@@ -415,7 +432,7 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (
 		case StringOpTrim:
 			sv.Trim()
 		case StringOpRequired:
-			sv.Required()
+			vb.markRequired(field, ops, sv)
 		case StringOpStopAll:
 			sv.StopAll()
 		}
@@ -429,6 +446,23 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (
 
 	return sv, nil
 
+}
+
+func (vb *stringValidatorBuilder) markRequired(field string, ops []string, sv *StringValidator) error {
+	opParams := len(ops)
+
+	if opParams < 1 || opParams > 2 {
+		m := fmt.Sprintf("Required marked for field %s is invalid (too few or too many parameters)", field)
+		return errors.New(m)
+	}
+
+	if opParams == 1 {
+		sv.Required()
+	} else {
+		sv.Required(ops[1])
+	}
+
+	return nil
 }
 
 func (vb *stringValidatorBuilder) addStringInOperation(field string, ops []string, sv *StringValidator) error {
