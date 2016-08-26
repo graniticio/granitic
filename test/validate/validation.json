@@ -1,19 +1,19 @@
 {
   "ruleManager": {
     "Rules": {
-      "userName": ["STR", "TRIM", "LEN:4-20"]
+      "userName": ["STR", "REQ", "TRIM", "LEN:4-20"]
     }
   },
 
   "profileValidator": {
     "Rules": [
       ["UserName",          "RULE:userName"],
-      ["Role",              "STR:INVROLE",  "IN:USER,ADMIN"],
-      ["Password",          "STR:PASS",     "EXT:Password", "STOPALL"],
-      ["Hint",              "STR:HINT",     "OPT", "HARDTRIM", "LEN:-50"],
-      ["SecurityPhrase",    "STR:SEC",      "LEN:5-"],
-      ["Profile.Email",     "STR:EMAIL",    "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:10-100"],
-      ["Profile.Website",   "STR:WEB",      "OPT", "HARDTRIM", "REG:^http:://.*:WEB", "BREAK", "LEN:10-100"]
+      ["Role",              "STR:INVROLE",  "REQ", "IN:USER,ADMIN"],
+      ["Password",          "STR:PASS",     "REQ", "EXT:Password", "STOPALL"],
+      ["Hint",              "STR:HINT",     "HARDTRIM", "LEN:-50"],
+      ["SecurityPhrase",    "STR:SEC",      "REQ", "LEN:5-"],
+      ["Profile.Email",     "STR:EMAIL",    "REQ", "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:10-100"],
+      ["Profile.Website",   "STR:WEB",      "HARDTRIM", "REG:^http:://.*:WEB", "BREAK", "LEN:10-100"]
     ]
   }
 

@@ -22,7 +22,7 @@ const (
 	stringOpLenCode      = "LEN"
 	stringOpInCode       = "IN"
 	stringOpExtCode      = "EXT"
-	stringOpOptionalCode = "OPT"
+	stringOpRequiredCode = "REQ"
 	stringOpBreakCode    = "BREAK"
 	stringOpRegCode      = "REG"
 	stringOpStopAllCode  = "STOPALL"
@@ -37,7 +37,7 @@ const (
 	StringOpLen
 	StringOpIn
 	StringOpExt
-	StringOpOptional
+	StringOpRequired
 	StringOpBreak
 	StringOpReg
 	StringOpStopAll
@@ -61,7 +61,7 @@ type StringValidator struct {
 	minLen           int
 	maxLen           int
 	trim             trimMode
-	optional         bool
+	required         bool
 	stopAll          bool
 	codesInUse       types.StringSet
 }
@@ -106,7 +106,7 @@ func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string,
 
 func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *nillable.NillableString) (errorCodes []string, unexpected error) {
 
-	if !ns.IsSet() && !sv.optional {
+	if !ns.IsSet() && sv.required {
 		return []string{sv.DefaultErrorcode}, nil
 	}
 
@@ -125,7 +125,7 @@ func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Va
 
 func (sv *StringValidator) validateStandard(vc *validationContext, rv reflect.Value, s string, field string) (errorCodes []string, unexpected error) {
 
-	if !sv.wasStringSet(s, field, vc.KnownSetFields) && !sv.optional {
+	if !sv.wasStringSet(s, field, vc.KnownSetFields) && sv.required {
 		return []string{sv.DefaultErrorcode}, nil
 	}
 
@@ -282,9 +282,9 @@ func (sv *StringValidator) StopAll() *StringValidator {
 	return sv
 }
 
-func (sv *StringValidator) Optional() *StringValidator {
+func (sv *StringValidator) Required() *StringValidator {
 
-	sv.optional = true
+	sv.required = true
 
 	return sv
 }
@@ -340,8 +340,8 @@ func (sv *StringValidator) Operation(c string) (StringValidationOperation, error
 		return StringOpIn, nil
 	case stringOpExtCode:
 		return StringOpExt, nil
-	case stringOpOptionalCode:
-		return StringOpOptional, nil
+	case stringOpRequiredCode:
+		return StringOpRequired, nil
 	case stringOpBreakCode:
 		return StringOpBreak, nil
 	case stringOpRegCode:
@@ -414,8 +414,8 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (
 			sv.HardTrim()
 		case StringOpTrim:
 			sv.Trim()
-		case StringOpOptional:
-			sv.Optional()
+		case StringOpRequired:
+			sv.Required()
 		case StringOpStopAll:
 			sv.StopAll()
 		}
