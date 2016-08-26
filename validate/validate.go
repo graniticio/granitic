@@ -24,6 +24,9 @@ const escapedCommandReplace = "||ESC||"
 const StringRuleCode = "STR"
 const RuleRefCode = "RULE"
 
+const commonOpRequired = "REQ"
+const commonOpStopAll = "STOPALL"
+
 type SubjectContext struct {
 	Subject        interface{}
 	KnownSetFields types.StringSet
@@ -68,7 +71,7 @@ type FieldErrors struct {
 	ErrorCodes []string
 }
 
-type ObjectValidator struct {
+type RuleValidator struct {
 	jsonConfig       interface{}
 	RuleManager      *UnparsedRuleManager
 	stringBuilder    *stringValidatorBuilder
@@ -81,23 +84,23 @@ type ObjectValidator struct {
 	Log              logging.Logger
 }
 
-func (ov *ObjectValidator) Container(container *ioc.ComponentContainer) {
+func (ov *RuleValidator) Container(container *ioc.ComponentContainer) {
 	ov.ComponentFinder = container
 }
 
-func (ov *ObjectValidator) ComponentName() string {
+func (ov *RuleValidator) ComponentName() string {
 	return ov.componentName
 }
 
-func (ov *ObjectValidator) SetComponentName(name string) {
+func (ov *RuleValidator) SetComponentName(name string) {
 	ov.componentName = name
 }
 
-func (ov *ObjectValidator) ErrorCodesInUse() (codes types.StringSet, sourceName string) {
+func (ov *RuleValidator) ErrorCodesInUse() (codes types.StringSet, sourceName string) {
 	return ov.codesInUse, ov.componentName
 }
 
-func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, error) {
+func (ov *RuleValidator) Validate(subject *SubjectContext) ([]*FieldErrors, error) {
 
 	log := ov.Log
 
@@ -158,7 +161,7 @@ func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, er
 
 }
 
-func (ov *ObjectValidator) parentsOkay(v Validator, fieldsWithProblems types.StringSet, unsetFields types.StringSet) bool {
+func (ov *RuleValidator) parentsOkay(v Validator, fieldsWithProblems types.StringSet, unsetFields types.StringSet) bool {
 
 	d := v.DependsOnFields()
 
@@ -177,7 +180,7 @@ func (ov *ObjectValidator) parentsOkay(v Validator, fieldsWithProblems types.Str
 	return true
 }
 
-func (ov *ObjectValidator) StartComponent() error {
+func (ov *RuleValidator) StartComponent() error {
 
 	if ov.Rules == nil {
 		return errors.New("No Rules specified for validator.")
@@ -198,7 +201,7 @@ func (ov *ObjectValidator) StartComponent() error {
 
 }
 
-func (ov *ObjectValidator) parseRules() error {
+func (ov *RuleValidator) parseRules() error {
 
 	var err error
 
@@ -236,7 +239,7 @@ func (ov *ObjectValidator) parseRules() error {
 	return err
 }
 
-func (ov *ObjectValidator) addValidator(field string, v Validator) {
+func (ov *RuleValidator) addValidator(field string, v Validator) {
 
 	vl := new(validatorLink)
 	vl.field = field
@@ -252,7 +255,7 @@ func (ov *ObjectValidator) addValidator(field string, v Validator) {
 
 }
 
-func (ov *ObjectValidator) isRuleRef(op string) bool {
+func (ov *RuleValidator) isRuleRef(op string) bool {
 
 	s := strings.SplitN(op, commandSep, -1)
 
@@ -260,7 +263,7 @@ func (ov *ObjectValidator) isRuleRef(op string) bool {
 
 }
 
-func (ov *ObjectValidator) findRule(field, op string) ([]string, error) {
+func (ov *RuleValidator) findRule(field, op string) ([]string, error) {
 
 	ref := strings.SplitN(op, commandSep, -1)[1]
 
@@ -280,7 +283,7 @@ func (ov *ObjectValidator) findRule(field, op string) ([]string, error) {
 	return rf.Rule(ref), nil
 }
 
-func (ov *ObjectValidator) parseRule(field string, rule []string) error {
+func (ov *RuleValidator) parseRule(field string, rule []string) error {
 
 	rt, err := ov.extractType(field, rule)
 
@@ -301,7 +304,7 @@ func (ov *ObjectValidator) parseRule(field string, rule []string) error {
 
 }
 
-func (ov *ObjectValidator) parseAndAdd(field string, rule []string, pf parseAndBuild) error {
+func (ov *RuleValidator) parseAndAdd(field string, rule []string, pf parseAndBuild) error {
 	v, err := pf(field, rule)
 
 	if err != nil {
@@ -312,7 +315,7 @@ func (ov *ObjectValidator) parseAndAdd(field string, rule []string, pf parseAndB
 	}
 }
 
-func (ov *ObjectValidator) extractType(field string, rule []string) (ValidationRuleType, error) {
+func (ov *RuleValidator) extractType(field string, rule []string) (ValidationRuleType, error) {
 
 	for _, v := range rule {
 

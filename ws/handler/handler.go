@@ -51,7 +51,7 @@ type WsHandler struct {
 	AccessChecker          ws.WsAccessChecker          //
 	AllowDirectHTTPAccess  bool                        // Whether or not the underlying HTTP request and response writer should be made available to request Logic.
 	AutoBindQuery          bool                        // Whether or not query parameters should be automatically injected into the request body.
-	AutoValidator          *validate.ObjectValidator   //
+	AutoValidator          *validate.RuleValidator     //
 	BindPathParams         []string                    // A list of fields on the request body that should be populated using elements of the request path.
 	CheckAccessAfterParse  bool                        // Check caller's permissions after request has been parsed (true) or before parsing (false).
 	DeferFrameworkErrors   bool                        // If true, do not automatically return an error response if errors are found during the parsing and binding phases of request processing.

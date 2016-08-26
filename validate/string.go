@@ -22,10 +22,10 @@ const (
 	stringOpLenCode      = "LEN"
 	stringOpInCode       = "IN"
 	stringOpExtCode      = "EXT"
-	stringOpRequiredCode = "REQ"
+	stringOpRequiredCode = commonOpRequired
 	stringOpBreakCode    = "BREAK"
 	stringOpRegCode      = "REG"
-	stringOpStopAllCode  = "STOPALL"
+	stringOpStopAllCode  = commonOpStopAll
 )
 
 type StringValidationOperation uint

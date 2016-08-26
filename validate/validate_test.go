@@ -64,7 +64,7 @@ func TestConfigParsing(t *testing.T) {
 
 }
 
-func validatorAndUser(t *testing.T) (*ObjectValidator, *User) {
+func validatorAndUser(t *testing.T) (*RuleValidator, *User) {
 	ca := LoadTestConfig()
 
 	test.ExpectBool(t, ca.PathExists("profileValidator"), true)
@@ -72,7 +72,7 @@ func validatorAndUser(t *testing.T) (*ObjectValidator, *User) {
 	rm := new(UnparsedRuleManager)
 	ca.Populate("ruleManager", rm)
 
-	ov := new(ObjectValidator)
+	ov := new(RuleValidator)
 	ov.RuleManager = rm
 	ov.ComponentFinder = new(TestComponentFinder)
 	ov.DefaultErrorCode = "DEFAULT"
