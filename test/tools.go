@@ -14,7 +14,7 @@ func TestFilePath(file string) string {
 func ExpectString(t *testing.T, check, expected string) bool {
 	if expected != check {
 		l := determineLine()
-		t.Errorf("%s Expected %s, actual %s", l, expected, check)
+		t.Fatalf("%s Expected %s, actual %s", l, expected, check)
 		return false
 	} else {
 		return true
@@ -24,7 +24,7 @@ func ExpectString(t *testing.T, check, expected string) bool {
 func ExpectBool(t *testing.T, check, expected bool) bool {
 	if expected != check {
 		l := determineLine()
-		t.Errorf("%s Expected %t, actual %t", l, expected, check)
+		t.Fatalf("%s Expected %t, actual %t", l, expected, check)
 		return false
 	} else {
 		return true
@@ -34,7 +34,7 @@ func ExpectBool(t *testing.T, check, expected bool) bool {
 func ExpectInt(t *testing.T, check, expected int) bool {
 	if expected != check {
 		l := determineLine()
-		t.Errorf("%s Expected %d, actual %d", l, expected, check)
+		t.Fatalf("%s Expected %d, actual %d", l, expected, check)
 		return false
 	} else {
 		return true
@@ -44,7 +44,7 @@ func ExpectInt(t *testing.T, check, expected int) bool {
 func ExpectFloat(t *testing.T, check, expected float64) bool {
 	if expected != check {
 		l := determineLine()
-		t.Errorf("%s Expected %e, actual %e", l, expected, check)
+		t.Fatalf("%s Expected %e, actual %e", l, expected, check)
 		return false
 	} else {
 		return true
@@ -57,7 +57,7 @@ func ExpectNil(t *testing.T, check interface{}) bool {
 	} else {
 		l := determineLine()
 
-		t.Errorf("%s Expected nil, actual %q", l, check)
+		t.Fatalf("%s Expected nil, actual %q", l, check)
 		return false
 	}
 }
@@ -69,7 +69,7 @@ func ExpectNotNil(t *testing.T, check interface{}) bool {
 
 		l := determineLine()
 
-		t.Errorf("%s: Expected not nil", l)
+		t.Fatalf("%s: Expected not nil", l)
 		return false
 	}
 }

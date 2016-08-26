@@ -117,7 +117,7 @@ func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string,
 
 func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *nillable.NillableString) (errorCodes []string, unexpected error) {
 
-	if !ns.IsSet() && sv.required {
+	if (ns == nil || !ns.IsSet()) && sv.required {
 		return []string{sv.missingRequiredCode}, nil
 	}
 
@@ -157,6 +157,7 @@ func (sv *StringValidator) runOperations(s string) (errorCodes []string, unexpec
 
 	ec := new(types.OrderedStringSet)
 
+OpLoop:
 	for _, op := range sv.operations {
 
 		switch op.OpType {
@@ -176,8 +177,9 @@ func (sv *StringValidator) runOperations(s string) (errorCodes []string, unexpec
 			}
 
 		case StringOpBreak:
+
 			if ec.Size() > 0 {
-				break
+				break OpLoop
 			}
 
 		case StringOpReg:
@@ -200,8 +202,8 @@ func (sv *StringValidator) lengthOkay(s string) bool {
 
 	sl := len(s)
 
-	minOkay := sv.minLen == NoLimit || sl > sv.minLen
-	maxOkay := sv.maxLen == NoLimit || sl < sv.maxLen
+	minOkay := sv.minLen == NoLimit || sl >= sv.minLen
+	maxOkay := sv.maxLen == NoLimit || sl <= sv.maxLen
 
 	return minOkay && maxOkay
 
