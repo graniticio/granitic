@@ -11,6 +11,25 @@ import (
 	"testing"
 )
 
+func TestPathParsing(t *testing.T) {
+
+	p := "a.b.c.d"
+
+	s := determinePathFields(p)
+
+	test.ExpectInt(t, s.Size(), 3)
+	test.ExpectBool(t, s.Contains("a"), true)
+	test.ExpectBool(t, s.Contains("a.b"), true)
+	test.ExpectBool(t, s.Contains("a.b.c"), true)
+	test.ExpectBool(t, s.Contains("a.b.c.d"), false)
+
+	p = "a"
+
+	s = determinePathFields(p)
+	test.ExpectInt(t, s.Size(), 0)
+
+}
+
 func LoadTestConfig() *config.ConfigAccessor {
 
 	cFile := test.TestFilePath("validate/validation.json")

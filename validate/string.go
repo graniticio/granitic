@@ -66,6 +66,7 @@ type StringValidator struct {
 	required            bool
 	stopAll             bool
 	codesInUse          types.StringSet
+	dependsFields       types.StringSet
 }
 
 func NewStringValidator(field, defaultErrorCode string) *StringValidator {
@@ -73,8 +74,13 @@ func NewStringValidator(field, defaultErrorCode string) *StringValidator {
 	sv.defaultErrorcode = defaultErrorCode
 	sv.field = field
 	sv.codesInUse = types.NewOrderedStringSet([]string{})
+	sv.dependsFields = determinePathFields(field)
 
 	return sv
+}
+
+func (sv *StringValidator) DependsOnFields() types.StringSet {
+	return sv.dependsFields
 }
 
 func (sv *StringValidator) CodesInUse() types.StringSet {

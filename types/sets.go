@@ -54,6 +54,10 @@ func NewUnorderedStringSet(m []string) *UnorderedStringSet {
 
 func NewOrderedStringSet(m []string) *OrderedStringSet {
 	os := new(OrderedStringSet)
+
+	os.ordered = make([]string, 0)
+	os.members = NewUnorderedStringSet(os.ordered)
+
 	for _, v := range m {
 		os.Add(v)
 	}

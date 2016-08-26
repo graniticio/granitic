@@ -37,6 +37,7 @@ type Validator interface {
 	Validate(vc *validationContext) (errorCodes []string, unexpected error)
 	StopAllOnFail() bool
 	CodesInUse() types.StringSet
+	DependsOnFields() types.StringSet
 }
 
 type validatorLink struct {
@@ -92,6 +93,7 @@ func (ov *ObjectValidator) ErrorCodesInUse() (codes types.StringSet, sourceName 
 func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, error) {
 
 	fieldErrors := make([]*FieldErrors, 0)
+	fieldsWithProblems := types.NewOrderedStringSet([]string{})
 
 	for _, vl := range ov.validatorChain {
 
@@ -106,6 +108,9 @@ func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, er
 		}
 
 		if ec != nil && len(ec) > 0 {
+
+			fieldsWithProblems.Add(vl.field)
+
 			fe := new(FieldErrors)
 			fe.Field = vl.field
 			fe.ErrorCodes = ec
@@ -312,4 +317,24 @@ func DecomposeOperation(r string) []string {
 
 	return decomposed
 
+}
+
+func determinePathFields(path string) types.StringSet {
+
+	set := types.NewOrderedStringSet([]string{})
+
+	split := strings.SplitN(path, ".", -1)
+
+	l := len(split)
+
+	if l > 1 {
+
+		for i := 1; i < l; i++ {
+
+			set.Add(strings.Join(split[0:i], "."))
+		}
+
+	}
+
+	return set
 }
