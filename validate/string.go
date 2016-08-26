@@ -87,7 +87,7 @@ func (sv *StringValidator) CodesInUse() types.StringSet {
 	return sv.codesInUse
 }
 
-func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string, unexpected error) {
+func (sv *StringValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
 	f := sv.field
 	sub := vc.Subject
@@ -121,10 +121,20 @@ func (sv *StringValidator) Validate(vc *validationContext) (errorCodes []string,
 
 }
 
-func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *nillable.NillableString) (errorCodes []string, unexpected error) {
+func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *nillable.NillableString) (result *ValidationResult, unexpected error) {
 
-	if (ns == nil || !ns.IsSet()) && sv.required {
-		return []string{sv.missingRequiredCode}, nil
+	if ns == nil || !ns.IsSet() {
+		r := new(ValidationResult)
+
+		if sv.required {
+			r.ErrorCodes = []string{sv.missingRequiredCode}
+		} else {
+			r.ErrorCodes = []string{}
+		}
+
+		r.Unset = true
+
+		return r, nil
 	}
 
 	toValidate := ns.String()
@@ -140,10 +150,22 @@ func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Va
 	return sv.runOperations(toValidate)
 }
 
-func (sv *StringValidator) validateStandard(vc *validationContext, rv reflect.Value, s string, field string) (errorCodes []string, unexpected error) {
+func (sv *StringValidator) validateStandard(vc *validationContext, rv reflect.Value, s string, field string) (result *ValidationResult, unexpected error) {
 
-	if !sv.wasStringSet(s, field, vc.KnownSetFields) && sv.required {
-		return []string{sv.missingRequiredCode}, nil
+	if !sv.wasStringSet(s, field, vc.KnownSetFields) {
+
+		r := new(ValidationResult)
+
+		if sv.required {
+			r.ErrorCodes = []string{sv.missingRequiredCode}
+		} else {
+			r.ErrorCodes = []string{}
+		}
+
+		r.Unset = true
+
+		return r, nil
+
 	}
 
 	toValidate := s
@@ -159,7 +181,7 @@ func (sv *StringValidator) validateStandard(vc *validationContext, rv reflect.Va
 	return sv.runOperations(toValidate)
 }
 
-func (sv *StringValidator) runOperations(s string) (errorCodes []string, unexpected error) {
+func (sv *StringValidator) runOperations(s string) (*ValidationResult, error) {
 
 	ec := new(types.OrderedStringSet)
 
@@ -196,7 +218,10 @@ OpLoop:
 
 	}
 
-	return ec.Contents(), nil
+	r := new(ValidationResult)
+	r.ErrorCodes = ec.Contents()
+
+	return r, nil
 
 }
 

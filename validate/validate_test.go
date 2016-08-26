@@ -76,6 +76,7 @@ func validatorAndUser(t *testing.T) (*ObjectValidator, *User) {
 	ov.RuleManager = rm
 	ov.ComponentFinder = new(TestComponentFinder)
 	ov.DefaultErrorCode = "DEFAULT"
+	ov.Log = new(logging.ConsoleErrorLogger)
 
 	ca.Populate("profileValidator", ov)
 

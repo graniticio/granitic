@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
+	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/types"
 	"strings"
 )
@@ -33,8 +34,13 @@ type validationContext struct {
 	KnownSetFields types.StringSet
 }
 
+type ValidationResult struct {
+	ErrorCodes []string
+	Unset      bool
+}
+
 type Validator interface {
-	Validate(vc *validationContext) (errorCodes []string, unexpected error)
+	Validate(vc *validationContext) (result *ValidationResult, unexpected error)
 	StopAllOnFail() bool
 	CodesInUse() types.StringSet
 	DependsOnFields() types.StringSet
@@ -72,6 +78,7 @@ type ObjectValidator struct {
 	validatorChain   []*validatorLink
 	componentName    string
 	codesInUse       types.StringSet
+	Log              logging.Logger
 }
 
 func (ov *ObjectValidator) Container(container *ioc.ComponentContainer) {
@@ -92,27 +99,43 @@ func (ov *ObjectValidator) ErrorCodesInUse() (codes types.StringSet, sourceName 
 
 func (ov *ObjectValidator) Validate(subject *SubjectContext) ([]*FieldErrors, error) {
 
+	log := ov.Log
+
 	fieldErrors := make([]*FieldErrors, 0)
 	fieldsWithProblems := types.NewOrderedStringSet([]string{})
+	unsetFields := types.NewOrderedStringSet([]string{})
 
 	for _, vl := range ov.validatorChain {
+
+		f := vl.field
+
+		log.LogDebugf("Validating field %s", f)
 
 		vc := new(validationContext)
 		vc.Subject = subject.Subject
 		vc.KnownSetFields = subject.KnownSetFields
 
-		ec, err := vl.validator.Validate(vc)
+		r, err := vl.validator.Validate(vc)
+		ec := r.ErrorCodes
 
 		if err != nil {
 			return nil, err
 		}
 
-		if ec != nil && len(ec) > 0 {
+		if r.Unset {
+			log.LogDebugf("%s is unset", f)
+			unsetFields.Add(f)
+		}
 
-			fieldsWithProblems.Add(vl.field)
+		l := len(ec)
+
+		if ec != nil && l > 0 {
+
+			fieldsWithProblems.Add(f)
+			log.LogDebugf("%s has %d errors", f, l)
 
 			fe := new(FieldErrors)
-			fe.Field = vl.field
+			fe.Field = f
 			fe.ErrorCodes = ec
 
 			fieldErrors = append(fieldErrors, fe)

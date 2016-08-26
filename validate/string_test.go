@@ -19,29 +19,63 @@ func TestMissingRequiredStringField(t *testing.T) {
 	vc := new(validationContext)
 	vc.Subject = sub
 
-	c, err := sv.Validate(vc)
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
+	test.ExpectBool(t, r.Unset, true)
 	test.ExpectInt(t, len(c), 1)
 	test.ExpectString(t, c[0], "MISSING")
 
 	nsSub := new(NillableStringTest)
 	vc.Subject = nsSub
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
+	test.ExpectBool(t, r.Unset, true)
 	test.ExpectInt(t, len(c), 1)
 	test.ExpectString(t, c[0], "MISSING")
 
 	nsSub.S = new(nillable.NillableString)
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
+	test.ExpectBool(t, r.Unset, true)
 	test.ExpectInt(t, len(c), 1)
 	test.ExpectString(t, c[0], "MISSING")
 
+}
+
+func TestUnsetButOptional(t *testing.T) {
+	sb := newStringValidatorBuilder("DEF")
+	sv, err := sb.parseStringRule("S", []string{"LEN:5-10:SHORT"})
+
+	test.ExpectNil(t, err)
+
+	sub := new(StringTest)
+	sub.S = ""
+	vc := new(validationContext)
+	vc.Subject = sub
+
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
+
+	test.ExpectNil(t, err)
+	test.ExpectBool(t, r.Unset, true)
+	test.ExpectInt(t, len(c), 0)
+
+	sub.S = "A"
+
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
+
+	test.ExpectNil(t, err)
+	test.ExpectBool(t, r.Unset, false)
+	test.ExpectInt(t, len(c), 1)
 }
 
 func TestHardTrim(t *testing.T) {
@@ -57,7 +91,8 @@ func TestHardTrim(t *testing.T) {
 	vc := new(validationContext)
 	vc.Subject = sub
 
-	c, err := sv.Validate(vc)
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 0)
@@ -67,7 +102,8 @@ func TestHardTrim(t *testing.T) {
 	subNs.S = nillable.NewNillableString("  B  ")
 	vc.Subject = subNs
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 0)
@@ -88,7 +124,8 @@ func TestSoftTrim(t *testing.T) {
 	vc := new(validationContext)
 	vc.Subject = sub
 
-	c, err := sv.Validate(vc)
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 1)
@@ -98,7 +135,8 @@ func TestSoftTrim(t *testing.T) {
 	subNs.S = nillable.NewNillableString("  B  ")
 	vc.Subject = subNs
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 1)
@@ -119,7 +157,8 @@ func TestInSet(t *testing.T) {
 	vc := new(validationContext)
 	vc.Subject = sub
 
-	c, err := sv.Validate(vc)
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 1)
@@ -127,7 +166,8 @@ func TestInSet(t *testing.T) {
 
 	sub.S = "AA"
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 0)
@@ -146,7 +186,8 @@ func TestBreak(t *testing.T) {
 	vc := new(validationContext)
 	vc.Subject = sub
 
-	c, err := sv.Validate(vc)
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 1)
@@ -179,7 +220,8 @@ func TestRegex(t *testing.T) {
 	vc := new(validationContext)
 	vc.Subject = sub
 
-	c, err := sv.Validate(vc)
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 1)
@@ -187,7 +229,8 @@ func TestRegex(t *testing.T) {
 
 	sub.S = ":A"
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 0)
@@ -207,7 +250,8 @@ func TestLength(t *testing.T) {
 	vc := new(validationContext)
 	vc.Subject = sub
 
-	c, err := sv.Validate(vc)
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 1)
@@ -215,7 +259,8 @@ func TestLength(t *testing.T) {
 
 	sub.S = "AA"
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 0)
@@ -224,14 +269,16 @@ func TestLength(t *testing.T) {
 
 	sub.S = "AAA"
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 0)
 
 	sub.S = "AAAA"
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 1)
@@ -241,21 +288,24 @@ func TestLength(t *testing.T) {
 
 	sub.S = ""
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 0)
 
 	sub.S = "AAA"
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 0)
 
 	sub.S = "AAAA"
 
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 1)
@@ -286,14 +336,16 @@ func TestExternal(t *testing.T) {
 	vc := new(validationContext)
 	vc.Subject = sub
 
-	c, err := sv.Validate(vc)
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 1)
 	test.ExpectString(t, c[0], "EXTFAIL")
 
 	sub.S = "valid"
-	c, err = sv.Validate(vc)
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 0)
