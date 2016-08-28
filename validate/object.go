@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
+	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
 )
 
@@ -49,8 +50,28 @@ type objectOperation struct {
 
 func (ov *ObjectValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
+	f := ov.field
+	sub := vc.Subject
+
+	fv, err := rt.FindNestedField(rt.ExtractDotPath(f), sub)
+
+	if err != nil {
+		return nil, err
+	}
+
 	r := new(ValidationResult)
-	r.ErrorCodes = []string{}
+
+	if rt.NilPointer(fv) || rt.NilMap(fv) {
+
+		r.Unset = true
+
+		if ov.required {
+			r.ErrorCodes = []string{ov.missingRequiredCode}
+		} else {
+			r.ErrorCodes = []string{}
+		}
+
+	}
 
 	return r, nil
 }
@@ -135,9 +156,9 @@ func (vb *objectValidatorBuilder) parseRule(field string, rule []string) (Valida
 		}
 
 		switch op {
-		case StringOpRequired:
-			//ov.markRequired(field, ops, sv)
-		case StringOpStopAll:
+		case ObjOpRequired:
+			vb.markRequired(field, ops, ov)
+		case ObjOpStopAll:
 			ov.StopAll()
 		}
 

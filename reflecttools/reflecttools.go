@@ -51,6 +51,18 @@ func SetPtrToStruct(target interface{}, field string, valuePointer interface{}) 
 	return nil
 }
 
+func NilPointer(v reflect.Value) bool {
+
+	return v.Kind() == reflect.Ptr && !v.Elem().IsValid()
+
+}
+
+func NilMap(v reflect.Value) bool {
+
+	return v.Kind() == reflect.Map && v.IsNil()
+
+}
+
 func IsPointerToStruct(p interface{}) bool {
 
 	pv := reflect.ValueOf(p)
