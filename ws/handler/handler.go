@@ -177,7 +177,7 @@ func (wh *WsHandler) validateRequest(wsReq *ws.WsRequest, errors *ws.ServiceErro
 
 			if err != nil {
 
-				wh.Log.LogErrorf("Problem encountered during automatic body validation", err)
+				wh.Log.LogErrorf("Problem encountered during automatic body validation %v", err)
 
 				ce := wh.FrameworkErrors.HttpError(http.StatusInternalServerError)
 				errors.AddError(ce)

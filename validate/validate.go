@@ -123,6 +123,7 @@ func (ov *RuleValidator) Validate(subject *SubjectContext) ([]*FieldErrors, erro
 
 		if !ov.parentsOkay(v, fieldsWithProblems, unsetFields) {
 			log.LogDebugf("Skipping field %s as one or more parent objects invalid", f)
+			continue
 		}
 
 		r, err := vl.validator.Validate(vc)
