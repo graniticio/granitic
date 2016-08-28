@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/test"
-	"github.com/graniticio/granitic/ws/nillable"
+	"github.com/graniticio/granitic/types"
 	"net/url"
 	"testing"
 )
@@ -350,10 +350,10 @@ type BindingTarget struct {
 	F32 float32
 	F64 float64
 	B   bool
-	NS  *nillable.NillableString
-	NI  *nillable.NillableInt64
-	NF  *nillable.NillableFloat64
-	NB  *nillable.NillableBool
+	NS  *types.NillableString
+	NI  *types.NillableInt64
+	NF  *types.NillableFloat64
+	NB  *types.NillableBool
 }
 
 type InvalidTargets struct {

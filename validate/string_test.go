@@ -3,7 +3,7 @@ package validate
 import (
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/test"
-	"github.com/graniticio/granitic/ws/nillable"
+	"github.com/graniticio/granitic/types"
 	"testing"
 )
 
@@ -38,7 +38,7 @@ func TestMissingRequiredStringField(t *testing.T) {
 	test.ExpectInt(t, len(c), 1)
 	test.ExpectString(t, c[0], "MISSING")
 
-	nsSub.S = new(nillable.NillableString)
+	nsSub.S = new(types.NillableString)
 
 	r, err = sv.Validate(vc)
 	c = r.ErrorCodes
@@ -99,7 +99,7 @@ func TestHardTrim(t *testing.T) {
 	test.ExpectString(t, sub.S, "A")
 
 	subNs := new(NillableStringTest)
-	subNs.S = nillable.NewNillableString("  B  ")
+	subNs.S = types.NewNillableString("  B  ")
 	vc.Subject = subNs
 
 	r, err = sv.Validate(vc)
@@ -132,7 +132,7 @@ func TestSoftTrim(t *testing.T) {
 	test.ExpectString(t, sub.S, "  A  ")
 
 	subNs := new(NillableStringTest)
-	subNs.S = nillable.NewNillableString("  B  ")
+	subNs.S = types.NewNillableString("  B  ")
 	vc.Subject = subNs
 
 	r, err = sv.Validate(vc)
@@ -356,7 +356,7 @@ type StringTest struct {
 }
 
 type NillableStringTest struct {
-	S *nillable.NillableString
+	S *types.NillableString
 }
 
 type ExtChecker struct {
@@ -374,7 +374,7 @@ func (cf *CompFinder) ComponentByName(n string) *ioc.Component {
 	if n == "extChecker" {
 		return ioc.NewComponent(n, new(ExtChecker))
 	} else {
-		return ioc.NewComponent(n, new(nillable.NillableString))
+		return ioc.NewComponent(n, new(types.NillableString))
 	}
 
 }

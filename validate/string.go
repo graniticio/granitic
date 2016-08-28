@@ -6,7 +6,6 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
-	"github.com/graniticio/granitic/ws/nillable"
 	"reflect"
 	"regexp"
 	"strconv"
@@ -105,7 +104,7 @@ func (sv *StringValidator) Validate(vc *validationContext) (result *ValidationRe
 		return nil, errors.New(m)
 	}
 
-	ns, found := fv.Interface().(*nillable.NillableString)
+	ns, found := fv.Interface().(*types.NillableString)
 
 	if found {
 		return sv.validateNillable(vc, fv, ns)
@@ -122,7 +121,7 @@ func (sv *StringValidator) Validate(vc *validationContext) (result *ValidationRe
 
 }
 
-func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *nillable.NillableString) (result *ValidationResult, unexpected error) {
+func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *types.NillableString) (result *ValidationResult, unexpected error) {
 
 	if ns == nil || !ns.IsSet() {
 		r := new(ValidationResult)

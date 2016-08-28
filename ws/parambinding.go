@@ -3,7 +3,7 @@ package ws
 import (
 	"github.com/graniticio/granitic/logging"
 	rt "github.com/graniticio/granitic/reflecttools"
-	"github.com/graniticio/granitic/ws/nillable"
+	"github.com/graniticio/granitic/types"
 	"reflect"
 	"strconv"
 )
@@ -166,7 +166,7 @@ func (pb *ParamBinder) considerStructField(paramName string, fieldName string, q
 	tv := tf.Interface()
 
 	switch tv.(type) {
-	case *nillable.NillableString, *nillable.NillableBool, *nillable.NillableFloat64, *nillable.NillableInt64:
+	case *types.NillableString, *types.NillableBool, *types.NillableFloat64, *types.NillableInt64:
 		return pb.setNillableField(paramName, fieldName, qp, tf, tv, errorFn, t)
 	}
 
@@ -181,26 +181,26 @@ func (pb *ParamBinder) setNillableField(paramName string, fieldName string, p *W
 
 	switch tv.(type) {
 
-	case *nillable.NillableString:
+	case *types.NillableString:
 		e = pb.setStringField(paramName, "S", p, np, errorFn)
-		nv = nillable.NewNillableString(np.S)
+		nv = types.NewNillableString(np.S)
 
-	case *nillable.NillableBool:
+	case *types.NillableBool:
 		if p.NotEmpty(paramName) {
 			e = pb.setBoolField(paramName, "B", p, np, errorFn)
-			nv = nillable.NewNillableBool(np.B)
+			nv = types.NewNillableBool(np.B)
 		}
 
-	case *nillable.NillableInt64:
+	case *types.NillableInt64:
 		if p.NotEmpty(paramName) {
 			e = pb.setIntNField(paramName, "I", p, np, 64, errorFn)
-			nv = nillable.NewNillableInt64(np.I)
+			nv = types.NewNillableInt64(np.I)
 		}
 
-	case *nillable.NillableFloat64:
+	case *types.NillableFloat64:
 		if p.NotEmpty(paramName) {
 			e = pb.setFloatNField(paramName, "F", p, np, 64, errorFn)
-			nv = nillable.NewNillableFloat64(np.F)
+			nv = types.NewNillableFloat64(np.F)
 		}
 	}
 

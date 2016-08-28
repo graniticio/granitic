@@ -7,7 +7,7 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/test"
-	"github.com/graniticio/granitic/ws/nillable"
+	"github.com/graniticio/granitic/types"
 	"testing"
 )
 
@@ -99,19 +99,19 @@ func validUser() *User {
 	u.Profile = p
 
 	u.UserName = "Valid User"
-	u.Role = nillable.NewNillableString("ADMIN")
+	u.Role = types.NewNillableString("ADMIN")
 	u.Password = "sadas*dasd1"
 	u.Hint = " Sad "
 	u.SecurityPhrase = "Is this your account?"
 	p.Email = "email@example.com"
-	p.Website = nillable.NewNillableString("  http://www.example.com ")
+	p.Website = types.NewNillableString("  http://www.example.com ")
 
 	return u
 }
 
 type User struct {
 	UserName       string
-	Role           *nillable.NillableString
+	Role           *types.NillableString
 	Password       string
 	Hint           string
 	SecurityPhrase string
@@ -120,7 +120,7 @@ type User struct {
 
 type Profile struct {
 	Email   string
-	Website *nillable.NillableString
+	Website *types.NillableString
 }
 
 type TestComponentFinder struct {

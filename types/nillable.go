@@ -1,4 +1,4 @@
-package nillable
+package types
 
 import (
 	"encoding/json"
