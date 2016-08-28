@@ -16,12 +16,12 @@ type parseAndBuild func(string, []string) (Validator, error)
 const (
 	UnknownRuleType = iota
 	StringRule
+	ObjectRule
 )
 
 const commandSep = ":"
 const escapedCommandSep = "::"
 const escapedCommandReplace = "||ESC||"
-const StringRuleCode = "STR"
 const RuleRefCode = "RULE"
 
 const commonOpRequired = "REQ"
@@ -72,16 +72,17 @@ type FieldErrors struct {
 }
 
 type RuleValidator struct {
-	jsonConfig       interface{}
-	RuleManager      *UnparsedRuleManager
-	stringBuilder    *stringValidatorBuilder
-	DefaultErrorCode string
-	Rules            [][]string
-	ComponentFinder  ioc.ComponentByNameFinder
-	validatorChain   []*validatorLink
-	componentName    string
-	codesInUse       types.StringSet
-	Log              logging.Logger
+	jsonConfig             interface{}
+	RuleManager            *UnparsedRuleManager
+	stringBuilder          *stringValidatorBuilder
+	objectValidatorBuilder *objectValidatorBuilder
+	DefaultErrorCode       string
+	Rules                  [][]string
+	ComponentFinder        ioc.ComponentByNameFinder
+	validatorChain         []*validatorLink
+	componentName          string
+	codesInUse             types.StringSet
+	Log                    logging.Logger
 }
 
 func (ov *RuleValidator) Container(container *ioc.ComponentContainer) {
@@ -125,11 +126,12 @@ func (ov *RuleValidator) Validate(subject *SubjectContext) ([]*FieldErrors, erro
 		}
 
 		r, err := vl.validator.Validate(vc)
-		ec := r.ErrorCodes
 
 		if err != nil {
 			return nil, err
 		}
+
+		ec := r.ErrorCodes
 
 		if r.Unset {
 			log.LogDebugf("%s is unset", f)
@@ -194,6 +196,8 @@ func (ov *RuleValidator) StartComponent() error {
 
 	ov.stringBuilder = newStringValidatorBuilder(ov.DefaultErrorCode)
 	ov.stringBuilder.componentFinder = ov.ComponentFinder
+
+	ov.objectValidatorBuilder = NewObjectValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 
 	ov.validatorChain = make([]*validatorLink, 0)
 
@@ -294,6 +298,8 @@ func (ov *RuleValidator) parseRule(field string, rule []string) error {
 	switch rt {
 	case StringRule:
 		err = ov.parseAndAdd(field, rule, ov.stringBuilder.parseStringRule)
+	case ObjectRule:
+		err = ov.parseAndAdd(field, rule, ov.objectValidatorBuilder.parseRule)
 
 	default:
 		m := fmt.Sprintf("Unsupported rule type for field %s\n", field)
@@ -321,10 +327,12 @@ func (ov *RuleValidator) extractType(field string, rule []string) (ValidationRul
 
 		f := DecomposeOperation(v)
 
-		if f[0] == StringRuleCode {
+		switch f[0] {
+		case StringRuleCode:
 			return StringRule, nil
+		case ObjectRuleCode:
+			return ObjectRule, nil
 		}
-
 	}
 
 	m := fmt.Sprintf("Unable to determine the type of rule from the rule definition for field %s: %v/n", field, rule)

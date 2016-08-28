@@ -15,6 +15,7 @@ import (
 
 const NoLimit = -1
 const setMemberSep = ","
+const StringRuleCode = "STR"
 
 const (
 	stringOpTrimCode     = "TRIM"
@@ -56,7 +57,7 @@ const (
 )
 
 type StringValidator struct {
-	defaultErrorcode    string
+	defaultErrorCode    string
 	missingRequiredCode string
 	field               string
 	operations          []*stringOperation
@@ -71,7 +72,7 @@ type StringValidator struct {
 
 func NewStringValidator(field, defaultErrorCode string) *StringValidator {
 	sv := new(StringValidator)
-	sv.defaultErrorcode = defaultErrorCode
+	sv.defaultErrorCode = defaultErrorCode
 	sv.field = field
 	sv.codesInUse = types.NewOrderedStringSet([]string{})
 	sv.dependsFields = determinePathFields(field)
@@ -333,7 +334,7 @@ func (sv *StringValidator) Required(code ...string) *StringValidator {
 	if code != nil {
 		sv.missingRequiredCode = code[0]
 	} else {
-		sv.missingRequiredCode = sv.defaultErrorcode
+		sv.missingRequiredCode = sv.defaultErrorCode
 	}
 
 	return sv
@@ -410,7 +411,7 @@ func (sv *StringValidator) chooseErrorCode(v []string) string {
 	if len(v) > 0 {
 		return v[0]
 	} else {
-		return sv.defaultErrorcode
+		return sv.defaultErrorCode
 	}
 
 }
@@ -465,7 +466,7 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (
 		case StringOpTrim:
 			sv.Trim()
 		case StringOpRequired:
-			vb.markRequired(field, ops, sv)
+			err = vb.markRequired(field, ops, sv)
 		case StringOpStopAll:
 			sv.StopAll()
 		}
@@ -482,14 +483,14 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (
 }
 
 func (vb *stringValidatorBuilder) markRequired(field string, ops []string, sv *StringValidator) error {
-	opParams := len(ops)
 
-	if opParams < 1 || opParams > 2 {
-		m := fmt.Sprintf("Required marked for field %s is invalid (too few or too many parameters)", field)
-		return errors.New(m)
+	pCount, err := paramCount(ops, "Required", field, 1, 2)
+
+	if err != nil {
+		return err
 	}
 
-	if opParams == 1 {
+	if pCount == 1 {
 		sv.Required()
 	} else {
 		sv.Required(ops[1])
@@ -499,16 +500,16 @@ func (vb *stringValidatorBuilder) markRequired(field string, ops []string, sv *S
 }
 
 func (vb *stringValidatorBuilder) addStringInOperation(field string, ops []string, sv *StringValidator) error {
-	opParams := len(ops)
 
-	if opParams < 2 || opParams > 3 {
-		m := fmt.Sprintf("In operation for field %s is invalid (too few or too many parameters)", field)
-		return errors.New(m)
+	pCount, err := paramCount(ops, "In Set", field, 2, 3)
+
+	if err != nil {
+		return err
 	}
 
 	members := strings.SplitN(ops[1], setMemberSep, -1)
 
-	if opParams == 2 {
+	if pCount == 2 {
 		sv.In(members)
 	} else {
 		sv.In(members, ops[2])
@@ -520,11 +521,10 @@ func (vb *stringValidatorBuilder) addStringInOperation(field string, ops []strin
 
 func (vb *stringValidatorBuilder) addStringRegexOperation(field string, ops []string, sv *StringValidator) error {
 
-	opParams := len(ops)
+	pCount, err := paramCount(ops, "Regex", field, 2, 3)
 
-	if opParams < 2 || opParams > 3 {
-		m := fmt.Sprintf("Regex operation for field %s is invalid (too few or too many parameters)", field)
-		return errors.New(m)
+	if err != nil {
+		return err
 	}
 
 	pattern := ops[1]
@@ -536,7 +536,7 @@ func (vb *stringValidatorBuilder) addStringRegexOperation(field string, ops []st
 		return errors.New(m)
 	}
 
-	if opParams == 2 {
+	if pCount == 2 {
 		sv.Regex(r)
 	} else {
 		sv.Regex(r, ops[2])
@@ -555,11 +555,10 @@ func (vb *stringValidatorBuilder) addStringExternalOperation(field string, ops [
 		return errors.New(m)
 	}
 
-	opParams := len(ops)
+	pCount, err := paramCount(ops, "External", field, 2, 3)
 
-	if opParams < 2 || opParams > 3 {
-		m := fmt.Sprintf("External operation for field %s is invalid (too few or too many parameters)", field)
-		return errors.New(m)
+	if err != nil {
+		return err
 	}
 
 	ref := ops[1]
@@ -577,7 +576,7 @@ func (vb *stringValidatorBuilder) addStringExternalOperation(field string, ops [
 		return errors.New(m)
 	}
 
-	if opParams == 2 {
+	if pCount == 2 {
 		sv.ExternalValidation(ev)
 	} else {
 		sv.ExternalValidation(ev, ops[2])
@@ -589,11 +588,10 @@ func (vb *stringValidatorBuilder) addStringExternalOperation(field string, ops [
 
 func (vb *stringValidatorBuilder) addStringLenOperation(field string, ops []string, sv *StringValidator) error {
 
-	opParams := len(ops)
+	pCount, err := paramCount(ops, "Length", field, 2, 3)
 
-	if opParams < 2 || opParams > 3 {
-		m := fmt.Sprintf("Length operation for field %s is invalid (too few or too many parameters)", field)
-		return errors.New(m)
+	if err != nil {
+		return err
 	}
 
 	vals := ops[1]
@@ -616,7 +614,7 @@ func (vb *stringValidatorBuilder) addStringLenOperation(field string, ops []stri
 		max, _ = strconv.Atoi(groups[2])
 	}
 
-	if opParams == 2 {
+	if pCount == 2 {
 		sv.Length(min, max)
 	} else {
 		sv.Length(min, max, ops[2])
@@ -624,6 +622,17 @@ func (vb *stringValidatorBuilder) addStringLenOperation(field string, ops []stri
 
 	return nil
 
+}
+
+func paramCount(opParams []string, opName, field string, min, max int) (count int, err error) {
+	pCount := len(opParams)
+
+	if pCount < min || pCount > max {
+		m := fmt.Sprintf("%s operation for field %s is invalid (too few or too many parameters)", opName, field)
+		return 0, errors.New(m)
+	}
+
+	return pCount, nil
 }
 
 func newStringValidatorBuilder(defaultErrorCode string) *stringValidatorBuilder {
