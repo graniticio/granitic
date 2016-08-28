@@ -7,12 +7,12 @@ import (
 	"strconv"
 )
 
-type NillableString struct {
+type NilableString struct {
 	val string
 	set bool
 }
 
-func (ns *NillableString) MarshalJSON() ([]byte, error) {
+func (ns *NilableString) MarshalJSON() ([]byte, error) {
 
 	if ns.set {
 		return json.Marshal(ns.val)
@@ -22,39 +22,39 @@ func (ns *NillableString) MarshalJSON() ([]byte, error) {
 
 }
 
-func (ns *NillableString) UnmarshalJSON(b []byte) error {
+func (ns *NilableString) UnmarshalJSON(b []byte) error {
 	ns.val = string(b)
 	ns.set = true
 
 	return nil
 }
 
-func (ns *NillableString) Set(v string) {
+func (ns *NilableString) Set(v string) {
 	ns.val = v
 	ns.set = true
 }
 
-func (ns *NillableString) String() string {
+func (ns *NilableString) String() string {
 	return ns.val
 }
 
-func (ns *NillableString) IsSet() bool {
+func (ns *NilableString) IsSet() bool {
 	return ns.set
 }
 
-func NewNillableString(v string) *NillableString {
-	ns := new(NillableString)
+func NewNilableString(v string) *NilableString {
+	ns := new(NilableString)
 	ns.Set(v)
 
 	return ns
 }
 
-type NillableBool struct {
+type NilableBool struct {
 	val bool
 	set bool
 }
 
-func (nb *NillableBool) MarshalJSON() ([]byte, error) {
+func (nb *NilableBool) MarshalJSON() ([]byte, error) {
 
 	if nb.set {
 		return []byte(strconv.FormatBool(nb.val)), nil
@@ -64,7 +64,7 @@ func (nb *NillableBool) MarshalJSON() ([]byte, error) {
 
 }
 
-func (nb *NillableBool) UnmarshalJSON(b []byte) error {
+func (nb *NilableBool) UnmarshalJSON(b []byte) error {
 	s := string(b)
 
 	if s == "true" {
@@ -81,28 +81,28 @@ func (nb *NillableBool) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (nb *NillableBool) Set(v bool) {
+func (nb *NilableBool) Set(v bool) {
 	nb.val = v
 	nb.set = true
 }
 
-func (nb *NillableBool) Bool() bool {
+func (nb *NilableBool) Bool() bool {
 	return nb.val
 }
 
-func NewNillableBool(b bool) *NillableBool {
-	nb := new(NillableBool)
+func NewNilableBool(b bool) *NilableBool {
+	nb := new(NilableBool)
 	nb.Set(b)
 
 	return nb
 }
 
-type NillableInt64 struct {
+type NilableInt64 struct {
 	val int64
 	set bool
 }
 
-func (ni *NillableInt64) MarshalJSON() ([]byte, error) {
+func (ni *NilableInt64) MarshalJSON() ([]byte, error) {
 
 	if ni.set {
 		return []byte(strconv.FormatInt(ni.val, 10)), nil
@@ -112,7 +112,7 @@ func (ni *NillableInt64) MarshalJSON() ([]byte, error) {
 
 }
 
-func (ni *NillableInt64) UnmarshalJSON(b []byte) error {
+func (ni *NilableInt64) UnmarshalJSON(b []byte) error {
 	s := string(b)
 
 	v, err := strconv.ParseInt(s, 10, 64)
@@ -128,17 +128,17 @@ func (ni *NillableInt64) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (ni *NillableInt64) Set(v int64) {
+func (ni *NilableInt64) Set(v int64) {
 	ni.val = v
 	ni.set = true
 }
 
-func (ni *NillableInt64) Int64() int64 {
+func (ni *NilableInt64) Int64() int64 {
 	return ni.val
 }
 
-func NewNillableInt64(i int64) *NillableInt64 {
-	ni := new(NillableInt64)
+func NewNilableInt64(i int64) *NilableInt64 {
+	ni := new(NilableInt64)
 	ni.Set(i)
 
 	return ni
@@ -184,7 +184,7 @@ func (ni *NillableFloat64) Float64() float64 {
 	return ni.val
 }
 
-func NewNillableFloat64(f float64) *NillableFloat64 {
+func NewNilableFloat64(f float64) *NillableFloat64 {
 	nf := new(NillableFloat64)
 	nf.Set(f)
 

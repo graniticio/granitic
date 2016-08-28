@@ -350,10 +350,10 @@ type BindingTarget struct {
 	F32 float32
 	F64 float64
 	B   bool
-	NS  *types.NillableString
-	NI  *types.NillableInt64
+	NS  *types.NilableString
+	NI  *types.NilableInt64
 	NF  *types.NillableFloat64
-	NB  *types.NillableBool
+	NB  *types.NilableBool
 }
 
 type InvalidTargets struct {

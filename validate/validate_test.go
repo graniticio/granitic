@@ -99,19 +99,19 @@ func validUser() *User {
 	u.Profile = p
 
 	u.UserName = "Valid User"
-	u.Role = types.NewNillableString("ADMIN")
+	u.Role = types.NewNilableString("ADMIN")
 	u.Password = "sadas*dasd1"
 	u.Hint = " Sad "
 	u.SecurityPhrase = "Is this your account?"
 	p.Email = "email@example.com"
-	p.Website = types.NewNillableString("  http://www.example.com ")
+	p.Website = types.NewNilableString("  http://www.example.com ")
 
 	return u
 }
 
 type User struct {
 	UserName       string
-	Role           *types.NillableString
+	Role           *types.NilableString
 	Password       string
 	Hint           string
 	SecurityPhrase string
@@ -120,7 +120,7 @@ type User struct {
 
 type Profile struct {
 	Email   string
-	Website *types.NillableString
+	Website *types.NilableString
 }
 
 type TestComponentFinder struct {

@@ -166,14 +166,14 @@ func (pb *ParamBinder) considerStructField(paramName string, fieldName string, q
 	tv := tf.Interface()
 
 	switch tv.(type) {
-	case *types.NillableString, *types.NillableBool, *types.NillableFloat64, *types.NillableInt64:
-		return pb.setNillableField(paramName, fieldName, qp, tf, tv, errorFn, t)
+	case *types.NilableString, *types.NilableBool, *types.NillableFloat64, *types.NilableInt64:
+		return pb.setNilableField(paramName, fieldName, qp, tf, tv, errorFn, t)
 	}
 
 	return nil
 }
 
-func (pb *ParamBinder) setNillableField(paramName string, fieldName string, p *WsParams, tf reflect.Value, tv interface{}, errorFn bindError, parent interface{}) *WsFrameworkError {
+func (pb *ParamBinder) setNilableField(paramName string, fieldName string, p *WsParams, tf reflect.Value, tv interface{}, errorFn bindError, parent interface{}) *WsFrameworkError {
 	np := new(nillableProxy)
 
 	var e *WsFrameworkError
@@ -181,26 +181,26 @@ func (pb *ParamBinder) setNillableField(paramName string, fieldName string, p *W
 
 	switch tv.(type) {
 
-	case *types.NillableString:
+	case *types.NilableString:
 		e = pb.setStringField(paramName, "S", p, np, errorFn)
-		nv = types.NewNillableString(np.S)
+		nv = types.NewNilableString(np.S)
 
-	case *types.NillableBool:
+	case *types.NilableBool:
 		if p.NotEmpty(paramName) {
 			e = pb.setBoolField(paramName, "B", p, np, errorFn)
-			nv = types.NewNillableBool(np.B)
+			nv = types.NewNilableBool(np.B)
 		}
 
-	case *types.NillableInt64:
+	case *types.NilableInt64:
 		if p.NotEmpty(paramName) {
 			e = pb.setIntNField(paramName, "I", p, np, 64, errorFn)
-			nv = types.NewNillableInt64(np.I)
+			nv = types.NewNilableInt64(np.I)
 		}
 
 	case *types.NillableFloat64:
 		if p.NotEmpty(paramName) {
 			e = pb.setFloatNField(paramName, "F", p, np, 64, errorFn)
-			nv = types.NewNillableFloat64(np.F)
+			nv = types.NewNilableFloat64(np.F)
 		}
 	}
 

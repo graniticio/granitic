@@ -104,7 +104,7 @@ func (sv *StringValidator) Validate(vc *validationContext) (result *ValidationRe
 		return nil, errors.New(m)
 	}
 
-	ns, found := fv.Interface().(*types.NillableString)
+	ns, found := fv.Interface().(*types.NilableString)
 
 	if found {
 		return sv.validateNillable(vc, fv, ns)
@@ -121,7 +121,7 @@ func (sv *StringValidator) Validate(vc *validationContext) (result *ValidationRe
 
 }
 
-func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *types.NillableString) (result *ValidationResult, unexpected error) {
+func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *types.NilableString) (result *ValidationResult, unexpected error) {
 
 	if ns == nil || !ns.IsSet() {
 		r := new(ValidationResult)

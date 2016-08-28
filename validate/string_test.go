@@ -38,7 +38,7 @@ func TestMissingRequiredStringField(t *testing.T) {
 	test.ExpectInt(t, len(c), 1)
 	test.ExpectString(t, c[0], "MISSING")
 
-	nsSub.S = new(types.NillableString)
+	nsSub.S = new(types.NilableString)
 
 	r, err = sv.Validate(vc)
 	c = r.ErrorCodes
@@ -99,7 +99,7 @@ func TestHardTrim(t *testing.T) {
 	test.ExpectString(t, sub.S, "A")
 
 	subNs := new(NillableStringTest)
-	subNs.S = types.NewNillableString("  B  ")
+	subNs.S = types.NewNilableString("  B  ")
 	vc.Subject = subNs
 
 	r, err = sv.Validate(vc)
@@ -132,7 +132,7 @@ func TestSoftTrim(t *testing.T) {
 	test.ExpectString(t, sub.S, "  A  ")
 
 	subNs := new(NillableStringTest)
-	subNs.S = types.NewNillableString("  B  ")
+	subNs.S = types.NewNilableString("  B  ")
 	vc.Subject = subNs
 
 	r, err = sv.Validate(vc)
@@ -356,7 +356,7 @@ type StringTest struct {
 }
 
 type NillableStringTest struct {
-	S *types.NillableString
+	S *types.NilableString
 }
 
 type ExtChecker struct {
@@ -374,7 +374,7 @@ func (cf *CompFinder) ComponentByName(n string) *ioc.Component {
 	if n == "extChecker" {
 		return ioc.NewComponent(n, new(ExtChecker))
 	} else {
-		return ioc.NewComponent(n, new(types.NillableString))
+		return ioc.NewComponent(n, new(types.NilableString))
 	}
 
 }
