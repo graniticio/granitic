@@ -7,6 +7,12 @@ import (
 	"strconv"
 )
 
+type Nilable interface {
+	MarshalJSON() ([]byte, error)
+	UnmarshalJSON(b []byte) error
+	IsSet() bool
+}
+
 type NilableString struct {
 	val string
 	set bool
@@ -86,6 +92,10 @@ func (nb *NilableBool) Set(v bool) {
 	nb.set = true
 }
 
+func (nb *NilableBool) IsSet() bool {
+	return nb.set
+}
+
 func (nb *NilableBool) Bool() bool {
 	return nb.val
 }
@@ -100,6 +110,10 @@ func NewNilableBool(b bool) *NilableBool {
 type NilableInt64 struct {
 	val int64
 	set bool
+}
+
+func (nb *NilableInt64) IsSet() bool {
+	return nb.set
 }
 
 func (ni *NilableInt64) MarshalJSON() ([]byte, error) {
@@ -147,6 +161,10 @@ func NewNilableInt64(i int64) *NilableInt64 {
 type NillableFloat64 struct {
 	val float64
 	set bool
+}
+
+func (nb *NillableFloat64) IsSet() bool {
+	return nb.set
 }
 
 func (nf *NillableFloat64) MarshalJSON() ([]byte, error) {

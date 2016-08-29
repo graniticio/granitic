@@ -165,8 +165,9 @@ func (pb *ParamBinder) considerStructField(paramName string, fieldName string, q
 	tf := reflect.ValueOf(t).Elem().FieldByName(fieldName)
 	tv := tf.Interface()
 
-	switch tv.(type) {
-	case *types.NilableString, *types.NilableBool, *types.NillableFloat64, *types.NilableInt64:
+	_, found := tv.(types.Nilable)
+
+	if found {
 		return pb.setNilableField(paramName, fieldName, qp, tf, tv, errorFn, t)
 	}
 
