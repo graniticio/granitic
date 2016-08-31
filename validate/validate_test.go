@@ -148,3 +148,33 @@ func (pv *PasswordValidator) ValidString(p string) bool {
 
 	return true
 }
+
+type ExtStringChecker struct {
+}
+
+func (ec *ExtStringChecker) ValidString(s string) bool {
+	return s == "valid"
+}
+
+type ExtIntChecker struct {
+}
+
+func (ec *ExtIntChecker) ValidInt64(i int64) bool {
+
+	return i == 64
+}
+
+type CompFinder struct {
+}
+
+func (cf *CompFinder) ComponentByName(n string) *ioc.Component {
+
+	if n == "extChecker" {
+		return ioc.NewComponent(n, new(ExtStringChecker))
+	} else if n == "extInt64Checker" {
+		return ioc.NewComponent(n, new(ExtIntChecker))
+	} else {
+		return ioc.NewComponent(n, new(types.NilableString))
+	}
+
+}

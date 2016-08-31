@@ -1,7 +1,6 @@
 package validate
 
 import (
-	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/test"
 	"github.com/graniticio/granitic/types"
 	"testing"
@@ -357,24 +356,4 @@ type StringTest struct {
 
 type NillableStringTest struct {
 	S *types.NilableString
-}
-
-type ExtChecker struct {
-}
-
-func (ec *ExtChecker) ValidString(s string) bool {
-	return s == "valid"
-}
-
-type CompFinder struct {
-}
-
-func (cf *CompFinder) ComponentByName(n string) *ioc.Component {
-
-	if n == "extChecker" {
-		return ioc.NewComponent(n, new(ExtChecker))
-	} else {
-		return ioc.NewComponent(n, new(types.NilableString))
-	}
-
 }

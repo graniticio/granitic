@@ -124,6 +124,11 @@ OpLoop:
 			if ec.Size() > 0 {
 				break OpLoop
 			}
+		case IntOpExt:
+
+			if !op.External.ValidInt64(i) {
+				ec.Add(op.ErrCode)
+			}
 		}
 
 	}

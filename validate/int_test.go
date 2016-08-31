@@ -161,6 +161,42 @@ func TestIntRequiredAndSetDetection(t *testing.T) {
 	test.ExpectBool(t, false, r.Unset)
 }
 
+func TestIntExternal(t *testing.T) {
+	ivb := NewIntValidatorBuilder("DEF", new(CompFinder))
+
+	_, err := ivb.parseRule("I", []string{"EXT:extComp"})
+
+	test.ExpectNotNil(t, err)
+
+	_, err = ivb.parseRule("I", []string{"EXT:unknown"})
+
+	test.ExpectNotNil(t, err)
+
+	iv, err := ivb.parseRule("I", []string{"EXT:extInt64Checker:EXTFAIL"})
+
+	test.ExpectNil(t, err)
+
+	sub := new(IntsTarget)
+	sub.I = 12
+
+	vc := new(validationContext)
+	vc.Subject = sub
+
+	r, err := iv.Validate(vc)
+	c := r.ErrorCodes
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectString(t, c[0], "EXTFAIL")
+
+	sub.I = 64
+	r, err = iv.Validate(vc)
+	c = r.ErrorCodes
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(c), 0)
+}
+
 func checkIntTypeSupport(t *testing.T, it string, vc *validationContext, iv *intValidatorBuilder) {
 	bv, err := iv.parseRule(it, []string{"REQ:MISSING"})
 	test.ExpectNil(t, err)
