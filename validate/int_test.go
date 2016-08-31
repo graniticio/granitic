@@ -38,6 +38,69 @@ func TestIntTypeSupportDetection(t *testing.T) {
 	test.ExpectNotNil(t, err)
 }
 
+func TestIntRequiredAndSetDetection(t *testing.T) {
+
+	iv := NewIntValidatorBuilder("DEF", nil)
+
+	sub := new(IntsTarget)
+
+	sub.I = 1
+	sub.I8 = 0
+
+	vc := new(validationContext)
+	vc.Subject = sub
+
+	bv, err := iv.parseRule("I", []string{"REQ:MISSING"})
+	test.ExpectNil(t, err)
+
+	r, err := bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c := r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+	test.ExpectBool(t, false, r.Unset)
+
+	bv, err = iv.parseRule("I8", []string{"REQ:MISSING"})
+	test.ExpectNil(t, err)
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+	test.ExpectBool(t, false, r.Unset)
+
+	bv, err = iv.parseRule("NI", []string{"REQ:MISSING"})
+	test.ExpectNil(t, err)
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectBool(t, true, r.Unset)
+	test.ExpectString(t, c[0], "MISSING")
+
+	sub.NI = new(types.NilableInt64)
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectBool(t, true, r.Unset)
+	test.ExpectString(t, c[0], "MISSING")
+
+	sub.NI = types.NewNilableInt64(0)
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+	test.ExpectBool(t, false, r.Unset)
+}
+
 func checkIntTypeSupport(t *testing.T, it string, vc *validationContext, iv *intValidatorBuilder) {
 	bv, err := iv.parseRule(it, []string{"REQ:MISSING"})
 	test.ExpectNil(t, err)
