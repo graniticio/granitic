@@ -50,11 +50,11 @@ func TestConfigParsing(t *testing.T) {
 
 	fe, err := ov.Validate(sc)
 
-	test.ExpectInt(t, len(fe), 0)
-
 	for _, e := range fe {
 		fmt.Printf("%s %q", e.Field, e.ErrorCodes)
 	}
+
+	test.ExpectInt(t, len(fe), 0)
 
 	test.ExpectNil(t, err)
 
@@ -105,6 +105,7 @@ func validUser() *User {
 	u.SecurityPhrase = "Is this your account?"
 	p.Email = "email@example.com"
 	p.Website = types.NewNilableString("  http://www.example.com ")
+	p.MarketTo = types.NewNilableBool(true)
 
 	return u
 }
@@ -119,8 +120,9 @@ type User struct {
 }
 
 type Profile struct {
-	Email   string
-	Website *types.NilableString
+	Email    string
+	Website  *types.NilableString
+	MarketTo *types.NilableBool
 }
 
 type TestComponentFinder struct {

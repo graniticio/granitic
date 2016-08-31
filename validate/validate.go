@@ -17,6 +17,7 @@ const (
 	UnknownRuleType = iota
 	StringRule
 	ObjectRule
+	BoolRule
 )
 
 const commandSep = ":"
@@ -35,6 +36,7 @@ type SubjectContext struct {
 type validationContext struct {
 	Subject        interface{}
 	KnownSetFields types.StringSet
+	OverrideField  string
 }
 
 type ValidationResult struct {
@@ -76,6 +78,7 @@ type RuleValidator struct {
 	RuleManager            *UnparsedRuleManager
 	stringBuilder          *stringValidatorBuilder
 	objectValidatorBuilder *objectValidatorBuilder
+	boolValidatorBuilder   *boolValidatorBuilder
 	DefaultErrorCode       string
 	Rules                  [][]string
 	ComponentFinder        ioc.ComponentByNameFinder
@@ -199,7 +202,7 @@ func (ov *RuleValidator) StartComponent() error {
 	ov.stringBuilder.componentFinder = ov.ComponentFinder
 
 	ov.objectValidatorBuilder = NewObjectValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
-
+	ov.boolValidatorBuilder = NewBoolValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 	ov.validatorChain = make([]*validatorLink, 0)
 
 	return ov.parseRules()
@@ -301,6 +304,8 @@ func (ov *RuleValidator) parseRule(field string, rule []string) error {
 		err = ov.parseAndAdd(field, rule, ov.stringBuilder.parseStringRule)
 	case ObjectRule:
 		err = ov.parseAndAdd(field, rule, ov.objectValidatorBuilder.parseRule)
+	case BoolRule:
+		err = ov.parseAndAdd(field, rule, ov.boolValidatorBuilder.parseRule)
 
 	default:
 		m := fmt.Sprintf("Unsupported rule type for field %s\n", field)
@@ -333,6 +338,8 @@ func (ov *RuleValidator) extractType(field string, rule []string) (ValidationRul
 			return StringRule, nil
 		case ObjectRuleCode:
 			return ObjectRule, nil
+		case BoolRuleCode:
+			return BoolRule, nil
 		}
 	}
 

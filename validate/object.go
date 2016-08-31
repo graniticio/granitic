@@ -157,7 +157,7 @@ func (vb *objectValidatorBuilder) parseRule(field string, rule []string) (Valida
 
 		switch op {
 		case ObjOpRequired:
-			vb.markRequired(field, ops, ov)
+			err = vb.markRequired(field, ops, ov)
 		case ObjOpStopAll:
 			ov.StopAll()
 		}

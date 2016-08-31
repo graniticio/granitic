@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestUnsetDetection(t *testing.T) {
+func TestUnsetObjDetection(t *testing.T) {
 
 	ob := NewObjectValidatorBuilder("DEF", nil)
 
@@ -45,7 +45,7 @@ func TestUnsetDetection(t *testing.T) {
 
 }
 
-func TestSetDetection(t *testing.T) {
+func TestSetObjDetection(t *testing.T) {
 
 	ob := NewObjectValidatorBuilder("DEF", nil)
 

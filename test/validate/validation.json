@@ -14,7 +14,8 @@
       ["SecurityPhrase",    "STR:SEC",      "REQ", "LEN:5-"],
       ["Profile",           "OBJ", "REQ"],
       ["Profile.Email",     "STR:EMAIL",    "REQ", "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:10-100"],
-      ["Profile.Website",   "STR:WEB",      "HARDTRIM", "REG:^http:://.*:WEB", "BREAK", "LEN:10-100"]
+      ["Profile.Website",   "STR:WEB",      "HARDTRIM", "REG:^http:://.*:WEB", "BREAK", "LEN:10-100"],
+      ["Profile.MarketTo",  "BOOL",      "REQ"]
     ]
   }
 
