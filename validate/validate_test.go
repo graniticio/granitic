@@ -122,6 +122,7 @@ type User struct {
 	Profile         *Profile
 	FailuresAllowed int8
 	Prefs           *Preferences
+	Salt            float64
 }
 
 type Profile struct {
@@ -178,7 +179,7 @@ type ExtFloatChecker struct {
 
 func (ec *ExtFloatChecker) ValidFloat64(f float64) bool {
 
-	return f == 64.2
+	return f == 64.21019
 }
 
 type CompFinder struct {

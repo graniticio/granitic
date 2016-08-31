@@ -10,6 +10,7 @@
       ["UserName",          "RULE:userName"],
       ["Role",              "STR:INVROLE",  "REQ", "IN:USER,ADMIN"],
       ["Password",          "STR:PASS",     "REQ", "EXT:Password", "STOPALL"],
+      ["Salt",              "FLOAT:SALT",   "REQ", "RANGE:|256.29871"],
       ["Hint",              "STR:HINT",     "HARDTRIM", "LEN:-50"],
       ["SecurityPhrase",    "STR:SEC",      "REQ", "LEN:5-"],
       ["FailuresAllowed",   "INT: LFAIL", "RANGE:0|3"],

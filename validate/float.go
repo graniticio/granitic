@@ -207,7 +207,8 @@ func (iv *FloatValidator) extractValue(v reflect.Value, f string) (*types.Nilabl
 	case *types.NilableFloat64:
 		return i, nil
 	case float32:
-		ex = float64(i)
+		sc := strconv.FormatFloat(float64(i), 'f', -1, 32)
+		ex, _ = strconv.ParseFloat(sc, 64)
 	case float64:
 		ex = i
 	default:
@@ -425,8 +426,8 @@ func (vb *floatValidatorBuilder) addFloatRangeOperation(field string, ops []stri
 		return errors.New(m)
 	}
 
-	var min int
-	var max int
+	var min float64
+	var max float64
 
 	checkMin := false
 	checkMax := false
@@ -434,7 +435,7 @@ func (vb *floatValidatorBuilder) addFloatRangeOperation(field string, ops []stri
 	groups := vb.rangeRegex.FindStringSubmatch(vals)
 
 	if groups[1] != "" {
-		min, err = strconv.Atoi(groups[1])
+		min, err = strconv.ParseFloat(groups[1], 64)
 
 		if err != nil {
 			m := fmt.Sprintf("Range parameters for field %s are invalid (cannot parse min as float64). Values provided: %s", field, vals)
@@ -445,7 +446,7 @@ func (vb *floatValidatorBuilder) addFloatRangeOperation(field string, ops []stri
 	}
 
 	if groups[2] != "" {
-		max, err = strconv.Atoi(groups[2])
+		max, err = strconv.ParseFloat(groups[2], 64)
 
 		if err != nil {
 			m := fmt.Sprintf("Range parameters for field %s are invalid (cannot parse max as float64). Values provided: %s", field, vals)

@@ -19,6 +19,7 @@ const (
 	ObjectRule
 	IntRule
 	BoolRule
+	FloatRule
 )
 
 const commandSep = ":"
@@ -84,6 +85,7 @@ type RuleValidator struct {
 	objectValidatorBuilder *objectValidatorBuilder
 	boolValidatorBuilder   *boolValidatorBuilder
 	intValidatorBuilder    *intValidatorBuilder
+	floatValidatorBuilder  *floatValidatorBuilder
 	DefaultErrorCode       string
 	Rules                  [][]string
 	ComponentFinder        ioc.ComponentByNameFinder
@@ -211,6 +213,7 @@ func (ov *RuleValidator) StartComponent() error {
 	ov.validatorChain = make([]*validatorLink, 0)
 
 	ov.intValidatorBuilder = NewIntValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
+	ov.floatValidatorBuilder = NewFloatValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 
 	return ov.parseRules()
 
@@ -315,6 +318,8 @@ func (ov *RuleValidator) parseRule(field string, rule []string) error {
 		err = ov.parseAndAdd(field, rule, ov.boolValidatorBuilder.parseRule)
 	case IntRule:
 		err = ov.parseAndAdd(field, rule, ov.intValidatorBuilder.parseRule)
+	case FloatRule:
+		err = ov.parseAndAdd(field, rule, ov.floatValidatorBuilder.parseRule)
 
 	default:
 		m := fmt.Sprintf("Unsupported rule type for field %s\n", field)
@@ -351,6 +356,8 @@ func (ov *RuleValidator) extractType(field string, rule []string) (ValidationRul
 			return BoolRule, nil
 		case IntRuleCode:
 			return IntRule, nil
+		case FloatRuleCode:
+			return FloatRule, nil
 		}
 	}
 

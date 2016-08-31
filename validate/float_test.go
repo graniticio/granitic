@@ -285,6 +285,43 @@ func TestFloatRequiredAndSetDetection(t *testing.T) {
 	test.ExpectBool(t, false, r.Unset)
 }
 
+func TestFloatExternal(t *testing.T) {
+	fvb := NewFloatValidatorBuilder("DEF", new(CompFinder))
+
+	_, err := fvb.parseRule("F32", []string{"EXT:extComp"})
+
+	test.ExpectNotNil(t, err)
+
+	_, err = fvb.parseRule("F32", []string{"EXT:unknown"})
+
+	test.ExpectNotNil(t, err)
+
+	iv, err := fvb.parseRule("F32", []string{"EXT:extFloat64Checker:EXTFAIL"})
+
+	test.ExpectNil(t, err)
+
+	sub := new(FloatsTarget)
+	sub.F32 = 12
+
+	vc := new(validationContext)
+	vc.Subject = sub
+
+	r, err := iv.Validate(vc)
+	c := r.ErrorCodes
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectString(t, c[0], "EXTFAIL")
+
+	sub.F32 = 64.21019
+	iv, err = fvb.parseRule("F32", []string{"EXT:extFloat64Checker:EXTFAIL"})
+	r, err = iv.Validate(vc)
+	c = r.ErrorCodes
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(c), 0)
+}
+
 type FloatsTarget struct {
 	F32 float32
 	F64 float64
