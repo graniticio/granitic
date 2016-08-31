@@ -340,7 +340,7 @@ func NewIntValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *intValidat
 	iv := new(intValidatorBuilder)
 	iv.componentFinder = cf
 	iv.defaultErrorCode = ec
-	iv.rangeRegex = regexp.MustCompile("^(\\d*)-(\\d*)$")
+	iv.rangeRegex = regexp.MustCompile("^([-+]{0,1}\\d*)\\|([-+]{0,1}\\d*)$")
 	return iv
 }
 
@@ -444,6 +444,11 @@ func (vb *intValidatorBuilder) addIntRangeOperation(field string, ops []string, 
 	if groups[2] != "" {
 		max, _ = strconv.Atoi(groups[2])
 		checkMax = true
+	}
+
+	if checkMin && checkMax && min > max {
+		m := fmt.Sprintf("Range parameters for field %s are invalid (min value greater than max). Values provided: %s", field, vals)
+		return errors.New(m)
 	}
 
 	if pCount == 2 {

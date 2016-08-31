@@ -198,7 +198,7 @@ func (pb *ParamBinder) setNilableField(paramName string, fieldName string, p *Ws
 			nv = types.NewNilableInt64(np.I)
 		}
 
-	case *types.NillableFloat64:
+	case *types.NilableFloat64:
 		if p.NotEmpty(paramName) {
 			e = pb.setFloatNField(paramName, "F", p, np, 64, errorFn)
 			nv = types.NewNilableFloat64(np.F)

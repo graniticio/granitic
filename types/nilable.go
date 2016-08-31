@@ -158,16 +158,16 @@ func NewNilableInt64(i int64) *NilableInt64 {
 	return ni
 }
 
-type NillableFloat64 struct {
+type NilableFloat64 struct {
 	val float64
 	set bool
 }
 
-func (nb *NillableFloat64) IsSet() bool {
+func (nb *NilableFloat64) IsSet() bool {
 	return nb.set
 }
 
-func (nf *NillableFloat64) MarshalJSON() ([]byte, error) {
+func (nf *NilableFloat64) MarshalJSON() ([]byte, error) {
 
 	if nf.set {
 		return json.Marshal(nf.val)
@@ -177,7 +177,7 @@ func (nf *NillableFloat64) MarshalJSON() ([]byte, error) {
 
 }
 
-func (nf *NillableFloat64) UnmarshalJSON(b []byte) error {
+func (nf *NilableFloat64) UnmarshalJSON(b []byte) error {
 	s := string(b)
 	v, err := strconv.ParseFloat(s, 64)
 
@@ -193,17 +193,17 @@ func (nf *NillableFloat64) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (nf *NillableFloat64) Set(v float64) {
+func (nf *NilableFloat64) Set(v float64) {
 	nf.val = v
 	nf.set = true
 }
 
-func (ni *NillableFloat64) Float64() float64 {
+func (ni *NilableFloat64) Float64() float64 {
 	return ni.val
 }
 
-func NewNilableFloat64(f float64) *NillableFloat64 {
-	nf := new(NillableFloat64)
+func NewNilableFloat64(f float64) *NilableFloat64 {
+	nf := new(NilableFloat64)
 	nf.Set(f)
 
 	return nf

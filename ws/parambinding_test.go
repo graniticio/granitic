@@ -352,7 +352,7 @@ type BindingTarget struct {
 	B   bool
 	NS  *types.NilableString
 	NI  *types.NilableInt64
-	NF  *types.NillableFloat64
+	NF  *types.NilableFloat64
 	NB  *types.NilableBool
 }
 

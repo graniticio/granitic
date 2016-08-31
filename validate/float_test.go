@@ -120,7 +120,7 @@ func TestFloatRange(t *testing.T) {
 	vc := new(validationContext)
 	vc.Subject = sub
 
-	bv, err := iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:1-5"})
+	bv, err := iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:1|5"})
 	test.ExpectNil(t, err)
 
 	r, err := bv.Validate(vc)
@@ -161,7 +161,7 @@ func TestFloatRange(t *testing.T) {
 
 	test.ExpectInt(t, len(c), 1)
 
-	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:-5"})
+	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:|5"})
 	sub.F32 = -20
 
 	r, err = bv.Validate(vc)
@@ -186,7 +186,7 @@ func TestFloatRange(t *testing.T) {
 
 	test.ExpectInt(t, len(c), 1)
 
-	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:5-"})
+	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:5|"})
 	sub.F32 = -20
 
 	r, err = bv.Validate(vc)
@@ -211,11 +211,83 @@ func TestFloatRange(t *testing.T) {
 
 	test.ExpectInt(t, len(c), 0)
 
+	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:@5|1"})
+	test.ExpectNotNil(t, err)
+
+	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:5|k1"})
+	test.ExpectNotNil(t, err)
+
+	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:5|1"})
+	test.ExpectNotNil(t, err)
+
+}
+
+func TestFloatRequiredAndSetDetection(t *testing.T) {
+
+	iv := NewFloatValidatorBuilder("DEF", nil)
+
+	sub := new(FloatsTarget)
+
+	sub.F32 = 1
+	sub.F64 = 0
+
+	vc := new(validationContext)
+	vc.Subject = sub
+
+	bv, err := iv.parseRule("F32", []string{"REQ:MISSING"})
+	test.ExpectNil(t, err)
+
+	r, err := bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c := r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+	test.ExpectBool(t, false, r.Unset)
+
+	bv, err = iv.parseRule("F64", []string{"REQ:MISSING"})
+	test.ExpectNil(t, err)
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+	test.ExpectBool(t, false, r.Unset)
+
+	bv, err = iv.parseRule("NF", []string{"REQ:MISSING"})
+	test.ExpectNil(t, err)
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectBool(t, true, r.Unset)
+	test.ExpectString(t, c[0], "MISSING")
+
+	sub.NF = new(types.NilableFloat64)
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectBool(t, true, r.Unset)
+	test.ExpectString(t, c[0], "MISSING")
+
+	sub.NF = types.NewNilableFloat64(0)
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+	test.ExpectBool(t, false, r.Unset)
 }
 
 type FloatsTarget struct {
 	F32 float32
 	F64 float64
-	NF  *types.NillableFloat64
+	NF  *types.NilableFloat64
 	S   string
 }

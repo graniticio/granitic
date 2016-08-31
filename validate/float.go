@@ -16,7 +16,7 @@ type ExternalFloat64Validator interface {
 	ValidFloat64(float64) bool
 }
 
-const FloatRuleCode = "INT"
+const FloatRuleCode = "FLOAT"
 
 const (
 	FloatOpIsRequiredCode = commonOpRequired
@@ -195,7 +195,7 @@ func (iv *FloatValidator) addOperation(o *floatOperation) {
 	iv.codesInUse.Add(o.ErrCode)
 }
 
-func (iv *FloatValidator) extractValue(v reflect.Value, f string) (*types.NillableFloat64, error) {
+func (iv *FloatValidator) extractValue(v reflect.Value, f string) (*types.NilableFloat64, error) {
 
 	if rt.NilPointer(v) {
 		return nil, nil
@@ -204,7 +204,7 @@ func (iv *FloatValidator) extractValue(v reflect.Value, f string) (*types.Nillab
 	var ex float64
 
 	switch i := v.Interface().(type) {
-	case *types.NillableFloat64:
+	case *types.NilableFloat64:
 		return i, nil
 	case float32:
 		ex = float64(i)
@@ -337,7 +337,7 @@ func NewFloatValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *floatVal
 	iv := new(floatValidatorBuilder)
 	iv.componentFinder = cf
 	iv.defaultErrorCode = ec
-	iv.rangeRegex = regexp.MustCompile("^(\\d*)-(\\d*)$")
+	iv.rangeRegex = regexp.MustCompile("^(.*)\\|(.*)$")
 	return iv
 }
 
@@ -434,13 +434,30 @@ func (vb *floatValidatorBuilder) addFloatRangeOperation(field string, ops []stri
 	groups := vb.rangeRegex.FindStringSubmatch(vals)
 
 	if groups[1] != "" {
-		min, _ = strconv.Atoi(groups[1])
+		min, err = strconv.Atoi(groups[1])
+
+		if err != nil {
+			m := fmt.Sprintf("Range parameters for field %s are invalid (cannot parse min as float64). Values provided: %s", field, vals)
+			return errors.New(m)
+		}
+
 		checkMin = true
 	}
 
 	if groups[2] != "" {
-		max, _ = strconv.Atoi(groups[2])
+		max, err = strconv.Atoi(groups[2])
+
+		if err != nil {
+			m := fmt.Sprintf("Range parameters for field %s are invalid (cannot parse max as float64). Values provided: %s", field, vals)
+			return errors.New(m)
+		}
+
 		checkMax = true
+	}
+
+	if checkMin && checkMax && min > max {
+		m := fmt.Sprintf("Range parameters for field %s are invalid (minimum greater than maximum). Values provided: %s", field, vals)
+		return errors.New(m)
 	}
 
 	if pCount == 2 {

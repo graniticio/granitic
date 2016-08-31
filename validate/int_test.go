@@ -120,7 +120,7 @@ func TestIntRange(t *testing.T) {
 	vc := new(validationContext)
 	vc.Subject = sub
 
-	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "RANGE:1-5"})
+	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "RANGE:1|5"})
 	test.ExpectNil(t, err)
 
 	r, err := bv.Validate(vc)
@@ -161,7 +161,8 @@ func TestIntRange(t *testing.T) {
 
 	test.ExpectInt(t, len(c), 1)
 
-	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:-5"})
+	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:|+5"})
+	test.ExpectNil(t, err)
 	sub.I = -20
 
 	r, err = bv.Validate(vc)
@@ -186,7 +187,8 @@ func TestIntRange(t *testing.T) {
 
 	test.ExpectInt(t, len(c), 1)
 
-	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:5-"})
+	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:5|"})
+	test.ExpectNil(t, err)
 	sub.I = -20
 
 	r, err = bv.Validate(vc)
@@ -210,6 +212,27 @@ func TestIntRange(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectInt(t, len(c), 0)
+
+	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:-10|-1"})
+	test.ExpectNil(t, err)
+	sub.I = -20
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+
+	sub.I = -1
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:-1|-10"})
+	test.ExpectNotNil(t, err)
 
 }
 
