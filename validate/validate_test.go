@@ -95,9 +95,10 @@ func validatorAndUser(t *testing.T) (*RuleValidator, *User) {
 func validUser() *User {
 	u := new(User)
 	p := new(Profile)
+	pr := new(Preferences)
 
 	u.Profile = p
-
+	u.FailuresAllowed = 1
 	u.UserName = "Valid User"
 	u.Role = types.NewNilableString("ADMIN")
 	u.Password = "sadas*dasd1"
@@ -106,23 +107,31 @@ func validUser() *User {
 	p.Email = "email@example.com"
 	p.Website = types.NewNilableString("  http://www.example.com ")
 	p.MarketTo = types.NewNilableBool(true)
+	u.Prefs = pr
+	pr.ResultsPer = types.NewNilableInt64(10)
 
 	return u
 }
 
 type User struct {
-	UserName       string
-	Role           *types.NilableString
-	Password       string
-	Hint           string
-	SecurityPhrase string
-	Profile        *Profile
+	UserName        string
+	Role            *types.NilableString
+	Password        string
+	Hint            string
+	SecurityPhrase  string
+	Profile         *Profile
+	FailuresAllowed int8
+	Prefs           *Preferences
 }
 
 type Profile struct {
 	Email    string
 	Website  *types.NilableString
 	MarketTo *types.NilableBool
+}
+
+type Preferences struct {
+	ResultsPer *types.NilableInt64
 }
 
 type TestComponentFinder struct {

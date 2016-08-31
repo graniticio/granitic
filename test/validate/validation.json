@@ -12,10 +12,13 @@
       ["Password",          "STR:PASS",     "REQ", "EXT:Password", "STOPALL"],
       ["Hint",              "STR:HINT",     "HARDTRIM", "LEN:-50"],
       ["SecurityPhrase",    "STR:SEC",      "REQ", "LEN:5-"],
+      ["FailuresAllowed",   "INT: LFAIL", "RANGE:0-3"],
       ["Profile",           "OBJ", "REQ"],
       ["Profile.Email",     "STR:EMAIL",    "REQ", "HARDTRIM", "REG:.*@.*", "BREAK", "LEN:10-100"],
       ["Profile.Website",   "STR:WEB",      "HARDTRIM", "REG:^http:://.*:WEB", "BREAK", "LEN:10-100"],
-      ["Profile.MarketTo",  "BOOL",      "REQ"]
+      ["Profile.MarketTo",  "BOOL",      "REQ"],
+      ["Prefs",             "OBJ"],
+      ["Prefs.ResultsPer",  "INT",      "IN:10,20,50"]
     ]
   }
 

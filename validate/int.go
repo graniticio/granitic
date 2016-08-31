@@ -7,6 +7,7 @@ import (
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -23,6 +24,7 @@ const (
 	IntOpInCode         = commonOpIn
 	IntOpBreakCode      = commonOpBreak
 	IntOpExtCode        = commonOpExt
+	IntOpRangeCode      = "RANGE"
 )
 
 type intValidationOperation uint
@@ -34,6 +36,7 @@ const (
 	IntOpIn
 	IntOpBreak
 	IntOpExt
+	IntOpRange
 )
 
 func NewIntValidator(field, defaultErrorCode string) *IntValidator {
@@ -58,6 +61,10 @@ type IntValidator struct {
 	missingRequiredCode string
 	required            bool
 	operations          []*intOperation
+	checkMin            bool
+	checkMax            bool
+	minAllowed          int64
+	maxAllowed          int64
 }
 
 type intOperation struct {
@@ -119,16 +126,22 @@ OpLoop:
 			if !iv.checkIn(i, op) {
 				ec.Add(op.ErrCode)
 			}
-		case IntOpBreak:
 
+		case IntOpBreak:
 			if ec.Size() > 0 {
 				break OpLoop
 			}
-		case IntOpExt:
 
+		case IntOpExt:
 			if !op.External.ValidInt64(i) {
 				ec.Add(op.ErrCode)
 			}
+
+		case IntOpRange:
+			if !iv.inRange(i, op) {
+				ec.Add(op.ErrCode)
+			}
+
 		}
 
 	}
@@ -138,6 +151,22 @@ OpLoop:
 
 	return r, nil
 
+}
+
+func (iv *IntValidator) inRange(i int64, o *intOperation) bool {
+
+	moreThanMin := true
+	lessThanMax := true
+
+	if iv.checkMin {
+		moreThanMin = i >= iv.minAllowed
+	}
+
+	if iv.checkMax {
+		lessThanMax = i <= iv.maxAllowed
+	}
+
+	return moreThanMin && lessThanMax
 }
 
 func (iv *IntValidator) checkIn(i int64, o *intOperation) bool {
@@ -221,6 +250,24 @@ func (iv *IntValidator) Required(code ...string) *IntValidator {
 	return iv
 }
 
+func (iv *IntValidator) Range(checkMin, checkMax bool, min, max int64, code ...string) *IntValidator {
+
+	iv.checkMin = checkMin
+	iv.checkMax = checkMax
+	iv.minAllowed = min
+	iv.maxAllowed = max
+
+	ec := iv.chooseErrorCode(code)
+
+	o := new(intOperation)
+	o.OpType = IntOpRange
+	o.ErrCode = ec
+
+	iv.addOperation(o)
+
+	return iv
+}
+
 func (iv *IntValidator) In(set []string, code ...string) *IntValidator {
 
 	ss := types.NewUnorderedStringSet(set)
@@ -274,6 +321,8 @@ func (iv *IntValidator) Operation(c string) (boolValidationOperation, error) {
 		return IntOpBreak, nil
 	case IntOpExtCode:
 		return IntOpExt, nil
+	case IntOpRangeCode:
+		return IntOpRange, nil
 	}
 
 	m := fmt.Sprintf("Unsupported int validation operation %s", c)
@@ -285,13 +334,14 @@ func NewIntValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *intValidat
 	iv := new(intValidatorBuilder)
 	iv.componentFinder = cf
 	iv.defaultErrorCode = ec
-
+	iv.rangeRegex = regexp.MustCompile("^(\\d*)-(\\d*)$")
 	return iv
 }
 
 type intValidatorBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
+	rangeRegex       *regexp.Regexp
 }
 
 func (vb *intValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
@@ -325,6 +375,8 @@ func (vb *intValidatorBuilder) parseRule(field string, rule []string) (Validator
 			bv.Break()
 		case IntOpExt:
 			err = vb.addIntExternalOperation(field, ops, bv)
+		case IntOpRange:
+			err = vb.addIntRangeOperation(field, ops, bv)
 		}
 
 		if err != nil {
@@ -350,6 +402,48 @@ func (vb *intValidatorBuilder) markRequired(field string, ops []string, iv *IntV
 		iv.Required()
 	} else {
 		iv.Required(ops[1])
+	}
+
+	return nil
+}
+
+func (vb *intValidatorBuilder) addIntRangeOperation(field string, ops []string, iv *IntValidator) error {
+
+	pCount, err := paramCount(ops, "Range", field, 2, 3)
+
+	if err != nil {
+		return err
+	}
+
+	vals := ops[1]
+
+	if !vb.rangeRegex.MatchString(vals) {
+		m := fmt.Sprintf("Range parameters for field %s are invalid. Values provided: %s", field, vals)
+		return errors.New(m)
+	}
+
+	var min int
+	var max int
+
+	checkMin := false
+	checkMax := false
+
+	groups := vb.rangeRegex.FindStringSubmatch(vals)
+
+	if groups[1] != "" {
+		min, _ = strconv.Atoi(groups[1])
+		checkMin = true
+	}
+
+	if groups[2] != "" {
+		max, _ = strconv.Atoi(groups[2])
+		checkMax = true
+	}
+
+	if pCount == 2 {
+		iv.Range(checkMin, checkMax, int64(min), int64(max))
+	} else {
+		iv.Range(checkMin, checkMax, int64(min), int64(max), ops[2])
 	}
 
 	return nil

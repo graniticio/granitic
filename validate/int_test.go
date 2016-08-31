@@ -78,11 +78,11 @@ func TestIntInSet(t *testing.T) {
 
 func TestIntBreakOnError(t *testing.T) {
 
-	iv := NewIntValidatorBuilder("DEF", nil)
+	iv := NewIntValidatorBuilder("DEF", new(CompFinder))
 
 	sub := new(IntsTarget)
 
-	sub.I = 1
+	sub.I = 3
 	sub.I8 = 0
 
 	vc := new(validationContext)
@@ -96,6 +96,121 @@ func TestIntBreakOnError(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectInt(t, len(c), 0)
+
+	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "IN:1,2:NOTIN", "BREAK", "EXT:extInt64Checker:EXTFAIL"})
+	test.ExpectNil(t, err)
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+
+	test.ExpectString(t, c[0], "NOTIN")
+}
+
+func TestIntRange(t *testing.T) {
+
+	iv := NewIntValidatorBuilder("DEF", nil)
+
+	sub := new(IntsTarget)
+
+	sub.I = 3
+
+	vc := new(validationContext)
+	vc.Subject = sub
+
+	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "RANGE:1-5"})
+	test.ExpectNil(t, err)
+
+	r, err := bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c := r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	sub.I = 1
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	sub.I = 5
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	sub.I = -1
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+
+	sub.I = 6
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+
+	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:-5"})
+	sub.I = -20
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	sub.I = 5
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	sub.I = 6
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+
+	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:5-"})
+	sub.I = -20
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+
+	sub.I = 5
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	sub.I = 6
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
 }
 
 func TestIntRequiredAndSetDetection(t *testing.T) {
