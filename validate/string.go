@@ -20,7 +20,7 @@ const (
 	stringOpTrimCode     = "TRIM"
 	stringOpHardTrimCode = "HARDTRIM"
 	stringOpLenCode      = "LEN"
-	stringOpInCode       = "IN"
+	stringOpInCode       = commonOpIn
 	stringOpExtCode      = "EXT"
 	stringOpRequiredCode = commonOpRequired
 	stringOpBreakCode    = "BREAK"

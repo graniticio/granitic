@@ -27,6 +27,7 @@ const RuleRefCode = "RULE"
 
 const commonOpRequired = "REQ"
 const commonOpStopAll = "STOPALL"
+const commonOpIn = "IN"
 
 type SubjectContext struct {
 	Subject        interface{}

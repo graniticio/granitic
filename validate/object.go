@@ -30,6 +30,8 @@ func NewObjectValidator(field, defaultErrorCode string) *ObjectValidator {
 	ov.codesInUse = types.NewOrderedStringSet([]string{})
 	ov.dependsFields = determinePathFields(field)
 
+	ov.codesInUse.Add(ov.defaultErrorCode)
+
 	return ov
 }
 
@@ -105,6 +107,8 @@ func (ov *ObjectValidator) Required(code ...string) *ObjectValidator {
 	} else {
 		ov.missingRequiredCode = ov.defaultErrorCode
 	}
+
+	ov.codesInUse.Add(ov.missingRequiredCode)
 
 	return ov
 }

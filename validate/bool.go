@@ -34,6 +34,8 @@ func NewBoolValidator(field, defaultErrorCode string) *boolValidator {
 	ov.codesInUse = types.NewOrderedStringSet([]string{})
 	ov.dependsFields = determinePathFields(field)
 
+	ov.codesInUse.Add(ov.defaultErrorCode)
+
 	return ov
 }
 
@@ -153,6 +155,8 @@ func (ov *boolValidator) Required(code ...string) *boolValidator {
 	} else {
 		ov.missingRequiredCode = ov.defaultErrorCode
 	}
+
+	ov.codesInUse.Add(ov.missingRequiredCode)
 
 	return ov
 }

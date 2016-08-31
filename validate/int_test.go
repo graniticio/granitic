@@ -38,6 +38,44 @@ func TestIntTypeSupportDetection(t *testing.T) {
 	test.ExpectNotNil(t, err)
 }
 
+func TestIntInSet(t *testing.T) {
+
+	iv := NewIntValidatorBuilder("DEF", nil)
+
+	sub := new(IntsTarget)
+
+	sub.I = 1
+	sub.I8 = 0
+
+	vc := new(validationContext)
+	vc.Subject = sub
+
+	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "IN:1,2,3,4,X"})
+	test.ExpectNotNil(t, err)
+
+	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "IN:1,2,3,4.2"})
+	test.ExpectNotNil(t, err)
+
+	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "IN:1,2,3,4:NOT_IN"})
+	test.ExpectNil(t, err)
+
+	r, err := bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c := r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	sub.I = 0
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectString(t, c[0], "NOT_IN")
+
+}
+
 func TestIntRequiredAndSetDetection(t *testing.T) {
 
 	iv := NewIntValidatorBuilder("DEF", nil)

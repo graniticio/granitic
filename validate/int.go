@@ -7,6 +7,8 @@ import (
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 const IntRuleCode = "INT"
@@ -14,6 +16,7 @@ const IntRuleCode = "INT"
 const (
 	IntOpIsRequiredCode = commonOpRequired
 	IntOpIsStopAllCode  = commonOpStopAll
+	IntOpInCode         = commonOpIn
 )
 
 type intValidationOperation uint
@@ -22,19 +25,23 @@ const (
 	IntOpUnsupported = iota
 	IntOpRequired
 	IntOpStopAll
+	IntOpIn
 )
 
-func NewIntValidator(field, defaultErrorCode string) *intValidator {
-	iv := new(intValidator)
+func NewIntValidator(field, defaultErrorCode string) *IntValidator {
+	iv := new(IntValidator)
 	iv.defaultErrorCode = defaultErrorCode
 	iv.field = field
 	iv.codesInUse = types.NewOrderedStringSet([]string{})
 	iv.dependsFields = determinePathFields(field)
+	iv.operations = make([]*intOperation, 0)
+
+	iv.codesInUse.Add(iv.defaultErrorCode)
 
 	return iv
 }
 
-type intValidator struct {
+type IntValidator struct {
 	stopAll             bool
 	codesInUse          types.StringSet
 	dependsFields       types.StringSet
@@ -42,14 +49,16 @@ type intValidator struct {
 	field               string
 	missingRequiredCode string
 	required            bool
+	operations          []*intOperation
 }
 
-type IntOpIseration struct {
+type intOperation struct {
 	OpType  intValidationOperation
 	ErrCode string
+	InSet   types.StringSet
 }
 
-func (iv *intValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
+func (iv *IntValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
 	f := iv.field
 
@@ -85,10 +94,43 @@ func (iv *intValidator) Validate(vc *validationContext) (result *ValidationResul
 
 	}
 
-	return r, nil
+	return iv.runOperations(value.Int64())
 }
 
-func (iv *intValidator) extractValue(v reflect.Value, f string) (*types.NilableInt64, error) {
+func (iv *IntValidator) runOperations(i int64) (*ValidationResult, error) {
+
+	ec := new(types.OrderedStringSet)
+
+	for _, op := range iv.operations {
+
+		switch op.OpType {
+		case IntOpIn:
+			if !iv.checkIn(i, op) {
+				ec.Add(op.ErrCode)
+			}
+		}
+
+	}
+
+	r := new(ValidationResult)
+	r.ErrorCodes = ec.Contents()
+
+	return r, nil
+
+}
+
+func (iv *IntValidator) checkIn(i int64, o *intOperation) bool {
+	s := strconv.FormatInt(i, 10)
+
+	return o.InSet.Contains(s)
+}
+
+func (iv *IntValidator) addOperation(o *intOperation) {
+	iv.operations = append(iv.operations, o)
+	iv.codesInUse.Add(o.ErrCode)
+}
+
+func (iv *IntValidator) extractValue(v reflect.Value, f string) (*types.NilableInt64, error) {
 
 	if rt.NilPointer(v) {
 		return nil, nil
@@ -119,45 +161,70 @@ func (iv *intValidator) extractValue(v reflect.Value, f string) (*types.NilableI
 
 }
 
-func (iv *intValidator) StopAllOnFail() bool {
+func (iv *IntValidator) StopAllOnFail() bool {
 	return iv.stopAll
 }
 
-func (iv *intValidator) CodesInUse() types.StringSet {
+func (iv *IntValidator) CodesInUse() types.StringSet {
 	return iv.codesInUse
 }
 
-func (iv *intValidator) DependsOnFields() types.StringSet {
+func (iv *IntValidator) DependsOnFields() types.StringSet {
 
 	return iv.dependsFields
 }
 
-func (iv *intValidator) StopAll() *intValidator {
+func (iv *IntValidator) StopAll() *IntValidator {
 
 	iv.stopAll = true
 
 	return iv
 }
 
-func (iv *intValidator) Required(code ...string) *intValidator {
+func (iv *IntValidator) Required(code ...string) *IntValidator {
 
 	iv.required = true
-
-	if code != nil {
-		iv.missingRequiredCode = code[0]
-	} else {
-		iv.missingRequiredCode = iv.defaultErrorCode
-	}
+	iv.missingRequiredCode = iv.chooseErrorCode(code)
 
 	return iv
 }
 
-func (iv *intValidator) Operation(c string) (boolValidationOperation, error) {
+func (iv *IntValidator) In(set []string, code ...string) *IntValidator {
+
+	ss := types.NewUnorderedStringSet(set)
+
+	ec := iv.chooseErrorCode(code)
+
+	o := new(intOperation)
+	o.OpType = IntOpIn
+	o.ErrCode = ec
+	o.InSet = ss
+
+	iv.addOperation(o)
+
+	return iv
+
+}
+
+func (iv *IntValidator) chooseErrorCode(v []string) string {
+
+	if len(v) > 0 {
+		iv.codesInUse.Add(v[0])
+		return v[0]
+	} else {
+		return iv.defaultErrorCode
+	}
+
+}
+
+func (iv *IntValidator) Operation(c string) (boolValidationOperation, error) {
 	switch c {
 	case IntOpIsRequiredCode:
 		return IntOpRequired, nil
 	case IntOpIsStopAllCode:
 		return IntOpStopAll, nil
+	case IntOpInCode:
+		return IntOpIn, nil
 	}
 
 	m := fmt.Sprintf("Unsupported int validation operation %s", c)
@@ -201,6 +268,8 @@ func (vb *intValidatorBuilder) parseRule(field string, rule []string) (Validator
 		switch op {
 		case IntOpRequired:
 			err = vb.markRequired(field, ops, bv)
+		case IntOpIn:
+			err = vb.addIntInOperation(field, ops, bv)
 		case IntOpStopAll:
 			bv.StopAll()
 		}
@@ -216,7 +285,7 @@ func (vb *intValidatorBuilder) parseRule(field string, rule []string) (Validator
 
 }
 
-func (vb *intValidatorBuilder) markRequired(field string, ops []string, iv *intValidator) error {
+func (vb *intValidatorBuilder) markRequired(field string, ops []string, iv *IntValidator) error {
 
 	pCount, err := paramCount(ops, "Required", field, 1, 2)
 
@@ -231,4 +300,35 @@ func (vb *intValidatorBuilder) markRequired(field string, ops []string, iv *intV
 	}
 
 	return nil
+}
+
+func (vb *intValidatorBuilder) addIntInOperation(field string, ops []string, sv *IntValidator) error {
+
+	pCount, err := paramCount(ops, "In Set", field, 2, 3)
+
+	if err != nil {
+		return err
+	}
+
+	members := strings.SplitN(ops[1], setMemberSep, -1)
+
+	for _, m := range members {
+
+		_, err := strconv.ParseInt(m, 10, 64)
+
+		if err != nil {
+			m := fmt.Sprintf("%s defined as a valid value when validating field %s cannot be parsed as an int64")
+			return errors.New(m)
+		}
+
+	}
+
+	if pCount == 2 {
+		sv.In(members)
+	} else {
+		sv.In(members, ops[2])
+	}
+
+	return nil
+
 }
