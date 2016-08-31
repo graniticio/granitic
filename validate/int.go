@@ -87,7 +87,13 @@ func (iv *IntValidator) Validate(vc *validationContext) (result *ValidationResul
 	fv, err := rt.FindNestedField(rt.ExtractDotPath(f), sub)
 
 	if err != nil {
-		return nil, err
+		m := fmt.Sprintf("Problem trying to find value of %s: %s\n", f, err)
+		return nil, errors.New(m)
+	}
+
+	if !fv.IsValid() {
+		m := fmt.Sprintf("Field %s is not a usable type\n", f)
+		return nil, errors.New(m)
 	}
 
 	r := new(ValidationResult)
@@ -489,7 +495,7 @@ func (vb *intValidatorBuilder) addIntInOperation(field string, ops []string, sv 
 		_, err := strconv.ParseInt(m, 10, 64)
 
 		if err != nil {
-			m := fmt.Sprintf("%s defined as a valid value when validating field %s cannot be parsed as an int64")
+			m := fmt.Sprintf("%s defined as a valid value when validating field %s cannot be parsed as an int64", m, field)
 			return errors.New(m)
 		}
 
