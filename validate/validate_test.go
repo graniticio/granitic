@@ -173,6 +173,14 @@ func (ec *ExtIntChecker) ValidInt64(i int64) bool {
 	return i == 64
 }
 
+type ExtFloatChecker struct {
+}
+
+func (ec *ExtFloatChecker) ValidFloat64(f float64) bool {
+
+	return f == 64.2
+}
+
 type CompFinder struct {
 }
 
@@ -182,6 +190,8 @@ func (cf *CompFinder) ComponentByName(n string) *ioc.Component {
 		return ioc.NewComponent(n, new(ExtStringChecker))
 	} else if n == "extInt64Checker" {
 		return ioc.NewComponent(n, new(ExtIntChecker))
+	} else if n == "extFloat64Checker" {
+		return ioc.NewComponent(n, new(ExtFloatChecker))
 	} else {
 		return ioc.NewComponent(n, new(types.NilableString))
 	}
