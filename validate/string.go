@@ -21,9 +21,9 @@ const (
 	stringOpHardTrimCode = "HARDTRIM"
 	stringOpLenCode      = "LEN"
 	stringOpInCode       = commonOpIn
-	stringOpExtCode      = "EXT"
+	stringOpExtCode      = commonOpExt
 	stringOpRequiredCode = commonOpRequired
-	stringOpBreakCode    = "BREAK"
+	stringOpBreakCode    = commonOpBreak
 	stringOpRegCode      = "REG"
 	stringOpStopAllCode  = commonOpStopAll
 )
@@ -408,6 +408,7 @@ func (sv *StringValidator) Operation(c string) (StringValidationOperation, error
 func (sv *StringValidator) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
+		sv.codesInUse.Add(v[0])
 		return v[0]
 	} else {
 		return sv.defaultErrorCode
@@ -547,31 +548,16 @@ func (vb *stringValidatorBuilder) addStringRegexOperation(field string, ops []st
 
 func (vb *stringValidatorBuilder) addStringExternalOperation(field string, ops []string, sv *StringValidator) error {
 
-	cf := vb.componentFinder
-
-	if cf == nil {
-		m := fmt.Sprintf("Field %s relies on an external component to validate, but no ioc.ComponentByNameFinder is available.", field)
-		return errors.New(m)
-	}
-
-	pCount, err := paramCount(ops, "External", field, 2, 3)
+	pCount, i, err := validateExternalOperation(vb.componentFinder, field, ops)
 
 	if err != nil {
 		return err
 	}
 
-	ref := ops[1]
-	component := cf.ComponentByName(ref)
-
-	if component == nil {
-		m := fmt.Sprintf("No external component named %s available to validate field %s", ref, field)
-		return errors.New(m)
-	}
-
-	ev, found := component.Instance.(ExternalStringValidator)
+	ev, found := i.Instance.(ExternalStringValidator)
 
 	if !found {
-		m := fmt.Sprintf("Component %s to validate field %s does not implement ExternalStringValidator", ref, field)
+		m := fmt.Sprintf("Component %s to validate field %s does not implement ExternalStringValidator", i.Name, field)
 		return errors.New(m)
 	}
 

@@ -76,6 +76,28 @@ func TestIntInSet(t *testing.T) {
 
 }
 
+func TestIntBreakOnError(t *testing.T) {
+
+	iv := NewIntValidatorBuilder("DEF", nil)
+
+	sub := new(IntsTarget)
+
+	sub.I = 1
+	sub.I8 = 0
+
+	vc := new(validationContext)
+	vc.Subject = sub
+
+	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "BREAK"})
+	test.ExpectNil(t, err)
+
+	r, err := bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c := r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+}
+
 func TestIntRequiredAndSetDetection(t *testing.T) {
 
 	iv := NewIntValidatorBuilder("DEF", nil)

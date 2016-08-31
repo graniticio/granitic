@@ -28,6 +28,8 @@ const RuleRefCode = "RULE"
 const commonOpRequired = "REQ"
 const commonOpStopAll = "STOPALL"
 const commonOpIn = "IN"
+const commonOpBreak = "BREAK"
+const commonOpExt = "EXT"
 
 type SubjectContext struct {
 	Subject        interface{}
@@ -405,4 +407,28 @@ func determinePathFields(path string) types.StringSet {
 	}
 
 	return set
+}
+
+func validateExternalOperation(cf ioc.ComponentByNameFinder, field string, ops []string) (int, *ioc.Component, error) {
+
+	if cf == nil {
+		m := fmt.Sprintf("Field %s relies on an external component to validate, but no ioc.ComponentByNameFinder is available.", field)
+		return 0, nil, errors.New(m)
+	}
+
+	pCount, err := paramCount(ops, "External", field, 2, 3)
+
+	if err != nil {
+		return pCount, nil, err
+	}
+
+	ref := ops[1]
+	component := cf.ComponentByName(ref)
+
+	if component == nil {
+		m := fmt.Sprintf("No external component named %s available to validate field %s", ref, field)
+		return 0, nil, errors.New(m)
+	}
+
+	return pCount, component, nil
 }
