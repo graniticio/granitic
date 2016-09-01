@@ -6,7 +6,6 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -74,6 +73,21 @@ type floatOperation struct {
 	External ExternalFloat64Validator
 }
 
+func (iv *FloatValidator) IsSet(field string, subject interface{}) (bool, error) {
+
+	nf, err := iv.extractValue(field, subject)
+
+	if err != nil {
+		return false, err
+	}
+
+	if nf == nil || !nf.IsSet() {
+		return false, nil
+	} else {
+		return true, nil
+	}
+}
+
 func (iv *FloatValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
 	f := iv.field
@@ -84,28 +98,13 @@ func (iv *FloatValidator) Validate(vc *validationContext) (result *ValidationRes
 
 	sub := vc.Subject
 
-	fv, err := rt.FindNestedField(rt.ExtractDotPath(f), sub)
-
-	if err != nil {
-		m := fmt.Sprintf("Problem trying to find value of %s: %s\n", f, err)
-		return nil, errors.New(m)
-	}
-
-	if !fv.IsValid() {
-		m := fmt.Sprintf("Field %s is not a usable type\n", f)
-		return nil, errors.New(m)
-	}
-
 	r := new(ValidationResult)
 
-	value, err := iv.extractValue(fv, f)
+	set, err := iv.IsSet(f, sub)
 
 	if err != nil {
 		return nil, err
-	}
-
-	if value == nil || !value.IsSet() {
-
+	} else if !set {
 		r.Unset = true
 
 		if iv.required {
@@ -117,7 +116,48 @@ func (iv *FloatValidator) Validate(vc *validationContext) (result *ValidationRes
 		return r, nil
 	}
 
+	//Ignoring error as called previously during IsSet
+	value, _ := iv.extractValue(f, sub)
+
 	return iv.runOperations(value.Float64())
+}
+
+func (iv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableFloat64, error) {
+
+	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
+
+	if err != nil {
+		m := fmt.Sprintf("Problem trying to find value of %s: %s\n", f, err)
+		return nil, errors.New(m)
+	}
+
+	if !v.IsValid() {
+		m := fmt.Sprintf("Field %s is not a usable type\n", f)
+		return nil, errors.New(m)
+	}
+
+	if rt.NilPointer(v) {
+		return nil, nil
+	}
+
+	var ex float64
+
+	switch i := v.Interface().(type) {
+	case *types.NilableFloat64:
+		return i, nil
+	case float32:
+		sc := strconv.FormatFloat(float64(i), 'f', -1, 32)
+		ex, _ = strconv.ParseFloat(sc, 64)
+	case float64:
+		ex = i
+	default:
+		m := fmt.Sprintf("%s is type %T, not a float32, float64 or *NilableFloat.", f, i)
+		return nil, errors.New(m)
+
+	}
+
+	return types.NewNilableFloat64(ex), nil
+
 }
 
 func (iv *FloatValidator) runOperations(i float64) (*ValidationResult, error) {
@@ -193,32 +233,6 @@ func (iv *FloatValidator) Break() *FloatValidator {
 func (iv *FloatValidator) addOperation(o *floatOperation) {
 	iv.operations = append(iv.operations, o)
 	iv.codesInUse.Add(o.ErrCode)
-}
-
-func (iv *FloatValidator) extractValue(v reflect.Value, f string) (*types.NilableFloat64, error) {
-
-	if rt.NilPointer(v) {
-		return nil, nil
-	}
-
-	var ex float64
-
-	switch i := v.Interface().(type) {
-	case *types.NilableFloat64:
-		return i, nil
-	case float32:
-		sc := strconv.FormatFloat(float64(i), 'f', -1, 32)
-		ex, _ = strconv.ParseFloat(sc, 64)
-	case float64:
-		ex = i
-	default:
-		m := fmt.Sprintf("%s is type %T, not a float32, float64 or *NilableFloat.", f, i)
-		return nil, errors.New(m)
-
-	}
-
-	return types.NewNilableFloat64(ex), nil
-
 }
 
 func (iv *FloatValidator) StopAllOnFail() bool {

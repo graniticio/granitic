@@ -6,7 +6,6 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -74,6 +73,20 @@ type intOperation struct {
 	External ExternalInt64Validator
 }
 
+func (iv *IntValidator) IsSet(field string, subject interface{}) (bool, error) {
+	nf, err := iv.extractValue(field, subject)
+
+	if err != nil {
+		return false, err
+	}
+
+	if nf == nil || !nf.IsSet() {
+		return false, nil
+	} else {
+		return true, nil
+	}
+}
+
 func (iv *IntValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
 	f := iv.field
@@ -84,28 +97,13 @@ func (iv *IntValidator) Validate(vc *validationContext) (result *ValidationResul
 
 	sub := vc.Subject
 
-	fv, err := rt.FindNestedField(rt.ExtractDotPath(f), sub)
-
-	if err != nil {
-		m := fmt.Sprintf("Problem trying to find value of %s: %s\n", f, err)
-		return nil, errors.New(m)
-	}
-
-	if !fv.IsValid() {
-		m := fmt.Sprintf("Field %s is not a usable type\n", f)
-		return nil, errors.New(m)
-	}
-
 	r := new(ValidationResult)
 
-	value, err := iv.extractValue(fv, f)
+	set, err := iv.IsSet(f, sub)
 
 	if err != nil {
 		return nil, err
-	}
-
-	if value == nil || !value.IsSet() {
-
+	} else if !set {
 		r.Unset = true
 
 		if iv.required {
@@ -116,6 +114,9 @@ func (iv *IntValidator) Validate(vc *validationContext) (result *ValidationResul
 
 		return r, nil
 	}
+
+	//Ignoring error as called previously during IsSet
+	value, _ := iv.extractValue(f, sub)
 
 	return iv.runOperations(value.Int64())
 }
@@ -197,7 +198,19 @@ func (iv *IntValidator) addOperation(o *intOperation) {
 	iv.codesInUse.Add(o.ErrCode)
 }
 
-func (iv *IntValidator) extractValue(v reflect.Value, f string) (*types.NilableInt64, error) {
+func (iv *IntValidator) extractValue(f string, s interface{}) (*types.NilableInt64, error) {
+
+	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
+
+	if err != nil {
+		m := fmt.Sprintf("Problem trying to find value of %s: %s\n", f, err)
+		return nil, errors.New(m)
+	}
+
+	if !v.IsValid() {
+		m := fmt.Sprintf("Field %s is not a usable type\n", f)
+		return nil, errors.New(m)
+	}
 
 	if rt.NilPointer(v) {
 		return nil, nil

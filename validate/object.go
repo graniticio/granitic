@@ -50,6 +50,10 @@ type objectOperation struct {
 	ErrCode string
 }
 
+func (ov *ObjectValidator) IsSet(field string, subject interface{}) (bool, error) {
+	return false, nil
+}
+
 func (ov *ObjectValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
 	f := ov.field

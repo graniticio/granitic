@@ -87,6 +87,10 @@ func (sv *StringValidator) CodesInUse() types.StringSet {
 	return sv.codesInUse
 }
 
+func (sv *StringValidator) IsSet(field string, subject interface{}) (bool, error) {
+	return false, nil
+}
+
 func (sv *StringValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
 	f := sv.field

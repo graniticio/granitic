@@ -54,6 +54,7 @@ type Validator interface {
 	StopAllOnFail() bool
 	CodesInUse() types.StringSet
 	DependsOnFields() types.StringSet
+	IsSet(string, interface{}) (bool, error)
 }
 
 type validatorLink struct {

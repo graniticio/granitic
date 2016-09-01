@@ -6,7 +6,6 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
-	"reflect"
 	"strconv"
 )
 
@@ -56,6 +55,21 @@ type boolOperation struct {
 	ErrCode string
 }
 
+func (ov *boolValidator) IsSet(field string, subject interface{}) (bool, error) {
+
+	value, err := ov.extractValue(field, subject)
+
+	if err != nil {
+		return false, err
+	}
+
+	if value == nil || !value.IsSet() {
+		return false, nil
+	} else {
+		return true, nil
+	}
+}
+
 func (ov *boolValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
 	f := ov.field
@@ -66,22 +80,13 @@ func (ov *boolValidator) Validate(vc *validationContext) (result *ValidationResu
 
 	sub := vc.Subject
 
-	fv, err := rt.FindNestedField(rt.ExtractDotPath(f), sub)
-
-	if err != nil {
-		return nil, err
-	}
-
 	r := new(ValidationResult)
-
-	value, err := ov.extractValue(fv, f)
+	set, err := ov.IsSet(f, sub)
 
 	if err != nil {
 		return nil, err
-	}
 
-	if value == nil || !value.IsSet() {
-
+	} else if !set {
 		r.Unset = true
 
 		if ov.required {
@@ -90,19 +95,27 @@ func (ov *boolValidator) Validate(vc *validationContext) (result *ValidationResu
 			r.ErrorCodes = []string{}
 		}
 
-	} else {
+		return r, nil
+	}
 
-		if ov.requiredValue != nil && value.Bool() != ov.requiredValue.Bool() {
+	//Ignoring error as called previously during IsSet
+	value, _ := ov.extractValue(f, sub)
 
-			r.ErrorCodes = []string{ov.requiredValueCode}
-		}
+	if ov.requiredValue != nil && value.Bool() != ov.requiredValue.Bool() {
 
+		r.ErrorCodes = []string{ov.requiredValueCode}
 	}
 
 	return r, nil
 }
 
-func (ov *boolValidator) extractValue(v reflect.Value, f string) (*types.NilableBool, error) {
+func (ov *boolValidator) extractValue(f string, s interface{}) (*types.NilableBool, error) {
+
+	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
+
+	if err != nil {
+		return nil, err
+	}
 
 	if rt.NilPointer(v) {
 		return nil, nil
