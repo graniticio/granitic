@@ -6,6 +6,7 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
+	"reflect"
 )
 
 const ObjectRuleCode = "OBJ"
@@ -51,23 +52,44 @@ type objectOperation struct {
 }
 
 func (ov *ObjectValidator) IsSet(field string, subject interface{}) (bool, error) {
-	return false, nil
+	fv, err := rt.FindNestedField(rt.ExtractDotPath(field), subject)
+
+	if err != nil {
+		return false, err
+	}
+
+	if rt.NilPointer(fv) || rt.NilMap(fv) {
+		return false, nil
+	} else {
+
+		k := fv.Kind()
+
+		if !rt.IsPointerToStruct(fv.Interface()) && k != reflect.Map && k != reflect.Struct {
+			m := fmt.Sprintf("Field %s is not a pointer to a struct, a struct or a map.", field)
+			return false, errors.New(m)
+		}
+
+		return true, nil
+	}
 }
 
 func (ov *ObjectValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
 	f := ov.field
-	sub := vc.Subject
 
-	fv, err := rt.FindNestedField(rt.ExtractDotPath(f), sub)
+	if vc.OverrideField != "" {
+		f = vc.OverrideField
+	}
+
+	sub := vc.Subject
+	r := new(ValidationResult)
+
+	set, err := ov.IsSet(f, sub)
 
 	if err != nil {
 		return nil, err
-	}
 
-	r := new(ValidationResult)
-
-	if rt.NilPointer(fv) || rt.NilMap(fv) {
+	} else if !set {
 
 		r.Unset = true
 

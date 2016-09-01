@@ -87,10 +87,28 @@ func TestSetObjDetection(t *testing.T) {
 
 }
 
+func TestInvalidTypeHandling(t *testing.T) {
+	ob := NewObjectValidatorBuilder("DEF", nil)
+
+	ov, err := ob.parseRule("S", []string{"REQ:MISSING"})
+
+	test.ExpectNil(t, err)
+
+	sub := new(Parent)
+	sub.CP = new(Child)
+	vc := new(validationContext)
+	vc.Subject = sub
+
+	_, err = ov.Validate(vc)
+	test.ExpectNotNil(t, err)
+
+}
+
 type Parent struct {
 	CP *Child
 	CV Child
 	CM map[string]interface{}
+	S  string
 }
 
 type Child struct {
