@@ -10,7 +10,7 @@ func TestMissingRequiredStringField(t *testing.T) {
 
 	sb := newStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseStringRule("S", []string{"REQ:MISSING", "LEN:5-10:SHORT"})
+	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:5-10:SHORT"})
 
 	test.ExpectNil(t, err)
 
@@ -40,7 +40,7 @@ func TestMissingRequiredStringField(t *testing.T) {
 
 func TestUnsetButOptional(t *testing.T) {
 	sb := newStringValidatorBuilder("DEF")
-	sv, err := sb.parseStringRule("S", []string{"LEN:5-10:SHORT"})
+	sv, err := sb.parseRule("S", []string{"LEN:5-10:SHORT"})
 
 	test.ExpectNil(t, err)
 
@@ -70,7 +70,7 @@ func TestUnsetButOptional(t *testing.T) {
 func TestHardTrim(t *testing.T) {
 	sb := newStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseStringRule("S", []string{"REQ:MISSING", "HARDTRIM"})
+	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "HARDTRIM"})
 
 	test.ExpectNil(t, err)
 
@@ -103,7 +103,7 @@ func TestHardTrim(t *testing.T) {
 func TestSoftTrim(t *testing.T) {
 	sb := newStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseStringRule("S", []string{"REQ:MISSING", "TRIM", "LEN:2-"})
+	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "TRIM", "LEN:2-"})
 
 	test.ExpectNil(t, err)
 
@@ -136,7 +136,7 @@ func TestSoftTrim(t *testing.T) {
 func TestInSet(t *testing.T) {
 	sb := newStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseStringRule("S", []string{"REQ:MISSING", "IN:AA,BB:NOTIN"})
+	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "IN:AA,BB:NOTIN"})
 
 	test.ExpectNil(t, err)
 
@@ -165,7 +165,7 @@ func TestInSet(t *testing.T) {
 func TestBreak(t *testing.T) {
 	sb := newStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseStringRule("S", []string{"REQ:MISSING", "LEN:2-2:LENGTH", "BREAK", "IN:AA,BB:NOTIN"})
+	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-2:LENGTH", "BREAK", "IN:AA,BB:NOTIN"})
 
 	test.ExpectNil(t, err)
 
@@ -187,11 +187,11 @@ func TestBreak(t *testing.T) {
 func TestStopAll(t *testing.T) {
 	sb := newStringValidatorBuilder("DEF")
 
-	sv, _ := sb.parseStringRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH"})
+	sv, _ := sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH"})
 
 	test.ExpectBool(t, sv.StopAllOnFail(), false)
 
-	sv, _ = sb.parseStringRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH", "STOPALL"})
+	sv, _ = sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH", "STOPALL"})
 
 	test.ExpectBool(t, sv.StopAllOnFail(), true)
 }
@@ -199,7 +199,7 @@ func TestStopAll(t *testing.T) {
 func TestRegex(t *testing.T) {
 	sb := newStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseStringRule("S", []string{"REQ:MISSING", "REG:^::A$:REGFAIL"})
+	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "REG:^::A$:REGFAIL"})
 
 	test.ExpectNil(t, err)
 
@@ -229,7 +229,7 @@ func TestRegex(t *testing.T) {
 func TestLength(t *testing.T) {
 	sb := newStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseStringRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH"})
+	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH"})
 
 	test.ExpectNil(t, err)
 
@@ -254,7 +254,7 @@ func TestLength(t *testing.T) {
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(c), 0)
 
-	sv, err = sb.parseStringRule("S", []string{"REQ:MISSING", "LEN:2-3:LENGTH"})
+	sv, err = sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-3:LENGTH"})
 
 	sub.S = "AAA"
 
@@ -273,7 +273,7 @@ func TestLength(t *testing.T) {
 	test.ExpectInt(t, len(c), 1)
 	test.ExpectString(t, c[0], "LENGTH")
 
-	sv, err = sb.parseStringRule("S", []string{"REQ:MISSING", "LEN:-3:LENGTH"})
+	sv, err = sb.parseRule("S", []string{"REQ:MISSING", "LEN:-3:LENGTH"})
 
 	sub.S = ""
 
@@ -305,17 +305,17 @@ func TestLength(t *testing.T) {
 func TestExternal(t *testing.T) {
 	sb := newStringValidatorBuilder("DEF")
 
-	_, err := sb.parseStringRule("S", []string{"EXT:extComp"})
+	_, err := sb.parseRule("S", []string{"EXT:extComp"})
 
 	test.ExpectNotNil(t, err)
 
 	sb.componentFinder = new(CompFinder)
 
-	_, err = sb.parseStringRule("S", []string{"EXT:unknown"})
+	_, err = sb.parseRule("S", []string{"EXT:unknown"})
 
 	test.ExpectNotNil(t, err)
 
-	sv, err := sb.parseStringRule("S", []string{"EXT:extChecker:EXTFAIL"})
+	sv, err := sb.parseRule("S", []string{"EXT:extChecker:EXTFAIL"})
 
 	test.ExpectNil(t, err)
 
@@ -343,7 +343,7 @@ func TestExternal(t *testing.T) {
 func TestStringMExFieldDetection(t *testing.T) {
 	vb := newStringValidatorBuilder("DEF")
 
-	bv, err := vb.parseStringRule("S", []string{"MEX:setField1,setField2:BAD_MEX"})
+	bv, err := vb.parseRule("S", []string{"MEX:setField1,setField2:BAD_MEX"})
 
 	test.ExpectNil(t, err)
 

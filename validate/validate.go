@@ -343,7 +343,7 @@ func (ov *RuleValidator) parseRule(field string, rule []string) error {
 
 	switch rt {
 	case StringRule:
-		err = ov.parseAndAdd(field, rule, ov.stringBuilder.parseStringRule)
+		err = ov.parseAndAdd(field, rule, ov.stringBuilder.parseRule)
 	case ObjectRule:
 		err = ov.parseAndAdd(field, rule, ov.objectValidatorBuilder.parseRule)
 	case BoolRule:

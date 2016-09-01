@@ -460,7 +460,7 @@ type stringValidatorBuilder struct {
 	componentFinder  ioc.ComponentByNameFinder
 }
 
-func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (Validator, error) {
+func (vb *stringValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(StringRuleCode, rule, vb.defaultErrorCode)
 	sv := NewStringValidator(field, defaultErrorcode)
