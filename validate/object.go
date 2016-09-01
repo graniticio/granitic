@@ -64,6 +64,11 @@ func (ov *ObjectValidator) IsSet(field string, subject interface{}) (bool, error
 
 		k := fv.Kind()
 
+		if k == reflect.Invalid {
+			m := fmt.Sprintf("Field %s is not a valid type. Does the field exist?", field)
+			return false, errors.New(m)
+		}
+
 		if !rt.IsPointerToStruct(fv.Interface()) && k != reflect.Map && k != reflect.Struct {
 			m := fmt.Sprintf("Field %s is not a pointer to a struct, a struct or a map.", field)
 			return false, errors.New(m)

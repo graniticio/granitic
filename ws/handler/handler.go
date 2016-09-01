@@ -171,7 +171,6 @@ func (wh *WsHandler) validateRequest(wsReq *ws.WsRequest, errors *ws.ServiceErro
 		} else if ov != nil {
 			sc := new(validate.SubjectContext)
 			sc.Subject = body
-			sc.KnownSetFields = wsReq.BoundFields()
 
 			fe, err := ov.Validate(sc)
 

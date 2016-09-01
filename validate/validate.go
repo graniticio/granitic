@@ -34,8 +34,7 @@ const commonOpBreak = "BREAK"
 const commonOpExt = "EXT"
 
 type SubjectContext struct {
-	Subject        interface{}
-	KnownSetFields types.StringSet
+	Subject interface{}
 }
 
 type validationContext struct {
@@ -119,6 +118,31 @@ func (ov *RuleValidator) Validate(subject *SubjectContext) ([]*FieldErrors, erro
 	fieldErrors := make([]*FieldErrors, 0)
 	fieldsWithProblems := types.NewOrderedStringSet([]string{})
 	unsetFields := types.NewOrderedStringSet([]string{})
+	setFields := types.NewOrderedStringSet([]string{})
+
+	for _, vl := range ov.validatorChain {
+		f := vl.field
+		v := vl.validator
+		log.LogDebugf("Checking field %s set", f)
+
+		if !ov.parentsOkay(v, fieldsWithProblems, unsetFields) {
+			log.LogDebugf("Skipping set check on field %s as one or more parent objects invalid", f)
+			continue
+		}
+
+		set, err := v.IsSet(f, subject.Subject)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if set {
+			setFields.Add(f)
+		} else {
+			unsetFields.Add(f)
+		}
+
+	}
 
 	for _, vl := range ov.validatorChain {
 
@@ -128,7 +152,7 @@ func (ov *RuleValidator) Validate(subject *SubjectContext) ([]*FieldErrors, erro
 
 		vc := new(validationContext)
 		vc.Subject = subject.Subject
-		vc.KnownSetFields = subject.KnownSetFields
+		vc.KnownSetFields = setFields
 
 		v := vl.validator
 
@@ -177,6 +201,8 @@ func (ov *RuleValidator) Validate(subject *SubjectContext) ([]*FieldErrors, erro
 
 func (ov *RuleValidator) parentsOkay(v Validator, fieldsWithProblems types.StringSet, unsetFields types.StringSet) bool {
 
+	log := ov.Log
+
 	d := v.DependsOnFields()
 
 	if d == nil || d.Size() == 0 {
@@ -185,7 +211,11 @@ func (ov *RuleValidator) parentsOkay(v Validator, fieldsWithProblems types.Strin
 
 	for _, f := range d.Contents() {
 
+		log.LogTracef("Depends on %s", f)
+
 		if fieldsWithProblems.Contains(f) || unsetFields.Contains(f) {
+
+			log.LogTracef("%s is not okay", f)
 			return false
 		}
 
