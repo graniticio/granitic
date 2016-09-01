@@ -25,6 +25,7 @@ const (
 	stringOpBreakCode    = commonOpBreak
 	stringOpRegCode      = "REG"
 	stringOpStopAllCode  = commonOpStopAll
+	stringOpMExCode      = commonOpMex
 )
 
 type StringValidationOperation uint
@@ -40,6 +41,7 @@ const (
 	StringOpBreak
 	StringOpReg
 	StringOpStopAll
+	StringOpMEx
 )
 
 type ExternalStringValidator interface {
@@ -135,7 +137,7 @@ func (sv *StringValidator) Validate(vc *validationContext) (result *ValidationRe
 
 	toValidate := sv.applyTrimming(f, sub, value)
 
-	return sv.runOperations(toValidate)
+	return sv.runOperations(toValidate, vc)
 
 }
 
@@ -192,7 +194,7 @@ func (sv *StringValidator) extractValue(f string, s interface{}) (*types.Nilable
 	}
 }
 
-func (sv *StringValidator) runOperations(s string) (*ValidationResult, error) {
+func (sv *StringValidator) runOperations(s string, vc *validationContext) (*ValidationResult, error) {
 
 	ec := new(types.OrderedStringSet)
 
@@ -225,6 +227,9 @@ OpLoop:
 			if !op.Regex.MatchString(s) {
 				ec.Add(op.ErrCode)
 			}
+
+		case StringOpMEx:
+			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
 		}
 
 	}
@@ -269,6 +274,17 @@ func (sv *StringValidator) wasStringSet(s string, field string, knownSet types.S
 
 func (sv *StringValidator) StopAllOnFail() bool {
 	return sv.stopAll
+}
+
+func (sv *StringValidator) MEx(fields types.StringSet, code ...string) *StringValidator {
+	op := new(stringOperation)
+	op.ErrCode = sv.chooseErrorCode(code)
+	op.OpType = StringOpMEx
+	op.MExFields = fields
+
+	sv.addOperation(op)
+
+	return sv
 }
 
 func (sv *StringValidator) Break() *StringValidator {
@@ -409,6 +425,8 @@ func (sv *StringValidator) Operation(c string) (StringValidationOperation, error
 		return StringOpReg, nil
 	case stringOpStopAllCode:
 		return StringOpStopAll, nil
+	case stringOpMExCode:
+		return StringOpMEx, nil
 	}
 
 	m := fmt.Sprintf("Unsupported string validation operation %s", c)
@@ -428,11 +446,12 @@ func (sv *StringValidator) chooseErrorCode(v []string) string {
 }
 
 type stringOperation struct {
-	OpType   StringValidationOperation
-	ErrCode  string
-	InSet    *types.UnorderedStringSet
-	External ExternalStringValidator
-	Regex    *regexp.Regexp
+	OpType    StringValidationOperation
+	ErrCode   string
+	InSet     *types.UnorderedStringSet
+	External  ExternalStringValidator
+	Regex     *regexp.Regexp
+	MExFields types.StringSet
 }
 
 type stringValidatorBuilder struct {
@@ -480,6 +499,8 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (
 			err = vb.markRequired(field, ops, sv)
 		case StringOpStopAll:
 			sv.StopAll()
+		case StringOpMEx:
+			err = vb.captureExclusiveFields(field, ops, sv)
 		}
 
 		if err != nil {
@@ -490,6 +511,22 @@ func (vb *stringValidatorBuilder) parseStringRule(field string, rule []string) (
 	}
 
 	return sv, nil
+
+}
+
+func (vb *stringValidatorBuilder) captureExclusiveFields(field string, ops []string, iv *StringValidator) error {
+	_, err := paramCount(ops, "MEX", field, 2, 3)
+
+	if err != nil {
+		return err
+	}
+
+	members := strings.SplitN(ops[1], setMemberSep, -1)
+	fields := types.NewOrderedStringSet(members)
+
+	iv.MEx(fields, extractVargs(ops, 3)...)
+
+	return nil
 
 }
 

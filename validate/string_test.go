@@ -340,6 +340,55 @@ func TestExternal(t *testing.T) {
 	test.ExpectInt(t, len(c), 0)
 }
 
+func TestStringMExFieldDetection(t *testing.T) {
+	vb := newStringValidatorBuilder("DEF")
+
+	bv, err := vb.parseStringRule("S", []string{"MEX:setField1,setField2:BAD_MEX"})
+
+	test.ExpectNil(t, err)
+
+	sub := new(StringTest)
+	vc := new(validationContext)
+	vc.Subject = sub
+	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
+
+	sub.S = "set"
+
+	r, err := bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c := r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	vc.KnownSetFields.Add("ignoreField")
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	vc.KnownSetFields.Add("setField1")
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectString(t, c[0], "BAD_MEX")
+
+	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
+	vc.KnownSetFields.Add("setField2")
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectString(t, c[0], "BAD_MEX")
+
+}
+
 type StringTest struct {
 	S string
 }
