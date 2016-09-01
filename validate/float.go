@@ -41,16 +41,16 @@ const (
 )
 
 func NewFloatValidator(field, defaultErrorCode string) *FloatValidator {
-	iv := new(FloatValidator)
-	iv.defaultErrorCode = defaultErrorCode
-	iv.field = field
-	iv.codesInUse = types.NewOrderedStringSet([]string{})
-	iv.dependsFields = determinePathFields(field)
-	iv.operations = make([]*floatOperation, 0)
+	fv := new(FloatValidator)
+	fv.defaultErrorCode = defaultErrorCode
+	fv.field = field
+	fv.codesInUse = types.NewOrderedStringSet([]string{})
+	fv.dependsFields = determinePathFields(field)
+	fv.operations = make([]*floatOperation, 0)
 
-	iv.codesInUse.Add(iv.defaultErrorCode)
+	fv.codesInUse.Add(fv.defaultErrorCode)
 
-	return iv
+	return fv
 }
 
 type FloatValidator struct {
@@ -76,9 +76,9 @@ type floatOperation struct {
 	MExFields types.StringSet
 }
 
-func (iv *FloatValidator) IsSet(field string, subject interface{}) (bool, error) {
+func (fv *FloatValidator) IsSet(field string, subject interface{}) (bool, error) {
 
-	nf, err := iv.extractValue(field, subject)
+	nf, err := fv.extractValue(field, subject)
 
 	if err != nil {
 		return false, err
@@ -91,9 +91,9 @@ func (iv *FloatValidator) IsSet(field string, subject interface{}) (bool, error)
 	}
 }
 
-func (iv *FloatValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
+func (fv *FloatValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
-	f := iv.field
+	f := fv.field
 
 	if vc.OverrideField != "" {
 		f = vc.OverrideField
@@ -103,15 +103,15 @@ func (iv *FloatValidator) Validate(vc *validationContext) (result *ValidationRes
 
 	r := new(ValidationResult)
 
-	set, err := iv.IsSet(f, sub)
+	set, err := fv.IsSet(f, sub)
 
 	if err != nil {
 		return nil, err
 	} else if !set {
 		r.Unset = true
 
-		if iv.required {
-			r.ErrorCodes = []string{iv.missingRequiredCode}
+		if fv.required {
+			r.ErrorCodes = []string{fv.missingRequiredCode}
 		} else {
 			r.ErrorCodes = []string{}
 		}
@@ -120,12 +120,12 @@ func (iv *FloatValidator) Validate(vc *validationContext) (result *ValidationRes
 	}
 
 	//Ignoring error as called previously during IsSet
-	value, _ := iv.extractValue(f, sub)
+	value, _ := fv.extractValue(f, sub)
 
-	return iv.runOperations(value.Float64())
+	return fv.runOperations(value.Float64(), vc)
 }
 
-func (iv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableFloat64, error) {
+func (fv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableFloat64, error) {
 
 	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
@@ -163,16 +163,16 @@ func (iv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableF
 
 }
 
-func (iv *FloatValidator) runOperations(i float64) (*ValidationResult, error) {
+func (fv *FloatValidator) runOperations(i float64, vc *validationContext) (*ValidationResult, error) {
 
 	ec := new(types.OrderedStringSet)
 
 OpLoop:
-	for _, op := range iv.operations {
+	for _, op := range fv.operations {
 
 		switch op.OpType {
 		case FloatOpIn:
-			if !iv.checkIn(i, op) {
+			if !fv.checkIn(i, op) {
 				ec.Add(op.ErrCode)
 			}
 
@@ -187,10 +187,11 @@ OpLoop:
 			}
 
 		case FloatOpRange:
-			if !iv.inRange(i, op) {
+			if !fv.inRange(i, op) {
 				ec.Add(op.ErrCode)
 			}
-
+		case FloatOpMex:
+			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
 		}
 
 	}
@@ -202,91 +203,102 @@ OpLoop:
 
 }
 
-func (iv *FloatValidator) inRange(i float64, o *floatOperation) bool {
+func (fv *FloatValidator) inRange(i float64, o *floatOperation) bool {
 
 	moreThanMin := true
 	lessThanMax := true
 
-	if iv.checkMin {
-		moreThanMin = i >= iv.minAllowed
+	if fv.checkMin {
+		moreThanMin = i >= fv.minAllowed
 	}
 
-	if iv.checkMax {
-		lessThanMax = i <= iv.maxAllowed
+	if fv.checkMax {
+		lessThanMax = i <= fv.maxAllowed
 	}
 
 	return moreThanMin && lessThanMax
 }
 
-func (iv *FloatValidator) checkIn(i float64, o *floatOperation) bool {
+func (fv *FloatValidator) checkIn(i float64, o *floatOperation) bool {
 	return o.InSet[i]
 }
 
-func (iv *FloatValidator) Break() *FloatValidator {
+func (fv *FloatValidator) MEx(fields types.StringSet, code ...string) *FloatValidator {
+	op := new(floatOperation)
+	op.ErrCode = fv.chooseErrorCode(code)
+	op.OpType = FloatOpMex
+	op.MExFields = fields
+
+	fv.addOperation(op)
+
+	return fv
+}
+
+func (fv *FloatValidator) Break() *FloatValidator {
 
 	o := new(floatOperation)
 	o.OpType = FloatOpBreak
 
-	iv.addOperation(o)
+	fv.addOperation(o)
 
-	return iv
+	return fv
 
 }
 
-func (iv *FloatValidator) addOperation(o *floatOperation) {
-	iv.operations = append(iv.operations, o)
-	iv.codesInUse.Add(o.ErrCode)
+func (fv *FloatValidator) addOperation(o *floatOperation) {
+	fv.operations = append(fv.operations, o)
+	fv.codesInUse.Add(o.ErrCode)
 }
 
-func (iv *FloatValidator) StopAllOnFail() bool {
-	return iv.stopAll
+func (fv *FloatValidator) StopAllOnFail() bool {
+	return fv.stopAll
 }
 
-func (iv *FloatValidator) CodesInUse() types.StringSet {
-	return iv.codesInUse
+func (fv *FloatValidator) CodesInUse() types.StringSet {
+	return fv.codesInUse
 }
 
-func (iv *FloatValidator) DependsOnFields() types.StringSet {
+func (fv *FloatValidator) DependsOnFields() types.StringSet {
 
-	return iv.dependsFields
+	return fv.dependsFields
 }
 
-func (iv *FloatValidator) StopAll() *FloatValidator {
+func (fv *FloatValidator) StopAll() *FloatValidator {
 
-	iv.stopAll = true
+	fv.stopAll = true
 
-	return iv
+	return fv
 }
 
-func (iv *FloatValidator) Required(code ...string) *FloatValidator {
+func (fv *FloatValidator) Required(code ...string) *FloatValidator {
 
-	iv.required = true
-	iv.missingRequiredCode = iv.chooseErrorCode(code)
+	fv.required = true
+	fv.missingRequiredCode = fv.chooseErrorCode(code)
 
-	return iv
+	return fv
 }
 
-func (iv *FloatValidator) Range(checkMin, checkMax bool, min, max float64, code ...string) *FloatValidator {
+func (fv *FloatValidator) Range(checkMin, checkMax bool, min, max float64, code ...string) *FloatValidator {
 
-	iv.checkMin = checkMin
-	iv.checkMax = checkMax
-	iv.minAllowed = min
-	iv.maxAllowed = max
+	fv.checkMin = checkMin
+	fv.checkMax = checkMax
+	fv.minAllowed = min
+	fv.maxAllowed = max
 
-	ec := iv.chooseErrorCode(code)
+	ec := fv.chooseErrorCode(code)
 
 	o := new(floatOperation)
 	o.OpType = FloatOpRange
 	o.ErrCode = ec
 
-	iv.addOperation(o)
+	fv.addOperation(o)
 
-	return iv
+	return fv
 }
 
-func (iv *FloatValidator) In(set []float64, code ...string) *FloatValidator {
+func (fv *FloatValidator) In(set []float64, code ...string) *FloatValidator {
 
-	ec := iv.chooseErrorCode(code)
+	ec := fv.chooseErrorCode(code)
 
 	o := new(floatOperation)
 	o.OpType = FloatOpIn
@@ -300,37 +312,37 @@ func (iv *FloatValidator) In(set []float64, code ...string) *FloatValidator {
 
 	o.InSet = fm
 
-	iv.addOperation(o)
+	fv.addOperation(o)
 
-	return iv
+	return fv
 
 }
 
-func (iv *FloatValidator) ExternalValidation(v ExternalFloat64Validator, code ...string) *FloatValidator {
-	ec := iv.chooseErrorCode(code)
+func (fv *FloatValidator) ExternalValidation(v ExternalFloat64Validator, code ...string) *FloatValidator {
+	ec := fv.chooseErrorCode(code)
 
 	o := new(floatOperation)
 	o.OpType = FloatOpExt
 	o.ErrCode = ec
 	o.External = v
 
-	iv.addOperation(o)
+	fv.addOperation(o)
 
-	return iv
+	return fv
 }
 
-func (iv *FloatValidator) chooseErrorCode(v []string) string {
+func (fv *FloatValidator) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
-		iv.codesInUse.Add(v[0])
+		fv.codesInUse.Add(v[0])
 		return v[0]
 	} else {
-		return iv.defaultErrorCode
+		return fv.defaultErrorCode
 	}
 
 }
 
-func (iv *FloatValidator) Operation(c string) (boolValidationOperation, error) {
+func (fv *FloatValidator) Operation(c string) (boolValidationOperation, error) {
 	switch c {
 	case FloatOpIsRequiredCode:
 		return FloatOpRequired, nil
@@ -344,6 +356,8 @@ func (iv *FloatValidator) Operation(c string) (boolValidationOperation, error) {
 		return FloatOpExt, nil
 	case FloatOpRangeCode:
 		return FloatOpRange, nil
+	case FloatOpMExCode:
+		return FloatOpMex, nil
 	}
 
 	m := fmt.Sprintf("Unsupported int validation operation %s", c)
@@ -352,11 +366,11 @@ func (iv *FloatValidator) Operation(c string) (boolValidationOperation, error) {
 }
 
 func NewFloatValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *floatValidatorBuilder {
-	iv := new(floatValidatorBuilder)
-	iv.componentFinder = cf
-	iv.defaultErrorCode = ec
-	iv.rangeRegex = regexp.MustCompile("^(.*)\\|(.*)$")
-	return iv
+	fv := new(floatValidatorBuilder)
+	fv.componentFinder = cf
+	fv.defaultErrorCode = ec
+	fv.rangeRegex = regexp.MustCompile("^(.*)\\|(.*)$")
+	return fv
 }
 
 type floatValidatorBuilder struct {
@@ -398,6 +412,8 @@ func (vb *floatValidatorBuilder) parseRule(field string, rule []string) (Validat
 			err = vb.addFloatExternalOperation(field, ops, bv)
 		case FloatOpRange:
 			err = vb.addFloatRangeOperation(field, ops, bv)
+		case FloatOpMex:
+			err = vb.captureExclusiveFields(field, ops, bv)
 		}
 
 		if err != nil {
@@ -411,7 +427,23 @@ func (vb *floatValidatorBuilder) parseRule(field string, rule []string) (Validat
 
 }
 
-func (vb *floatValidatorBuilder) markRequired(field string, ops []string, iv *FloatValidator) error {
+func (vb *floatValidatorBuilder) captureExclusiveFields(field string, ops []string, fv *FloatValidator) error {
+	_, err := paramCount(ops, "MEX", field, 2, 3)
+
+	if err != nil {
+		return err
+	}
+
+	members := strings.SplitN(ops[1], setMemberSep, -1)
+	fields := types.NewOrderedStringSet(members)
+
+	fv.MEx(fields, extractVargs(ops, 3)...)
+
+	return nil
+
+}
+
+func (vb *floatValidatorBuilder) markRequired(field string, ops []string, fv *FloatValidator) error {
 
 	pCount, err := paramCount(ops, "Required", field, 1, 2)
 
@@ -420,15 +452,15 @@ func (vb *floatValidatorBuilder) markRequired(field string, ops []string, iv *Fl
 	}
 
 	if pCount == 1 {
-		iv.Required()
+		fv.Required()
 	} else {
-		iv.Required(ops[1])
+		fv.Required(ops[1])
 	}
 
 	return nil
 }
 
-func (vb *floatValidatorBuilder) addFloatRangeOperation(field string, ops []string, iv *FloatValidator) error {
+func (vb *floatValidatorBuilder) addFloatRangeOperation(field string, ops []string, fv *FloatValidator) error {
 
 	pCount, err := paramCount(ops, "Range", field, 2, 3)
 
@@ -479,15 +511,15 @@ func (vb *floatValidatorBuilder) addFloatRangeOperation(field string, ops []stri
 	}
 
 	if pCount == 2 {
-		iv.Range(checkMin, checkMax, float64(min), float64(max))
+		fv.Range(checkMin, checkMax, float64(min), float64(max))
 	} else {
-		iv.Range(checkMin, checkMax, float64(min), float64(max), ops[2])
+		fv.Range(checkMin, checkMax, float64(min), float64(max), ops[2])
 	}
 
 	return nil
 }
 
-func (vb *floatValidatorBuilder) addFloatExternalOperation(field string, ops []string, iv *FloatValidator) error {
+func (vb *floatValidatorBuilder) addFloatExternalOperation(field string, ops []string, fv *FloatValidator) error {
 
 	pCount, i, err := validateExternalOperation(vb.componentFinder, field, ops)
 
@@ -503,9 +535,9 @@ func (vb *floatValidatorBuilder) addFloatExternalOperation(field string, ops []s
 	}
 
 	if pCount == 2 {
-		iv.ExternalValidation(ev)
+		fv.ExternalValidation(ev)
 	} else {
-		iv.ExternalValidation(ev, ops[2])
+		fv.ExternalValidation(ev, ops[2])
 	}
 
 	return nil

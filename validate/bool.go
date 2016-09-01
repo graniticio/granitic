@@ -303,7 +303,7 @@ func (vb *boolValidatorBuilder) parseRule(field string, rule []string) (Validato
 }
 
 func (vb *boolValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *boolValidator) error {
-	pCount, err := paramCount(ops, "MEX", field, 2, 3)
+	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
 		return err
@@ -312,18 +312,14 @@ func (vb *boolValidatorBuilder) captureExclusiveFields(field string, ops []strin
 	members := strings.SplitN(ops[1], setMemberSep, -1)
 	fields := types.NewOrderedStringSet(members)
 
-	if pCount == 2 {
-		bv.MEx(fields)
-	} else {
-		bv.MEx(fields, ops[2])
-	}
+	bv.MEx(fields, extractVargs(ops, 3)...)
 
 	return nil
 
 }
 
 func (vb *boolValidatorBuilder) captureRequiredValue(field string, ops []string, bv *boolValidator) error {
-	pCount, err := paramCount(ops, "Is", field, 2, 3)
+	_, err := paramCount(ops, "Is", field, 2, 3)
 
 	if err != nil {
 		return err
@@ -336,28 +332,20 @@ func (vb *boolValidatorBuilder) captureRequiredValue(field string, ops []string,
 		return errors.New(m)
 	}
 
-	if pCount == 2 {
-		bv.Is(b)
-	} else {
-		bv.Is(b, ops[2])
-	}
+	bv.Is(b, extractVargs(ops, 3)...)
 
 	return nil
 }
 
 func (vb *boolValidatorBuilder) markRequired(field string, ops []string, bv *boolValidator) error {
 
-	pCount, err := paramCount(ops, "Required", field, 1, 2)
+	_, err := paramCount(ops, "Required", field, 1, 2)
 
 	if err != nil {
 		return err
 	}
 
-	if pCount == 1 {
-		bv.Required()
-	} else {
-		bv.Required(ops[1])
-	}
+	bv.Required(extractVargs(ops, 2)...)
 
 	return nil
 }

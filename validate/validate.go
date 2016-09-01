@@ -495,3 +495,13 @@ func checkMExFields(mf types.StringSet, vc *validationContext, ec types.StringSe
 	}
 
 }
+
+func extractVargs(ops []string, l int) []string {
+
+	if len(ops) == l {
+		return []string{ops[l-1]}
+	} else {
+		return []string{}
+	}
+
+}
