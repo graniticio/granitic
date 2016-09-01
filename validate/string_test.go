@@ -14,23 +14,12 @@ func TestMissingRequiredStringField(t *testing.T) {
 
 	test.ExpectNil(t, err)
 
-	sub := new(StringTest)
 	vc := new(validationContext)
-	vc.Subject = sub
-
-	r, err := sv.Validate(vc)
-	c := r.ErrorCodes
-
-	test.ExpectNil(t, err)
-	test.ExpectBool(t, r.Unset, true)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "MISSING")
-
 	nsSub := new(NillableStringTest)
 	vc.Subject = nsSub
 
-	r, err = sv.Validate(vc)
-	c = r.ErrorCodes
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, r.Unset, true)
@@ -55,8 +44,7 @@ func TestUnsetButOptional(t *testing.T) {
 
 	test.ExpectNil(t, err)
 
-	sub := new(StringTest)
-	sub.S = ""
+	sub := new(NillableStringTest)
 	vc := new(validationContext)
 	vc.Subject = sub
 
@@ -67,14 +55,16 @@ func TestUnsetButOptional(t *testing.T) {
 	test.ExpectBool(t, r.Unset, true)
 	test.ExpectInt(t, len(c), 0)
 
-	sub.S = "A"
+	sub = new(NillableStringTest)
+	vc.Subject = sub
+	sub.S = new(types.NilableString)
 
 	r, err = sv.Validate(vc)
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectBool(t, r.Unset, false)
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectBool(t, r.Unset, true)
+	test.ExpectInt(t, len(c), 0)
 }
 
 func TestHardTrim(t *testing.T) {

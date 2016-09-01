@@ -6,7 +6,6 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -75,6 +74,7 @@ func NewStringValidator(field, defaultErrorCode string) *StringValidator {
 	sv.field = field
 	sv.codesInUse = types.NewOrderedStringSet([]string{})
 	sv.dependsFields = determinePathFields(field)
+	sv.trim = noTrim
 
 	return sv
 }
@@ -88,101 +88,108 @@ func (sv *StringValidator) CodesInUse() types.StringSet {
 }
 
 func (sv *StringValidator) IsSet(field string, subject interface{}) (bool, error) {
-	return false, nil
+	ns, err := sv.extractValue(field, subject)
+
+	if err != nil {
+		return false, err
+	}
+
+	if ns == nil || !ns.IsSet() {
+		return false, nil
+	} else {
+		return true, nil
+	}
 }
 
 func (sv *StringValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
 
 	f := sv.field
+
+	if vc.OverrideField != "" {
+		f = vc.OverrideField
+	}
+
 	sub := vc.Subject
 
-	fv, err := rt.FindNestedField(rt.ExtractDotPath(f), sub)
+	set, err := sv.IsSet(f, sub)
+
+	if err != nil {
+		return nil, err
+	} else if !set {
+
+		r := new(ValidationResult)
+
+		if sv.required {
+			r.ErrorCodes = []string{sv.missingRequiredCode}
+		} else {
+			r.ErrorCodes = []string{}
+		}
+
+		r.Unset = true
+
+		return r, nil
+	}
+
+	//Ignoring error as called previously during IsSet
+	value, _ := sv.extractValue(f, sub)
+
+	toValidate := sv.applyTrimming(f, sub, value)
+
+	return sv.runOperations(toValidate)
+
+}
+
+func (sv *StringValidator) applyTrimming(f string, s interface{}, ns *types.NilableString) string {
+
+	if sv.trim == hardTrim || sv.trim == softTrim {
+
+		t := strings.TrimSpace(ns.String())
+
+		if sv.trim == hardTrim {
+
+			v, _ := rt.FindNestedField(rt.ExtractDotPath(f), s)
+			_, found := v.Interface().(string)
+
+			if found {
+				v.SetString(t)
+			}
+
+			ns.Set(t)
+		}
+
+		return t
+	}
+
+	return ns.String()
+}
+
+func (sv *StringValidator) extractValue(f string, s interface{}) (*types.NilableString, error) {
+
+	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
 	if err != nil {
 		m := fmt.Sprintf("Problem trying to find value of %s: %s\n", f, err)
 		return nil, errors.New(m)
 	}
 
-	if !fv.IsValid() {
+	if !v.IsValid() {
 		m := fmt.Sprintf("Field %s is not a usable type\n", f)
 		return nil, errors.New(m)
 	}
 
-	ns, found := fv.Interface().(*types.NilableString)
-
-	if found {
-		return sv.validateNillable(vc, fv, ns)
+	if rt.NilPointer(v) {
+		return nil, nil
 	}
 
-	s, found := fv.Interface().(string)
-
-	if found {
-		return sv.validateStandard(vc, fv, s, f)
-	} else {
-		m := fmt.Sprintf("%s is not a string or a NillableString\n", f, err)
+	switch i := v.Interface().(type) {
+	case *types.NilableString:
+		return i, nil
+	case string:
+		return types.NewNilableString(i), nil
+	default:
+		m := fmt.Sprintf("%s is type %T, not a string or *NilableString.", f, i)
 		return nil, errors.New(m)
 	}
-
-}
-
-func (sv *StringValidator) validateNillable(vc *validationContext, rv reflect.Value, ns *types.NilableString) (result *ValidationResult, unexpected error) {
-
-	if ns == nil || !ns.IsSet() {
-		r := new(ValidationResult)
-
-		if sv.required {
-			r.ErrorCodes = []string{sv.missingRequiredCode}
-		} else {
-			r.ErrorCodes = []string{}
-		}
-
-		r.Unset = true
-
-		return r, nil
-	}
-
-	toValidate := ns.String()
-
-	if sv.trim == hardTrim || sv.trim == softTrim {
-		toValidate = strings.TrimSpace(toValidate)
-
-		if sv.trim == hardTrim {
-			ns.Set(toValidate)
-		}
-	}
-
-	return sv.runOperations(toValidate)
-}
-
-func (sv *StringValidator) validateStandard(vc *validationContext, rv reflect.Value, s string, field string) (result *ValidationResult, unexpected error) {
-
-	if !sv.wasStringSet(s, field, vc.KnownSetFields) {
-
-		r := new(ValidationResult)
-
-		if sv.required {
-			r.ErrorCodes = []string{sv.missingRequiredCode}
-		} else {
-			r.ErrorCodes = []string{}
-		}
-
-		r.Unset = true
-
-		return r, nil
-
-	}
-
-	toValidate := s
-
-	if sv.trim == hardTrim || sv.trim == softTrim {
-		toValidate = strings.TrimSpace(toValidate)
-
-		if sv.trim == hardTrim {
-			rv.SetString(toValidate)
-		}
-	}
-
-	return sv.runOperations(toValidate)
 }
 
 func (sv *StringValidator) runOperations(s string) (*ValidationResult, error) {
