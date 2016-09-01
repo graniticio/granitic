@@ -335,6 +335,55 @@ func TestIntExternal(t *testing.T) {
 	test.ExpectInt(t, len(c), 0)
 }
 
+func TestIntMExFieldDetection(t *testing.T) {
+	vb := NewIntValidatorBuilder("DEF", nil)
+
+	bv, err := vb.parseRule("I32", []string{"MEX:setField1,setField2:BAD_MEX"})
+
+	test.ExpectNil(t, err)
+
+	sub := new(IntsTarget)
+	vc := new(validationContext)
+	vc.Subject = sub
+	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
+
+	sub.I32 = 32
+
+	r, err := bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c := r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	vc.KnownSetFields.Add("ignoreField")
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	vc.KnownSetFields.Add("setField1")
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectString(t, c[0], "BAD_MEX")
+
+	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
+	vc.KnownSetFields.Add("setField2")
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectString(t, c[0], "BAD_MEX")
+
+}
+
 func checkIntTypeSupport(t *testing.T, it string, vc *validationContext, iv *intValidatorBuilder) {
 	bv, err := iv.parseRule(it, []string{"REQ:MISSING"})
 	test.ExpectNil(t, err)

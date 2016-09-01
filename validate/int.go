@@ -24,6 +24,7 @@ const (
 	IntOpBreakCode      = commonOpBreak
 	IntOpExtCode        = commonOpExt
 	IntOpRangeCode      = "RANGE"
+	IntOpMExCode        = commonOpMex
 )
 
 type intValidationOperation uint
@@ -36,6 +37,7 @@ const (
 	IntOpBreak
 	IntOpExt
 	IntOpRange
+	IntOpMEx
 )
 
 func NewIntValidator(field, defaultErrorCode string) *IntValidator {
@@ -67,10 +69,11 @@ type IntValidator struct {
 }
 
 type intOperation struct {
-	OpType   intValidationOperation
-	ErrCode  string
-	InSet    types.StringSet
-	External ExternalInt64Validator
+	OpType    intValidationOperation
+	ErrCode   string
+	InSet     types.StringSet
+	External  ExternalInt64Validator
+	MExFields types.StringSet
 }
 
 func (iv *IntValidator) IsSet(field string, subject interface{}) (bool, error) {
@@ -118,10 +121,10 @@ func (iv *IntValidator) Validate(vc *validationContext) (result *ValidationResul
 	//Ignoring error as called previously during IsSet
 	value, _ := iv.extractValue(f, sub)
 
-	return iv.runOperations(value.Int64())
+	return iv.runOperations(value.Int64(), vc)
 }
 
-func (iv *IntValidator) runOperations(i int64) (*ValidationResult, error) {
+func (iv *IntValidator) runOperations(i int64, vc *validationContext) (*ValidationResult, error) {
 
 	ec := new(types.OrderedStringSet)
 
@@ -148,7 +151,8 @@ OpLoop:
 			if !iv.inRange(i, op) {
 				ec.Add(op.ErrCode)
 			}
-
+		case IntOpMEx:
+			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
 		}
 
 	}
@@ -180,6 +184,17 @@ func (iv *IntValidator) checkIn(i int64, o *intOperation) bool {
 	s := strconv.FormatInt(i, 10)
 
 	return o.InSet.Contains(s)
+}
+
+func (iv *IntValidator) MEx(fields types.StringSet, code ...string) *IntValidator {
+	op := new(intOperation)
+	op.ErrCode = iv.chooseErrorCode(code)
+	op.OpType = IntOpMEx
+	op.MExFields = fields
+
+	iv.addOperation(op)
+
+	return iv
 }
 
 func (iv *IntValidator) Break() *IntValidator {
@@ -342,6 +357,8 @@ func (iv *IntValidator) Operation(c string) (boolValidationOperation, error) {
 		return IntOpExt, nil
 	case IntOpRangeCode:
 		return IntOpRange, nil
+	case IntOpMExCode:
+		return IntOpMEx, nil
 	}
 
 	m := fmt.Sprintf("Unsupported int validation operation %s", c)
@@ -396,6 +413,8 @@ func (vb *intValidatorBuilder) parseRule(field string, rule []string) (Validator
 			err = vb.addIntExternalOperation(field, ops, bv)
 		case IntOpRange:
 			err = vb.addIntRangeOperation(field, ops, bv)
+		case IntOpMEx:
+			err = vb.captureExclusiveFields(field, ops, bv)
 		}
 
 		if err != nil {
@@ -409,19 +428,31 @@ func (vb *intValidatorBuilder) parseRule(field string, rule []string) (Validator
 
 }
 
-func (vb *intValidatorBuilder) markRequired(field string, ops []string, iv *IntValidator) error {
-
-	pCount, err := paramCount(ops, "Required", field, 1, 2)
+func (vb *intValidatorBuilder) captureExclusiveFields(field string, ops []string, iv *IntValidator) error {
+	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
 		return err
 	}
 
-	if pCount == 1 {
-		iv.Required()
-	} else {
-		iv.Required(ops[1])
+	members := strings.SplitN(ops[1], setMemberSep, -1)
+	fields := types.NewOrderedStringSet(members)
+
+	iv.MEx(fields, extractVargs(ops, 3)...)
+
+	return nil
+
+}
+
+func (vb *intValidatorBuilder) markRequired(field string, ops []string, iv *IntValidator) error {
+
+	_, err := paramCount(ops, "Required", field, 1, 2)
+
+	if err != nil {
+		return err
 	}
+
+	iv.Required(extractVargs(ops, 2)...)
 
 	return nil
 }
