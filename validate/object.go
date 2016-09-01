@@ -7,6 +7,7 @@ import (
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
 	"reflect"
+	"strings"
 )
 
 const ObjectRuleCode = "OBJ"
@@ -14,6 +15,7 @@ const ObjectRuleCode = "OBJ"
 const (
 	objOpRequiredCode = commonOpRequired
 	objOpStopAllCode  = commonOpStopAll
+	objOpMExCode      = commonOpMex
 )
 
 type ObjectValidationOperation uint
@@ -22,6 +24,7 @@ const (
 	ObjOpUnsupported = iota
 	ObjOpRequired
 	ObjOpStopAll
+	ObjOpMEx
 )
 
 func NewObjectValidator(field, defaultErrorCode string) *ObjectValidator {
@@ -30,7 +33,7 @@ func NewObjectValidator(field, defaultErrorCode string) *ObjectValidator {
 	ov.field = field
 	ov.codesInUse = types.NewOrderedStringSet([]string{})
 	ov.dependsFields = determinePathFields(field)
-
+	ov.operations = make([]*objectOperation, 0)
 	ov.codesInUse.Add(ov.defaultErrorCode)
 
 	return ov
@@ -44,11 +47,13 @@ type ObjectValidator struct {
 	field               string
 	missingRequiredCode string
 	required            bool
+	operations          []*objectOperation
 }
 
 type objectOperation struct {
-	OpType  ObjectValidationOperation
-	ErrCode string
+	OpType    ObjectValidationOperation
+	ErrCode   string
+	MExFields types.StringSet
 }
 
 func (ov *ObjectValidator) IsSet(field string, subject interface{}) (bool, error) {
@@ -106,7 +111,30 @@ func (ov *ObjectValidator) Validate(vc *validationContext) (result *ValidationRe
 
 	}
 
+	return ov.runOperations(vc, r.ErrorCodes)
+}
+
+func (ov *ObjectValidator) runOperations(vc *validationContext, errors []string) (*ValidationResult, error) {
+
+	if errors == nil {
+		errors = []string{}
+	}
+
+	ec := types.NewOrderedStringSet(errors)
+
+	for _, op := range ov.operations {
+
+		switch op.OpType {
+		case ObjOpMEx:
+			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
+		}
+	}
+
+	r := new(ValidationResult)
+	r.ErrorCodes = ec.Contents()
+
 	return r, nil
+
 }
 
 func (ov *ObjectValidator) StopAllOnFail() bool {
@@ -144,12 +172,40 @@ func (ov *ObjectValidator) Required(code ...string) *ObjectValidator {
 	return ov
 }
 
+func (ov *ObjectValidator) MEx(fields types.StringSet, code ...string) *ObjectValidator {
+	op := new(objectOperation)
+	op.ErrCode = ov.chooseErrorCode(code)
+	op.OpType = ObjOpMEx
+	op.MExFields = fields
+
+	ov.addOperation(op)
+
+	return ov
+}
+
+func (ov *ObjectValidator) chooseErrorCode(v []string) string {
+
+	if len(v) > 0 {
+		ov.codesInUse.Add(v[0])
+		return v[0]
+	} else {
+		return ov.defaultErrorCode
+	}
+
+}
+
+func (ov *ObjectValidator) addOperation(o *objectOperation) {
+	ov.operations = append(ov.operations, o)
+}
+
 func (ov *ObjectValidator) Operation(c string) (ObjectValidationOperation, error) {
 	switch c {
 	case objOpRequiredCode:
 		return ObjOpRequired, nil
 	case objOpStopAllCode:
 		return ObjOpStopAll, nil
+	case objOpMExCode:
+		return ObjOpMEx, nil
 	}
 
 	m := fmt.Sprintf("Unsupported object validation operation %s", c)
@@ -195,6 +251,8 @@ func (vb *objectValidatorBuilder) parseRule(field string, rule []string) (Valida
 			err = vb.markRequired(field, ops, ov)
 		case ObjOpStopAll:
 			ov.StopAll()
+		case ObjOpMEx:
+			err = vb.captureExclusiveFields(field, ops, ov)
 		}
 
 		if err != nil {
@@ -205,6 +263,22 @@ func (vb *objectValidatorBuilder) parseRule(field string, rule []string) (Valida
 	}
 
 	return ov, nil
+
+}
+
+func (vb *objectValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *ObjectValidator) error {
+	_, err := paramCount(ops, "MEX", field, 2, 3)
+
+	if err != nil {
+		return err
+	}
+
+	members := strings.SplitN(ops[1], setMemberSep, -1)
+	fields := types.NewOrderedStringSet(members)
+
+	bv.MEx(fields, extractVargs(ops, 3)...)
+
+	return nil
 
 }
 
