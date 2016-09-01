@@ -479,3 +479,19 @@ func validateExternalOperation(cf ioc.ComponentByNameFinder, field string, ops [
 
 	return pCount, component, nil
 }
+
+func checkMExFields(mf types.StringSet, vc *validationContext, ec types.StringSet, code string) {
+
+	if vc.KnownSetFields == nil || vc.KnownSetFields.Size() == 0 {
+		return
+	}
+
+	for _, s := range mf.Contents() {
+
+		if vc.KnownSetFields.Contains(s) {
+			ec.Add(code)
+			break
+		}
+	}
+
+}

@@ -24,6 +24,7 @@ const (
 	FloatOpBreakCode      = commonOpBreak
 	FloatOpExtCode        = commonOpExt
 	FloatOpRangeCode      = "RANGE"
+	FloatOpMExCode        = commonOpMex
 )
 
 type floatValidationOperation uint
@@ -36,6 +37,7 @@ const (
 	FloatOpBreak
 	FloatOpExt
 	FloatOpRange
+	FloatOpMex
 )
 
 func NewFloatValidator(field, defaultErrorCode string) *FloatValidator {
@@ -67,10 +69,11 @@ type FloatValidator struct {
 }
 
 type floatOperation struct {
-	OpType   floatValidationOperation
-	ErrCode  string
-	InSet    map[float64]bool
-	External ExternalFloat64Validator
+	OpType    floatValidationOperation
+	ErrCode   string
+	InSet     map[float64]bool
+	External  ExternalFloat64Validator
+	MExFields types.StringSet
 }
 
 func (iv *FloatValidator) IsSet(field string, subject interface{}) (bool, error) {

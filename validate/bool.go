@@ -126,7 +126,7 @@ func (bv *boolValidator) runOperations(b bool, vc *validationContext, errors []s
 
 		switch op.OpType {
 		case BoolOpMex:
-			bv.checkMExFields(op, vc, ec)
+			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
 		}
 	}
 
@@ -134,22 +134,6 @@ func (bv *boolValidator) runOperations(b bool, vc *validationContext, errors []s
 	r.ErrorCodes = ec.Contents()
 
 	return r, nil
-
-}
-
-func (bv *boolValidator) checkMExFields(op *boolOperation, vc *validationContext, ec types.StringSet) {
-
-	if vc.KnownSetFields == nil || vc.KnownSetFields.Size() == 0 {
-		return
-	}
-
-	for _, s := range op.MExFields.Contents() {
-
-		if vc.KnownSetFields.Contains(s) {
-			ec.Add(op.ErrCode)
-			break
-		}
-	}
 
 }
 
