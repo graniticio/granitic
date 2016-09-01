@@ -103,6 +103,55 @@ func TestSetBoolDetection(t *testing.T) {
 	test.ExpectInt(t, len(c), 0)
 }
 
+func TestBoolMExFieldDetection(t *testing.T) {
+	vb := NewBoolValidatorBuilder("DEF", nil)
+
+	bv, err := vb.parseRule("B", []string{"MEX:setField1,setField2:BAD_MEX"})
+
+	test.ExpectNil(t, err)
+
+	sub := new(BoolTest)
+	vc := new(validationContext)
+	vc.Subject = sub
+	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
+
+	sub.B = true
+
+	r, err := bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c := r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	vc.KnownSetFields.Add("ignoreField")
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	vc.KnownSetFields.Add("setField1")
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectString(t, c[0], "BAD_MEX")
+
+	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
+	vc.KnownSetFields.Add("setField2")
+
+	r, err = bv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+	test.ExpectString(t, c[0], "BAD_MEX")
+
+}
+
 func TestRequiredValueDetection(t *testing.T) {
 
 	vb := NewBoolValidatorBuilder("DEF", nil)

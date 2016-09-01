@@ -7,6 +7,7 @@ import (
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
 	"strconv"
+	"strings"
 )
 
 const BoolRuleCode = "BOOL"
@@ -15,6 +16,7 @@ const (
 	boolOpRequiredCode = commonOpRequired
 	boolOpStopAllCode  = commonOpStopAll
 	boolOpIsCode       = "IS"
+	boolOpMexCode      = commonOpMex
 )
 
 type boolValidationOperation uint
@@ -24,6 +26,7 @@ const (
 	BoolOpRequired
 	BoolOpStopAll
 	BoolOpIs
+	BoolOpMex
 )
 
 func NewBoolValidator(field, defaultErrorCode string) *boolValidator {
@@ -32,7 +35,7 @@ func NewBoolValidator(field, defaultErrorCode string) *boolValidator {
 	ov.field = field
 	ov.codesInUse = types.NewOrderedStringSet([]string{})
 	ov.dependsFields = determinePathFields(field)
-
+	ov.operations = make([]*boolOperation, 0)
 	ov.codesInUse.Add(ov.defaultErrorCode)
 
 	return ov
@@ -48,11 +51,13 @@ type boolValidator struct {
 	required            bool
 	requiredValue       *types.NilableBool
 	requiredValueCode   string
+	operations          []*boolOperation
 }
 
 type boolOperation struct {
-	OpType  boolValidationOperation
-	ErrCode string
+	OpType    boolValidationOperation
+	ErrCode   string
+	MExFields types.StringSet
 }
 
 func (ov *boolValidator) IsSet(field string, subject interface{}) (bool, error) {
@@ -106,7 +111,42 @@ func (ov *boolValidator) Validate(vc *validationContext) (result *ValidationResu
 		r.ErrorCodes = []string{ov.requiredValueCode}
 	}
 
+	return ov.runOperations(value.Bool(), vc)
+}
+
+func (iv *boolValidator) runOperations(b bool, vc *validationContext) (*ValidationResult, error) {
+
+	ec := new(types.OrderedStringSet)
+
+	for _, op := range iv.operations {
+
+		switch op.OpType {
+		case BoolOpMex:
+			iv.checkMExFields(op, vc, ec)
+		}
+	}
+
+	r := new(ValidationResult)
+	r.ErrorCodes = ec.Contents()
+
 	return r, nil
+
+}
+
+func (ov *boolValidator) checkMExFields(op *boolOperation, vc *validationContext, ec types.StringSet) {
+
+	if vc.KnownSetFields == nil || vc.KnownSetFields.Size() == 0 {
+		return
+	}
+
+	for _, s := range op.MExFields.Contents() {
+
+		if vc.KnownSetFields.Contains(s) {
+			ec.Add(op.ErrCode)
+			break
+		}
+	}
+
 }
 
 func (ov *boolValidator) extractValue(f string, s interface{}) (*types.NilableBool, error) {
@@ -162,14 +202,7 @@ func (ov *boolValidator) StopAll() *boolValidator {
 func (ov *boolValidator) Required(code ...string) *boolValidator {
 
 	ov.required = true
-
-	if code != nil {
-		ov.missingRequiredCode = code[0]
-	} else {
-		ov.missingRequiredCode = ov.defaultErrorCode
-	}
-
-	ov.codesInUse.Add(ov.missingRequiredCode)
+	ov.missingRequiredCode = ov.chooseErrorCode(code)
 
 	return ov
 }
@@ -178,13 +211,35 @@ func (ov *boolValidator) Is(v bool, code ...string) *boolValidator {
 
 	ov.requiredValue = types.NewNilableBool(v)
 
-	if code != nil {
-		ov.requiredValueCode = code[0]
-	} else {
-		ov.requiredValueCode = ov.defaultErrorCode
-	}
+	ov.requiredValueCode = ov.chooseErrorCode(code)
 
 	return ov
+}
+
+func (ov *boolValidator) MEx(fields types.StringSet, code ...string) *boolValidator {
+	op := new(boolOperation)
+	op.ErrCode = ov.chooseErrorCode(code)
+	op.OpType = BoolOpMex
+	op.MExFields = fields
+
+	ov.addOperation(op)
+
+	return ov
+}
+
+func (ov *boolValidator) addOperation(o *boolOperation) {
+	ov.operations = append(ov.operations, o)
+}
+
+func (ov *boolValidator) chooseErrorCode(v []string) string {
+
+	if len(v) > 0 {
+		ov.codesInUse.Add(v[0])
+		return v[0]
+	} else {
+		return ov.defaultErrorCode
+	}
+
 }
 
 func (ov *boolValidator) Operation(c string) (boolValidationOperation, error) {
@@ -195,6 +250,8 @@ func (ov *boolValidator) Operation(c string) (boolValidationOperation, error) {
 		return BoolOpStopAll, nil
 	case boolOpIsCode:
 		return BoolOpIs, nil
+	case boolOpMexCode:
+		return BoolOpMex, nil
 	}
 
 	m := fmt.Sprintf("Unsupported bool validation operation %s", c)
@@ -242,6 +299,8 @@ func (vb *boolValidatorBuilder) parseRule(field string, rule []string) (Validato
 			bv.StopAll()
 		case BoolOpIs:
 			err = vb.captureRequiredValue(field, ops, bv)
+		case BoolOpMex:
+			err = vb.captureExclusiveFields(field, ops, bv)
 		}
 
 		if err != nil {
@@ -252,6 +311,26 @@ func (vb *boolValidatorBuilder) parseRule(field string, rule []string) (Validato
 	}
 
 	return bv, nil
+
+}
+
+func (vb *boolValidatorBuilder) captureExclusiveFields(field string, ops []string, ov *boolValidator) error {
+	pCount, err := paramCount(ops, "MEX", field, 2, 3)
+
+	if err != nil {
+		return err
+	}
+
+	members := strings.SplitN(ops[1], setMemberSep, -1)
+	fields := types.NewOrderedStringSet(members)
+
+	if pCount == 2 {
+		ov.MEx(fields)
+	} else {
+		ov.MEx(fields, ops[2])
+	}
+
+	return nil
 
 }
 

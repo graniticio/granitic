@@ -32,6 +32,7 @@ const commonOpStopAll = "STOPALL"
 const commonOpIn = "IN"
 const commonOpBreak = "BREAK"
 const commonOpExt = "EXT"
+const commonOpMex = "MEX"
 
 type SubjectContext struct {
 	Subject interface{}
