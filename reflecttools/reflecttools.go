@@ -132,7 +132,9 @@ func FieldValue(i interface{}, name string) reflect.Value {
 
 	r = reflect.ValueOf(i)
 
-	if r.Kind() != reflect.Struct {
+	k := r.Kind()
+
+	if k == reflect.Interface || k == reflect.Ptr {
 		r = r.Elem()
 	}
 
