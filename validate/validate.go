@@ -240,6 +240,7 @@ func (ov *RuleValidator) Validate(subject *SubjectContext) ([]*FieldErrors, erro
 				fieldErrors = append(fieldErrors, fe)
 
 				if vl.validator.StopAllOnFail() {
+					log.LogDebugf("Sopping all after problem found with %s", f)
 					break
 				}
 			}
@@ -339,7 +340,7 @@ func (ov *RuleValidator) parseRules() error {
 		}
 
 		if err != nil {
-			break
+			return err
 		}
 
 	}
@@ -378,13 +379,13 @@ func (ov *RuleValidator) findRule(field, op string) ([]string, error) {
 	rf := ov.RuleManager
 
 	if rf == nil {
-		m := fmt.Sprintf("Field %s has its rule specified as a reference to an external rule %s, but RuleManager is not set.\n", field, ref)
+		m := fmt.Sprintf("Field %s has its rule specified as a reference to an external rule %s, but RuleManager is not set.", field, ref)
 		return nil, errors.New(m)
 
 	}
 
 	if !rf.Exists(ref) {
-		m := fmt.Sprintf("Field %s has its rule specified as a reference to an external rule %s, but no rule with that reference exists.\n", field, ref)
+		m := fmt.Sprintf("Field %s has its rule specified as a reference to an external rule %s, but no rule with that reference exists.", field, ref)
 		return nil, errors.New(m)
 	}
 
@@ -413,7 +414,7 @@ func (ov *RuleValidator) parseRule(field string, rule []string) (Validator, erro
 	case FloatRule:
 		v, err = ov.parse(field, rule, ov.floatValidatorBuilder.parseRule)
 	case SliceRule:
-		v, err = ov.parse(field, rule, ov.floatValidatorBuilder.parseRule)
+		v, err = ov.parse(field, rule, ov.sliceValidatorBuilder.parseRule)
 
 	default:
 		m := fmt.Sprintf("Unsupported rule type for field %s\n", field)
@@ -456,7 +457,7 @@ func (ov *RuleValidator) extractType(field string, rule []string) (ValidationRul
 		}
 	}
 
-	m := fmt.Sprintf("Unable to determine the type of rule from the rule definition for field %s: %v/n", field, rule)
+	m := fmt.Sprintf("Unable to determine the type of rule from the rule definition for field %s: %v", field, rule)
 
 	return UnknownRuleType, errors.New(m)
 }
