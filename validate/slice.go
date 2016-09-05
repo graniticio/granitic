@@ -167,6 +167,8 @@ func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value
 			stringElement = true
 		case *IntValidator:
 			vc.Subject, err = tv.ToInt64(fa, e.Interface())
+		case *FloatValidator:
+			vc.Subject, err = tv.ToFloat64(fa, e.Interface())
 		}
 
 		if err != nil {

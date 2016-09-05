@@ -99,28 +99,42 @@ func (fv *FloatValidator) Validate(vc *ValidationContext) (result *ValidationRes
 		f = vc.OverrideField
 	}
 
+	var value *types.NilableFloat64
 	sub := vc.Subject
-
 	r := NewValidationResult()
 
-	set, err := fv.IsSet(f, sub)
+	if vc.DirectSubject {
 
-	if err != nil {
-		return nil, err
-	} else if !set {
-		r.Unset = true
+		i, found := sub.(*types.NilableFloat64)
 
-		if fv.required {
-			r.AddForField(f, []string{fv.missingRequiredCode})
+		if !found {
+			m := fmt.Sprintf("Direct validation requested for %s but supplied value is not a *NilableFloat64", f)
+			return nil, errors.New(m)
 		}
 
-		return r, nil
+		value = i
+
+	} else {
+
+		set, err := fv.IsSet(f, sub)
+
+		if err != nil {
+			return nil, err
+		} else if !set {
+			r.Unset = true
+
+			if fv.required {
+				r.AddForField(f, []string{fv.missingRequiredCode})
+			}
+
+			return r, nil
+		}
+
+		//Ignoring error as called previously during IsSet
+		value, _ = fv.extractValue(f, sub)
 	}
 
-	//Ignoring error as called previously during IsSet
-	value, _ := fv.extractValue(f, sub)
-
-	err = fv.runOperations(f, value.Float64(), vc, r)
+	err := fv.runOperations(f, value.Float64(), vc, r)
 
 	return r, err
 }
@@ -143,9 +157,13 @@ func (fv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableF
 		return nil, nil
 	}
 
+	return fv.ToFloat64(f, v.Interface())
+}
+
+func (fv *FloatValidator) ToFloat64(f string, i interface{}) (*types.NilableFloat64, error) {
 	var ex float64
 
-	switch i := v.Interface().(type) {
+	switch i := i.(type) {
 	case *types.NilableFloat64:
 		return i, nil
 	case float32:
@@ -160,7 +178,6 @@ func (fv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableF
 	}
 
 	return types.NewNilableFloat64(ex), nil
-
 }
 
 func (fv *FloatValidator) runOperations(field string, i float64, vc *ValidationContext, r *ValidationResult) error {

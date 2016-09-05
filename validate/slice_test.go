@@ -118,6 +118,7 @@ func TestSliceElemValidation(t *testing.T) {
 
 	rules["lenCheck"] = []string{"STR", "LEN:-5:TOOLONG", "HARDTRIM"}
 	rules["intRange"] = []string{"INT", "RANGE:4|5"}
+	rules["floatRange"] = []string{"FLOAT", "RANGE:4|5"}
 	rules["objCheck"] = []string{"OBJ"}
 
 	rv.RuleManager = rm
@@ -126,6 +127,7 @@ func TestSliceElemValidation(t *testing.T) {
 	rv.objectValidatorBuilder = NewObjectValidatorBuilder("DEFOBJ", nil)
 	rv.intValidatorBuilder = NewIntValidatorBuilder("DEFINT", nil)
 	rv.floatValidatorBuilder = NewFloatValidatorBuilder("DEFFLT", nil)
+	rv.boolValidatorBuilder = NewBoolValidatorBuilder("DEFBOOL", nil)
 
 	vb := NewSliceValidatorBuilder("DEF", nil, rv)
 
@@ -199,6 +201,30 @@ func TestSliceElemValidation(t *testing.T) {
 
 	test.ExpectInt(t, len(c), 1)
 
+	field = "F"
+
+	sub.F = []float64{1, 2, 3, 4, 5}
+	sv, err = vb.parseRule(field, []string{"ELEM:floatRange:FLTSIZE"})
+	test.ExpectNil(t, err)
+
+	r, err = sv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 3)
+
+	field = "NF"
+
+	sub.NF = []*types.NilableFloat64{types.NewNilableFloat64(1), types.NewNilableFloat64(5)}
+	sv, err = vb.parseRule(field, []string{"ELEM:floatRange:FLTSIZE"})
+	test.ExpectNil(t, err)
+
+	r, err = sv.Validate(vc)
+	test.ExpectNil(t, err)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 1)
+
 }
 
 func TestSliceMExFieldDetection(t *testing.T) {
@@ -257,4 +283,6 @@ type SliceTest struct {
 	NS []*types.NilableString
 	I  []int
 	NI []*types.NilableInt64
+	F  []float64
+	NF []*types.NilableFloat64
 }
