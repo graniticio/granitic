@@ -32,7 +32,9 @@ func TestSliceSet(t *testing.T) {
 func TestSliceLength(t *testing.T) {
 	sb := NewSliceValidatorBuilder("DEF", nil)
 
-	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH"})
+	field := "S"
+
+	sv, err := sb.parseRule(field, []string{"REQ:MISSING", "LEN:2-:LENGTH"})
 
 	test.ExpectNil(t, err)
 
@@ -46,8 +48,8 @@ func TestSliceLength(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "LENGTH")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c["S"][0], "LENGTH")
 
 	sub.S = []string{"A", "B"}
 
@@ -55,9 +57,9 @@ func TestSliceLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
-	sv, err = sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-3:LENGTH"})
+	sv, err = sb.parseRule(field, []string{"REQ:MISSING", "LEN:2-3:LENGTH"})
 
 	sub.S = []string{"A", "B", "C"}
 
@@ -65,7 +67,7 @@ func TestSliceLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.S = []string{"A", "B", "C", "D"}
 
@@ -73,10 +75,10 @@ func TestSliceLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "LENGTH")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "LENGTH")
 
-	sv, err = sb.parseRule("S", []string{"REQ:MISSING", "LEN:-3:LENGTH"})
+	sv, err = sb.parseRule(field, []string{"REQ:MISSING", "LEN:-3:LENGTH"})
 
 	sub.S = []string{}
 
@@ -84,7 +86,7 @@ func TestSliceLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.S = []string{"A", "B", "C"}
 
@@ -92,7 +94,7 @@ func TestSliceLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.S = []string{"A", "B", "C", "D"}
 
@@ -100,15 +102,17 @@ func TestSliceLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "LENGTH")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "LENGTH")
 
 }
 
 func TestSliceMExFieldDetection(t *testing.T) {
 	vb := NewSliceValidatorBuilder("DEF", nil)
 
-	bv, err := vb.parseRule("S", []string{"MEX:setField1,setField2:BAD_MEX"})
+	field := "S"
+
+	bv, err := vb.parseRule(field, []string{"MEX:setField1,setField2:BAD_MEX"})
 
 	test.ExpectNil(t, err)
 
@@ -123,7 +127,7 @@ func TestSliceMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	vc.KnownSetFields.Add("ignoreField")
 
@@ -131,7 +135,7 @@ func TestSliceMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	vc.KnownSetFields.Add("setField1")
 
@@ -139,8 +143,8 @@ func TestSliceMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "BAD_MEX")
 
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 	vc.KnownSetFields.Add("setField2")
@@ -149,8 +153,8 @@ func TestSliceMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "BAD_MEX")
 
 }
 

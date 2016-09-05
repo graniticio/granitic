@@ -50,20 +50,22 @@ func TestIntInSet(t *testing.T) {
 	vc := new(ValidationContext)
 	vc.Subject = sub
 
-	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "IN:1,2,3,4,X"})
+	field := "I"
+
+	bv, err := iv.parseRule(field, []string{"REQ:MISSING", "IN:1,2,3,4,X"})
 	test.ExpectNotNil(t, err)
 
-	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "IN:1,2,3,4.2"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "IN:1,2,3,4.2"})
 	test.ExpectNotNil(t, err)
 
-	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "IN:1,2,3,4:NOT_IN"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "IN:1,2,3,4:NOT_IN"})
 	test.ExpectNil(t, err)
 
 	r, err := bv.Validate(vc)
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.I = 0
 
@@ -71,8 +73,8 @@ func TestIntInSet(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "NOT_IN")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "NOT_IN")
 
 }
 
@@ -88,25 +90,27 @@ func TestIntBreakOnError(t *testing.T) {
 	vc := new(ValidationContext)
 	vc.Subject = sub
 
-	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "BREAK"})
+	field := "I"
+
+	bv, err := iv.parseRule(field, []string{"REQ:MISSING", "BREAK"})
 	test.ExpectNil(t, err)
 
 	r, err := bv.Validate(vc)
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
-	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "IN:1,2:NOTIN", "BREAK", "EXT:extInt64Checker:EXTFAIL"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "IN:1,2:NOTIN", "BREAK", "EXT:extInt64Checker:EXTFAIL"})
 	test.ExpectNil(t, err)
 
 	r, err = bv.Validate(vc)
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
-	test.ExpectString(t, c[0], "NOTIN")
+	test.ExpectString(t, c[field][0], "NOTIN")
 }
 
 func TestIntRange(t *testing.T) {
@@ -120,14 +124,16 @@ func TestIntRange(t *testing.T) {
 	vc := new(ValidationContext)
 	vc.Subject = sub
 
-	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "RANGE:1|5"})
+	field := "I"
+
+	bv, err := iv.parseRule(field, []string{"REQ:MISSING", "RANGE:1|5"})
 	test.ExpectNil(t, err)
 
 	r, err := bv.Validate(vc)
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.I = 1
 
@@ -135,7 +141,7 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.I = 5
 
@@ -143,7 +149,7 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.I = -1
 
@@ -151,7 +157,7 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
 	sub.I = 6
 
@@ -159,9 +165,9 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
-	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:|+5"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "RANGE:|+5"})
 	test.ExpectNil(t, err)
 	sub.I = -20
 
@@ -169,7 +175,7 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.I = 5
 
@@ -177,7 +183,7 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.I = 6
 
@@ -185,9 +191,9 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
-	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:5|"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "RANGE:5|"})
 	test.ExpectNil(t, err)
 	sub.I = -20
 
@@ -195,7 +201,7 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
 	sub.I = 5
 
@@ -203,7 +209,7 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.I = 6
 
@@ -211,9 +217,9 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
-	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:-10|-1"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "RANGE:-10|-1"})
 	test.ExpectNil(t, err)
 	sub.I = -20
 
@@ -221,7 +227,7 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
 	sub.I = -1
 
@@ -229,9 +235,9 @@ func TestIntRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
-	bv, err = iv.parseRule("I", []string{"REQ:MISSING", "RANGE:-1|-10"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "RANGE:-1|-10"})
 	test.ExpectNotNil(t, err)
 
 }
@@ -255,7 +261,7 @@ func TestIntRequiredAndSetDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["I"]), 0)
 	test.ExpectBool(t, false, r.Unset)
 
 	bv, err = iv.parseRule("I8", []string{"REQ:MISSING"})
@@ -265,7 +271,7 @@ func TestIntRequiredAndSetDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["I8"]), 0)
 	test.ExpectBool(t, false, r.Unset)
 
 	bv, err = iv.parseRule("NI", []string{"REQ:MISSING"})
@@ -275,9 +281,9 @@ func TestIntRequiredAndSetDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c["NI"]), 1)
 	test.ExpectBool(t, true, r.Unset)
-	test.ExpectString(t, c[0], "MISSING")
+	test.ExpectString(t, c["NI"][0], "MISSING")
 
 	sub.NI = new(types.NilableInt64)
 
@@ -285,9 +291,9 @@ func TestIntRequiredAndSetDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c["NI"]), 1)
 	test.ExpectBool(t, true, r.Unset)
-	test.ExpectString(t, c[0], "MISSING")
+	test.ExpectString(t, c["NI"][0], "MISSING")
 
 	sub.NI = types.NewNilableInt64(0)
 
@@ -295,7 +301,7 @@ func TestIntRequiredAndSetDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["NI"]), 0)
 	test.ExpectBool(t, false, r.Unset)
 }
 
@@ -324,15 +330,15 @@ func TestIntExternal(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "EXTFAIL")
+	test.ExpectInt(t, len(c["I"]), 1)
+	test.ExpectString(t, c["I"][0], "EXTFAIL")
 
 	sub.I = 64
 	r, err = iv.Validate(vc)
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["I"]), 0)
 }
 
 func TestIntMExFieldDetection(t *testing.T) {
@@ -353,7 +359,7 @@ func TestIntMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["I32"]), 0)
 
 	vc.KnownSetFields.Add("ignoreField")
 
@@ -361,7 +367,7 @@ func TestIntMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["I32"]), 0)
 
 	vc.KnownSetFields.Add("setField1")
 
@@ -369,8 +375,8 @@ func TestIntMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c["I32"]), 1)
+	test.ExpectString(t, c["I32"][0], "BAD_MEX")
 
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 	vc.KnownSetFields.Add("setField2")
@@ -379,8 +385,8 @@ func TestIntMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c["I32"]), 1)
+	test.ExpectString(t, c["I32"][0], "BAD_MEX")
 
 }
 
@@ -392,7 +398,7 @@ func checkIntTypeSupport(t *testing.T, it string, vc *ValidationContext, iv *Int
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[it]), 0)
 }
 
 type IntsTarget struct {

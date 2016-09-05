@@ -85,7 +85,7 @@ func (bv *BoolValidator) Validate(vc *ValidationContext) (result *ValidationResu
 
 	sub := vc.Subject
 
-	r := new(ValidationResult)
+	r := NewValidationResult()
 	set, err := bv.IsSet(f, sub)
 
 	if err != nil {
@@ -95,9 +95,7 @@ func (bv *BoolValidator) Validate(vc *ValidationContext) (result *ValidationResu
 		r.Unset = true
 
 		if bv.required {
-			r.ErrorCodes = []string{bv.missingRequiredCode}
-		} else {
-			r.ErrorCodes = []string{}
+			r.AddForField(f, []string{bv.missingRequiredCode})
 		}
 
 		return r, nil
@@ -108,19 +106,17 @@ func (bv *BoolValidator) Validate(vc *ValidationContext) (result *ValidationResu
 
 	if bv.requiredValue != nil && value.Bool() != bv.requiredValue.Bool() {
 
-		r.ErrorCodes = []string{bv.requiredValueCode}
+		r.AddForField(f, []string{bv.requiredValueCode})
 	}
 
-	return bv.runOperations(value.Bool(), vc, r.ErrorCodes)
+	err = bv.runOperations(f, value.Bool(), vc, r)
+
+	return r, err
 }
 
-func (bv *BoolValidator) runOperations(b bool, vc *ValidationContext, errors []string) (*ValidationResult, error) {
+func (bv *BoolValidator) runOperations(field string, b bool, vc *ValidationContext, r *ValidationResult) error {
 
-	if errors == nil {
-		errors = []string{}
-	}
-
-	ec := types.NewOrderedStringSet(errors)
+	ec := types.NewEmptyOrderedStringSet()
 
 	for _, op := range bv.operations {
 
@@ -130,10 +126,9 @@ func (bv *BoolValidator) runOperations(b bool, vc *ValidationContext, errors []s
 		}
 	}
 
-	r := new(ValidationResult)
-	r.ErrorCodes = ec.Contents()
+	r.AddForField(field, ec.Contents())
 
-	return r, nil
+	return nil
 
 }
 

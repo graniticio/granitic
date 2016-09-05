@@ -40,10 +40,12 @@ func checkFloatTypeSupport(t *testing.T, it string, vc *ValidationContext, fvb *
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[it]), 0)
 }
 
 func TestFloatInSet(t *testing.T) {
+
+	field := "F64"
 
 	iv := NewFloatValidatorBuilder("DEF", nil)
 
@@ -54,17 +56,17 @@ func TestFloatInSet(t *testing.T) {
 	vc := new(ValidationContext)
 	vc.Subject = sub
 
-	bv, err := iv.parseRule("F64", []string{"REQ:MISSING", "IN:1,2,3,4,X"})
+	bv, err := iv.parseRule(field, []string{"REQ:MISSING", "IN:1,2,3,4,X"})
 	test.ExpectNotNil(t, err)
 
-	bv, err = iv.parseRule("F64", []string{"REQ:MISSING", "IN:1,2E10,3,4:NOT_IN"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "IN:1,2E10,3,4:NOT_IN"})
 	test.ExpectNil(t, err)
 
 	r, err := bv.Validate(vc)
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.F64 = 2.1E10
 
@@ -72,12 +74,14 @@ func TestFloatInSet(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "NOT_IN")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "NOT_IN")
 
 }
 
 func TestFloatBreakOnError(t *testing.T) {
+
+	field := "F64"
 
 	iv := NewFloatValidatorBuilder("DEF", new(CompFinder))
 
@@ -88,28 +92,30 @@ func TestFloatBreakOnError(t *testing.T) {
 	vc := new(ValidationContext)
 	vc.Subject = sub
 
-	bv, err := iv.parseRule("F64", []string{"REQ:MISSING", "BREAK"})
+	bv, err := iv.parseRule(field, []string{"REQ:MISSING", "BREAK"})
 	test.ExpectNil(t, err)
 
 	r, err := bv.Validate(vc)
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
-	bv, err = iv.parseRule("F64", []string{"REQ:MISSING", "IN:1,2:NOTIN", "BREAK", "EXT:extFloat64Checker:EXTFAIL"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "IN:1,2:NOTIN", "BREAK", "EXT:extFloat64Checker:EXTFAIL"})
 	test.ExpectNil(t, err)
 
 	r, err = bv.Validate(vc)
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
-	test.ExpectString(t, c[0], "NOTIN")
+	test.ExpectString(t, c[field][0], "NOTIN")
 }
 
 func TestFloatRange(t *testing.T) {
+
+	field := "F32"
 
 	iv := NewFloatValidatorBuilder("DEF", nil)
 
@@ -120,14 +126,14 @@ func TestFloatRange(t *testing.T) {
 	vc := new(ValidationContext)
 	vc.Subject = sub
 
-	bv, err := iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:1|5"})
+	bv, err := iv.parseRule(field, []string{"REQ:MISSING", "RANGE:1|5"})
 	test.ExpectNil(t, err)
 
 	r, err := bv.Validate(vc)
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.F32 = 1.0
 
@@ -135,7 +141,7 @@ func TestFloatRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.F32 = 5.0
 
@@ -143,7 +149,7 @@ func TestFloatRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.F32 = -1.22
 
@@ -151,7 +157,7 @@ func TestFloatRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
 	sub.F32 = 6
 
@@ -159,16 +165,16 @@ func TestFloatRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
-	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:|5"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "RANGE:|5"})
 	sub.F32 = -20
 
 	r, err = bv.Validate(vc)
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.F32 = 5
 
@@ -176,7 +182,7 @@ func TestFloatRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.F32 = 6
 
@@ -184,16 +190,16 @@ func TestFloatRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
-	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:5|"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "RANGE:5|"})
 	sub.F32 = -20
 
 	r, err = bv.Validate(vc)
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 
 	sub.F32 = 5
 
@@ -201,7 +207,7 @@ func TestFloatRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.F32 = 6
 
@@ -209,15 +215,15 @@ func TestFloatRange(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
-	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:@5|1"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "RANGE:@5|1"})
 	test.ExpectNotNil(t, err)
 
-	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:5|k1"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "RANGE:5|k1"})
 	test.ExpectNotNil(t, err)
 
-	bv, err = iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:5|1"})
+	bv, err = iv.parseRule(field, []string{"REQ:MISSING", "RANGE:5|1"})
 	test.ExpectNotNil(t, err)
 
 }
@@ -241,7 +247,7 @@ func TestFloatRequiredAndSetDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["F32"]), 0)
 	test.ExpectBool(t, false, r.Unset)
 
 	bv, err = iv.parseRule("F64", []string{"REQ:MISSING"})
@@ -251,7 +257,7 @@ func TestFloatRequiredAndSetDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["F64"]), 0)
 	test.ExpectBool(t, false, r.Unset)
 
 	bv, err = iv.parseRule("NF", []string{"REQ:MISSING"})
@@ -261,9 +267,9 @@ func TestFloatRequiredAndSetDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c["NF"]), 1)
 	test.ExpectBool(t, true, r.Unset)
-	test.ExpectString(t, c[0], "MISSING")
+	test.ExpectString(t, c["NF"][0], "MISSING")
 
 	sub.NF = new(types.NilableFloat64)
 
@@ -271,9 +277,9 @@ func TestFloatRequiredAndSetDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c["NF"]), 1)
 	test.ExpectBool(t, true, r.Unset)
-	test.ExpectString(t, c[0], "MISSING")
+	test.ExpectString(t, c["NF"][0], "MISSING")
 
 	sub.NF = types.NewNilableFloat64(0)
 
@@ -281,22 +287,24 @@ func TestFloatRequiredAndSetDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["NF"]), 0)
 	test.ExpectBool(t, false, r.Unset)
 }
 
 func TestFloatExternal(t *testing.T) {
 	fvb := NewFloatValidatorBuilder("DEF", new(CompFinder))
 
-	_, err := fvb.parseRule("F32", []string{"EXT:extComp"})
+	field := "F32"
+
+	_, err := fvb.parseRule(field, []string{"EXT:extComp"})
 
 	test.ExpectNotNil(t, err)
 
-	_, err = fvb.parseRule("F32", []string{"EXT:unknown"})
+	_, err = fvb.parseRule(field, []string{"EXT:unknown"})
 
 	test.ExpectNotNil(t, err)
 
-	iv, err := fvb.parseRule("F32", []string{"EXT:extFloat64Checker:EXTFAIL"})
+	iv, err := fvb.parseRule(field, []string{"EXT:extFloat64Checker:EXTFAIL"})
 
 	test.ExpectNil(t, err)
 
@@ -310,20 +318,22 @@ func TestFloatExternal(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "EXTFAIL")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "EXTFAIL")
 
 	sub.F32 = 64.21019
-	iv, err = fvb.parseRule("F32", []string{"EXT:extFloat64Checker:EXTFAIL"})
+	iv, err = fvb.parseRule(field, []string{"EXT:extFloat64Checker:EXTFAIL"})
 	r, err = iv.Validate(vc)
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 }
 
 func TestFloatMExFieldDetection(t *testing.T) {
 	vb := NewFloatValidatorBuilder("DEF", nil)
+
+	field := "F32"
 
 	bv, err := vb.parseRule("F32", []string{"MEX:setField1,setField2:BAD_MEX"})
 
@@ -340,7 +350,7 @@ func TestFloatMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	vc.KnownSetFields.Add("ignoreField")
 
@@ -348,7 +358,7 @@ func TestFloatMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	vc.KnownSetFields.Add("setField1")
 
@@ -356,8 +366,8 @@ func TestFloatMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "BAD_MEX")
 
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 	vc.KnownSetFields.Add("setField2")
@@ -366,8 +376,8 @@ func TestFloatMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "BAD_MEX")
 
 }
 

@@ -51,8 +51,45 @@ type ValidationContext struct {
 }
 
 type ValidationResult struct {
-	ErrorCodes []string
+	ErrorCodes map[string][]string
 	Unset      bool
+}
+
+func (vr *ValidationResult) AddForField(field string, codes []string) {
+
+	existing := vr.ErrorCodes[field]
+
+	if existing == nil {
+		vr.ErrorCodes[field] = codes
+	} else {
+		vr.ErrorCodes[field] = append(existing, codes...)
+	}
+}
+
+func (vr *ValidationResult) ErrorCount() int {
+	c := 0
+
+	for _, v := range vr.ErrorCodes {
+
+		c += len(v)
+
+	}
+
+	return c
+}
+
+func NewValidationResult() *ValidationResult {
+	vr := new(ValidationResult)
+	vr.ErrorCodes = make(map[string][]string)
+
+	return vr
+}
+
+func NewPopulatedValidationResult(field string, codes []string) *ValidationResult {
+	vr := NewValidationResult()
+	vr.AddForField(field, codes)
+
+	return vr
 }
 
 type Validator interface {
@@ -182,21 +219,24 @@ func (ov *RuleValidator) Validate(subject *SubjectContext) ([]*FieldErrors, erro
 			unsetFields.Add(f)
 		}
 
-		l := len(ec)
+		l := r.ErrorCount()
 
 		if ec != nil && l > 0 {
 
-			fieldsWithProblems.Add(f)
-			log.LogDebugf("%s has %d errors", f, l)
+			for k, v := range ec {
 
-			fe := new(FieldErrors)
-			fe.Field = f
-			fe.ErrorCodes = ec
+				fieldsWithProblems.Add(k)
+				log.LogDebugf("%s has %d errors", k, l)
 
-			fieldErrors = append(fieldErrors, fe)
+				fe := new(FieldErrors)
+				fe.Field = k
+				fe.ErrorCodes = v
 
-			if vl.validator.StopAllOnFail() {
-				break
+				fieldErrors = append(fieldErrors, fe)
+
+				if vl.validator.StopAllOnFail() {
+					break
+				}
 			}
 
 		}

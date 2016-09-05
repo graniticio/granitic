@@ -101,7 +101,7 @@ func (fv *FloatValidator) Validate(vc *ValidationContext) (result *ValidationRes
 
 	sub := vc.Subject
 
-	r := new(ValidationResult)
+	r := NewValidationResult()
 
 	set, err := fv.IsSet(f, sub)
 
@@ -111,9 +111,7 @@ func (fv *FloatValidator) Validate(vc *ValidationContext) (result *ValidationRes
 		r.Unset = true
 
 		if fv.required {
-			r.ErrorCodes = []string{fv.missingRequiredCode}
-		} else {
-			r.ErrorCodes = []string{}
+			r.AddForField(f, []string{fv.missingRequiredCode})
 		}
 
 		return r, nil
@@ -122,7 +120,9 @@ func (fv *FloatValidator) Validate(vc *ValidationContext) (result *ValidationRes
 	//Ignoring error as called previously during IsSet
 	value, _ := fv.extractValue(f, sub)
 
-	return fv.runOperations(value.Float64(), vc)
+	err = fv.runOperations(f, value.Float64(), vc, r)
+
+	return r, err
 }
 
 func (fv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableFloat64, error) {
@@ -163,9 +163,9 @@ func (fv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableF
 
 }
 
-func (fv *FloatValidator) runOperations(i float64, vc *ValidationContext) (*ValidationResult, error) {
+func (fv *FloatValidator) runOperations(field string, i float64, vc *ValidationContext, r *ValidationResult) error {
 
-	ec := new(types.OrderedStringSet)
+	ec := types.NewEmptyOrderedStringSet()
 
 OpLoop:
 	for _, op := range fv.operations {
@@ -196,10 +196,9 @@ OpLoop:
 
 	}
 
-	r := new(ValidationResult)
-	r.ErrorCodes = ec.Contents()
+	r.AddForField(field, ec.Contents())
 
-	return r, nil
+	return nil
 
 }
 

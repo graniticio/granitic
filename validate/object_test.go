@@ -22,7 +22,7 @@ func TestUnsetObjDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c["CP"]), 1)
 
 	ov, err = ob.parseRule("CM", []string{"REQ:MISSING"})
 
@@ -32,7 +32,7 @@ func TestUnsetObjDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c["CM"]), 1)
 
 	ov, err = ob.parseRule("CV", []string{"REQ:MISSING"})
 
@@ -42,7 +42,7 @@ func TestUnsetObjDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["CV"]), 0)
 
 }
 
@@ -63,7 +63,7 @@ func TestSetObjDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["CP"]), 0)
 
 	sub.CM = make(map[string]interface{})
 	ov, err = ob.parseRule("CM", []string{"REQ:MISSING"})
@@ -74,7 +74,7 @@ func TestSetObjDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["CM"]), 0)
 
 	ov, err = ob.parseRule("CV", []string{"REQ:MISSING"})
 
@@ -84,7 +84,7 @@ func TestSetObjDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["CV"]), 0)
 
 }
 
@@ -106,7 +106,7 @@ func TestObjectMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["CP"]), 0)
 
 	vc.KnownSetFields.Add("ignoreField")
 
@@ -114,7 +114,7 @@ func TestObjectMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["CP"]), 0)
 
 	vc.KnownSetFields.Add("setField1")
 
@@ -122,8 +122,8 @@ func TestObjectMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c["CP"]), 1)
+	test.ExpectString(t, c["CP"][0], "BAD_MEX")
 
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 	vc.KnownSetFields.Add("setField2")
@@ -132,8 +132,8 @@ func TestObjectMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c["CP"]), 1)
+	test.ExpectString(t, c["CP"][0], "BAD_MEX")
 
 }
 

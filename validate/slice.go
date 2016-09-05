@@ -18,6 +18,7 @@ const (
 	sliceOpStopAllCode  = commonOpStopAll
 	sliceOpMexCode      = commonOpMex
 	sliceOpLenCode      = commonOpLen
+	sliceOpElemCode     = "ELEM"
 )
 
 type sliceValidationOperation uint
@@ -28,6 +29,7 @@ const (
 	SliceOpStopAll
 	SliceOpMex
 	SliceOpLen
+	SliceOpElem
 )
 
 func NewSliceValidator(field, defaultErrorCode string) *SliceValidator {
@@ -58,9 +60,10 @@ type SliceValidator struct {
 }
 
 type sliceOperation struct {
-	OpType    sliceValidationOperation
-	ErrCode   string
-	MExFields types.StringSet
+	OpType        sliceValidationOperation
+	ErrCode       string
+	MExFields     types.StringSet
+	elemValidator Validator
 }
 
 func (bv *SliceValidator) IsSet(field string, subject interface{}) (bool, error) {
@@ -88,7 +91,7 @@ func (bv *SliceValidator) Validate(vc *ValidationContext) (result *ValidationRes
 
 	sub := vc.Subject
 
-	r := new(ValidationResult)
+	r := NewValidationResult()
 	set, err := bv.IsSet(f, sub)
 
 	if err != nil {
@@ -98,9 +101,7 @@ func (bv *SliceValidator) Validate(vc *ValidationContext) (result *ValidationRes
 		r.Unset = true
 
 		if bv.required {
-			r.ErrorCodes = []string{bv.missingRequiredCode}
-		} else {
-			r.ErrorCodes = []string{}
+			r.AddForField(f, []string{bv.missingRequiredCode})
 		}
 
 		return r, nil
@@ -109,16 +110,14 @@ func (bv *SliceValidator) Validate(vc *ValidationContext) (result *ValidationRes
 	//Ignoring error as called previously during IsSet
 	value, _ := bv.extractReflectValue(f, sub)
 
-	return bv.runOperations(value.(reflect.Value), vc, r.ErrorCodes)
+	err = bv.runOperations(f, value.(reflect.Value), vc, r)
+
+	return r, err
 }
 
-func (sv *SliceValidator) runOperations(v reflect.Value, vc *ValidationContext, errors []string) (*ValidationResult, error) {
+func (sv *SliceValidator) runOperations(field string, v reflect.Value, vc *ValidationContext, r *ValidationResult) error {
 
-	if errors == nil {
-		errors = []string{}
-	}
-
-	ec := types.NewOrderedStringSet(errors)
+	ec := types.NewEmptyOrderedStringSet()
 
 	for _, op := range sv.operations {
 
@@ -132,10 +131,9 @@ func (sv *SliceValidator) runOperations(v reflect.Value, vc *ValidationContext, 
 		}
 	}
 
-	r := new(ValidationResult)
-	r.ErrorCodes = ec.Contents()
+	r.AddForField(field, ec.Contents())
 
-	return r, nil
+	return nil
 
 }
 

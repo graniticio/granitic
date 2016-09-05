@@ -102,6 +102,10 @@ func (sv *StringValidator) IsSet(field string, subject interface{}) (bool, error
 	}
 }
 
+func (sv *StringValidator) ValidateString(subject *types.NilableString, alias string) (result *ValidationResult, unexpected error) {
+	return nil, nil
+}
+
 func (sv *StringValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := sv.field
@@ -114,16 +118,14 @@ func (sv *StringValidator) Validate(vc *ValidationContext) (result *ValidationRe
 
 	set, err := sv.IsSet(f, sub)
 
+	r := NewValidationResult()
+
 	if err != nil {
 		return nil, err
 	} else if !set {
 
-		r := new(ValidationResult)
-
 		if sv.required {
-			r.ErrorCodes = []string{sv.missingRequiredCode}
-		} else {
-			r.ErrorCodes = []string{}
+			r.AddForField(f, []string{sv.missingRequiredCode})
 		}
 
 		r.Unset = true
@@ -136,8 +138,9 @@ func (sv *StringValidator) Validate(vc *ValidationContext) (result *ValidationRe
 
 	toValidate := sv.applyTrimming(f, sub, value)
 
-	return sv.runOperations(toValidate, vc)
+	err = sv.runOperations(f, toValidate, vc, r)
 
+	return r, err
 }
 
 func (sv *StringValidator) applyTrimming(f string, s interface{}, ns *types.NilableString) string {
@@ -193,9 +196,9 @@ func (sv *StringValidator) extractValue(f string, s interface{}) (*types.Nilable
 	}
 }
 
-func (sv *StringValidator) runOperations(s string, vc *ValidationContext) (*ValidationResult, error) {
+func (sv *StringValidator) runOperations(field string, s string, vc *ValidationContext, r *ValidationResult) error {
 
-	ec := new(types.OrderedStringSet)
+	ec := types.NewEmptyOrderedStringSet()
 
 OpLoop:
 	for _, op := range sv.operations {
@@ -233,10 +236,9 @@ OpLoop:
 
 	}
 
-	r := new(ValidationResult)
-	r.ErrorCodes = ec.Contents()
+	r.AddForField(field, ec.Contents())
 
-	return r, nil
+	return nil
 
 }
 

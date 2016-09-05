@@ -24,7 +24,7 @@ func TestUnsetBoolDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["B"]), 0)
 
 	bv, err = vb.parseRule("NSB", []string{"REQ:MISSING"})
 
@@ -34,7 +34,7 @@ func TestUnsetBoolDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c["NSB"]), 1)
 
 	sub.NSB = new(types.NilableBool)
 
@@ -42,7 +42,7 @@ func TestUnsetBoolDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c["NSB"]), 1)
 
 	sub.NSB = nil
 
@@ -54,7 +54,7 @@ func TestUnsetBoolDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["B"]), 0)
 
 	sub.NSB = new(types.NilableBool)
 
@@ -66,7 +66,7 @@ func TestUnsetBoolDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["B"]), 0)
 
 }
 
@@ -88,7 +88,7 @@ func TestSetBoolDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["B"]), 0)
 
 	bv, err = vb.parseRule("NSB", []string{"REQ:MISSING"})
 
@@ -100,13 +100,15 @@ func TestSetBoolDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["NSB"]), 0)
 }
 
 func TestBoolMExFieldDetection(t *testing.T) {
 	vb := NewBoolValidatorBuilder("DEF", nil)
 
-	bv, err := vb.parseRule("B", []string{"MEX:setField1,setField2:BAD_MEX"})
+	field := "B"
+
+	bv, err := vb.parseRule(field, []string{"MEX:setField1,setField2:BAD_MEX"})
 
 	test.ExpectNil(t, err)
 
@@ -121,7 +123,7 @@ func TestBoolMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["B"]), 0)
 
 	vc.KnownSetFields.Add("ignoreField")
 
@@ -129,7 +131,7 @@ func TestBoolMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["B"]), 0)
 
 	vc.KnownSetFields.Add("setField1")
 
@@ -137,8 +139,8 @@ func TestBoolMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c["B"]), 1)
+	test.ExpectString(t, c[field][0], "BAD_MEX")
 
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 	vc.KnownSetFields.Add("setField2")
@@ -147,8 +149,8 @@ func TestBoolMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c["B"]), 1)
+	test.ExpectString(t, c[field][0], "BAD_MEX")
 
 }
 
@@ -156,7 +158,9 @@ func TestRequiredValueDetection(t *testing.T) {
 
 	vb := NewBoolValidatorBuilder("DEF", nil)
 
-	bv, err := vb.parseRule("B", []string{"REQ:MISSING", "IS:false:WRONG"})
+	field := "B"
+
+	bv, err := vb.parseRule(field, []string{"REQ:MISSING", "IS:false:WRONG"})
 
 	test.ExpectNil(t, err)
 
@@ -170,8 +174,8 @@ func TestRequiredValueDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "WRONG")
+	test.ExpectInt(t, len(c["B"]), 1)
+	test.ExpectString(t, c[field][0], "WRONG")
 
 	sub.B = false
 
@@ -179,7 +183,7 @@ func TestRequiredValueDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["B"]), 0)
 
 	bv, err = vb.parseRule("B", []string{"REQ:MISSING", "IS:zzzz:WRONG"})
 

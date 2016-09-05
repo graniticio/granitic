@@ -8,6 +8,8 @@ import (
 
 func TestMissingRequiredStringField(t *testing.T) {
 
+	field := "S"
+
 	sb := NewStringValidatorBuilder("DEF")
 
 	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:5-10:SHORT"})
@@ -23,8 +25,8 @@ func TestMissingRequiredStringField(t *testing.T) {
 
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, r.Unset, true)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "MISSING")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "MISSING")
 
 	nsSub.S = new(types.NilableString)
 
@@ -33,14 +35,17 @@ func TestMissingRequiredStringField(t *testing.T) {
 
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, r.Unset, true)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "MISSING")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "MISSING")
 
 }
 
 func TestUnsetButOptional(t *testing.T) {
 	sb := NewStringValidatorBuilder("DEF")
-	sv, err := sb.parseRule("S", []string{"LEN:5-10:SHORT"})
+
+	field := "S"
+
+	sv, err := sb.parseRule(field, []string{"LEN:5-10:SHORT"})
 
 	test.ExpectNil(t, err)
 
@@ -53,7 +58,7 @@ func TestUnsetButOptional(t *testing.T) {
 
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, r.Unset, true)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub = new(NillableStringTest)
 	vc.Subject = sub
@@ -64,13 +69,15 @@ func TestUnsetButOptional(t *testing.T) {
 
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, r.Unset, true)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 }
 
 func TestHardTrim(t *testing.T) {
 	sb := NewStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "HARDTRIM"})
+	field := "S"
+
+	sv, err := sb.parseRule(field, []string{"REQ:MISSING", "HARDTRIM"})
 
 	test.ExpectNil(t, err)
 
@@ -84,7 +91,7 @@ func TestHardTrim(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 	test.ExpectString(t, sub.S, "A")
 
 	subNs := new(NillableStringTest)
@@ -95,7 +102,7 @@ func TestHardTrim(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 	test.ExpectString(t, subNs.S.String(), "B")
 
 }
@@ -103,7 +110,9 @@ func TestHardTrim(t *testing.T) {
 func TestSoftTrim(t *testing.T) {
 	sb := NewStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "TRIM", "LEN:2-"})
+	field := "S"
+
+	sv, err := sb.parseRule(field, []string{"REQ:MISSING", "TRIM", "LEN:2-"})
 
 	test.ExpectNil(t, err)
 
@@ -117,7 +126,7 @@ func TestSoftTrim(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 	test.ExpectString(t, sub.S, "  A  ")
 
 	subNs := new(NillableStringTest)
@@ -128,7 +137,7 @@ func TestSoftTrim(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
+	test.ExpectInt(t, len(c[field]), 1)
 	test.ExpectString(t, subNs.S.String(), "  B  ")
 
 }
@@ -136,7 +145,9 @@ func TestSoftTrim(t *testing.T) {
 func TestInSet(t *testing.T) {
 	sb := NewStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "IN:AA,BB:NOTIN"})
+	field := "S"
+
+	sv, err := sb.parseRule(field, []string{"REQ:MISSING", "IN:AA,BB:NOTIN"})
 
 	test.ExpectNil(t, err)
 
@@ -150,8 +161,8 @@ func TestInSet(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "NOTIN")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "NOTIN")
 
 	sub.S = "AA"
 
@@ -159,13 +170,15 @@ func TestInSet(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 }
 
 func TestBreak(t *testing.T) {
 	sb := NewStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-2:LENGTH", "BREAK", "IN:AA,BB:NOTIN"})
+	field := "S"
+
+	sv, err := sb.parseRule(field, []string{"REQ:MISSING", "LEN:2-2:LENGTH", "BREAK", "IN:AA,BB:NOTIN"})
 
 	test.ExpectNil(t, err)
 
@@ -179,8 +192,8 @@ func TestBreak(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "LENGTH")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "LENGTH")
 
 }
 
@@ -199,7 +212,9 @@ func TestStopAll(t *testing.T) {
 func TestRegex(t *testing.T) {
 	sb := NewStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "REG:^::A$:REGFAIL"})
+	field := "S"
+
+	sv, err := sb.parseRule(field, []string{"REQ:MISSING", "REG:^::A$:REGFAIL"})
 
 	test.ExpectNil(t, err)
 
@@ -213,8 +228,8 @@ func TestRegex(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "REGFAIL")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "REGFAIL")
 
 	sub.S = ":A"
 
@@ -222,14 +237,16 @@ func TestRegex(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 }
 
 func TestLength(t *testing.T) {
 	sb := NewStringValidatorBuilder("DEF")
 
-	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH"})
+	field := "S"
+
+	sv, err := sb.parseRule(field, []string{"REQ:MISSING", "LEN:2-:LENGTH"})
 
 	test.ExpectNil(t, err)
 
@@ -243,8 +260,8 @@ func TestLength(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "LENGTH")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "LENGTH")
 
 	sub.S = "AA"
 
@@ -252,9 +269,9 @@ func TestLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
-	sv, err = sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-3:LENGTH"})
+	sv, err = sb.parseRule(field, []string{"REQ:MISSING", "LEN:2-3:LENGTH"})
 
 	sub.S = "AAA"
 
@@ -262,7 +279,7 @@ func TestLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.S = "AAAA"
 
@@ -270,10 +287,10 @@ func TestLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "LENGTH")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "LENGTH")
 
-	sv, err = sb.parseRule("S", []string{"REQ:MISSING", "LEN:-3:LENGTH"})
+	sv, err = sb.parseRule(field, []string{"REQ:MISSING", "LEN:-3:LENGTH"})
 
 	sub.S = ""
 
@@ -281,7 +298,7 @@ func TestLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.S = "AAA"
 
@@ -289,7 +306,7 @@ func TestLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	sub.S = "AAAA"
 
@@ -297,8 +314,8 @@ func TestLength(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "LENGTH")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "LENGTH")
 
 }
 
@@ -329,21 +346,23 @@ func TestExternal(t *testing.T) {
 	c := r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "EXTFAIL")
+	test.ExpectInt(t, len(c["S"]), 1)
+	test.ExpectString(t, c["S"][0], "EXTFAIL")
 
 	sub.S = "valid"
 	r, err = sv.Validate(vc)
 	c = r.ErrorCodes
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c["S"]), 0)
 }
 
 func TestStringMExFieldDetection(t *testing.T) {
 	vb := NewStringValidatorBuilder("DEF")
 
-	bv, err := vb.parseRule("S", []string{"MEX:setField1,setField2:BAD_MEX"})
+	field := "S"
+
+	bv, err := vb.parseRule(field, []string{"MEX:setField1,setField2:BAD_MEX"})
 
 	test.ExpectNil(t, err)
 
@@ -358,7 +377,7 @@ func TestStringMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c := r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	vc.KnownSetFields.Add("ignoreField")
 
@@ -366,7 +385,7 @@ func TestStringMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 0)
+	test.ExpectInt(t, len(c[field]), 0)
 
 	vc.KnownSetFields.Add("setField1")
 
@@ -374,8 +393,8 @@ func TestStringMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "BAD_MEX")
 
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 	vc.KnownSetFields.Add("setField2")
@@ -384,8 +403,8 @@ func TestStringMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 	c = r.ErrorCodes
 
-	test.ExpectInt(t, len(c), 1)
-	test.ExpectString(t, c[0], "BAD_MEX")
+	test.ExpectInt(t, len(c[field]), 1)
+	test.ExpectString(t, c[field][0], "BAD_MEX")
 
 }
 

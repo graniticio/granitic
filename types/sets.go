@@ -52,6 +52,10 @@ func NewUnorderedStringSet(m []string) *UnorderedStringSet {
 	return ss
 }
 
+func NewEmptyOrderedStringSet() *OrderedStringSet {
+	return NewOrderedStringSet([]string{})
+}
+
 func NewOrderedStringSet(m []string) *OrderedStringSet {
 	os := new(OrderedStringSet)
 

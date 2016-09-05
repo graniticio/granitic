@@ -92,7 +92,7 @@ func (ov *ObjectValidator) Validate(vc *ValidationContext) (result *ValidationRe
 	}
 
 	sub := vc.Subject
-	r := new(ValidationResult)
+	r := NewValidationResult()
 
 	set, err := ov.IsSet(f, sub)
 
@@ -104,23 +104,19 @@ func (ov *ObjectValidator) Validate(vc *ValidationContext) (result *ValidationRe
 		r.Unset = true
 
 		if ov.required {
-			r.ErrorCodes = []string{ov.missingRequiredCode}
-		} else {
-			r.ErrorCodes = []string{}
+			r.AddForField(f, []string{ov.missingRequiredCode})
 		}
 
 	}
 
-	return ov.runOperations(vc, r.ErrorCodes)
+	err = ov.runOperations(f, vc, r)
+
+	return r, err
 }
 
-func (ov *ObjectValidator) runOperations(vc *ValidationContext, errors []string) (*ValidationResult, error) {
+func (ov *ObjectValidator) runOperations(field string, vc *ValidationContext, r *ValidationResult) error {
 
-	if errors == nil {
-		errors = []string{}
-	}
-
-	ec := types.NewOrderedStringSet(errors)
+	ec := types.NewEmptyOrderedStringSet()
 
 	for _, op := range ov.operations {
 
@@ -130,10 +126,9 @@ func (ov *ObjectValidator) runOperations(vc *ValidationContext, errors []string)
 		}
 	}
 
-	r := new(ValidationResult)
-	r.ErrorCodes = ec.Contents()
+	r.AddForField(field, ec.Contents())
 
-	return r, nil
+	return nil
 
 }
 

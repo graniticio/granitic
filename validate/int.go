@@ -100,7 +100,7 @@ func (iv *IntValidator) Validate(vc *ValidationContext) (result *ValidationResul
 
 	sub := vc.Subject
 
-	r := new(ValidationResult)
+	r := NewValidationResult()
 
 	set, err := iv.IsSet(f, sub)
 
@@ -110,23 +110,22 @@ func (iv *IntValidator) Validate(vc *ValidationContext) (result *ValidationResul
 		r.Unset = true
 
 		if iv.required {
-			r.ErrorCodes = []string{iv.missingRequiredCode}
-		} else {
-			r.ErrorCodes = []string{}
+			r.AddForField(f, []string{iv.missingRequiredCode})
 		}
-
 		return r, nil
 	}
 
 	//Ignoring error as called previously during IsSet
 	value, _ := iv.extractValue(f, sub)
 
-	return iv.runOperations(value.Int64(), vc)
+	err = iv.runOperations(f, value.Int64(), vc, r)
+
+	return r, err
 }
 
-func (iv *IntValidator) runOperations(i int64, vc *ValidationContext) (*ValidationResult, error) {
+func (iv *IntValidator) runOperations(field string, i int64, vc *ValidationContext, r *ValidationResult) error {
 
-	ec := new(types.OrderedStringSet)
+	ec := types.NewEmptyOrderedStringSet()
 
 OpLoop:
 	for _, op := range iv.operations {
@@ -157,10 +156,9 @@ OpLoop:
 
 	}
 
-	r := new(ValidationResult)
-	r.ErrorCodes = ec.Contents()
+	r.AddForField(field, ec.Contents())
 
-	return r, nil
+	return nil
 
 }
 
