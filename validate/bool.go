@@ -83,33 +83,49 @@ func (bv *BoolValidator) Validate(vc *ValidationContext) (result *ValidationResu
 		f = vc.OverrideField
 	}
 
+	var value *types.NilableBool
+
 	sub := vc.Subject
-
 	r := NewValidationResult()
-	set, err := bv.IsSet(f, sub)
 
-	if err != nil {
-		return nil, err
+	if vc.DirectSubject {
 
-	} else if !set {
-		r.Unset = true
+		b, found := sub.(*types.NilableBool)
 
-		if bv.required {
-			r.AddForField(f, []string{bv.missingRequiredCode})
+		if !found {
+			m := fmt.Sprintf("Direct validation requested for %s but supplied value is not a *NilableBool", f)
+			return nil, errors.New(m)
 		}
 
-		return r, nil
-	}
+		value = b
 
-	//Ignoring error as called previously during IsSet
-	value, _ := bv.extractValue(f, sub)
+	} else {
+
+		set, err := bv.IsSet(f, sub)
+
+		if err != nil {
+			return nil, err
+
+		} else if !set {
+			r.Unset = true
+
+			if bv.required {
+				r.AddForField(f, []string{bv.missingRequiredCode})
+			}
+
+			return r, nil
+		}
+
+		//Ignoring error as called previously during IsSet
+		value, _ = bv.extractValue(f, sub)
+	}
 
 	if bv.requiredValue != nil && value.Bool() != bv.requiredValue.Bool() {
 
 		r.AddForField(f, []string{bv.requiredValueCode})
 	}
 
-	err = bv.runOperations(f, value.Bool(), vc, r)
+	err := bv.runOperations(f, value.Bool(), vc, r)
 
 	return r, err
 }

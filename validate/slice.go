@@ -169,6 +169,8 @@ func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value
 			vc.Subject, err = tv.ToInt64(fa, e.Interface())
 		case *FloatValidator:
 			vc.Subject, err = tv.ToFloat64(fa, e.Interface())
+		case *BoolValidator:
+			vc.Subject, err = bv.boolValue(e, fa)
 		}
 
 		if err != nil {
@@ -216,6 +218,22 @@ func (bv *SliceValidator) stringValue(v reflect.Value, fa string) (*types.Nilabl
 	default:
 		m := fmt.Sprintf("%s is not a string or *NilableString", fa)
 		return nil, errors.New(m), false
+	}
+
+}
+
+func (bv *SliceValidator) boolValue(v reflect.Value, fa string) (*types.NilableBool, error) {
+
+	b := v.Interface()
+
+	switch b := b.(type) {
+	case *types.NilableBool:
+		return b, nil
+	case bool:
+		return types.NewNilableBool(b), nil
+	default:
+		m := fmt.Sprintf("%s is not a bool or *NilableBool", fa)
+		return nil, errors.New(m)
 	}
 
 }
