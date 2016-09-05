@@ -1,7 +1,6 @@
 package validate
 
 import (
-	"fmt"
 	"github.com/graniticio/granitic/test"
 	"github.com/graniticio/granitic/types"
 	"testing"
@@ -163,7 +162,16 @@ func TestSliceElemValidation(t *testing.T) {
 
 	test.ExpectInt(t, len(c), 0)
 
-	fmt.Printf("%v\n", sub.S)
+	field = "NS"
+
+	sub.NS = []*types.NilableString{types.NewNilableString("  B  ")}
+	sv, err = vb.parseRule(field, []string{"ELEM:lenCheck:LEN"})
+
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
 }
 
 func TestSliceMExFieldDetection(t *testing.T) {
@@ -218,5 +226,6 @@ func TestSliceMExFieldDetection(t *testing.T) {
 }
 
 type SliceTest struct {
-	S []string
+	S  []string
+	NS []*types.NilableString
 }
