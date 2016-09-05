@@ -15,7 +15,7 @@ func TestUnsetObjDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(Parent)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := ov.Validate(vc)
@@ -56,7 +56,7 @@ func TestSetObjDetection(t *testing.T) {
 
 	sub := new(Parent)
 	sub.CP = new(Child)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := ov.Validate(vc)
@@ -96,7 +96,7 @@ func TestObjectMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(Parent)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 
@@ -146,7 +146,7 @@ func TestInvalidTypeHandling(t *testing.T) {
 
 	sub := new(Parent)
 	sub.CP = new(Child)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	_, err = ov.Validate(vc)

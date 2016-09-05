@@ -14,7 +14,7 @@ func TestMissingRequiredStringField(t *testing.T) {
 
 	test.ExpectNil(t, err)
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	nsSub := new(NillableStringTest)
 	vc.Subject = nsSub
 
@@ -45,7 +45,7 @@ func TestUnsetButOptional(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(NillableStringTest)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := sv.Validate(vc)
@@ -77,7 +77,7 @@ func TestHardTrim(t *testing.T) {
 	sub := new(StringTest)
 	sub.S = " A "
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := sv.Validate(vc)
@@ -110,7 +110,7 @@ func TestSoftTrim(t *testing.T) {
 	sub := new(StringTest)
 	sub.S = "  A  "
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := sv.Validate(vc)
@@ -143,7 +143,7 @@ func TestInSet(t *testing.T) {
 	sub := new(StringTest)
 	sub.S = "A"
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := sv.Validate(vc)
@@ -172,7 +172,7 @@ func TestBreak(t *testing.T) {
 	sub := new(StringTest)
 	sub.S = "A"
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := sv.Validate(vc)
@@ -206,7 +206,7 @@ func TestRegex(t *testing.T) {
 	sub := new(StringTest)
 	sub.S = "B"
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := sv.Validate(vc)
@@ -236,7 +236,7 @@ func TestLength(t *testing.T) {
 	sub := new(StringTest)
 	sub.S = "A"
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := sv.Validate(vc)
@@ -322,7 +322,7 @@ func TestExternal(t *testing.T) {
 	sub := new(StringTest)
 	sub.S = "A"
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := sv.Validate(vc)
@@ -348,7 +348,7 @@ func TestStringMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(StringTest)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 

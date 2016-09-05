@@ -103,7 +103,7 @@ func (sv *StringValidator) IsSet(field string, subject interface{}) (bool, error
 	}
 }
 
-func (sv *StringValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
+func (sv *StringValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := sv.field
 
@@ -194,7 +194,7 @@ func (sv *StringValidator) extractValue(f string, s interface{}) (*types.Nilable
 	}
 }
 
-func (sv *StringValidator) runOperations(s string, vc *validationContext) (*ValidationResult, error) {
+func (sv *StringValidator) runOperations(s string, vc *ValidationContext) (*ValidationResult, error) {
 
 	ec := new(types.OrderedStringSet)
 
@@ -454,13 +454,13 @@ type stringOperation struct {
 	MExFields types.StringSet
 }
 
-type stringValidatorBuilder struct {
+type StringValidatorBuilder struct {
 	strLenRegex      *regexp.Regexp
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 }
 
-func (vb *stringValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
+func (vb *StringValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(StringRuleCode, rule, vb.defaultErrorCode)
 	sv := NewStringValidator(field, defaultErrorcode)
@@ -514,7 +514,7 @@ func (vb *stringValidatorBuilder) parseRule(field string, rule []string) (Valida
 
 }
 
-func (vb *stringValidatorBuilder) captureExclusiveFields(field string, ops []string, iv *StringValidator) error {
+func (vb *StringValidatorBuilder) captureExclusiveFields(field string, ops []string, iv *StringValidator) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -530,7 +530,7 @@ func (vb *stringValidatorBuilder) captureExclusiveFields(field string, ops []str
 
 }
 
-func (vb *stringValidatorBuilder) markRequired(field string, ops []string, sv *StringValidator) error {
+func (vb *StringValidatorBuilder) markRequired(field string, ops []string, sv *StringValidator) error {
 
 	pCount, err := paramCount(ops, "Required", field, 1, 2)
 
@@ -547,7 +547,7 @@ func (vb *stringValidatorBuilder) markRequired(field string, ops []string, sv *S
 	return nil
 }
 
-func (vb *stringValidatorBuilder) addStringInOperation(field string, ops []string, sv *StringValidator) error {
+func (vb *StringValidatorBuilder) addStringInOperation(field string, ops []string, sv *StringValidator) error {
 
 	pCount, err := paramCount(ops, "In Set", field, 2, 3)
 
@@ -567,7 +567,7 @@ func (vb *stringValidatorBuilder) addStringInOperation(field string, ops []strin
 
 }
 
-func (vb *stringValidatorBuilder) addStringRegexOperation(field string, ops []string, sv *StringValidator) error {
+func (vb *StringValidatorBuilder) addStringRegexOperation(field string, ops []string, sv *StringValidator) error {
 
 	pCount, err := paramCount(ops, "Regex", field, 2, 3)
 
@@ -594,7 +594,7 @@ func (vb *stringValidatorBuilder) addStringRegexOperation(field string, ops []st
 
 }
 
-func (vb *stringValidatorBuilder) addStringExternalOperation(field string, ops []string, sv *StringValidator) error {
+func (vb *StringValidatorBuilder) addStringExternalOperation(field string, ops []string, sv *StringValidator) error {
 
 	pCount, i, err := validateExternalOperation(vb.componentFinder, field, ops)
 
@@ -619,7 +619,7 @@ func (vb *stringValidatorBuilder) addStringExternalOperation(field string, ops [
 
 }
 
-func (vb *stringValidatorBuilder) addStringLenOperation(field string, ops []string, sv *StringValidator) error {
+func (vb *StringValidatorBuilder) addStringLenOperation(field string, ops []string, sv *StringValidator) error {
 
 	pCount, err := paramCount(ops, "Length", field, 2, 3)
 
@@ -668,8 +668,8 @@ func paramCount(opParams []string, opName, field string, min, max int) (count in
 	return pCount, nil
 }
 
-func newStringValidatorBuilder(defaultErrorCode string) *stringValidatorBuilder {
-	vb := new(stringValidatorBuilder)
+func newStringValidatorBuilder(defaultErrorCode string) *StringValidatorBuilder {
+	vb := new(StringValidatorBuilder)
 	vb.strLenRegex = regexp.MustCompile("^(\\d*)-(\\d*)$")
 	vb.defaultErrorCode = defaultErrorCode
 

@@ -20,7 +20,7 @@ func TestIntTypeSupportDetection(t *testing.T) {
 	sub.NI = types.NewNilableInt64(128)
 	sub.S = "NAN"
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	checkIntTypeSupport(t, "I64", vc, iv)
@@ -47,7 +47,7 @@ func TestIntInSet(t *testing.T) {
 	sub.I = 1
 	sub.I8 = 0
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "IN:1,2,3,4,X"})
@@ -85,7 +85,7 @@ func TestIntBreakOnError(t *testing.T) {
 	sub.I = 3
 	sub.I8 = 0
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "BREAK"})
@@ -117,7 +117,7 @@ func TestIntRange(t *testing.T) {
 
 	sub.I = 3
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	bv, err := iv.parseRule("I", []string{"REQ:MISSING", "RANGE:1|5"})
@@ -245,7 +245,7 @@ func TestIntRequiredAndSetDetection(t *testing.T) {
 	sub.I = 1
 	sub.I8 = 0
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	bv, err := iv.parseRule("I", []string{"REQ:MISSING"})
@@ -317,7 +317,7 @@ func TestIntExternal(t *testing.T) {
 	sub := new(IntsTarget)
 	sub.I = 12
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := iv.Validate(vc)
@@ -343,7 +343,7 @@ func TestIntMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(IntsTarget)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 
@@ -384,7 +384,7 @@ func TestIntMExFieldDetection(t *testing.T) {
 
 }
 
-func checkIntTypeSupport(t *testing.T, it string, vc *validationContext, iv *intValidatorBuilder) {
+func checkIntTypeSupport(t *testing.T, it string, vc *ValidationContext, iv *IntValidatorBuilder) {
 	bv, err := iv.parseRule(it, []string{"REQ:MISSING"})
 	test.ExpectNil(t, err)
 

@@ -39,7 +39,7 @@ type SubjectContext struct {
 	Subject interface{}
 }
 
-type validationContext struct {
+type ValidationContext struct {
 	Subject        interface{}
 	KnownSetFields types.StringSet
 	OverrideField  string
@@ -51,7 +51,7 @@ type ValidationResult struct {
 }
 
 type Validator interface {
-	Validate(vc *validationContext) (result *ValidationResult, unexpected error)
+	Validate(vc *ValidationContext) (result *ValidationResult, unexpected error)
 	StopAllOnFail() bool
 	CodesInUse() types.StringSet
 	DependsOnFields() types.StringSet
@@ -83,11 +83,11 @@ type FieldErrors struct {
 type RuleValidator struct {
 	jsonConfig             interface{}
 	RuleManager            *UnparsedRuleManager
-	stringBuilder          *stringValidatorBuilder
-	objectValidatorBuilder *objectValidatorBuilder
-	boolValidatorBuilder   *boolValidatorBuilder
-	intValidatorBuilder    *intValidatorBuilder
-	floatValidatorBuilder  *floatValidatorBuilder
+	stringBuilder          *StringValidatorBuilder
+	objectValidatorBuilder *ObjectValidatorBuilder
+	boolValidatorBuilder   *BoolValidatorBuilder
+	intValidatorBuilder    *IntValidatorBuilder
+	floatValidatorBuilder  *FloatValidatorBuilder
 	DefaultErrorCode       string
 	Rules                  [][]string
 	ComponentFinder        ioc.ComponentByNameFinder
@@ -152,7 +152,7 @@ func (ov *RuleValidator) Validate(subject *SubjectContext) ([]*FieldErrors, erro
 
 		log.LogDebugf("Validating field %s", f)
 
-		vc := new(validationContext)
+		vc := new(ValidationContext)
 		vc.Subject = subject.Subject
 		vc.KnownSetFields = setFields
 
@@ -481,7 +481,7 @@ func validateExternalOperation(cf ioc.ComponentByNameFinder, field string, ops [
 	return pCount, component, nil
 }
 
-func checkMExFields(mf types.StringSet, vc *validationContext, ec types.StringSet, code string) {
+func checkMExFields(mf types.StringSet, vc *ValidationContext, ec types.StringSet, code string) {
 
 	if vc.KnownSetFields == nil || vc.KnownSetFields.Size() == 0 {
 		return

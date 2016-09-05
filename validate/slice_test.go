@@ -37,7 +37,7 @@ func TestSliceMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(SliceTest)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 

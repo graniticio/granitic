@@ -29,8 +29,8 @@ const (
 	SliceOpLen
 )
 
-func NewSliceValidator(field, defaultErrorCode string) *sliceValidator {
-	bv := new(sliceValidator)
+func NewSliceValidator(field, defaultErrorCode string) *SliceValidator {
+	bv := new(SliceValidator)
 	bv.defaultErrorCode = defaultErrorCode
 	bv.field = field
 	bv.codesInUse = types.NewOrderedStringSet([]string{})
@@ -43,7 +43,7 @@ func NewSliceValidator(field, defaultErrorCode string) *sliceValidator {
 	return bv
 }
 
-type sliceValidator struct {
+type SliceValidator struct {
 	stopAll             bool
 	codesInUse          types.StringSet
 	dependsFields       types.StringSet
@@ -62,7 +62,7 @@ type sliceOperation struct {
 	MExFields types.StringSet
 }
 
-func (bv *sliceValidator) IsSet(field string, subject interface{}) (bool, error) {
+func (bv *SliceValidator) IsSet(field string, subject interface{}) (bool, error) {
 
 	ps, err := bv.extractReflectValue(field, subject)
 
@@ -77,7 +77,7 @@ func (bv *sliceValidator) IsSet(field string, subject interface{}) (bool, error)
 	return true, nil
 }
 
-func (bv *sliceValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
+func (bv *SliceValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := bv.field
 
@@ -111,7 +111,7 @@ func (bv *sliceValidator) Validate(vc *validationContext) (result *ValidationRes
 	return bv.runOperations(value, vc, r.ErrorCodes)
 }
 
-func (bv *sliceValidator) runOperations(i interface{}, vc *validationContext, errors []string) (*ValidationResult, error) {
+func (bv *SliceValidator) runOperations(i interface{}, vc *ValidationContext, errors []string) (*ValidationResult, error) {
 
 	if errors == nil {
 		errors = []string{}
@@ -134,7 +134,7 @@ func (bv *sliceValidator) runOperations(i interface{}, vc *validationContext, er
 
 }
 
-func (bv *sliceValidator) extractReflectValue(f string, s interface{}) (interface{}, error) {
+func (bv *SliceValidator) extractReflectValue(f string, s interface{}) (interface{}, error) {
 
 	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
@@ -161,7 +161,7 @@ func (bv *sliceValidator) extractReflectValue(f string, s interface{}) (interfac
 
 }
 
-func (sv *sliceValidator) Length(min, max int, code ...string) *sliceValidator {
+func (sv *SliceValidator) Length(min, max int, code ...string) *SliceValidator {
 
 	sv.minLen = min
 	sv.maxLen = max
@@ -178,27 +178,27 @@ func (sv *sliceValidator) Length(min, max int, code ...string) *sliceValidator {
 
 }
 
-func (bv *sliceValidator) StopAllOnFail() bool {
+func (bv *SliceValidator) StopAllOnFail() bool {
 	return bv.stopAll
 }
 
-func (bv *sliceValidator) CodesInUse() types.StringSet {
+func (bv *SliceValidator) CodesInUse() types.StringSet {
 	return bv.codesInUse
 }
 
-func (bv *sliceValidator) DependsOnFields() types.StringSet {
+func (bv *SliceValidator) DependsOnFields() types.StringSet {
 
 	return bv.dependsFields
 }
 
-func (bv *sliceValidator) StopAll() *sliceValidator {
+func (bv *SliceValidator) StopAll() *SliceValidator {
 
 	bv.stopAll = true
 
 	return bv
 }
 
-func (bv *sliceValidator) Required(code ...string) *sliceValidator {
+func (bv *SliceValidator) Required(code ...string) *SliceValidator {
 
 	bv.required = true
 	bv.missingRequiredCode = bv.chooseErrorCode(code)
@@ -206,7 +206,7 @@ func (bv *sliceValidator) Required(code ...string) *sliceValidator {
 	return bv
 }
 
-func (bv *sliceValidator) MEx(fields types.StringSet, code ...string) *sliceValidator {
+func (bv *SliceValidator) MEx(fields types.StringSet, code ...string) *SliceValidator {
 	op := new(sliceOperation)
 	op.ErrCode = bv.chooseErrorCode(code)
 	op.OpType = SliceOpMex
@@ -217,11 +217,11 @@ func (bv *sliceValidator) MEx(fields types.StringSet, code ...string) *sliceVali
 	return bv
 }
 
-func (bv *sliceValidator) addOperation(o *sliceOperation) {
+func (bv *SliceValidator) addOperation(o *sliceOperation) {
 	bv.operations = append(bv.operations, o)
 }
 
-func (bv *sliceValidator) chooseErrorCode(v []string) string {
+func (bv *SliceValidator) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
 		bv.codesInUse.Add(v[0])
@@ -232,7 +232,7 @@ func (bv *sliceValidator) chooseErrorCode(v []string) string {
 
 }
 
-func (bv *sliceValidator) Operation(c string) (sliceValidationOperation, error) {
+func (bv *SliceValidator) Operation(c string) (sliceValidationOperation, error) {
 	switch c {
 	case sliceOpRequiredCode:
 		return SliceOpRequired, nil
@@ -247,20 +247,20 @@ func (bv *sliceValidator) Operation(c string) (sliceValidationOperation, error) 
 
 }
 
-func NewSliceValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *sliceValidatorBuilder {
-	bv := new(sliceValidatorBuilder)
+func NewSliceValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *SliceValidatorBuilder {
+	bv := new(SliceValidatorBuilder)
 	bv.componentFinder = cf
 	bv.defaultErrorCode = ec
 
 	return bv
 }
 
-type sliceValidatorBuilder struct {
+type SliceValidatorBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 }
 
-func (vb *sliceValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
+func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(SliceRuleCode, rule, vb.defaultErrorCode)
 	bv := NewSliceValidator(field, defaultErrorcode)
@@ -300,7 +300,7 @@ func (vb *sliceValidatorBuilder) parseRule(field string, rule []string) (Validat
 
 }
 
-func (vb *sliceValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *sliceValidator) error {
+func (vb *SliceValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *SliceValidator) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -316,7 +316,7 @@ func (vb *sliceValidatorBuilder) captureExclusiveFields(field string, ops []stri
 
 }
 
-func (vb *sliceValidatorBuilder) markRequired(field string, ops []string, bv *sliceValidator) error {
+func (vb *SliceValidatorBuilder) markRequired(field string, ops []string, bv *SliceValidator) error {
 
 	_, err := paramCount(ops, "Required", field, 1, 2)
 

@@ -17,7 +17,7 @@ func TestFloatTypeSupportDetection(t *testing.T) {
 	sub.NF = types.NewNilableFloat64(128E10)
 	sub.S = "NAN"
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	checkFloatTypeSupport(t, "F64", vc, fv)
@@ -32,7 +32,7 @@ func TestFloatTypeSupportDetection(t *testing.T) {
 	test.ExpectNotNil(t, err)
 }
 
-func checkFloatTypeSupport(t *testing.T, it string, vc *validationContext, fvb *floatValidatorBuilder) {
+func checkFloatTypeSupport(t *testing.T, it string, vc *ValidationContext, fvb *FloatValidatorBuilder) {
 	bv, err := fvb.parseRule(it, []string{"REQ:MISSING"})
 	test.ExpectNil(t, err)
 
@@ -51,7 +51,7 @@ func TestFloatInSet(t *testing.T) {
 
 	sub.F64 = 3.0
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	bv, err := iv.parseRule("F64", []string{"REQ:MISSING", "IN:1,2,3,4,X"})
@@ -85,7 +85,7 @@ func TestFloatBreakOnError(t *testing.T) {
 
 	sub.F64 = 3
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	bv, err := iv.parseRule("F64", []string{"REQ:MISSING", "BREAK"})
@@ -117,7 +117,7 @@ func TestFloatRange(t *testing.T) {
 
 	sub.F32 = 3.1
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	bv, err := iv.parseRule("F32", []string{"REQ:MISSING", "RANGE:1|5"})
@@ -231,7 +231,7 @@ func TestFloatRequiredAndSetDetection(t *testing.T) {
 	sub.F32 = 1
 	sub.F64 = 0
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	bv, err := iv.parseRule("F32", []string{"REQ:MISSING"})
@@ -303,7 +303,7 @@ func TestFloatExternal(t *testing.T) {
 	sub := new(FloatsTarget)
 	sub.F32 = 12
 
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	r, err := iv.Validate(vc)
@@ -330,7 +330,7 @@ func TestFloatMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(FloatsTarget)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 

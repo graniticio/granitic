@@ -90,7 +90,7 @@ func (iv *IntValidator) IsSet(field string, subject interface{}) (bool, error) {
 	}
 }
 
-func (iv *IntValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
+func (iv *IntValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := iv.field
 
@@ -124,7 +124,7 @@ func (iv *IntValidator) Validate(vc *validationContext) (result *ValidationResul
 	return iv.runOperations(value.Int64(), vc)
 }
 
-func (iv *IntValidator) runOperations(i int64, vc *validationContext) (*ValidationResult, error) {
+func (iv *IntValidator) runOperations(i int64, vc *ValidationContext) (*ValidationResult, error) {
 
 	ec := new(types.OrderedStringSet)
 
@@ -366,21 +366,21 @@ func (iv *IntValidator) Operation(c string) (boolValidationOperation, error) {
 
 }
 
-func NewIntValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *intValidatorBuilder {
-	iv := new(intValidatorBuilder)
+func NewIntValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *IntValidatorBuilder {
+	iv := new(IntValidatorBuilder)
 	iv.componentFinder = cf
 	iv.defaultErrorCode = ec
 	iv.rangeRegex = regexp.MustCompile("^([-+]{0,1}\\d*)\\|([-+]{0,1}\\d*)$")
 	return iv
 }
 
-type intValidatorBuilder struct {
+type IntValidatorBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 	rangeRegex       *regexp.Regexp
 }
 
-func (vb *intValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
+func (vb *IntValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(IntRuleCode, rule, vb.defaultErrorCode)
 	bv := NewIntValidator(field, defaultErrorcode)
@@ -428,7 +428,7 @@ func (vb *intValidatorBuilder) parseRule(field string, rule []string) (Validator
 
 }
 
-func (vb *intValidatorBuilder) captureExclusiveFields(field string, ops []string, iv *IntValidator) error {
+func (vb *IntValidatorBuilder) captureExclusiveFields(field string, ops []string, iv *IntValidator) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -444,7 +444,7 @@ func (vb *intValidatorBuilder) captureExclusiveFields(field string, ops []string
 
 }
 
-func (vb *intValidatorBuilder) markRequired(field string, ops []string, iv *IntValidator) error {
+func (vb *IntValidatorBuilder) markRequired(field string, ops []string, iv *IntValidator) error {
 
 	_, err := paramCount(ops, "Required", field, 1, 2)
 
@@ -457,7 +457,7 @@ func (vb *intValidatorBuilder) markRequired(field string, ops []string, iv *IntV
 	return nil
 }
 
-func (vb *intValidatorBuilder) addIntRangeOperation(field string, ops []string, iv *IntValidator) error {
+func (vb *IntValidatorBuilder) addIntRangeOperation(field string, ops []string, iv *IntValidator) error {
 
 	pCount, err := paramCount(ops, "Range", field, 2, 3)
 
@@ -504,7 +504,7 @@ func (vb *intValidatorBuilder) addIntRangeOperation(field string, ops []string, 
 	return nil
 }
 
-func (vb *intValidatorBuilder) addIntExternalOperation(field string, ops []string, iv *IntValidator) error {
+func (vb *IntValidatorBuilder) addIntExternalOperation(field string, ops []string, iv *IntValidator) error {
 
 	pCount, i, err := validateExternalOperation(vb.componentFinder, field, ops)
 
@@ -529,7 +529,7 @@ func (vb *intValidatorBuilder) addIntExternalOperation(field string, ops []strin
 
 }
 
-func (vb *intValidatorBuilder) addIntInOperation(field string, ops []string, sv *IntValidator) error {
+func (vb *IntValidatorBuilder) addIntInOperation(field string, ops []string, sv *IntValidator) error {
 
 	pCount, err := paramCount(ops, "In Set", field, 2, 3)
 

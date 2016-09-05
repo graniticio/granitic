@@ -91,7 +91,7 @@ func (fv *FloatValidator) IsSet(field string, subject interface{}) (bool, error)
 	}
 }
 
-func (fv *FloatValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
+func (fv *FloatValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := fv.field
 
@@ -163,7 +163,7 @@ func (fv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableF
 
 }
 
-func (fv *FloatValidator) runOperations(i float64, vc *validationContext) (*ValidationResult, error) {
+func (fv *FloatValidator) runOperations(i float64, vc *ValidationContext) (*ValidationResult, error) {
 
 	ec := new(types.OrderedStringSet)
 
@@ -365,21 +365,21 @@ func (fv *FloatValidator) Operation(c string) (boolValidationOperation, error) {
 
 }
 
-func NewFloatValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *floatValidatorBuilder {
-	fv := new(floatValidatorBuilder)
+func NewFloatValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *FloatValidatorBuilder {
+	fv := new(FloatValidatorBuilder)
 	fv.componentFinder = cf
 	fv.defaultErrorCode = ec
 	fv.rangeRegex = regexp.MustCompile("^(.*)\\|(.*)$")
 	return fv
 }
 
-type floatValidatorBuilder struct {
+type FloatValidatorBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 	rangeRegex       *regexp.Regexp
 }
 
-func (vb *floatValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
+func (vb *FloatValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(FloatRuleCode, rule, vb.defaultErrorCode)
 	bv := NewFloatValidator(field, defaultErrorcode)
@@ -427,7 +427,7 @@ func (vb *floatValidatorBuilder) parseRule(field string, rule []string) (Validat
 
 }
 
-func (vb *floatValidatorBuilder) captureExclusiveFields(field string, ops []string, fv *FloatValidator) error {
+func (vb *FloatValidatorBuilder) captureExclusiveFields(field string, ops []string, fv *FloatValidator) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -443,7 +443,7 @@ func (vb *floatValidatorBuilder) captureExclusiveFields(field string, ops []stri
 
 }
 
-func (vb *floatValidatorBuilder) markRequired(field string, ops []string, fv *FloatValidator) error {
+func (vb *FloatValidatorBuilder) markRequired(field string, ops []string, fv *FloatValidator) error {
 
 	pCount, err := paramCount(ops, "Required", field, 1, 2)
 
@@ -460,7 +460,7 @@ func (vb *floatValidatorBuilder) markRequired(field string, ops []string, fv *Fl
 	return nil
 }
 
-func (vb *floatValidatorBuilder) addFloatRangeOperation(field string, ops []string, fv *FloatValidator) error {
+func (vb *FloatValidatorBuilder) addFloatRangeOperation(field string, ops []string, fv *FloatValidator) error {
 
 	pCount, err := paramCount(ops, "Range", field, 2, 3)
 
@@ -519,7 +519,7 @@ func (vb *floatValidatorBuilder) addFloatRangeOperation(field string, ops []stri
 	return nil
 }
 
-func (vb *floatValidatorBuilder) addFloatExternalOperation(field string, ops []string, fv *FloatValidator) error {
+func (vb *FloatValidatorBuilder) addFloatExternalOperation(field string, ops []string, fv *FloatValidator) error {
 
 	pCount, i, err := validateExternalOperation(vb.componentFinder, field, ops)
 
@@ -544,7 +544,7 @@ func (vb *floatValidatorBuilder) addFloatExternalOperation(field string, ops []s
 
 }
 
-func (vb *floatValidatorBuilder) addFloatInOperation(field string, ops []string, sv *FloatValidator) error {
+func (vb *FloatValidatorBuilder) addFloatInOperation(field string, ops []string, sv *FloatValidator) error {
 
 	pCount, err := paramCount(ops, "In Set", field, 2, 3)
 

@@ -29,8 +29,8 @@ const (
 	BoolOpMex
 )
 
-func NewBoolValidator(field, defaultErrorCode string) *boolValidator {
-	bv := new(boolValidator)
+func NewBoolValidator(field, defaultErrorCode string) *BoolValidator {
+	bv := new(BoolValidator)
 	bv.defaultErrorCode = defaultErrorCode
 	bv.field = field
 	bv.codesInUse = types.NewOrderedStringSet([]string{})
@@ -41,7 +41,7 @@ func NewBoolValidator(field, defaultErrorCode string) *boolValidator {
 	return bv
 }
 
-type boolValidator struct {
+type BoolValidator struct {
 	stopAll             bool
 	codesInUse          types.StringSet
 	dependsFields       types.StringSet
@@ -60,7 +60,7 @@ type boolOperation struct {
 	MExFields types.StringSet
 }
 
-func (bv *boolValidator) IsSet(field string, subject interface{}) (bool, error) {
+func (bv *BoolValidator) IsSet(field string, subject interface{}) (bool, error) {
 
 	value, err := bv.extractValue(field, subject)
 
@@ -75,7 +75,7 @@ func (bv *boolValidator) IsSet(field string, subject interface{}) (bool, error) 
 	}
 }
 
-func (bv *boolValidator) Validate(vc *validationContext) (result *ValidationResult, unexpected error) {
+func (bv *BoolValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := bv.field
 
@@ -114,7 +114,7 @@ func (bv *boolValidator) Validate(vc *validationContext) (result *ValidationResu
 	return bv.runOperations(value.Bool(), vc, r.ErrorCodes)
 }
 
-func (bv *boolValidator) runOperations(b bool, vc *validationContext, errors []string) (*ValidationResult, error) {
+func (bv *BoolValidator) runOperations(b bool, vc *ValidationContext, errors []string) (*ValidationResult, error) {
 
 	if errors == nil {
 		errors = []string{}
@@ -137,7 +137,7 @@ func (bv *boolValidator) runOperations(b bool, vc *validationContext, errors []s
 
 }
 
-func (bv *boolValidator) extractValue(f string, s interface{}) (*types.NilableBool, error) {
+func (bv *BoolValidator) extractValue(f string, s interface{}) (*types.NilableBool, error) {
 
 	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
@@ -167,27 +167,27 @@ func (bv *boolValidator) extractValue(f string, s interface{}) (*types.NilableBo
 
 }
 
-func (bv *boolValidator) StopAllOnFail() bool {
+func (bv *BoolValidator) StopAllOnFail() bool {
 	return bv.stopAll
 }
 
-func (bv *boolValidator) CodesInUse() types.StringSet {
+func (bv *BoolValidator) CodesInUse() types.StringSet {
 	return bv.codesInUse
 }
 
-func (bv *boolValidator) DependsOnFields() types.StringSet {
+func (bv *BoolValidator) DependsOnFields() types.StringSet {
 
 	return bv.dependsFields
 }
 
-func (bv *boolValidator) StopAll() *boolValidator {
+func (bv *BoolValidator) StopAll() *BoolValidator {
 
 	bv.stopAll = true
 
 	return bv
 }
 
-func (bv *boolValidator) Required(code ...string) *boolValidator {
+func (bv *BoolValidator) Required(code ...string) *BoolValidator {
 
 	bv.required = true
 	bv.missingRequiredCode = bv.chooseErrorCode(code)
@@ -195,7 +195,7 @@ func (bv *boolValidator) Required(code ...string) *boolValidator {
 	return bv
 }
 
-func (bv *boolValidator) Is(v bool, code ...string) *boolValidator {
+func (bv *BoolValidator) Is(v bool, code ...string) *BoolValidator {
 
 	bv.requiredValue = types.NewNilableBool(v)
 
@@ -204,7 +204,7 @@ func (bv *boolValidator) Is(v bool, code ...string) *boolValidator {
 	return bv
 }
 
-func (bv *boolValidator) MEx(fields types.StringSet, code ...string) *boolValidator {
+func (bv *BoolValidator) MEx(fields types.StringSet, code ...string) *BoolValidator {
 	op := new(boolOperation)
 	op.ErrCode = bv.chooseErrorCode(code)
 	op.OpType = BoolOpMex
@@ -215,11 +215,11 @@ func (bv *boolValidator) MEx(fields types.StringSet, code ...string) *boolValida
 	return bv
 }
 
-func (bv *boolValidator) addOperation(o *boolOperation) {
+func (bv *BoolValidator) addOperation(o *boolOperation) {
 	bv.operations = append(bv.operations, o)
 }
 
-func (bv *boolValidator) chooseErrorCode(v []string) string {
+func (bv *BoolValidator) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
 		bv.codesInUse.Add(v[0])
@@ -230,7 +230,7 @@ func (bv *boolValidator) chooseErrorCode(v []string) string {
 
 }
 
-func (bv *boolValidator) Operation(c string) (boolValidationOperation, error) {
+func (bv *BoolValidator) Operation(c string) (boolValidationOperation, error) {
 	switch c {
 	case boolOpRequiredCode:
 		return BoolOpRequired, nil
@@ -247,20 +247,20 @@ func (bv *boolValidator) Operation(c string) (boolValidationOperation, error) {
 
 }
 
-func NewBoolValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *boolValidatorBuilder {
-	bv := new(boolValidatorBuilder)
+func NewBoolValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *BoolValidatorBuilder {
+	bv := new(BoolValidatorBuilder)
 	bv.componentFinder = cf
 	bv.defaultErrorCode = ec
 
 	return bv
 }
 
-type boolValidatorBuilder struct {
+type BoolValidatorBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 }
 
-func (vb *boolValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
+func (vb *BoolValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(BoolRuleCode, rule, vb.defaultErrorCode)
 	bv := NewBoolValidator(field, defaultErrorcode)
@@ -302,7 +302,7 @@ func (vb *boolValidatorBuilder) parseRule(field string, rule []string) (Validato
 
 }
 
-func (vb *boolValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *boolValidator) error {
+func (vb *BoolValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *BoolValidator) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -318,7 +318,7 @@ func (vb *boolValidatorBuilder) captureExclusiveFields(field string, ops []strin
 
 }
 
-func (vb *boolValidatorBuilder) captureRequiredValue(field string, ops []string, bv *boolValidator) error {
+func (vb *BoolValidatorBuilder) captureRequiredValue(field string, ops []string, bv *BoolValidator) error {
 	_, err := paramCount(ops, "Is", field, 2, 3)
 
 	if err != nil {
@@ -337,7 +337,7 @@ func (vb *boolValidatorBuilder) captureRequiredValue(field string, ops []string,
 	return nil
 }
 
-func (vb *boolValidatorBuilder) markRequired(field string, ops []string, bv *boolValidator) error {
+func (vb *BoolValidatorBuilder) markRequired(field string, ops []string, bv *BoolValidator) error {
 
 	_, err := paramCount(ops, "Required", field, 1, 2)
 

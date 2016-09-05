@@ -15,7 +15,7 @@ func TestUnsetBoolDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(BoolTest)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	sub.B = true
@@ -79,7 +79,7 @@ func TestSetBoolDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(BoolTest)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	sub.B = true
@@ -111,7 +111,7 @@ func TestBoolMExFieldDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(BoolTest)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 	vc.KnownSetFields = types.NewOrderedStringSet([]string{})
 
@@ -161,7 +161,7 @@ func TestRequiredValueDetection(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	sub := new(BoolTest)
-	vc := new(validationContext)
+	vc := new(ValidationContext)
 	vc.Subject = sub
 
 	sub.B = true
