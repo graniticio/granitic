@@ -309,7 +309,7 @@ func (ov *RuleValidator) parseRules() error {
 		var ruleToParse []string
 
 		if len(rule) < 2 {
-			m := fmt.Sprintf("Rule is invlaid (must have at least an identifier and a type). Supplied rule is: %q", rule)
+			m := fmt.Sprintf("Rule is invalid (must have at least an identifier and a type). Supplied rule is: %q", rule)
 			return errors.New(m)
 		}
 
@@ -327,7 +327,11 @@ func (ov *RuleValidator) parseRules() error {
 			ruleToParse = rule[1:]
 		}
 
-		err = ov.parseRule(field, ruleToParse)
+		v, err := ov.parseRule(field, ruleToParse)
+
+		if err == nil {
+			ov.addValidator(field, v)
+		}
 
 		if err != nil {
 			break
@@ -382,45 +386,46 @@ func (ov *RuleValidator) findRule(field, op string) ([]string, error) {
 	return rf.Rule(ref), nil
 }
 
-func (ov *RuleValidator) parseRule(field string, rule []string) error {
+func (ov *RuleValidator) parseRule(field string, rule []string) (Validator, error) {
 
 	rt, err := ov.extractType(field, rule)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
+
+	var v Validator
 
 	switch rt {
 	case StringRule:
-		err = ov.parseAndAdd(field, rule, ov.stringBuilder.parseRule)
+		v, err = ov.parse(field, rule, ov.stringBuilder.parseRule)
 	case ObjectRule:
-		err = ov.parseAndAdd(field, rule, ov.objectValidatorBuilder.parseRule)
+		v, err = ov.parse(field, rule, ov.objectValidatorBuilder.parseRule)
 	case BoolRule:
-		err = ov.parseAndAdd(field, rule, ov.boolValidatorBuilder.parseRule)
+		v, err = ov.parse(field, rule, ov.boolValidatorBuilder.parseRule)
 	case IntRule:
-		err = ov.parseAndAdd(field, rule, ov.intValidatorBuilder.parseRule)
+		v, err = ov.parse(field, rule, ov.intValidatorBuilder.parseRule)
 	case FloatRule:
-		err = ov.parseAndAdd(field, rule, ov.floatValidatorBuilder.parseRule)
+		v, err = ov.parse(field, rule, ov.floatValidatorBuilder.parseRule)
 	case SliceRule:
-		err = ov.parseAndAdd(field, rule, ov.floatValidatorBuilder.parseRule)
+		v, err = ov.parse(field, rule, ov.floatValidatorBuilder.parseRule)
 
 	default:
 		m := fmt.Sprintf("Unsupported rule type for field %s\n", field)
-		return errors.New(m)
+		return nil, errors.New(m)
 	}
 
-	return err
+	return v, err
 
 }
 
-func (ov *RuleValidator) parseAndAdd(field string, rule []string, pf parseAndBuild) error {
+func (ov *RuleValidator) parse(field string, rule []string, pf parseAndBuild) (Validator, error) {
 	v, err := pf(field, rule)
 
 	if err != nil {
-		return err
+		return nil, err
 	} else {
-		ov.addValidator(field, v)
-		return nil
+		return v, nil
 	}
 }
 

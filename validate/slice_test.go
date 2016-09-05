@@ -108,11 +108,33 @@ func TestSliceLength(t *testing.T) {
 }
 
 func TestSliceElemValidation(t *testing.T) {
-	vb := NewSliceValidatorBuilder("DEF", nil, nil)
+
+	rv := new(RuleValidator)
+
+	rm := new(UnparsedRuleManager)
+
+	rules := make(map[string][]string)
+	rm.Rules = rules
+
+	rules["lenCheck"] = []string{"STR", "LEN:-5"}
+	rules["objCheck"] = []string{"OBJ"}
+
+	rv.RuleManager = rm
+
+	rv.stringBuilder = NewStringValidatorBuilder("DEFSTR")
+	rv.objectValidatorBuilder = NewObjectValidatorBuilder("DEFOBJ", nil)
+
+	vb := NewSliceValidatorBuilder("DEF", nil, rv)
 
 	field := "S"
 
 	_, err := vb.parseRule(field, []string{"ELEM:notExist"})
+	test.ExpectNotNil(t, err)
+
+	_, err = vb.parseRule(field, []string{"ELEM:objCheck"})
+	test.ExpectNotNil(t, err)
+
+	_, err = vb.parseRule(field, []string{"ELEM:lenCheck"})
 	test.ExpectNil(t, err)
 }
 

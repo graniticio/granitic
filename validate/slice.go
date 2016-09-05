@@ -324,7 +324,7 @@ func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validat
 		case SliceOpLen:
 			err = vb.addLengthOperation(field, ops, bv)
 		case SliceOpElem:
-			err = vb.addElementValidationOperation(field, ops, bv)
+			err = vb.addElementValidationOperation(field, ops, v, bv)
 		}
 
 		if err != nil {
@@ -338,9 +338,31 @@ func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validat
 
 }
 
-func (vb *SliceValidatorBuilder) addElementValidationOperation(field string, ops []string, sv *SliceValidator) error {
+func (vb *SliceValidatorBuilder) addElementValidationOperation(field string, ops []string, unparsedRule string, sv *SliceValidator) error {
 
 	fmt.Println("Add elem validation")
+
+	rv := vb.ruleValidator
+	rule, err := rv.findRule(field, unparsedRule)
+
+	if err != nil {
+		return err
+	}
+
+	v, err := rv.parseRule(field, rule)
+
+	if err != nil {
+		return err
+	}
+
+	switch v.(type) {
+	case *StringValidator, *BoolValidator, *IntValidator, *FloatValidator:
+		break
+	default:
+		m := fmt.Sprintf("Only %s, %s, %s and %s rules may be used to validate slice elements. Field %s is trying to use %s",
+			IntRuleCode, FloatRuleCode, BoolRuleCode, StringRuleCode, field, rule[0])
+		return errors.New(m)
+	}
 
 	return nil
 }
