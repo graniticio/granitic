@@ -161,11 +161,12 @@ func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value
 
 		e := slice.Index(i)
 
-		switch v.(type) {
+		switch tv := v.(type) {
 		case *StringValidator:
 			vc.Subject, err, nilable = bv.stringValue(e, fa)
 			stringElement = true
-
+		case *IntValidator:
+			vc.Subject, err = tv.ToInt64(fa, e.Interface())
 		}
 
 		if err != nil {

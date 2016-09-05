@@ -102,23 +102,39 @@ func (iv *IntValidator) Validate(vc *ValidationContext) (result *ValidationResul
 
 	r := NewValidationResult()
 
-	set, err := iv.IsSet(f, sub)
+	var value *types.NilableInt64
 
-	if err != nil {
-		return nil, err
-	} else if !set {
-		r.Unset = true
+	if vc.DirectSubject {
 
-		if iv.required {
-			r.AddForField(f, []string{iv.missingRequiredCode})
+		i, found := sub.(*types.NilableInt64)
+
+		if !found {
+			m := fmt.Sprintf("Direct validation requested for %s but supplied value is not a *NilableInt64", f)
+			return nil, errors.New(m)
 		}
-		return r, nil
+
+		value = i
+
+	} else {
+
+		set, err := iv.IsSet(f, sub)
+
+		if err != nil {
+			return nil, err
+		} else if !set {
+			r.Unset = true
+
+			if iv.required {
+				r.AddForField(f, []string{iv.missingRequiredCode})
+			}
+			return r, nil
+		}
+
+		//Ignoring error as called previously during IsSet
+		value, _ = iv.extractValue(f, sub)
 	}
 
-	//Ignoring error as called previously during IsSet
-	value, _ := iv.extractValue(f, sub)
-
-	err = iv.runOperations(f, value.Int64(), vc, r)
+	err := iv.runOperations(f, value.Int64(), vc, r)
 
 	return r, err
 }
@@ -229,9 +245,15 @@ func (iv *IntValidator) extractValue(f string, s interface{}) (*types.NilableInt
 		return nil, nil
 	}
 
+	return iv.ToInt64(f, v.Interface())
+
+}
+
+func (iv *IntValidator) ToInt64(f string, i interface{}) (*types.NilableInt64, error) {
+
 	var ex int64
 
-	switch i := v.Interface().(type) {
+	switch i := i.(type) {
 	case *types.NilableInt64:
 		return i, nil
 	case int:
