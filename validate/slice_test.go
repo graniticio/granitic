@@ -8,7 +8,7 @@ import (
 
 func TestSliceSet(t *testing.T) {
 
-	vb := NewSliceValidatorBuilder("DEF", nil)
+	vb := NewSliceValidatorBuilder("DEF", nil, nil)
 
 	sv, err := vb.parseRule("S", []string{"REQ:MISSING"})
 
@@ -30,7 +30,7 @@ func TestSliceSet(t *testing.T) {
 }
 
 func TestSliceLength(t *testing.T) {
-	sb := NewSliceValidatorBuilder("DEF", nil)
+	sb := NewSliceValidatorBuilder("DEF", nil, nil)
 
 	field := "S"
 
@@ -107,8 +107,17 @@ func TestSliceLength(t *testing.T) {
 
 }
 
+func TestSliceElemValidation(t *testing.T) {
+	vb := NewSliceValidatorBuilder("DEF", nil, nil)
+
+	field := "S"
+
+	_, err := vb.parseRule(field, []string{"ELEM:notExist"})
+	test.ExpectNil(t, err)
+}
+
 func TestSliceMExFieldDetection(t *testing.T) {
-	vb := NewSliceValidatorBuilder("DEF", nil)
+	vb := NewSliceValidatorBuilder("DEF", nil, nil)
 
 	field := "S"
 

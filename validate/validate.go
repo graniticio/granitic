@@ -294,7 +294,7 @@ func (ov *RuleValidator) StartComponent() error {
 	ov.intValidatorBuilder = NewIntValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 	ov.floatValidatorBuilder = NewFloatValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 
-	ov.sliceValidatorBuilder = NewSliceValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
+	ov.sliceValidatorBuilder = NewSliceValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder, ov)
 
 	return ov.parseRules()
 

@@ -119,6 +119,8 @@ func (sv *SliceValidator) runOperations(field string, v reflect.Value, vc *Valid
 
 	ec := types.NewEmptyOrderedStringSet()
 
+	var err error
+
 	for _, op := range sv.operations {
 
 		switch op.OpType {
@@ -128,13 +130,19 @@ func (sv *SliceValidator) runOperations(field string, v reflect.Value, vc *Valid
 			if !sv.lengthOkay(v) {
 				ec.Add(op.ErrCode)
 			}
+		case SliceOpElem:
+			err = sv.checkElementContents(field, v, op.elemValidator, r)
 		}
 	}
 
 	r.AddForField(field, ec.Contents())
 
-	return nil
+	return err
 
+}
+
+func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value, v Validator, r *ValidationResult) error {
+	return nil
 }
 
 func (bv *SliceValidator) extractReflectValue(f string, s interface{}) (interface{}, error) {
@@ -245,6 +253,8 @@ func (bv *SliceValidator) Operation(c string) (sliceValidationOperation, error) 
 		return SliceOpMex, nil
 	case sliceOpLenCode:
 		return SliceOpLen, nil
+	case sliceOpElemCode:
+		return SliceOpElem, nil
 	}
 
 	m := fmt.Sprintf("Unsupported slice validation operation %s", c)
@@ -267,11 +277,13 @@ func (sv *SliceValidator) lengthOkay(r reflect.Value) bool {
 
 }
 
-func NewSliceValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *SliceValidatorBuilder {
+func NewSliceValidatorBuilder(ec string, cf ioc.ComponentByNameFinder, rv *RuleValidator) *SliceValidatorBuilder {
 	bv := new(SliceValidatorBuilder)
 	bv.componentFinder = cf
 	bv.defaultErrorCode = ec
 	bv.sliceLenRegex = regexp.MustCompile(lengthPattern)
+	bv.ruleValidator = rv
+
 	return bv
 }
 
@@ -279,6 +291,7 @@ type SliceValidatorBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 	sliceLenRegex    *regexp.Regexp
+	ruleValidator    *RuleValidator
 }
 
 func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
@@ -310,6 +323,8 @@ func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validat
 			err = vb.captureExclusiveFields(field, ops, bv)
 		case SliceOpLen:
 			err = vb.addLengthOperation(field, ops, bv)
+		case SliceOpElem:
+			err = vb.addElementValidationOperation(field, ops, bv)
 		}
 
 		if err != nil {
@@ -321,6 +336,13 @@ func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validat
 
 	return bv, nil
 
+}
+
+func (vb *SliceValidatorBuilder) addElementValidationOperation(field string, ops []string, sv *SliceValidator) error {
+
+	fmt.Println("Add elem validation")
+
+	return nil
 }
 
 func (vb *SliceValidatorBuilder) addLengthOperation(field string, ops []string, sv *SliceValidator) error {
