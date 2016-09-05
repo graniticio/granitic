@@ -18,7 +18,7 @@ const StringRuleCode = "STR"
 const (
 	stringOpTrimCode     = "TRIM"
 	stringOpHardTrimCode = "HARDTRIM"
-	stringOpLenCode      = "LEN"
+	stringOpLenCode      = commonOpLen
 	stringOpInCode       = commonOpIn
 	stringOpExtCode      = commonOpExt
 	stringOpRequiredCode = commonOpRequired

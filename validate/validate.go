@@ -33,6 +33,7 @@ const commonOpIn = "IN"
 const commonOpBreak = "BREAK"
 const commonOpExt = "EXT"
 const commonOpMex = "MEX"
+const commonOpLen = "LEN"
 
 type SubjectContext struct {
 	Subject interface{}

@@ -16,6 +16,7 @@ const (
 	sliceOpRequiredCode = commonOpRequired
 	sliceOpStopAllCode  = commonOpStopAll
 	sliceOpMexCode      = commonOpMex
+	sliceOpLenCode      = commonOpLen
 )
 
 type sliceValidationOperation uint
@@ -25,6 +26,7 @@ const (
 	SliceOpRequired
 	SliceOpStopAll
 	SliceOpMex
+	SliceOpLen
 )
 
 func NewSliceValidator(field, defaultErrorCode string) *sliceValidator {
@@ -35,6 +37,8 @@ func NewSliceValidator(field, defaultErrorCode string) *sliceValidator {
 	bv.dependsFields = determinePathFields(field)
 	bv.operations = make([]*sliceOperation, 0)
 	bv.codesInUse.Add(bv.defaultErrorCode)
+	bv.minLen = NoLimit
+	bv.maxLen = NoLimit
 
 	return bv
 }
@@ -48,6 +52,8 @@ type sliceValidator struct {
 	missingRequiredCode string
 	required            bool
 	operations          []*sliceOperation
+	minLen              int
+	maxLen              int
 }
 
 type sliceOperation struct {
@@ -58,7 +64,7 @@ type sliceOperation struct {
 
 func (bv *sliceValidator) IsSet(field string, subject interface{}) (bool, error) {
 
-	ps, err := bv.extractValue(field, subject)
+	ps, err := bv.extractReflectValue(field, subject)
 
 	if err != nil {
 		return false, err
@@ -100,7 +106,7 @@ func (bv *sliceValidator) Validate(vc *validationContext) (result *ValidationRes
 	}
 
 	//Ignoring error as called previously during IsSet
-	value, _ := bv.extractValue(f, sub)
+	value, _ := bv.extractReflectValue(f, sub)
 
 	return bv.runOperations(value, vc, r.ErrorCodes)
 }
@@ -128,7 +134,7 @@ func (bv *sliceValidator) runOperations(i interface{}, vc *validationContext, er
 
 }
 
-func (bv *sliceValidator) extractValue(f string, s interface{}) (interface{}, error) {
+func (bv *sliceValidator) extractReflectValue(f string, s interface{}) (interface{}, error) {
 
 	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
@@ -146,12 +152,29 @@ func (bv *sliceValidator) extractValue(f string, s interface{}) (interface{}, er
 			return nil, nil
 		}
 
-		return v.Interface(), nil
+		return v, nil
 	}
 
 	m := fmt.Sprintf("%s is not a slice", f)
 
 	return nil, errors.New(m)
+
+}
+
+func (sv *sliceValidator) Length(min, max int, code ...string) *sliceValidator {
+
+	sv.minLen = min
+	sv.maxLen = max
+
+	ec := sv.chooseErrorCode(code)
+
+	o := new(sliceOperation)
+	o.OpType = SliceOpLen
+	o.ErrCode = ec
+
+	sv.addOperation(o)
+
+	return sv
 
 }
 
@@ -219,7 +242,7 @@ func (bv *sliceValidator) Operation(c string) (sliceValidationOperation, error) 
 		return SliceOpMex, nil
 	}
 
-	m := fmt.Sprintf("Unsupported bool validation operation %s", c)
+	m := fmt.Sprintf("Unsupported slice validation operation %s", c)
 	return SliceOpUnsupported, errors.New(m)
 
 }
