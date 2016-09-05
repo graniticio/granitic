@@ -131,7 +131,7 @@ func (sv *SliceValidator) runOperations(field string, v reflect.Value, vc *Valid
 				ec.Add(op.ErrCode)
 			}
 		case SliceOpElem:
-			err = sv.checkElementContents(field, v, op.elemValidator, r)
+			err = sv.checkElementContents(field, v, op.elemValidator, r, vc)
 		}
 	}
 
@@ -141,8 +141,62 @@ func (sv *SliceValidator) runOperations(field string, v reflect.Value, vc *Valid
 
 }
 
-func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value, v Validator, r *ValidationResult) error {
+func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value, v Validator, r *ValidationResult, pvc *ValidationContext) error {
+
+	sl := slice.Len()
+
+	var err error
+
+	for i := 0; i < sl; i++ {
+
+		fa := fmt.Sprintf("%s[%d]", field, i)
+
+		vc := new(ValidationContext)
+		vc.OverrideField = fa
+		vc.KnownSetFields = pvc.KnownSetFields
+		vc.DirectSubject = true
+
+		e := slice.Index(i)
+
+		switch v.(type) {
+		case *StringValidator:
+			vc.Subject, err = bv.stringValue(e, fa)
+
+		}
+
+		if err != nil {
+			return err
+		}
+
+		vr, err := v.Validate(vc)
+
+		if err != nil {
+			return err
+		}
+
+		ee := vr.ErrorCodes[fa]
+
+		r.AddForField(fa, ee)
+
+	}
+
 	return nil
+}
+
+func (bv *SliceValidator) stringValue(v reflect.Value, fa string) (*types.NilableString, error) {
+
+	s := v.Interface()
+
+	switch s := s.(type) {
+	case *types.NilableString:
+		return s, nil
+	case string:
+		return types.NewNilableString(s), nil
+	default:
+		m := fmt.Sprintf("%s is not a string or *NilableString", fa)
+		return nil, errors.New(m)
+	}
+
 }
 
 func (bv *SliceValidator) extractReflectValue(f string, s interface{}) (interface{}, error) {
@@ -222,6 +276,17 @@ func (bv *SliceValidator) MEx(fields types.StringSet, code ...string) *SliceVali
 	op.ErrCode = bv.chooseErrorCode(code)
 	op.OpType = SliceOpMex
 	op.MExFields = fields
+
+	bv.addOperation(op)
+
+	return bv
+}
+
+func (bv *SliceValidator) Elem(v Validator, code ...string) *SliceValidator {
+	op := new(sliceOperation)
+	op.ErrCode = bv.chooseErrorCode(code)
+	op.OpType = SliceOpElem
+	op.elemValidator = v
 
 	bv.addOperation(op)
 
@@ -340,7 +405,11 @@ func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validat
 
 func (vb *SliceValidatorBuilder) addElementValidationOperation(field string, ops []string, unparsedRule string, sv *SliceValidator) error {
 
-	fmt.Println("Add elem validation")
+	_, err := paramCount(ops, "Elem", field, 2, 3)
+
+	if err != nil {
+		return err
+	}
 
 	rv := vb.ruleValidator
 	rule, err := rv.findRule(field, unparsedRule)
@@ -363,6 +432,8 @@ func (vb *SliceValidatorBuilder) addElementValidationOperation(field string, ops
 			IntRuleCode, FloatRuleCode, BoolRuleCode, StringRuleCode, field, rule[0])
 		return errors.New(m)
 	}
+
+	sv.Elem(v, extractVargs(ops, 3)...)
 
 	return nil
 }

@@ -116,7 +116,7 @@ func TestSliceElemValidation(t *testing.T) {
 	rules := make(map[string][]string)
 	rm.Rules = rules
 
-	rules["lenCheck"] = []string{"STR", "LEN:-5"}
+	rules["lenCheck"] = []string{"STR", "LEN:-5:TOOLONG"}
 	rules["objCheck"] = []string{"OBJ"}
 
 	rv.RuleManager = rm
@@ -134,8 +134,26 @@ func TestSliceElemValidation(t *testing.T) {
 	_, err = vb.parseRule(field, []string{"ELEM:objCheck"})
 	test.ExpectNotNil(t, err)
 
-	_, err = vb.parseRule(field, []string{"ELEM:lenCheck"})
+	sv, err := vb.parseRule(field, []string{"ELEM:lenCheck:LEN"})
 	test.ExpectNil(t, err)
+
+	sub := new(SliceTest)
+	sub.S = []string{"A", "B", "C"}
+
+	vc := new(ValidationContext)
+	vc.Subject = sub
+
+	r, err := sv.Validate(vc)
+	c := r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	sub.S = []string{"A", "B12345", "C12345"}
+
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 2)
 }
 
 func TestSliceMExFieldDetection(t *testing.T) {

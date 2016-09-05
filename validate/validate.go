@@ -48,6 +48,7 @@ type ValidationContext struct {
 	Subject        interface{}
 	KnownSetFields types.StringSet
 	OverrideField  string
+	DirectSubject  bool
 }
 
 type ValidationResult struct {
@@ -56,6 +57,10 @@ type ValidationResult struct {
 }
 
 func (vr *ValidationResult) AddForField(field string, codes []string) {
+
+	if codes == nil || len(codes) == 0 {
+		return
+	}
 
 	existing := vr.ErrorCodes[field]
 

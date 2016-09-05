@@ -102,11 +102,9 @@ func (sv *StringValidator) IsSet(field string, subject interface{}) (bool, error
 	}
 }
 
-func (sv *StringValidator) ValidateString(subject *types.NilableString, alias string) (result *ValidationResult, unexpected error) {
-	return nil, nil
-}
-
 func (sv *StringValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
+
+	var value *types.NilableString
 
 	f := sv.field
 
@@ -115,30 +113,42 @@ func (sv *StringValidator) Validate(vc *ValidationContext) (result *ValidationRe
 	}
 
 	sub := vc.Subject
-
-	set, err := sv.IsSet(f, sub)
-
 	r := NewValidationResult()
 
-	if err != nil {
-		return nil, err
-	} else if !set {
+	if vc.DirectSubject {
 
-		if sv.required {
-			r.AddForField(f, []string{sv.missingRequiredCode})
+		s, found := sub.(*types.NilableString)
+
+		if !found {
+			m := fmt.Sprintf("Direct validation requested for %s but supplied value is not a *NilableString", f)
+			return nil, errors.New(m)
 		}
 
-		r.Unset = true
+		value = s
 
-		return r, nil
+	} else {
+
+		set, err := sv.IsSet(f, sub)
+
+		if err != nil {
+			return nil, err
+		} else if !set {
+
+			if sv.required {
+				r.AddForField(f, []string{sv.missingRequiredCode})
+			}
+
+			r.Unset = true
+
+			return r, nil
+		}
+
+		//Ignoring error as called previously during IsSet
+		value, _ = sv.extractValue(f, sub)
 	}
 
-	//Ignoring error as called previously during IsSet
-	value, _ := sv.extractValue(f, sub)
-
 	toValidate := sv.applyTrimming(f, sub, value)
-
-	err = sv.runOperations(f, toValidate, vc, r)
+	err := sv.runOperations(f, toValidate, vc, r)
 
 	return r, err
 }
