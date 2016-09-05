@@ -6,6 +6,8 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/types"
+	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -20,6 +22,7 @@ const (
 	IntRule
 	BoolRule
 	FloatRule
+	SliceRule
 )
 
 const commandSep = ":"
@@ -34,6 +37,8 @@ const commonOpBreak = "BREAK"
 const commonOpExt = "EXT"
 const commonOpMex = "MEX"
 const commonOpLen = "LEN"
+
+const lengthPattern = "^(\\d*)-(\\d*)$"
 
 type SubjectContext struct {
 	Subject interface{}
@@ -88,6 +93,7 @@ type RuleValidator struct {
 	boolValidatorBuilder   *BoolValidatorBuilder
 	intValidatorBuilder    *IntValidatorBuilder
 	floatValidatorBuilder  *FloatValidatorBuilder
+	sliceValidatorBuilder  *SliceValidatorBuilder
 	DefaultErrorCode       string
 	Rules                  [][]string
 	ComponentFinder        ioc.ComponentByNameFinder
@@ -238,7 +244,7 @@ func (ov *RuleValidator) StartComponent() error {
 		ov.codesInUse.Add(ov.DefaultErrorCode)
 	}
 
-	ov.stringBuilder = newStringValidatorBuilder(ov.DefaultErrorCode)
+	ov.stringBuilder = NewStringValidatorBuilder(ov.DefaultErrorCode)
 	ov.stringBuilder.componentFinder = ov.ComponentFinder
 
 	ov.objectValidatorBuilder = NewObjectValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
@@ -247,6 +253,8 @@ func (ov *RuleValidator) StartComponent() error {
 
 	ov.intValidatorBuilder = NewIntValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 	ov.floatValidatorBuilder = NewFloatValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
+
+	ov.sliceValidatorBuilder = NewSliceValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 
 	return ov.parseRules()
 
@@ -353,6 +361,8 @@ func (ov *RuleValidator) parseRule(field string, rule []string) error {
 		err = ov.parseAndAdd(field, rule, ov.intValidatorBuilder.parseRule)
 	case FloatRule:
 		err = ov.parseAndAdd(field, rule, ov.floatValidatorBuilder.parseRule)
+	case SliceRule:
+		err = ov.parseAndAdd(field, rule, ov.floatValidatorBuilder.parseRule)
 
 	default:
 		m := fmt.Sprintf("Unsupported rule type for field %s\n", field)
@@ -391,6 +401,8 @@ func (ov *RuleValidator) extractType(field string, rule []string) (ValidationRul
 			return IntRule, nil
 		case FloatRuleCode:
 			return FloatRule, nil
+		case SliceRuleCode:
+			return SliceRule, nil
 		}
 	}
 
@@ -505,4 +517,27 @@ func extractVargs(ops []string, l int) []string {
 		return []string{}
 	}
 
+}
+
+func extractLengthParams(field string, vals string, pattern *regexp.Regexp) (min, max int, err error) {
+
+	min = NoLimit
+	max = NoLimit
+
+	if !pattern.MatchString(vals) {
+		m := fmt.Sprintf("Length parameters for field %s are invalid. Values provided: %s", field, vals)
+		return min, max, errors.New(m)
+	}
+
+	groups := pattern.FindStringSubmatch(vals)
+
+	if groups[1] != "" {
+		min, _ = strconv.Atoi(groups[1])
+	}
+
+	if groups[2] != "" {
+		max, _ = strconv.Atoi(groups[2])
+	}
+
+	return min, max, nil
 }

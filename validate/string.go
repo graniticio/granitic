@@ -7,7 +7,6 @@ import (
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -621,37 +620,19 @@ func (vb *StringValidatorBuilder) addStringExternalOperation(field string, ops [
 
 func (vb *StringValidatorBuilder) addStringLenOperation(field string, ops []string, sv *StringValidator) error {
 
-	pCount, err := paramCount(ops, "Length", field, 2, 3)
+	_, err := paramCount(ops, "Length", field, 2, 3)
 
 	if err != nil {
 		return err
 	}
 
-	vals := ops[1]
+	min, max, err := extractLengthParams(field, ops[1], vb.strLenRegex)
 
-	if !vb.strLenRegex.MatchString(vals) {
-		m := fmt.Sprintf("Length parameters for field %s are invalid. Values provided: %s", field, vals)
-		return errors.New(m)
+	if err != nil {
+		return err
 	}
 
-	min := NoLimit
-	max := NoLimit
-
-	groups := vb.strLenRegex.FindStringSubmatch(vals)
-
-	if groups[1] != "" {
-		min, _ = strconv.Atoi(groups[1])
-	}
-
-	if groups[2] != "" {
-		max, _ = strconv.Atoi(groups[2])
-	}
-
-	if pCount == 2 {
-		sv.Length(min, max)
-	} else {
-		sv.Length(min, max, ops[2])
-	}
+	sv.Length(min, max, extractVargs(ops, 3)...)
 
 	return nil
 
@@ -668,9 +649,9 @@ func paramCount(opParams []string, opName, field string, min, max int) (count in
 	return pCount, nil
 }
 
-func newStringValidatorBuilder(defaultErrorCode string) *StringValidatorBuilder {
+func NewStringValidatorBuilder(defaultErrorCode string) *StringValidatorBuilder {
 	vb := new(StringValidatorBuilder)
-	vb.strLenRegex = regexp.MustCompile("^(\\d*)-(\\d*)$")
+	vb.strLenRegex = regexp.MustCompile(lengthPattern)
 	vb.defaultErrorCode = defaultErrorCode
 
 	return vb

@@ -8,7 +8,7 @@ import (
 
 func TestMissingRequiredStringField(t *testing.T) {
 
-	sb := newStringValidatorBuilder("DEF")
+	sb := NewStringValidatorBuilder("DEF")
 
 	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:5-10:SHORT"})
 
@@ -39,7 +39,7 @@ func TestMissingRequiredStringField(t *testing.T) {
 }
 
 func TestUnsetButOptional(t *testing.T) {
-	sb := newStringValidatorBuilder("DEF")
+	sb := NewStringValidatorBuilder("DEF")
 	sv, err := sb.parseRule("S", []string{"LEN:5-10:SHORT"})
 
 	test.ExpectNil(t, err)
@@ -68,7 +68,7 @@ func TestUnsetButOptional(t *testing.T) {
 }
 
 func TestHardTrim(t *testing.T) {
-	sb := newStringValidatorBuilder("DEF")
+	sb := NewStringValidatorBuilder("DEF")
 
 	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "HARDTRIM"})
 
@@ -101,7 +101,7 @@ func TestHardTrim(t *testing.T) {
 }
 
 func TestSoftTrim(t *testing.T) {
-	sb := newStringValidatorBuilder("DEF")
+	sb := NewStringValidatorBuilder("DEF")
 
 	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "TRIM", "LEN:2-"})
 
@@ -134,7 +134,7 @@ func TestSoftTrim(t *testing.T) {
 }
 
 func TestInSet(t *testing.T) {
-	sb := newStringValidatorBuilder("DEF")
+	sb := NewStringValidatorBuilder("DEF")
 
 	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "IN:AA,BB:NOTIN"})
 
@@ -163,7 +163,7 @@ func TestInSet(t *testing.T) {
 }
 
 func TestBreak(t *testing.T) {
-	sb := newStringValidatorBuilder("DEF")
+	sb := NewStringValidatorBuilder("DEF")
 
 	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-2:LENGTH", "BREAK", "IN:AA,BB:NOTIN"})
 
@@ -185,7 +185,7 @@ func TestBreak(t *testing.T) {
 }
 
 func TestStopAll(t *testing.T) {
-	sb := newStringValidatorBuilder("DEF")
+	sb := NewStringValidatorBuilder("DEF")
 
 	sv, _ := sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH"})
 
@@ -197,7 +197,7 @@ func TestStopAll(t *testing.T) {
 }
 
 func TestRegex(t *testing.T) {
-	sb := newStringValidatorBuilder("DEF")
+	sb := NewStringValidatorBuilder("DEF")
 
 	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "REG:^::A$:REGFAIL"})
 
@@ -227,7 +227,7 @@ func TestRegex(t *testing.T) {
 }
 
 func TestLength(t *testing.T) {
-	sb := newStringValidatorBuilder("DEF")
+	sb := NewStringValidatorBuilder("DEF")
 
 	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH"})
 
@@ -303,7 +303,7 @@ func TestLength(t *testing.T) {
 }
 
 func TestExternal(t *testing.T) {
-	sb := newStringValidatorBuilder("DEF")
+	sb := NewStringValidatorBuilder("DEF")
 
 	_, err := sb.parseRule("S", []string{"EXT:extComp"})
 
@@ -341,7 +341,7 @@ func TestExternal(t *testing.T) {
 }
 
 func TestStringMExFieldDetection(t *testing.T) {
-	vb := newStringValidatorBuilder("DEF")
+	vb := NewStringValidatorBuilder("DEF")
 
 	bv, err := vb.parseRule("S", []string{"MEX:setField1,setField2:BAD_MEX"})
 

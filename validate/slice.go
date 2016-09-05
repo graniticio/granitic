@@ -7,6 +7,7 @@ import (
 	rt "github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/types"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -108,10 +109,10 @@ func (bv *SliceValidator) Validate(vc *ValidationContext) (result *ValidationRes
 	//Ignoring error as called previously during IsSet
 	value, _ := bv.extractReflectValue(f, sub)
 
-	return bv.runOperations(value, vc, r.ErrorCodes)
+	return bv.runOperations(value.(reflect.Value), vc, r.ErrorCodes)
 }
 
-func (bv *SliceValidator) runOperations(i interface{}, vc *ValidationContext, errors []string) (*ValidationResult, error) {
+func (sv *SliceValidator) runOperations(v reflect.Value, vc *ValidationContext, errors []string) (*ValidationResult, error) {
 
 	if errors == nil {
 		errors = []string{}
@@ -119,11 +120,15 @@ func (bv *SliceValidator) runOperations(i interface{}, vc *ValidationContext, er
 
 	ec := types.NewOrderedStringSet(errors)
 
-	for _, op := range bv.operations {
+	for _, op := range sv.operations {
 
 		switch op.OpType {
 		case SliceOpMex:
 			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
+		case SliceOpLen:
+			if !sv.lengthOkay(v) {
+				ec.Add(op.ErrCode)
+			}
 		}
 	}
 
@@ -240,6 +245,8 @@ func (bv *SliceValidator) Operation(c string) (sliceValidationOperation, error) 
 		return SliceOpStopAll, nil
 	case sliceOpMexCode:
 		return SliceOpMex, nil
+	case sliceOpLenCode:
+		return SliceOpLen, nil
 	}
 
 	m := fmt.Sprintf("Unsupported slice validation operation %s", c)
@@ -247,17 +254,33 @@ func (bv *SliceValidator) Operation(c string) (sliceValidationOperation, error) 
 
 }
 
+func (sv *SliceValidator) lengthOkay(r reflect.Value) bool {
+
+	if sv.minLen == NoLimit && sv.maxLen == NoLimit {
+		return true
+	}
+
+	sl := r.Len()
+
+	minOkay := sv.minLen == NoLimit || sl >= sv.minLen
+	maxOkay := sv.maxLen == NoLimit || sl <= sv.maxLen
+
+	return minOkay && maxOkay
+
+}
+
 func NewSliceValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *SliceValidatorBuilder {
 	bv := new(SliceValidatorBuilder)
 	bv.componentFinder = cf
 	bv.defaultErrorCode = ec
-
+	bv.sliceLenRegex = regexp.MustCompile(lengthPattern)
 	return bv
 }
 
 type SliceValidatorBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
+	sliceLenRegex    *regexp.Regexp
 }
 
 func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
@@ -287,6 +310,8 @@ func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validat
 			bv.StopAll()
 		case SliceOpMex:
 			err = vb.captureExclusiveFields(field, ops, bv)
+		case SliceOpLen:
+			err = vb.addLengthOperation(field, ops, bv)
 		}
 
 		if err != nil {
@@ -297,6 +322,26 @@ func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validat
 	}
 
 	return bv, nil
+
+}
+
+func (vb *SliceValidatorBuilder) addLengthOperation(field string, ops []string, sv *SliceValidator) error {
+
+	_, err := paramCount(ops, "Length", field, 2, 3)
+
+	if err != nil {
+		return err
+	}
+
+	min, max, err := extractLengthParams(field, ops[1], vb.sliceLenRegex)
+
+	if err != nil {
+		return err
+	}
+
+	sv.Length(min, max, extractVargs(ops, 3)...)
+
+	return nil
 
 }
 
