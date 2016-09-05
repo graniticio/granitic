@@ -143,6 +143,9 @@ func (sv *SliceValidator) runOperations(field string, v reflect.Value, vc *Valid
 
 func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value, v Validator, r *ValidationResult, pvc *ValidationContext) error {
 
+	stringElement := false
+	nilable := false
+
 	sl := slice.Len()
 
 	var err error
@@ -160,7 +163,8 @@ func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value
 
 		switch v.(type) {
 		case *StringValidator:
-			vc.Subject, err = bv.stringValue(e, fa)
+			vc.Subject, err, nilable = bv.stringValue(e, fa)
+			stringElement = true
 
 		}
 
@@ -178,23 +182,37 @@ func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value
 
 		r.AddForField(fa, ee)
 
+		if stringElement {
+			bv.overwriteStringValue(e, vc.Subject.(*types.NilableString), nilable)
+		}
+
 	}
 
 	return nil
 }
 
-func (bv *SliceValidator) stringValue(v reflect.Value, fa string) (*types.NilableString, error) {
+// String validation is unique in that it can modify the value under consideration
+func (bv *SliceValidator) overwriteStringValue(v reflect.Value, ns *types.NilableString, wasNilable bool) {
+
+	if !wasNilable {
+
+		v.Set(reflect.ValueOf(ns.String()))
+	}
+
+}
+
+func (bv *SliceValidator) stringValue(v reflect.Value, fa string) (*types.NilableString, error, bool) {
 
 	s := v.Interface()
 
 	switch s := s.(type) {
 	case *types.NilableString:
-		return s, nil
+		return s, nil, true
 	case string:
-		return types.NewNilableString(s), nil
+		return types.NewNilableString(s), nil, false
 	default:
 		m := fmt.Sprintf("%s is not a string or *NilableString", fa)
-		return nil, errors.New(m)
+		return nil, errors.New(m), false
 	}
 
 }

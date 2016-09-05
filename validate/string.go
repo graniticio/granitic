@@ -147,13 +147,13 @@ func (sv *StringValidator) Validate(vc *ValidationContext) (result *ValidationRe
 		value, _ = sv.extractValue(f, sub)
 	}
 
-	toValidate := sv.applyTrimming(f, sub, value)
+	toValidate := sv.applyTrimming(f, sub, value, vc)
 	err := sv.runOperations(f, toValidate, vc, r)
 
 	return r, err
 }
 
-func (sv *StringValidator) applyTrimming(f string, s interface{}, ns *types.NilableString) string {
+func (sv *StringValidator) applyTrimming(f string, s interface{}, ns *types.NilableString, vc *ValidationContext) string {
 
 	if sv.trim == hardTrim || sv.trim == softTrim {
 
@@ -161,11 +161,14 @@ func (sv *StringValidator) applyTrimming(f string, s interface{}, ns *types.Nila
 
 		if sv.trim == hardTrim {
 
-			v, _ := rt.FindNestedField(rt.ExtractDotPath(f), s)
-			_, found := v.Interface().(string)
+			if !vc.DirectSubject {
 
-			if found {
-				v.SetString(t)
+				v, _ := rt.FindNestedField(rt.ExtractDotPath(f), s)
+				_, found := v.Interface().(string)
+
+				if found {
+					v.SetString(t)
+				}
 			}
 
 			ns.Set(t)

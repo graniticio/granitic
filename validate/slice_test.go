@@ -1,6 +1,7 @@
 package validate
 
 import (
+	"fmt"
 	"github.com/graniticio/granitic/test"
 	"github.com/graniticio/granitic/types"
 	"testing"
@@ -116,7 +117,7 @@ func TestSliceElemValidation(t *testing.T) {
 	rules := make(map[string][]string)
 	rm.Rules = rules
 
-	rules["lenCheck"] = []string{"STR", "LEN:-5:TOOLONG"}
+	rules["lenCheck"] = []string{"STR", "LEN:-5:TOOLONG", "HARDTRIM"}
 	rules["objCheck"] = []string{"OBJ"}
 
 	rv.RuleManager = rm
@@ -154,6 +155,15 @@ func TestSliceElemValidation(t *testing.T) {
 	c = r.ErrorCodes
 
 	test.ExpectInt(t, len(c), 2)
+
+	sub.S = []string{"   A   ", " B2345", "C1234 "}
+
+	r, err = sv.Validate(vc)
+	c = r.ErrorCodes
+
+	test.ExpectInt(t, len(c), 0)
+
+	fmt.Printf("%v\n", sub.S)
 }
 
 func TestSliceMExFieldDetection(t *testing.T) {
