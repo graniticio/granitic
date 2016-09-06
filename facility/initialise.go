@@ -102,7 +102,7 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.ConfigAccessor) error {
 
 	fi.AddFacility(new(querymanager.QueryManagerFacilityBuilder))
 	fi.AddFacility(new(httpserver.HttpServerFacilityBuilder))
-	fi.AddFacility(new(jsonws.JsonWsFacilityBuilder))
+	fi.AddFacility(new(jsonws.JSONWsFacilityBuilder))
 	fi.AddFacility(new(serviceerror.ServiceErrorManagerFacilityBuilder))
 	fi.AddFacility(new(rdbms.RdbmsAccessFacilityBuilder))
 

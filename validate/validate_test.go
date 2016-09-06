@@ -33,7 +33,7 @@ func TestPathParsing(t *testing.T) {
 func LoadTestConfig() *config.ConfigAccessor {
 
 	cFile := test.TestFilePath("validate/validation.json")
-	jsonMerger := new(jsonmerger.JsonMerger)
+	jsonMerger := new(jsonmerger.JSONMerger)
 	jsonMerger.Logger = new(logging.ConsoleErrorLogger)
 
 	mergedJson := jsonMerger.LoadAndMergeConfig([]string{cFile})

@@ -18,8 +18,7 @@ import (
 )
 
 const (
-	initiatorComponentName  string = instance.FrameworkPrefix + "FrameworkInitiator"
-	jsonMergerComponentName string = instance.FrameworkPrefix + "JsonMerger"
+	initiatorComponentName string = instance.FrameworkPrefix + "FrameworkInitiator"
 )
 
 func StartGranitic(customComponents *ioc.ProtoComponents) {
@@ -118,14 +117,13 @@ func (i *initiator) shutdown(cc *ioc.ComponentContainer) {
 
 // Merge together all of the local and remote JSON configuration files and wrap them in a *config.ConfigAccessor
 // which allows programmatic access to the merged config.
-func (i *initiator) createConfigAccessor(configPaths []string, lm *logging.ComponentLoggerManager) *config.ConfigAccessor {
+func (i *initiator) createConfigAccessor(configPaths []string, flm *logging.ComponentLoggerManager) *config.ConfigAccessor {
 
 	i.logConfigLocations(configPaths)
 
-	fl := lm.CreateLogger(config.ConfigAccessorComponentName)
+	fl := flm.CreateLogger(config.ConfigAccessorComponentName)
 
-	jm := new(jsonmerger.JsonMerger)
-	jm.Logger = lm.CreateLogger(jsonMergerComponentName)
+	jm := jsonmerger.NewJSONMerger(flm)
 
 	mergedJson := jm.LoadAndMergeConfig(configPaths)
 

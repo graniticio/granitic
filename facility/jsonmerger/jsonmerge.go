@@ -3,17 +3,28 @@ package jsonmerger
 import (
 	"encoding/json"
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
 	"io/ioutil"
 )
 
-type JsonObject map[string]interface{}
+const jsonMergerComponentName string = instance.FrameworkPrefix + "JsonMerger"
 
-type JsonMerger struct {
+type JSONObject map[string]interface{}
+
+func NewJSONMerger(flm *logging.ComponentLoggerManager) *JSONMerger {
+	jm := new(JSONMerger)
+
+	jm.Logger = flm.CreateLogger(jsonMergerComponentName)
+
+	return jm
+}
+
+type JSONMerger struct {
 	Logger logging.Logger
 }
 
-func (jm *JsonMerger) LoadAndMergeConfig(files []string) map[string]interface{} {
+func (jm *JSONMerger) LoadAndMergeConfig(files []string) map[string]interface{} {
 
 	var mergedConfig map[string]interface{}
 
@@ -41,7 +52,7 @@ func (jm *JsonMerger) LoadAndMergeConfig(files []string) map[string]interface{} 
 	return mergedConfig
 }
 
-func (jm *JsonMerger) merge(base, additional map[string]interface{}) map[string]interface{} {
+func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]interface{} {
 
 	for key, value := range additional {
 
@@ -66,7 +77,7 @@ func (jm *JsonMerger) merge(base, additional map[string]interface{}) map[string]
 	return base
 }
 
-func (jm *JsonMerger) check(e error) {
+func (jm *JSONMerger) check(e error) {
 	if e != nil {
 		panic(e)
 	}

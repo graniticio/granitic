@@ -21,10 +21,10 @@ const wsHttpStatusDeterminerComponentName = instance.FrameworkPrefix + "HttpStat
 const wsQueryBinderComponentName = instance.FrameworkPrefix + "QueryBinder"
 const wsFrameworkErrorGenerator = instance.FrameworkPrefix + "FrameworkErrorGenerator"
 
-type JsonWsFacilityBuilder struct {
+type JSONWsFacilityBuilder struct {
 }
 
-func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (fb *JSONWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	responseWriter := new(json.StandardJSONResponseWriter)
 	ca.Populate("JsonWs.ResponseWriter", responseWriter)
@@ -48,7 +48,7 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	responseWriter.FrameworkErrors = frameworkErrors
 
 	decoratorLogger := lm.CreateLogger(jsonHandlerDecoratorComponentName)
-	decorator := JsonWsHandlerDecorator{decoratorLogger, responseWriter, jsonUnmarshaller, queryBinder, frameworkErrors}
+	decorator := JSONWsHandlerDecorator{decoratorLogger, responseWriter, jsonUnmarshaller, queryBinder, frameworkErrors}
 	cn.WrapAndAddProto(jsonHandlerDecoratorComponentName, &decorator)
 
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "ErrorFormatter") {
@@ -69,15 +69,15 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	return nil
 }
 
-func (fb *JsonWsFacilityBuilder) FacilityName() string {
+func (fb *JSONWsFacilityBuilder) FacilityName() string {
 	return "JsonWs"
 }
 
-func (fb *JsonWsFacilityBuilder) DependsOnFacilities() []string {
+func (fb *JSONWsFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
 
-type JsonWsHandlerDecorator struct {
+type JSONWsHandlerDecorator struct {
 	FrameworkLogger logging.Logger
 	ResponseWriter  ws.WsResponseWriter
 	Unmarshaller    ws.WsUnmarshaller
@@ -85,7 +85,7 @@ type JsonWsHandlerDecorator struct {
 	FrameworkErrors *ws.FrameworkErrorGenerator
 }
 
-func (jwhd *JsonWsHandlerDecorator) OfInterest(component *ioc.Component) bool {
+func (jwhd *JSONWsHandlerDecorator) OfInterest(component *ioc.Component) bool {
 	switch component.Instance.(type) {
 	default:
 		jwhd.FrameworkLogger.LogTracef("No interest %s", component.Name)
@@ -95,7 +95,7 @@ func (jwhd *JsonWsHandlerDecorator) OfInterest(component *ioc.Component) bool {
 	}
 }
 
-func (jwhd *JsonWsHandlerDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+func (jwhd *JSONWsHandlerDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
 	h := component.Instance.(*handler.WsHandler)
 	l := jwhd.FrameworkLogger
 	l.LogTracef("Decorating component %s", component.Name)

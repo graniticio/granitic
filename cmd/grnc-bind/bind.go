@@ -620,7 +620,7 @@ func loadConfig(l string) *config.ConfigAccessor {
 		fatal(m)
 	}
 
-	jm := new(jsonmerger.JsonMerger)
+	jm := new(jsonmerger.JSONMerger)
 	jm.Logger = new(logging.ConsoleErrorLogger)
 
 	mc := jm.LoadAndMergeConfig(fl)
