@@ -1,12 +1,14 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
 	"io/ioutil"
+	"net/http"
 )
 
 const jsonMergerComponentName string = instance.FrameworkPrefix + "JsonMerger"
@@ -35,6 +37,9 @@ func (jm *JSONMerger) LoadAndMergeConfig(files []string) (map[string]interface{}
 
 		if isURL(fileName) {
 			jm.Logger.LogTracef("Acessing URL %s", fileName)
+
+			jsonData, err = jm.loadFromURL(fileName)
+
 		} else {
 			jm.Logger.LogTracef("Reading file %s", fileName)
 
@@ -50,7 +55,7 @@ func (jm *JSONMerger) LoadAndMergeConfig(files []string) (map[string]interface{}
 		err = json.Unmarshal(jsonData, &loadedConfig)
 
 		if err != nil {
-			m := fmt.Sprintf("Problem parsing data from file/URL as JSON %s: %s", fileName, err)
+			m := fmt.Sprintf("Problem parsing data from a file or URL (%s) as JSON : %s", fileName, err)
 			return nil, errors.New(m)
 		}
 
@@ -65,6 +70,26 @@ func (jm *JSONMerger) LoadAndMergeConfig(files []string) (map[string]interface{}
 	}
 
 	return mergedConfig, nil
+}
+
+func (jm *JSONMerger) loadFromURL(url string) ([]byte, error) {
+
+	r, err := http.Get(url)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if r.StatusCode >= 400 {
+		m := fmt.Sprintf("HTTP %d", r.StatusCode)
+		return nil, errors.New(m)
+	}
+
+	var b bytes.Buffer
+
+	b.ReadFrom(r.Body)
+
+	return b.Bytes(), nil
 }
 
 func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]interface{} {
