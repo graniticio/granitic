@@ -3,7 +3,6 @@ package validate
 import (
 	"fmt"
 	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/facility/jsonmerger"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/test"
@@ -33,10 +32,10 @@ func TestPathParsing(t *testing.T) {
 func LoadTestConfig() *config.ConfigAccessor {
 
 	cFile := test.TestFilePath("validate/validation.json")
-	jsonMerger := new(jsonmerger.JSONMerger)
+	jsonMerger := new(config.JSONMerger)
 	jsonMerger.Logger = new(logging.ConsoleErrorLogger)
 
-	mergedJson := jsonMerger.LoadAndMergeConfig([]string{cFile})
+	mergedJson, _ := jsonMerger.LoadAndMergeConfig([]string{cFile})
 
 	return &config.ConfigAccessor{mergedJson, new(logging.ConsoleErrorLogger)}
 }

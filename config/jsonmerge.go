@@ -1,8 +1,9 @@
-package jsonmerger
+package config
 
 import (
 	"encoding/json"
-	"github.com/graniticio/granitic/config"
+	"errors"
+	"fmt"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
 	"io/ioutil"
@@ -24,20 +25,34 @@ type JSONMerger struct {
 	Logger logging.Logger
 }
 
-func (jm *JSONMerger) LoadAndMergeConfig(files []string) map[string]interface{} {
+func (jm *JSONMerger) LoadAndMergeConfig(files []string) (map[string]interface{}, error) {
 
 	var mergedConfig map[string]interface{}
+	var jsonData []byte
+	var err error
 
 	for index, fileName := range files {
 
-		jm.Logger.LogTracef("Reading %s", fileName)
+		if isURL(fileName) {
+			jm.Logger.LogTracef("Acessing URL %s", fileName)
+		} else {
+			jm.Logger.LogTracef("Reading file %s", fileName)
 
-		jsonData, err := ioutil.ReadFile(fileName)
-		jm.check(err)
+			jsonData, err = ioutil.ReadFile(fileName)
+		}
+
+		if err != nil {
+			m := fmt.Sprintf("Problem reading data from file/URL %s: %s", fileName, err)
+			return nil, errors.New(m)
+		}
 
 		var loadedConfig interface{}
 		err = json.Unmarshal(jsonData, &loadedConfig)
-		jm.check(err)
+
+		if err != nil {
+			m := fmt.Sprintf("Problem parsing data from file/URL as JSON %s: %s", fileName, err)
+			return nil, errors.New(m)
+		}
 
 		additionalConfig := loadedConfig.(map[string]interface{})
 
@@ -49,7 +64,7 @@ func (jm *JSONMerger) LoadAndMergeConfig(files []string) map[string]interface{} 
 
 	}
 
-	return mergedConfig
+	return mergedConfig, nil
 }
 
 func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]interface{} {
@@ -58,10 +73,10 @@ func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]
 
 		if existingEntry, ok := base[key]; ok {
 
-			existingEntryType := config.JsonType(existingEntry)
-			newEntryType := config.JsonType(value)
+			existingEntryType := JsonType(existingEntry)
+			newEntryType := JsonType(value)
 
-			if existingEntryType == config.JsonMap && newEntryType == config.JsonMap {
+			if existingEntryType == JsonMap && newEntryType == JsonMap {
 				jm.merge(existingEntry.(map[string]interface{}), value.(map[string]interface{}))
 			} else {
 				base[key] = value
@@ -75,10 +90,4 @@ func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]
 	}
 
 	return base
-}
-
-func (jm *JSONMerger) check(e error) {
-	if e != nil {
-		panic(e)
-	}
 }

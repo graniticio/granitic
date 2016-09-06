@@ -10,7 +10,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/facility/jsonmerger"
 	"github.com/graniticio/granitic/logging"
 	"io/ioutil"
 	"os"
@@ -613,17 +612,22 @@ func fatal(m string) {
 func loadConfig(l string) *config.ConfigAccessor {
 
 	s := strings.Split(l, ",")
-	fl, err := config.ExpandToFiles(s)
+	fl, err := config.ExpandToFilesAndURLs(s)
 
 	if err != nil {
 		m := fmt.Sprintf("Problem loading config from %s %s", l, err.Error())
 		fatal(m)
 	}
 
-	jm := new(jsonmerger.JSONMerger)
+	jm := new(config.JSONMerger)
 	jm.Logger = new(logging.ConsoleErrorLogger)
 
-	mc := jm.LoadAndMergeConfig(fl)
+	mc, err := jm.LoadAndMergeConfig(fl)
+
+	if err != nil {
+		m := fmt.Sprintf("Problem merging JSON files togther: %s", err.Error())
+		fatal(m)
+	}
 
 	ca := new(config.ConfigAccessor)
 	ca.JsonData = mc

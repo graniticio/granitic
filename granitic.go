@@ -6,7 +6,6 @@ package granitic
 import (
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility"
-	"github.com/graniticio/granitic/facility/jsonmerger"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
@@ -123,9 +122,14 @@ func (i *initiator) createConfigAccessor(configPaths []string, flm *logging.Comp
 
 	fl := flm.CreateLogger(config.ConfigAccessorComponentName)
 
-	jm := jsonmerger.NewJSONMerger(flm)
+	jm := config.NewJSONMerger(flm)
 
-	mergedJson := jm.LoadAndMergeConfig(configPaths)
+	mergedJson, err := jm.LoadAndMergeConfig(configPaths)
+
+	if err != nil {
+		i.logger.LogFatalf(err.Error())
+		config.ExitError()
+	}
 
 	return &config.ConfigAccessor{mergedJson, fl}
 }

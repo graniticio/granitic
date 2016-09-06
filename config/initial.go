@@ -70,7 +70,7 @@ func processCommandLineArgs(is *InitialSettings) {
 	}
 
 	paths := strings.Split(*configFilePtr, ",")
-	userConfig, err := ExpandToFiles(paths)
+	userConfig, err := ExpandToFilesAndURLs(paths)
 
 	if err != nil {
 		fmt.Println(err)
@@ -82,10 +82,15 @@ func processCommandLineArgs(is *InitialSettings) {
 
 }
 
-func ExpandToFiles(paths []string) ([]string, error) {
+func ExpandToFilesAndURLs(paths []string) ([]string, error) {
 	files := make([]string, 0)
 
 	for _, path := range paths {
+
+		if isURL(path) {
+			files = append(files, path)
+			continue
+		}
 
 		expanded, err := FileListFromPath(path)
 
@@ -98,6 +103,10 @@ func ExpandToFiles(paths []string) ([]string, error) {
 	}
 
 	return files, nil
+}
+
+func isURL(u string) bool {
+	return strings.HasPrefix(u, "http:") || strings.HasPrefix(u, "https:")
 }
 
 func builtInConfigFiles() []string {
