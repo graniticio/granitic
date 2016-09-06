@@ -54,8 +54,6 @@ func (i *Initiator) Start(customComponents *ioc.ProtoComponents, is *config.Init
 
 func (i *Initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSettings) *ioc.ComponentContainer {
 
-	start := time.Now()
-
 	frameworkLoggingManager, logManageProto := facility.BootstrapFrameworkLogging(is.FrameworkLogLevel)
 	i.logger = frameworkLoggingManager.CreateLogger(initiatorComponentName)
 
@@ -82,7 +80,7 @@ func (i *Initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 	err = c.StartComponents()
 	i.shutdownIfError(err, c)
 
-	elapsed := time.Since(start)
+	elapsed := time.Since(is.StartTime)
 	i.logger.LogInfof("Ready (startup time %s)", elapsed)
 
 	return c

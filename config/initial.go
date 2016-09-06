@@ -6,6 +6,7 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -37,14 +38,16 @@ type InitialSettings struct {
 	FrameworkLogLevel logging.LogLevel
 	Configuration     []string
 	GraniticHome      string
+	StartTime         time.Time
 }
 
 func InitialSettingsFromEnvironment() *InitialSettings {
 
+	start := time.Now()
 	checkForGraniticHome()
 
 	is := new(InitialSettings)
-
+	is.StartTime = start
 	is.GraniticHome = GraniticHome()
 	is.Configuration = builtInConfigFiles()
 
