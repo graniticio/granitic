@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"os"
 	"reflect"
@@ -11,6 +12,7 @@ import (
 )
 
 const JsonPathSeparator string = "."
+const ConfigAccessorComponentName string = ioc.FrameworkPrefix + "ConfigAccessor"
 
 const (
 	Unset           = -2

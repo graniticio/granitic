@@ -1,3 +1,6 @@
+/*
+Package granitic provides methods for starting an instance of Granitic.
+*/
 package granitic
 
 import (
@@ -16,23 +19,22 @@ import (
 const (
 	initiatorComponentName           string = ioc.FrameworkPrefix + "FrameworkInitiator"
 	jsonMergerComponentName          string = ioc.FrameworkPrefix + "JsonMerger"
-	configAccessorComponentName      string = ioc.FrameworkPrefix + "ConfigAccessor"
 	facilityInitialisorComponentName string = ioc.FrameworkPrefix + "FacilityInitialisor"
 )
 
 func StartGranitic(customComponents *ioc.ProtoComponents) {
-	i := new(Initiator)
+	i := new(initiator)
 
 	is := config.InitialSettingsFromEnvironment()
 
 	i.Start(customComponents, is)
 }
 
-type Initiator struct {
+type initiator struct {
 	logger logging.Logger
 }
 
-func (i *Initiator) Start(customComponents *ioc.ProtoComponents, is *config.InitialSettings) {
+func (i *initiator) Start(customComponents *ioc.ProtoComponents, is *config.InitialSettings) {
 
 	container := i.buildContainer(customComponents, is)
 	customComponents.Clear()
@@ -53,7 +55,7 @@ func (i *Initiator) Start(customComponents *ioc.ProtoComponents, is *config.Init
 }
 
 // Creates and populate a Granitic IoC container using the user components and configuration files provided
-func (i *Initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSettings) *ioc.ComponentContainer {
+func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSettings) *ioc.ComponentContainer {
 
 	//Bootstrap the logging framework
 	frameworkLoggingManager, logManageProto := facility.BootstrapFrameworkLogging(is.FrameworkLogLevel)
@@ -97,7 +99,7 @@ func (i *Initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 
 // Cleanly stop the container and any running components in the event of an error
 // during startup.
-func (i *Initiator) shutdownIfError(err error, cc *ioc.ComponentContainer) {
+func (i *initiator) shutdownIfError(err error, cc *ioc.ComponentContainer) {
 
 	if err != nil {
 		i.logger.LogFatalf(err.Error())
@@ -109,7 +111,7 @@ func (i *Initiator) shutdownIfError(err error, cc *ioc.ComponentContainer) {
 
 // Log that the container is stopping and let the container stop its
 // components gracefully
-func (i *Initiator) shutdown(cc *ioc.ComponentContainer) {
+func (i *initiator) shutdown(cc *ioc.ComponentContainer) {
 	i.logger.LogInfof("Shutting down")
 
 	cc.ShutdownComponents()
@@ -117,11 +119,11 @@ func (i *Initiator) shutdown(cc *ioc.ComponentContainer) {
 
 // Merge together all of the local and remote JSON configuration files and wrap them in a *config.ConfigAccessor
 // which allows programmatic access to the merged config.
-func (i *Initiator) createConfigAccessor(configPaths []string, lm *logging.ComponentLoggerManager) *config.ConfigAccessor {
+func (i *initiator) createConfigAccessor(configPaths []string, lm *logging.ComponentLoggerManager) *config.ConfigAccessor {
 
 	i.logConfigLocations(configPaths)
 
-	fl := lm.CreateLogger(configAccessorComponentName)
+	fl := lm.CreateLogger(config.ConfigAccessorComponentName)
 
 	jm := new(jsonmerger.JsonMerger)
 	jm.Logger = lm.CreateLogger(jsonMergerComponentName)
@@ -132,7 +134,7 @@ func (i *Initiator) createConfigAccessor(configPaths []string, lm *logging.Compo
 }
 
 // Record the files and URLs used to create a merged configuration (in the order in which they will be merged)
-func (i *Initiator) logConfigLocations(configPaths []string) {
+func (i *initiator) logConfigLocations(configPaths []string) {
 	if i.logger.IsLevelEnabled(logging.Debug) {
 
 		i.logger.LogDebugf("Loading configuration from: ")
