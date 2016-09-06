@@ -88,6 +88,7 @@ func (jm *JSONMerger) loadFromURL(url string) ([]byte, error) {
 	var b bytes.Buffer
 
 	b.ReadFrom(r.Body)
+	r.Body.Close()
 
 	return b.Bytes(), nil
 }
