@@ -3,14 +3,15 @@ package serviceerror
 import (
 	"errors"
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 )
 
 const (
-	serviceErrorManagerComponentName      = ioc.FrameworkPrefix + "ServiceErrorManager"
-	serviceErrorDecoratorComponentName    = ioc.FrameworkPrefix + "ServiceErrorSourceDecorator"
-	errorCodeSourceDecoratorComponentName = ioc.FrameworkPrefix + "ErrorCodeSourceDecorator"
+	serviceErrorManagerComponentName      = instance.FrameworkPrefix + "ServiceErrorManager"
+	serviceErrorDecoratorComponentName    = instance.FrameworkPrefix + "ServiceErrorSourceDecorator"
+	errorCodeSourceDecoratorComponentName = instance.FrameworkPrefix + "ErrorCodeSourceDecorator"
 )
 
 type ServiceErrorManagerFacilityBuilder struct {

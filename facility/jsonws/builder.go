@@ -6,6 +6,7 @@ package jsonws
 import (
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility/httpserver"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
@@ -13,12 +14,12 @@ import (
 	"github.com/graniticio/granitic/ws/json"
 )
 
-const jsonResponseWriterComponentName = ioc.FrameworkPrefix + "JsonResponseWriter"
-const jsonUnmarshallerComponentName = ioc.FrameworkPrefix + "JsonUnmarshaller"
-const jsonHandlerDecoratorComponentName = ioc.FrameworkPrefix + "JsonHandlerDecorator"
-const wsHttpStatusDeterminerComponentName = ioc.FrameworkPrefix + "HttpStatusDeterminer"
-const wsQueryBinderComponentName = ioc.FrameworkPrefix + "QueryBinder"
-const wsFrameworkErrorGenerator = ioc.FrameworkPrefix + "FrameworkErrorGenerator"
+const jsonResponseWriterComponentName = instance.FrameworkPrefix + "JsonResponseWriter"
+const jsonUnmarshallerComponentName = instance.FrameworkPrefix + "JsonUnmarshaller"
+const jsonHandlerDecoratorComponentName = instance.FrameworkPrefix + "JsonHandlerDecorator"
+const wsHttpStatusDeterminerComponentName = instance.FrameworkPrefix + "HttpStatusDeterminer"
+const wsQueryBinderComponentName = instance.FrameworkPrefix + "QueryBinder"
+const wsFrameworkErrorGenerator = instance.FrameworkPrefix + "FrameworkErrorGenerator"
 
 type JsonWsFacilityBuilder struct {
 }

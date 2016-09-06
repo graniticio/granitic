@@ -7,6 +7,7 @@ import (
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility"
 	"github.com/graniticio/granitic/facility/jsonmerger"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"os"
@@ -17,9 +18,8 @@ import (
 )
 
 const (
-	initiatorComponentName           string = ioc.FrameworkPrefix + "FrameworkInitiator"
-	jsonMergerComponentName          string = ioc.FrameworkPrefix + "JsonMerger"
-	facilityInitialisorComponentName string = ioc.FrameworkPrefix + "FacilityInitialisor"
+	initiatorComponentName  string = instance.FrameworkPrefix + "FrameworkInitiator"
+	jsonMergerComponentName string = instance.FrameworkPrefix + "JsonMerger"
 )
 
 func StartGranitic(customComponents *ioc.ProtoComponents) {
@@ -75,7 +75,6 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 
 	//Instantiate those facilities required by user and register as components in container
 	fi := facility.NewFacilitiesInitialisor(cc, frameworkLoggingManager)
-	fi.Logger = frameworkLoggingManager.CreateLogger(facilityInitialisorComponentName)
 
 	err := fi.Initialise(ca)
 	i.shutdownIfError(err, cc)

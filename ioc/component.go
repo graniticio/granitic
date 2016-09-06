@@ -1,7 +1,5 @@
 package ioc
 
-const FrameworkPrefix = "grnc"
-
 type ProtoComponents struct {
 	Components            []*ProtoComponent
 	FrameworkDependencies map[string]map[string]string

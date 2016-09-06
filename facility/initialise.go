@@ -11,12 +11,14 @@ import (
 	"github.com/graniticio/granitic/facility/querymanager"
 	"github.com/graniticio/granitic/facility/rdbms"
 	"github.com/graniticio/granitic/facility/serviceerror"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 )
 
-const frameworkLoggingManagerName = ioc.FrameworkPrefix + "FrameworkLoggingManager"
-const frameworkLoggerDecoratorName = ioc.FrameworkPrefix + "FrameworkLoggingDecorator"
+const frameworkLoggingManagerName = instance.FrameworkPrefix + "FrameworkLoggingManager"
+const frameworkLoggerDecoratorName = instance.FrameworkPrefix + "FrameworkLoggingDecorator"
+const facilityInitialisorComponentName string = instance.FrameworkPrefix + "FacilityInitialisor"
 const configErrorPrefix = "Unable to configure framework logging: "
 
 type FacilitiesInitialisor struct {
@@ -32,6 +34,8 @@ func NewFacilitiesInitialisor(cc *ioc.ComponentContainer, flm *logging.Component
 	fi := new(FacilitiesInitialisor)
 	fi.container = cc
 	fi.FrameworkLoggingManager = flm
+
+	fi.Logger = flm.CreateLogger(facilityInitialisorComponentName)
 
 	return fi
 }

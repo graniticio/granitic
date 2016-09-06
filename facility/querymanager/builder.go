@@ -2,11 +2,12 @@ package querymanager
 
 import (
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 )
 
-const QueryManagerComponentName = ioc.FrameworkPrefix + "QueryManager"
+const QueryManagerComponentName = instance.FrameworkPrefix + "QueryManager"
 const QueryManagerFacilityName = "QueryManager"
 
 type QueryManagerFacilityBuilder struct {

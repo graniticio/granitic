@@ -7,14 +7,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/reflecttools"
 	"os"
 	"time"
 )
 
-const containerDecoratorComponentName = FrameworkPrefix + "ContainerDecorator"
-const containerComponentName = FrameworkPrefix + "Container"
+const containerDecoratorComponentName = instance.FrameworkPrefix + "ContainerDecorator"
+const containerComponentName = instance.FrameworkPrefix + "Container"
 
 type ComponentByNameFinder interface {
 	ComponentByName(string) *Component

@@ -4,12 +4,13 @@ import (
 	"errors"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility/decorator"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 )
 
-const applicationLoggingDecoratorName = ioc.FrameworkPrefix + "ApplicationLoggingDecorator"
-const applicationLoggingManagerName = ioc.FrameworkPrefix + "ApplicationLoggingManager"
+const applicationLoggingDecoratorName = instance.FrameworkPrefix + "ApplicationLoggingDecorator"
+const applicationLoggingManagerName = instance.FrameworkPrefix + "ApplicationLoggingManager"
 
 type ApplicationLoggingFacilityBuilder struct {
 }

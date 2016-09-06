@@ -3,11 +3,12 @@ package rdbms
 import (
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility/querymanager"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 )
 
-const rdbmsClientManagerName = ioc.FrameworkPrefix + "RdbmsClientManager"
+const rdbmsClientManagerName = instance.FrameworkPrefix + "RdbmsClientManager"
 
 type RdbmsAccessFacilityBuilder struct {
 }

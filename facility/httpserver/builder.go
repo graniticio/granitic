@@ -2,13 +2,14 @@ package httpserver
 
 import (
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 )
 
-const HttpServerComponentName = ioc.FrameworkPrefix + "HttpServer"
+const HttpServerComponentName = instance.FrameworkPrefix + "HttpServer"
 const HttpServerAbnormalStatusFieldName = "AbnormalStatusWriter"
-const accessLogWriterName = ioc.FrameworkPrefix + "AccessLogWriter"
+const accessLogWriterName = instance.FrameworkPrefix + "AccessLogWriter"
 
 type HttpServerFacilityBuilder struct {
 }
@@ -19,7 +20,6 @@ func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLog
 	ca.Populate("HttpServer", httpServer)
 
 	cn.WrapAndAddProto(HttpServerComponentName, httpServer)
-
 
 	if !httpServer.AccessLogging {
 		return nil
