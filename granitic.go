@@ -52,61 +52,87 @@ func (i *Initiator) Start(customComponents *ioc.ProtoComponents, is *config.Init
 	}
 }
 
+// Creates and populate a Granitic IoC container using the user components and configuration files provided
 func (i *Initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSettings) *ioc.ComponentContainer {
 
+	//Bootstrap the logging framework
 	frameworkLoggingManager, logManageProto := facility.BootstrapFrameworkLogging(is.FrameworkLogLevel)
 	i.logger = frameworkLoggingManager.CreateLogger(initiatorComponentName)
 
-	i.logger.LogInfof("Starting components")
+	l := i.logger
+	l.LogInfof("Starting components")
 
-	configAccessor := i.loadConfigIntoAccessor(is.Configuration, frameworkLoggingManager)
-	c := ioc.NewContainer(frameworkLoggingManager, configAccessor)
+	//Merge all configuration files and create a container
+	ca := i.createConfigAccessor(is.Configuration, frameworkLoggingManager)
+	cc := ioc.NewComponentContainer(frameworkLoggingManager, ca)
+	cc.AddProto(logManageProto)
 
-	c.AddProto(logManageProto)
-	c.AddProtos(ac.Components)
-	c.AddModifiers(ac.FrameworkDependencies)
+	//Register user components with container
+	cc.AddProtos(ac.Components)
+	cc.AddModifiers(ac.FrameworkDependencies)
 
-	fi := facility.NewFacilitiesInitialisor(c, frameworkLoggingManager)
+	//Instantiate those facilities required by user and register as components in container
+	fi := facility.NewFacilitiesInitialisor(cc, frameworkLoggingManager)
 	fi.Logger = frameworkLoggingManager.CreateLogger(facilityInitialisorComponentName)
 
-	err := fi.Initialise(configAccessor)
-	i.shutdownIfError(err, c)
+	err := fi.Initialise(ca)
+	i.shutdownIfError(err, cc)
 
-	err = c.Populate()
-	i.shutdownIfError(err, c)
+	//Inject configuration and dependencies into all components
+	err = cc.Populate()
+	i.shutdownIfError(err, cc)
 
+	//Proto components and config no longer needed
 	runtime.GC()
 
-	err = c.StartComponents()
-	i.shutdownIfError(err, c)
+	//Start all startable components
+	err = cc.StartComponents()
+	i.shutdownIfError(err, cc)
 
 	elapsed := time.Since(is.StartTime)
-	i.logger.LogInfof("Ready (startup time %s)", elapsed)
+	l.LogInfof("Ready (startup time %s)", elapsed)
 
-	return c
+	return cc
 }
 
-func (i *Initiator) shutdownIfError(err error, c *ioc.ComponentContainer) {
+// Cleanly stop the container and any running components in the event of an error
+// during startup.
+func (i *Initiator) shutdownIfError(err error, cc *ioc.ComponentContainer) {
 
 	if err != nil {
 		i.logger.LogFatalf(err.Error())
-		i.shutdown(c)
-		os.Exit(-1)
+		i.shutdown(cc)
+		config.ExitError()
 	}
 
 }
 
-func (i *Initiator) shutdown(container *ioc.ComponentContainer) {
+// Log that the container is stopping and let the container stop its
+// components gracefully
+func (i *Initiator) shutdown(cc *ioc.ComponentContainer) {
 	i.logger.LogInfof("Shutting down")
 
-	container.ShutdownComponents()
-
+	cc.ShutdownComponents()
 }
 
-func (i *Initiator) loadConfigIntoAccessor(configPaths []string, lm *logging.ComponentLoggerManager) *config.ConfigAccessor {
+// Merge together all of the local and remote JSON configuration files and wrap them in a *config.ConfigAccessor
+// which allows programmatic access to the merged config.
+func (i *Initiator) createConfigAccessor(configPaths []string, lm *logging.ComponentLoggerManager) *config.ConfigAccessor {
+
+	i.logConfigLocations(configPaths)
 
 	fl := lm.CreateLogger(configAccessorComponentName)
 
+	jm := new(jsonmerger.JsonMerger)
+	jm.Logger = lm.CreateLogger(jsonMergerComponentName)
+
+	mergedJson := jm.LoadAndMergeConfig(configPaths)
+
+	return &config.ConfigAccessor{mergedJson, fl}
+}
+
+// Record the files and URLs used to create a merged configuration (in the order in which they will be merged)
+func (i *Initiator) logConfigLocations(configPaths []string) {
 	if i.logger.IsLevelEnabled(logging.Debug) {
 
 		i.logger.LogDebugf("Loading configuration from: ")
@@ -115,11 +141,4 @@ func (i *Initiator) loadConfigIntoAccessor(configPaths []string, lm *logging.Com
 			i.logger.LogDebugf(fileName)
 		}
 	}
-
-	jm := new(jsonmerger.JsonMerger)
-	jm.Logger = lm.CreateLogger(jsonMergerComponentName)
-
-	mergedJson := jm.LoadAndMergeConfig(configPaths)
-
-	return &config.ConfigAccessor{mergedJson, fl}
 }

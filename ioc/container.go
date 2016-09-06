@@ -17,6 +17,18 @@ type ComponentByNameFinder interface {
 	ComponentByName(string) *Component
 }
 
+func NewComponentContainer(loggingManager *logging.ComponentLoggerManager, configAccessor *config.ConfigAccessor) *ComponentContainer {
+
+	cc := new(ComponentContainer)
+	cc.protoComponents = make(map[string]*ProtoComponent)
+	cc.FrameworkLogger = loggingManager.CreateLogger(containerComponentName)
+	cc.configAccessor = configAccessor
+	cc.modifiers = make(map[string]map[string]string)
+
+	return cc
+
+}
+
 type ComponentContainer struct {
 	allComponents   map[string]*Component
 	protoComponents map[string]*ProtoComponent
@@ -436,18 +448,6 @@ func (cc *ComponentContainer) addComponent(component *Component) {
 		l.LogTracef("%s is a Accesible", component.Name)
 		cc.accessible = append(cc.accessible, component)
 	}
-
-}
-
-func NewContainer(loggingManager *logging.ComponentLoggerManager, configAccessor *config.ConfigAccessor) *ComponentContainer {
-
-	container := new(ComponentContainer)
-	container.protoComponents = make(map[string]*ProtoComponent)
-	container.FrameworkLogger = loggingManager.CreateLogger(containerComponentName)
-	container.configAccessor = configAccessor
-	container.modifiers = make(map[string]map[string]string)
-
-	return container
 
 }
 
