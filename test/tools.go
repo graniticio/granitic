@@ -11,7 +11,7 @@ import (
 )
 
 func TestFilePath(file string) string {
-	return os.Getenv("GRANITIC_HOME") + "/test/" + file
+	return os.Getenv("GRANITIC_HOME") + "/resource/test/" + file
 }
 
 func ExpectString(t *testing.T, check, expected string) bool {

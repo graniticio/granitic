@@ -20,7 +20,8 @@ type SimpleConfig struct {
 }
 
 func LoadConfigFromFile(f string) *ConfigAccessor {
-	p := GraniticHome() + "/test/config/" + f
+
+	p := test.TestFilePath("config/" + f)
 	l := logging.CreateAnonymousLogger("config_test", 0)
 
 	var d interface{}

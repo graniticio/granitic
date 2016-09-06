@@ -3,15 +3,15 @@ package querymanager
 import (
 	"bytes"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/test"
 	"io/ioutil"
-	"os"
 	"strings"
 	"testing"
 )
 
 func TestSingleSingleQueryNoVars(t *testing.T) {
 
-	queryFiles := []string{os.Getenv("GRANITIC_HOME") + "/test/querymanager/single-query-no-vars"}
+	queryFiles := []string{test.TestFilePath("querymanager/single-query-no-vars")}
 	qm := buildQueryManager()
 
 	tt := qm.parseQueryFiles(queryFiles)
@@ -26,7 +26,7 @@ func TestSingleSingleQueryNoVars(t *testing.T) {
 
 func TestSingleQueryIndexVars(t *testing.T) {
 
-	queryFiles := []string{os.Getenv("GRANITIC_HOME") + "/test/querymanager/single-query-index-vars"}
+	queryFiles := []string{test.TestFilePath("querymanager/single-query-index-vars")}
 	qm := buildQueryManager()
 
 	tt := qm.parseQueryFiles(queryFiles)
@@ -46,7 +46,7 @@ func TestSingleQueryIndexVars(t *testing.T) {
 
 	stringQuery := ToString(tokenisedQuery.Tokens)
 
-	refQuery := LoadRefFile("/test/querymanager/single-query-index-vars-ref")
+	refQuery := LoadRefFile("querymanager/single-query-index-vars-ref")
 
 	if stringQuery != refQuery {
 		t.Errorf("Generated query and reference query do not match. \nGEN:%s\nREF:%s\n", VisibleWhitespace(stringQuery), VisibleWhitespace(refQuery))
@@ -56,7 +56,7 @@ func TestSingleQueryIndexVars(t *testing.T) {
 
 func TestMultiQueryNameVars(t *testing.T) {
 
-	queryFiles := []string{os.Getenv("GRANITIC_HOME") + "/test/querymanager/multi-query-name-vars"}
+	queryFiles := []string{test.TestFilePath("querymanager/multi-query-name-vars")}
 	qm := buildQueryManager()
 
 	tt := qm.parseQueryFiles(queryFiles)
@@ -82,7 +82,7 @@ func TestMultiQueryNameVars(t *testing.T) {
 
 	stringQuery := ToString(tokenisedQueryTwo.Tokens)
 
-	refQuery := LoadRefFile("/test/querymanager/multi-query-name-vars-ref-2")
+	refQuery := LoadRefFile("querymanager/multi-query-name-vars-ref-2")
 
 	if stringQuery != refQuery {
 		t.Errorf("Generated query and reference query do not match. \nGEN:%s\nREF:%s\n", VisibleWhitespace(stringQuery), VisibleWhitespace(refQuery))
@@ -114,7 +114,9 @@ func VisibleWhitespace(query string) string {
 }
 
 func LoadRefFile(path string) string {
-	bytes, _ := ioutil.ReadFile(os.Getenv("GRANITIC_HOME") + path)
+
+	f := test.TestFilePath(path)
+	bytes, _ := ioutil.ReadFile(f)
 
 	return string(bytes)
 }
