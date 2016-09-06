@@ -1,6 +1,12 @@
 package logging
 
-import "strings"
+import (
+	"errors"
+	"fmt"
+	"strings"
+)
+
+type LogLevel uint
 
 const (
 	All   = 0
@@ -12,28 +18,36 @@ const (
 	Fatal = 70
 )
 
-const TraceLabel = "TRACE"
-const DebugLabel = "DEBUG"
-const InfoLabel = "INFO"
-const WarnLabel = "WARN"
-const ErrorLabel = "ERROR"
-const FatalLabel = "FATAL"
+const (
+	TraceLabel = "TRACE"
+	DebugLabel = "DEBUG"
+	InfoLabel  = "INFO"
+	WarnLabel  = "WARN"
+	ErrorLabel = "ERROR"
+	FatalLabel = "FATAL"
+)
 
-func LogLevelFromLabel(label string) int {
-	switch strings.ToUpper(label) {
+func LogLevelFromLabel(label string) (LogLevel, error) {
+
+	u := strings.ToUpper(label)
+
+	switch u {
 	case WarnLabel:
-		return Warn
+		return Warn, nil
 	case TraceLabel:
-		return Trace
+		return Trace, nil
 	case DebugLabel:
-		return Debug
+		return Debug, nil
 	case InfoLabel:
-		return Info
+		return Info, nil
 	case ErrorLabel:
-		return Error
+		return Error, nil
 	case FatalLabel:
-		return Fatal
+		return Fatal, nil
 	}
 
-	return All
+	m := fmt.Sprintf("%s is not valid log level. Valid levels are %s, %s, %s, %s, %s, %s.",
+		u, TraceLabel, DebugLabel, InfoLabel, WarnLabel, ErrorLabel, FatalLabel)
+
+	return All, errors.New(m)
 }

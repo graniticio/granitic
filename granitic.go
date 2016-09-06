@@ -1,39 +1,40 @@
 package granitic
 
 import (
-	"flag"
-	"fmt"
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/facility"
 	"github.com/graniticio/granitic/facility/jsonmerger"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"os"
 	"os/signal"
 	"runtime"
-	"strings"
 	"syscall"
 	"time"
-	"github.com/graniticio/granitic/facility"
 )
 
-const initiatorComponentName string = ioc.FrameworkPrefix + "FrameworkInitiator"
-const jsonMergerComponentName string = ioc.FrameworkPrefix + "JsonMerger"
-const configAccessorComponentName string = ioc.FrameworkPrefix + "ConfigAccessor"
-const facilityInitialisorComponentName string = ioc.FrameworkPrefix + "FacilityInitialisor"
+const (
+	initiatorComponentName           string = ioc.FrameworkPrefix + "FrameworkInitiator"
+	jsonMergerComponentName          string = ioc.FrameworkPrefix + "JsonMerger"
+	configAccessorComponentName      string = ioc.FrameworkPrefix + "ConfigAccessor"
+	facilityInitialisorComponentName string = ioc.FrameworkPrefix + "FacilityInitialisor"
+)
 
 func StartGranitic(customComponents *ioc.ProtoComponents) {
 	i := new(Initiator)
-	i.Start(customComponents)
-}
 
+	is := config.InitialSettingsFromEnvironment()
+
+	i.Start(customComponents, is)
+}
 
 type Initiator struct {
 	logger logging.Logger
 }
 
-func (i *Initiator) Start(customComponents *ioc.ProtoComponents) {
+func (i *Initiator) Start(customComponents *ioc.ProtoComponents, is *config.InitialSettings) {
 
-	container := i.buildContainer(customComponents)
+	container := i.buildContainer(customComponents, is)
 	customComponents.Clear()
 
 	c := make(chan os.Signal, 1)
@@ -43,7 +44,7 @@ func (i *Initiator) Start(customComponents *ioc.ProtoComponents) {
 	go func() {
 		<-c
 		i.shutdown(container)
-		os.Exit(1)
+		config.ExitNormal()
 	}()
 
 	for {
@@ -51,50 +52,40 @@ func (i *Initiator) Start(customComponents *ioc.ProtoComponents) {
 	}
 }
 
-func (i *Initiator) buildContainer(ac *ioc.ProtoComponents) *ioc.ComponentContainer {
+func (i *Initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSettings) *ioc.ComponentContainer {
 
 	start := time.Now()
 
-	if config.GraniticHome() == "" {
-		fmt.Println("GRANITIC_HOME environment variable not set")
-		os.Exit(-1)
-	}
-
-	var params map[string]string
-
-	params = i.parseArgs()
-
-	bootstrapLogLevel := logging.LogLevelFromLabel(params["logLevel"])
-	frameworkLoggingManager, logManageProto := facility.BootstrapFrameworkLogging(bootstrapLogLevel)
+	frameworkLoggingManager, logManageProto := facility.BootstrapFrameworkLogging(is.FrameworkLogLevel)
 	i.logger = frameworkLoggingManager.CreateLogger(initiatorComponentName)
 
 	i.logger.LogInfof("Starting components")
 
-	configAccessor := i.loadConfigIntoAccessor(params["config"], frameworkLoggingManager)
-	container := ioc.NewContainer(frameworkLoggingManager, configAccessor)
+	configAccessor := i.loadConfigIntoAccessor(is.Configuration, frameworkLoggingManager)
+	c := ioc.NewContainer(frameworkLoggingManager, configAccessor)
 
-	container.AddProto(logManageProto)
-	container.AddProtos(ac.Components)
-	container.AddModifiers(ac.FrameworkDependencies)
+	c.AddProto(logManageProto)
+	c.AddProtos(ac.Components)
+	c.AddModifiers(ac.FrameworkDependencies)
 
-	facilitiesInitialisor := facility.NewFacilitiesInitialisor(container, frameworkLoggingManager)
-	facilitiesInitialisor.Logger = frameworkLoggingManager.CreateLogger(facilityInitialisorComponentName)
+	fi := facility.NewFacilitiesInitialisor(c, frameworkLoggingManager)
+	fi.Logger = frameworkLoggingManager.CreateLogger(facilityInitialisorComponentName)
 
-	err := facilitiesInitialisor.Initialise(configAccessor)
-	i.shutdownIfError(err, container)
+	err := fi.Initialise(configAccessor)
+	i.shutdownIfError(err, c)
 
-	err = container.Populate()
-	i.shutdownIfError(err, container)
+	err = c.Populate()
+	i.shutdownIfError(err, c)
 
 	runtime.GC()
 
-	err = container.StartComponents()
-	i.shutdownIfError(err, container)
+	err = c.StartComponents()
+	i.shutdownIfError(err, c)
 
 	elapsed := time.Since(start)
 	i.logger.LogInfof("Ready (startup time %s)", elapsed)
 
-	return container
+	return c
 }
 
 func (i *Initiator) shutdownIfError(err error, c *ioc.ComponentContainer) {
@@ -114,67 +105,23 @@ func (i *Initiator) shutdown(container *ioc.ComponentContainer) {
 
 }
 
-func (i *Initiator) loadConfigIntoAccessor(configPath string, frameworkLoggingManager *logging.ComponentLoggerManager) *config.ConfigAccessor {
-	configFiles := i.builtInConfigPaths()
+func (i *Initiator) loadConfigIntoAccessor(configPaths []string, lm *logging.ComponentLoggerManager) *config.ConfigAccessor {
 
-	expandedPaths, err := config.ExpandToFiles(i.splitConfigPaths(configPath))
-	fl := frameworkLoggingManager.CreateLogger(configAccessorComponentName)
-
-	if err != nil {
-		i.logger.LogFatalf("Unable to load specified config files: %s", err.Error())
-		return nil
-	}
-
-	configFiles = append(configFiles, expandedPaths...)
+	fl := lm.CreateLogger(configAccessorComponentName)
 
 	if i.logger.IsLevelEnabled(logging.Debug) {
 
 		i.logger.LogDebugf("Loading configuration from: ")
 
-		for _, fileName := range configFiles {
+		for _, fileName := range configPaths {
 			i.logger.LogDebugf(fileName)
 		}
 	}
 
-	jsonMerger := new(jsonmerger.JsonMerger)
-	jsonMerger.Logger = frameworkLoggingManager.CreateLogger(jsonMergerComponentName)
+	jm := new(jsonmerger.JsonMerger)
+	jm.Logger = lm.CreateLogger(jsonMergerComponentName)
 
-	mergedJson := jsonMerger.LoadAndMergeConfig(configFiles)
+	mergedJson := jm.LoadAndMergeConfig(configPaths)
 
 	return &config.ConfigAccessor{mergedJson, fl}
-}
-
-func (i *Initiator) parseArgs() map[string]string {
-	configFilePtr := flag.String("c", "resource/config", "Path to container configuration files")
-	startupLogLevel := flag.String("l", "INFO", "Logging threshold for messages from components during bootstrap")
-	flag.Parse()
-
-	var params map[string]string
-	params = make(map[string]string)
-
-	params["config"] = *configFilePtr
-	params["logLevel"] = *startupLogLevel
-
-	return params
-
-}
-
-func (i *Initiator) splitConfigPaths(pathArgument string) []string {
-	return strings.Split(pathArgument, ",")
-}
-
-func (i *Initiator) builtInConfigPaths() []string {
-
-	const builtInConfigPath = "/resource/facility-config"
-
-	configFolder := config.GraniticHome() + builtInConfigPath
-
-	files, err := config.FindConfigFilesInDir(configFolder)
-
-	if err != nil {
-		i.logger.LogFatalf("Unable to load config from folder %s: %s", configFolder, err.Error())
-	}
-
-	return files
-
 }

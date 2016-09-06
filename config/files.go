@@ -37,24 +37,6 @@ func findConfigFilesInDir(dirPath string) ([]string, error) {
 	return files, nil
 }
 
-func ExpandToFiles(paths []string) ([]string, error) {
-	files := make([]string, 0)
-
-	for _, path := range paths {
-
-		expanded, err := FileListFromPath(path)
-
-		if err != nil {
-			return nil, err
-		}
-
-		files = append(files, expanded...)
-
-	}
-
-	return files, nil
-}
-
 func FileListFromPath(path string) ([]string, error) {
 
 	files := make([]string, 0)

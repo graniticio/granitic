@@ -14,21 +14,21 @@ type Logger interface {
 	LogErrorf(format string, a ...interface{})
 	LogErrorfWithTrace(format string, a ...interface{})
 	LogFatalf(format string, a ...interface{})
-	LogAtLevelf(level int, levelLabel string, format string, a ...interface{})
-	IsLevelEnabled(level int) bool
+	LogAtLevelf(level LogLevel, levelLabel string, format string, a ...interface{})
+	IsLevelEnabled(level LogLevel) bool
 }
 
 type LevelAwareLogger struct {
-	globalLogThreshold int
-	localLogThreshhold int
+	globalLogThreshold LogLevel
+	localLogThreshhold LogLevel
 	loggerName         string
 }
 
-func (lal *LevelAwareLogger) IsLevelEnabled(level int) bool {
+func (lal *LevelAwareLogger) IsLevelEnabled(level LogLevel) bool {
 	return level >= lal.localLogThreshhold || level >= lal.globalLogThreshold
 }
 
-func (lal *LevelAwareLogger) log(prefix string, level int, message string) {
+func (lal *LevelAwareLogger) log(prefix string, level LogLevel, message string) {
 
 	if lal.IsLevelEnabled(level) {
 		t := time.Now()
@@ -36,7 +36,7 @@ func (lal *LevelAwareLogger) log(prefix string, level int, message string) {
 	}
 
 }
-func (lal *LevelAwareLogger) logf(levelLabel string, level int, format string, a ...interface{}) {
+func (lal *LevelAwareLogger) logf(levelLabel string, level LogLevel, format string, a ...interface{}) {
 
 	if lal.IsLevelEnabled(level) {
 		t := time.Now()
@@ -46,11 +46,11 @@ func (lal *LevelAwareLogger) logf(levelLabel string, level int, format string, a
 
 }
 
-func (lal *LevelAwareLogger) LogAtLevel(level int, levelLabel string, message string) {
+func (lal *LevelAwareLogger) LogAtLevel(level LogLevel, levelLabel string, message string) {
 	lal.log(levelLabel, level, message)
 }
 
-func (lal *LevelAwareLogger) LogAtLevelf(level int, levelLabel string, format string, a ...interface{}) {
+func (lal *LevelAwareLogger) LogAtLevelf(level LogLevel, levelLabel string, format string, a ...interface{}) {
 	lal.logf(levelLabel, level, format, a...)
 }
 
@@ -89,15 +89,15 @@ func (lal *LevelAwareLogger) LogFatalf(format string, a ...interface{}) {
 	lal.logf(FatalLabel, Fatal, format, a...)
 }
 
-func (lal *LevelAwareLogger) SetGlobalThreshold(threshold int) {
+func (lal *LevelAwareLogger) SetGlobalThreshold(threshold LogLevel) {
 	lal.globalLogThreshold = threshold
 }
 
-func (lal *LevelAwareLogger) SetLocalThreshold(threshold int) {
+func (lal *LevelAwareLogger) SetLocalThreshold(threshold LogLevel) {
 	lal.localLogThreshhold = threshold
 }
 
-func (lal *LevelAwareLogger) SetThreshold(threshold int) {
+func (lal *LevelAwareLogger) SetThreshold(threshold LogLevel) {
 	lal.SetGlobalThreshold(threshold)
 	lal.SetLocalThreshold(threshold)
 }
@@ -107,11 +107,11 @@ func (lal *LevelAwareLogger) SetLoggerName(name string) {
 }
 
 type LogThresholdControl interface {
-	SetGlobalThreshold(threshold int)
-	SetLocalThreshold(threshold int)
+	SetGlobalThreshold(threshold LogLevel)
+	SetLocalThreshold(threshold LogLevel)
 }
 
-func CreateAnonymousLogger(componentId string, threshold int) Logger {
+func CreateAnonymousLogger(componentId string, threshold LogLevel) Logger {
 	logger := new(LevelAwareLogger)
 	logger.globalLogThreshold = threshold
 	logger.localLogThreshhold = threshold

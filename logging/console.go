@@ -6,9 +6,7 @@ import (
 )
 
 type ConsoleErrorLogger struct {
-
 }
-
 
 func (l *ConsoleErrorLogger) LogTracef(format string, a ...interface{}) {
 	return
@@ -27,7 +25,7 @@ func (l *ConsoleErrorLogger) LogWarnf(format string, a ...interface{}) {
 }
 
 func (l *ConsoleErrorLogger) LogErrorf(format string, a ...interface{}) {
-	fmt.Printf(format + "\n", a...)
+	fmt.Printf(format+"\n", a...)
 }
 
 func (l *ConsoleErrorLogger) LogErrorfWithTrace(format string, a ...interface{}) {
@@ -44,12 +42,12 @@ func (l *ConsoleErrorLogger) LogFatalf(format string, a ...interface{}) {
 	l.LogErrorf(format, a...)
 }
 
-func (l *ConsoleErrorLogger) LogAtLevelf(level int, levelLabel string, format string, a ...interface{}) {
+func (l *ConsoleErrorLogger) LogAtLevelf(level LogLevel, levelLabel string, format string, a ...interface{}) {
 	if l.IsLevelEnabled(level) {
 		l.LogErrorf(format, a...)
 	}
 }
 
-func (l *ConsoleErrorLogger) IsLevelEnabled(level int) bool {
+func (l *ConsoleErrorLogger) IsLevelEnabled(level LogLevel) bool {
 	return level >= Error
 }

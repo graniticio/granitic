@@ -21,7 +21,11 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 		return alfb.error(err.Error())
 	}
 
-	defaultLogLevel := logging.LogLevelFromLabel(defaultLogLevelLabel)
+	defaultLogLevel, err := logging.LogLevelFromLabel(defaultLogLevelLabel)
+
+	if err != nil {
+		return alfb.error(err.Error())
+	}
 
 	initialLogLevelsByComponent := ca.ObjectVal("ApplicationLogger.ComponentLogLevels")
 
@@ -39,7 +43,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 
 func (alfb *ApplicationLoggingFacilityBuilder) error(suffix string) error {
 
-	return errors.New("Unable to initialise application logging. " + suffix)
+	return errors.New("Unable to initialise application logging: " + suffix)
 
 }
 

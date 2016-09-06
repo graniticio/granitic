@@ -4,10 +4,10 @@ type ComponentLoggerManager struct {
 	componentsLogger         map[string]LogThresholdControl
 	createdLoggers           map[string]Logger
 	InitalComponentLogLevels map[string]interface{}
-	globalThreshold          int
+	globalThreshold          LogLevel
 }
 
-func CreateComponentLoggerManager(globalThreshold int, initalComponentLogLevels map[string]interface{}) *ComponentLoggerManager {
+func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLevels map[string]interface{}) *ComponentLoggerManager {
 	loggers := make(map[string]LogThresholdControl)
 	manager := new(ComponentLoggerManager)
 	manager.componentsLogger = loggers
@@ -18,7 +18,7 @@ func CreateComponentLoggerManager(globalThreshold int, initalComponentLogLevels 
 	return manager
 }
 
-func (clm *ComponentLoggerManager) UpdateGlobalThreshold(globalThreshold int) {
+func (clm *ComponentLoggerManager) UpdateGlobalThreshold(globalThreshold LogLevel) {
 	clm.globalThreshold = globalThreshold
 
 	for _, v := range clm.componentsLogger {
@@ -26,7 +26,7 @@ func (clm *ComponentLoggerManager) UpdateGlobalThreshold(globalThreshold int) {
 	}
 }
 
-func (clm *ComponentLoggerManager) UpdateLocalThreshold(threshold int) {
+func (clm *ComponentLoggerManager) UpdateLocalThreshold(threshold LogLevel) {
 	clm.globalThreshold = threshold
 
 	for _, v := range clm.componentsLogger {
@@ -45,7 +45,9 @@ func (clm *ComponentLoggerManager) CreateLogger(componentId string) Logger {
 	if clm.InitalComponentLogLevels != nil {
 
 		if levelLabel, ok := clm.InitalComponentLogLevels[componentId]; ok {
-			threshold = LogLevelFromLabel(levelLabel.(string))
+			t, _ := LogLevelFromLabel(levelLabel.(string))
+
+			threshold = t
 		}
 
 	}
@@ -53,7 +55,7 @@ func (clm *ComponentLoggerManager) CreateLogger(componentId string) Logger {
 	return clm.CreateLoggerAtLevel(componentId, threshold)
 }
 
-func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentId string, threshold int) Logger {
+func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentId string, threshold LogLevel) Logger {
 	logger := new(LevelAwareLogger)
 	logger.globalLogThreshold = clm.globalThreshold
 	logger.localLogThreshhold = threshold

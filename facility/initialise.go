@@ -17,6 +17,7 @@ import (
 
 const frameworkLoggingManagerName = ioc.FrameworkPrefix + "FrameworkLoggingManager"
 const frameworkLoggerDecoratorName = ioc.FrameworkPrefix + "FrameworkLoggingDecorator"
+const configErrorPrefix = "Unable to configure framework logging: "
 
 type FacilitiesInitialisor struct {
 	ConfigAccessor          *config.ConfigAccessor
@@ -35,7 +36,7 @@ func NewFacilitiesInitialisor(cc *ioc.ComponentContainer, flm *logging.Component
 	return fi
 }
 
-func BootstrapFrameworkLogging(bootStrapLogLevel int) (*logging.ComponentLoggerManager, *ioc.ProtoComponent) {
+func BootstrapFrameworkLogging(bootStrapLogLevel logging.LogLevel) (*logging.ComponentLoggerManager, *ioc.ProtoComponent) {
 
 	flm := logging.CreateComponentLoggerManager(bootStrapLogLevel, nil)
 	proto := ioc.CreateProtoComponent(flm, frameworkLoggingManagerName)
@@ -113,10 +114,14 @@ func (fi *FacilitiesInitialisor) updateFrameworkLogLevel() error {
 	defaultLogLevelLabel, err := fi.ConfigAccessor.StringVal("FrameworkLogger.DefaultLogLevel")
 
 	if err != nil {
-		return errors.New("Unable to configure framework logging: " + err.Error())
+		return errors.New(configErrorPrefix + err.Error())
 	}
 
-	defaultLogLevel := logging.LogLevelFromLabel(defaultLogLevelLabel)
+	defaultLogLevel, err := logging.LogLevelFromLabel(defaultLogLevelLabel)
+
+	if err != nil {
+		return errors.New(configErrorPrefix + err.Error())
+	}
 
 	initialLogLevelsByComponent := fi.ConfigAccessor.ObjectVal("FrameworkLogger.ComponentLogLevels")
 
