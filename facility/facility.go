@@ -1,5 +1,4 @@
-// Package facility defines the high-level features (such as RDBMS management and HTTP servers)
-// that Granitic makes available to applications. Theses features are pacakaged into groups of components known as a
+// Package facility defines the high-level features that Granitic makes available to applications. Theses features are packaged into groups of components known as a
 // 'facility'.
 package facility
 

@@ -1,8 +1,13 @@
+/*
+Package httpserver provides a configurable HTTP server for processing web-service requests.
+*/
 package httpserver
 
 import (
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/httpendpoint"
+	"github.com/graniticio/granitic/iam"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
@@ -10,8 +15,6 @@ import (
 	"regexp"
 	"sync/atomic"
 	"time"
-	"github.com/graniticio/granitic/httpendpoint"
-	"github.com/graniticio/granitic/iam"
 )
 
 type RegisteredProvider struct {
@@ -31,7 +34,7 @@ type HTTPServer struct {
 	ActiveRequests              int64
 	MaxConcurrent               int64
 	TooBusyStatus               int
-	VersionExtractor			httpendpoint.RequestedVersionExtractor
+	VersionExtractor            httpendpoint.RequestedVersionExtractor
 	available                   bool
 }
 
@@ -131,8 +134,6 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	h.FrameworkLogger.LogTracef("Finding provider to handle %s %s from %d providers", path, req.Method, len(providersByMethod))
 
-
-
 	var identity iam.ClientIdentity
 
 	for _, handlerPattern := range providersByMethod {
@@ -141,7 +142,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 		h.FrameworkLogger.LogTracef("Testing %s", pattern.String())
 
-		if pattern.MatchString(path) && h.versionMatch(req, handlerPattern.Provider ){
+		if pattern.MatchString(path) && h.versionMatch(req, handlerPattern.Provider) {
 			h.FrameworkLogger.LogTracef("Matches %s", pattern.String())
 			matched = true
 			identity = handlerPattern.Provider.ServeHTTP(wrw, req)
@@ -162,7 +163,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func (h *HTTPServer) versionMatch(r *http.Request, p httpendpoint.HttpEndpointProvider) bool{
+func (h *HTTPServer) versionMatch(r *http.Request, p httpendpoint.HttpEndpointProvider) bool {
 
 	if h.VersionExtractor == nil || !p.VersionAware() {
 		return true
@@ -173,7 +174,6 @@ func (h *HTTPServer) versionMatch(r *http.Request, p httpendpoint.HttpEndpointPr
 	return p.SupportsVersion(version)
 
 }
-
 
 func (h *HTTPServer) PrepareToStop() {
 	h.available = false
@@ -196,6 +196,3 @@ func (h *HTTPServer) ReadyToStop() (bool, error) {
 func (h *HTTPServer) Stop() error {
 	return nil
 }
-
-
-

@@ -1,3 +1,6 @@
+/*
+Package logging provides a component-based logging framework for user and built-in Granitic components.
+*/
 package logging
 
 import (

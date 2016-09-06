@@ -1,60 +1,60 @@
+/*
+The grnc-bind tool, used to convert JSON component definitions into Go source.
+*/
 package main
 
 import (
-	"flag"
-	"github.com/graniticio/granitic/config"
-	"strings"
-	"fmt"
-	"os"
-	"github.com/graniticio/granitic/facility/jsonmerger"
-	"github.com/graniticio/granitic/logging"
-	"encoding/json"
-	"io/ioutil"
-	"path"
 	"bufio"
 	"bytes"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/facility/jsonmerger"
+	"github.com/graniticio/granitic/logging"
+	"io/ioutil"
+	"os"
+	"path"
+	"strings"
 )
 
 const (
-
-	packagesField = "packages"
-	componentsField = "components"
-	frameworkField = "frameworkModifiers"
-	templatesField = "templates"
-	templateField = "compTemplate"
+	packagesField      = "packages"
+	componentsField    = "components"
+	frameworkField     = "frameworkModifiers"
+	templatesField     = "templates"
+	templateField      = "compTemplate"
 	templateFieldAlias = "ct"
-	typeField = "type"
-	typeFieldAlias = "t"
+	typeField          = "type"
+	typeFieldAlias     = "t"
 
 	protoSuffix = "Proto"
-	modsSuffix = "Mods"
+	modsSuffix  = "Mods"
 
-	bindingsPackage = "bindings"
-	iocImport = "github.com/graniticio/granitic/ioc"
-	entryFuncSignature = "func Components() *ioc.ProtoComponents {"
-	protoArrayVar = "protoComponents"
-	modifierVar = "frameworkModifiers"
-	confLocationFlag string = "c"
+	bindingsPackage            = "bindings"
+	iocImport                  = "github.com/graniticio/granitic/ioc"
+	entryFuncSignature         = "func Components() *ioc.ProtoComponents {"
+	protoArrayVar              = "protoComponents"
+	modifierVar                = "frameworkModifiers"
+	confLocationFlag    string = "c"
 	confLocationDefault string = "resource/components"
-	confLocationHelp string = "A comma separated list of component definition files or directories containing component definition files"
+	confLocationHelp    string = "A comma separated list of component definition files or directories containing component definition files"
 
-	bindingsFileFlag string = "o"
+	bindingsFileFlag    string = "o"
 	bindingsFileDefault string = "bindings/bindings.go"
-	bindingsFileHelp string = "Path to the Go source file that will be generated"
+	bindingsFileHelp    string = "Path to the Go source file that will be generated"
 
-	mergeLocationFlag string = "m"
+	mergeLocationFlag    string = "m"
 	mergeLocationDefault string = ""
-	mergeLocationHelp string = "The path of a file where the merged component defintion file should be written to. Execution will halt after writing."
+	mergeLocationHelp    string = "The path of a file where the merged component defintion file should be written to. Execution will halt after writing."
 
 	newline = "\n"
 
-	refPrefix      = "ref:"
-	refAlias       = "r:"
-	confPrefix     = "conf:"
-	confAlias      = "c:"
-
+	refPrefix  = "ref:"
+	refAlias   = "r:"
+	confPrefix = "conf:"
+	confAlias  = "c:"
 )
-
 
 func main() {
 
@@ -66,7 +66,7 @@ func main() {
 
 	ca := loadConfig(*confLocation)
 
-	if (*mergedComponentsFile != "") {
+	if *mergedComponentsFile != "" {
 		writeMergedAndExit(ca, *mergedComponentsFile)
 	}
 
@@ -94,22 +94,17 @@ func writeBindings(w *bufio.Writer, ca *config.ConfigAccessor) {
 		i++
 	}
 
-
 	writeFrameworkModifiers(w, ca)
 
 	writeEntryFunctionClose(w)
 	w.Flush()
 }
 
-
-
-
 func writePackage(w *bufio.Writer) {
 
 	l := fmt.Sprintf("package %s\n\n", bindingsPackage)
 	w.WriteString(l)
 }
-
 
 func writeImports(w *bufio.Writer, configAccessor *config.ConfigAccessor) {
 	packages := configAccessor.Array(packagesField)
@@ -179,7 +174,6 @@ func writeValues(w *bufio.Writer, cName string, values map[string]interface{}, t
 		w.WriteString(newline)
 	}
 
-
 	for k, v := range values {
 
 		if reservedFieldName(k) {
@@ -220,7 +214,6 @@ func writeDeferred(w *bufio.Writer, cName string, promises map[string]interface{
 
 func writeMapContents(w *bufio.Writer, iName string, fName string, contents map[string]interface{}, tabs int) {
 
-
 	for k, v := range contents {
 
 		gi, _ := asGoInit(v)
@@ -230,32 +223,28 @@ func writeMapContents(w *bufio.Writer, iName string, fName string, contents map[
 	}
 }
 
-
 func asGoInit(v interface{}) (string, bool) {
 
-
 	switch config.JsonType(v) {
-		case config.JsonMap:
-			return asGoMapInit(v), true
-		case config.JsonArray:
-			return asGoArrayInit(v), false
-		default:
-			return fmt.Sprintf("%#v", v), false
+	case config.JsonMap:
+		return asGoMapInit(v), true
+	case config.JsonArray:
+		return asGoArrayInit(v), false
+	default:
+		return fmt.Sprintf("%#v", v), false
 	}
 }
 
-func asGoMapInit(v interface{}) string{
+func asGoMapInit(v interface{}) string {
 	a := v.(map[string]interface{})
 
 	at := assessMapValueType(a)
-
 
 	s := fmt.Sprintf("make(map[string]%s)", at)
 	return s
 }
 
-
-func asGoArrayInit(v interface{}) string{
+func asGoArrayInit(v interface{}) string {
 	a := v.([]interface{})
 
 	at := assessArrayType(a)
@@ -269,7 +258,7 @@ func asGoArrayInit(v interface{}) string{
 		gi, _ := asGoInit(m)
 		b.WriteString(gi)
 
-		if i + 1 < len(a) {
+		if i+1 < len(a) {
 			b.WriteString(", ")
 		}
 
@@ -286,7 +275,7 @@ func assessMapValueType(a map[string]interface{}) string {
 	var currentType = config.Unset
 	var sampleVal interface{}
 
-	if len(a) == 0{
+	if len(a) == 0 {
 		fatal("This tool does not support empty maps as component values as the type of the map can't be determined.")
 	}
 
@@ -295,7 +284,7 @@ func assessMapValueType(a map[string]interface{}) string {
 		newType := config.JsonType(v)
 		sampleVal = v
 
-		if newType == config.JsonMap{
+		if newType == config.JsonMap {
 			fatal("This tool does not support nested maps/objects as component values.\n")
 		}
 
@@ -313,19 +302,17 @@ func assessMapValueType(a map[string]interface{}) string {
 		return "[]" + assessArrayType(sampleVal.([]interface{}))
 	}
 
-
-	switch t := sampleVal.(type){
+	switch t := sampleVal.(type) {
 	default:
 		return fmt.Sprintf("%T", t)
 	}
 }
 
-
 func assessArrayType(a []interface{}) string {
 
 	var currentType = config.Unset
 
-	if len(a) == 0{
+	if len(a) == 0 {
 		fatal("This tool does not support zero-length (empty) arrays as component values as the type can't be determined.")
 	}
 
@@ -337,7 +324,6 @@ func assessArrayType(a []interface{}) string {
 			fatal("This tool does not support multi-dimensional arrays or object arrays as component values\n")
 		}
 
-
 		if currentType == config.Unset {
 			currentType = newType
 			continue
@@ -348,9 +334,9 @@ func assessArrayType(a []interface{}) string {
 		}
 	}
 
-	switch t := a[0].(type){
-		default:
-			return fmt.Sprintf("%T", t)
+	switch t := a[0].(type) {
+	default:
+		return fmt.Sprintf("%T", t)
 	}
 }
 
@@ -360,7 +346,7 @@ func writeComponentNameComment(w *bufio.Writer, n string, i int) {
 }
 
 func writeInstanceVar(w *bufio.Writer, n string, ct string, tabs int) {
-	s := fmt.Sprintf("%s := new(%s)\n",n, ct)
+	s := fmt.Sprintf("%s := new(%s)\n", n, ct)
 	w.WriteString(tabIndent(s, tabs))
 }
 
@@ -379,13 +365,11 @@ func writeEntryFunctionClose(w *bufio.Writer) {
 	w.WriteString(a)
 }
 
-
-func protoName(n string) string{
+func protoName(n string) string {
 	return n + protoSuffix
 }
 
-
-func isPromise(v interface{}) bool{
+func isPromise(v interface{}) bool {
 
 	s, found := v.(string)
 
@@ -396,7 +380,7 @@ func isPromise(v interface{}) bool{
 	return strings.HasPrefix(s, confPrefix) || strings.HasPrefix(s, confAlias)
 }
 
-func isRef(v interface{}) bool{
+func isRef(v interface{}) bool {
 	s, found := v.(string)
 
 	if !found {
@@ -429,21 +413,20 @@ func validateHasTypeField(v map[string]interface{}, name string) {
 
 }
 
-func mergeValueSources(c map[string]interface{}, t map[string]interface{}){
+func mergeValueSources(c map[string]interface{}, t map[string]interface{}) {
 
 	replaceAliases(c)
-
 
 	if c[templateField] != nil {
 		flatten(c, t, c[templateField].(string))
 	}
 }
 
-func quoteString(s string) string{
+func quoteString(s string) string {
 	return fmt.Sprintf("\"%s\"", s)
 }
 
-func tabIndent(s string, t int) string{
+func tabIndent(s string, t int) string {
 
 	for i := 0; i < t; i++ {
 		s = "\t" + s
@@ -495,7 +478,6 @@ func parseTemplates(ca *config.ConfigAccessor) map[string]interface{} {
 		replaceAliases(template.(map[string]interface{}))
 	}
 
-
 	for n, template := range templates {
 
 		t := template.(map[string]interface{})
@@ -544,15 +526,13 @@ func writeFrameworkModifiers(w *bufio.Writer, ca *config.ConfigAccessor) {
 
 		}
 
-
 		w.WriteString(newline)
 
 	}
 
-
 }
 
-func replaceAliases(vs map[string]interface{}){
+func replaceAliases(vs map[string]interface{}) {
 	tma := vs[templateFieldAlias]
 
 	if tma != nil {
@@ -570,10 +550,9 @@ func replaceAliases(vs map[string]interface{}){
 	}
 }
 
-
 func flatten(target map[string]interface{}, templates map[string]interface{}, tname string) {
 
-	if templates[tname] == nil{
+	if templates[tname] == nil {
 		fmt.Printf("No template %s\n", tname)
 		return
 	}
@@ -582,7 +561,7 @@ func flatten(target map[string]interface{}, templates map[string]interface{}, tn
 
 	for k, v := range parent {
 
-		if target[k] == nil && k != templateField{
+		if target[k] == nil && k != templateField {
 			target[k] = v
 		}
 
@@ -591,7 +570,6 @@ func flatten(target map[string]interface{}, templates map[string]interface{}, tn
 	if parent[templateField] != nil {
 		flatten(target, templates, parent[templateField].(string))
 	}
-
 
 }
 
@@ -608,17 +586,16 @@ func checkForTemplateLoop(template map[string]interface{}, templates map[string]
 		fatal(message)
 	}
 
-	if templates[p] ==  nil{
+	if templates[p] == nil {
 		message := fmt.Sprintf("No template exists with name %s\n", p)
 		fatal(message)
 	}
 
 	checkForTemplateLoop(templates[p].(map[string]interface{}), templates, append(chain, p))
 
-
 }
 
-func contains(a []string, c string) bool{
+func contains(a []string, c string) bool {
 	for _, s := range a {
 		if s == c {
 			return true
@@ -628,13 +605,12 @@ func contains(a []string, c string) bool{
 	return false
 }
 
-
 func fatal(m string) {
 	fmt.Printf(m)
 	os.Exit(-1)
 }
 
-func loadConfig(l string) *config.ConfigAccessor{
+func loadConfig(l string) *config.ConfigAccessor {
 
 	s := strings.Split(l, ",")
 	fl, err := config.ExpandToFiles(s)
@@ -653,7 +629,7 @@ func loadConfig(l string) *config.ConfigAccessor{
 	ca.JsonData = mc
 	ca.FrameworkLogger = new(logging.ConsoleErrorLogger)
 
-	if !ca.PathExists(packagesField) || !ca.PathExists(componentsField){
+	if !ca.PathExists(packagesField) || !ca.PathExists(componentsField) {
 		m := fmt.Sprintf("The merged component definition file must contain a %s and a %s section.\n", packagesField, componentsField)
 		fatal(m)
 

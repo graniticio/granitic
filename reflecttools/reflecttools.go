@@ -1,3 +1,6 @@
+/*
+Package reflectools provides utility functions for working with the Go's reflect package.
+*/
 package reflecttools
 
 import (

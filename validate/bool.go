@@ -1,3 +1,6 @@
+/*
+Package validate provides a declarative, rules-based validation framework for validating user-supplied data.
+*/
 package validate
 
 import (

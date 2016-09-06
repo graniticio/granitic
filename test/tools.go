@@ -1,3 +1,6 @@
+/*
+Package test provides tools for Granitic's unit tests.
+*/
 package test
 
 import (

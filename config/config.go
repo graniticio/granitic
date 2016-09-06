@@ -1,3 +1,6 @@
+/*
+Package config provides functionality for working with configuration files.
+*/
 package config
 
 import (

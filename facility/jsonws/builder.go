@@ -1,3 +1,6 @@
+/*
+Package jsonws builds the components required to support JSON-based web-services.
+*/
 package jsonws
 
 import (

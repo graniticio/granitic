@@ -1,3 +1,6 @@
+/*
+Package types provides versions of Go's built-in types that better support web-services.
+*/
 package types
 
 import (

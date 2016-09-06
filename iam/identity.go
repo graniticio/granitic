@@ -1,3 +1,6 @@
+/*
+Package iam provides types to develop or integrate with an Indentity/Access Management system.
+*/
 package iam
 
 const authenticated = "Authenticated"

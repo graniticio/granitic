@@ -1,3 +1,6 @@
+/*
+The grnc-ctl tool, used to control running instances of Granitic.
+*/
 package main
 
 import (
