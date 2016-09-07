@@ -30,16 +30,65 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 
 	initialLogLevelsByComponent := ca.ObjectVal("ApplicationLogger.ComponentLogLevels")
 
-	applicationLoggingManager := logging.CreateComponentLoggerManager(defaultLogLevel, initialLogLevelsByComponent)
-	cn.WrapAndAddProto(applicationLoggingManagerName, applicationLoggingManager)
+	writers, err := alfb.buildWriters(ca)
 
-	applicationLoggingDecorator := new(decorator.ApplicationLogDecorator)
-	applicationLoggingDecorator.LoggerManager = applicationLoggingManager
-	applicationLoggingDecorator.FrameworkLogger = lm.CreateLogger(applicationLoggingDecoratorName)
+	//Update the bootstrapped framework logger with the newly configured writers
+	lm.UpdateWriters(writers)
 
-	cn.WrapAndAddProto(applicationLoggingDecoratorName, applicationLoggingDecorator)
+	if err != nil {
+		return alfb.error(err.Error())
+	}
+
+	alm := logging.CreateComponentLoggerManager(defaultLogLevel, initialLogLevelsByComponent, writers)
+	cn.WrapAndAddProto(applicationLoggingManagerName, alm)
+
+	ald := new(decorator.ApplicationLogDecorator)
+	ald.LoggerManager = alm
+	ald.FrameworkLogger = lm.CreateLogger(applicationLoggingDecoratorName)
+
+	cn.WrapAndAddProto(applicationLoggingDecoratorName, ald)
 
 	return nil
+}
+
+func (alfb *ApplicationLoggingFacilityBuilder) buildWriters(ca *config.ConfigAccessor) ([]logging.LogWriter, error) {
+	writers := make([]logging.LogWriter, 0)
+
+	console, err := ca.BoolVal("LogWriting.EnableConsoleLogging")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if console {
+		writers = append(writers, new(logging.ConsoleWriter))
+	}
+
+	file, err := ca.BoolVal("LogWriting.EnableFileLogging")
+
+	if err != nil {
+		return nil, err
+	}
+
+	if file {
+		fileWriter := new(logging.AsynchFileWriter)
+
+		err := ca.Populate("LogWriting.File", fileWriter)
+
+		if err != nil {
+			return nil, err
+		}
+
+		err = fileWriter.Init()
+
+		if err != nil {
+			return nil, err
+		}
+
+		writers = append(writers, fileWriter)
+	}
+
+	return writers, nil
 }
 
 func (alfb *ApplicationLoggingFacilityBuilder) error(suffix string) error {

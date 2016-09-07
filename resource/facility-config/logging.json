@@ -1,4 +1,13 @@
 {
+  "LogWriting": {
+    "EnableConsoleLogging": true,
+    "EnableFileLogging": false,
+    "File": {
+      "LogPath": "./granitic.log",
+      "BufferSize": 50
+    }
+  },
+
   "FrameworkLogger":{
     "DefaultLogLevel": "INFO"
   },

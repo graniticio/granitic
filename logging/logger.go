@@ -28,6 +28,10 @@ type LevelAwareLogger struct {
 	writers            []LogWriter
 }
 
+func (lal *LevelAwareLogger) UpdateWriters(writers []LogWriter) {
+	lal.writers = writers
+}
+
 func (lal *LevelAwareLogger) IsLevelEnabled(level LogLevel) bool {
 	return level >= lal.localLogThreshhold || level >= lal.globalLogThreshold
 }
@@ -122,9 +126,10 @@ func (lal *LevelAwareLogger) SetLoggerName(name string) {
 	lal.loggerName = name
 }
 
-type LogThresholdControl interface {
+type LogRuntimeControl interface {
 	SetGlobalThreshold(threshold LogLevel)
 	SetLocalThreshold(threshold LogLevel)
+	UpdateWriters([]LogWriter)
 }
 
 func CreateAnonymousLogger(componentId string, threshold LogLevel) Logger {
