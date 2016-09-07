@@ -31,7 +31,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 	initialLogLevelsByComponent := ca.ObjectVal("ApplicationLogger.ComponentLogLevels")
 
 	writers, err := alfb.buildWriters(ca)
-	formatter := new(logging.LogMessageFormatter)
+	formatter := logging.NewFrameworkLogMessageFormatter()
 
 	//Update the bootstrapped framework logger with the newly configured writers
 	lm.UpdateWritersAndFormatter(writers, formatter)
