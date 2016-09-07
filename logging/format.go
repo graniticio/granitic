@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"time"
 )
 
-const presetFrameworkFormat = "%{02/Jan/2006:15:04:05 Z0700}t %P %c: "
+const presetFrameworkFormat = "%{02/Jan/2006:15:04:05 Z0700}t %P %c "
 const FrameworkPresetPrefix = "framework"
 const formatRegex = "\\%[a-zA-Z]|\\%\\%|\\%{[^}]*}[a-zA-Z]"
 const varModifiedRegex = "\\%{([^}]*)}([a-zA-Z])"
@@ -27,6 +28,7 @@ const (
 	LogLevelInitial
 	LogLevelFullPadded
 	ComponentName
+	ComponentNameTrunc
 )
 
 type logPrefixElementType int
@@ -121,7 +123,8 @@ func (alw *LogMessageFormatter) findValueWithVar(element *prefixElement, levelLa
 	switch element.placeholderType {
 	case LogTime:
 		return loggedAt.Format(element.variable)
-
+	case ComponentNameTrunc:
+		return truncOrPad(loggerName, element.variable)
 	default:
 		return unsupported
 
@@ -291,6 +294,22 @@ func intMax(x, y int) int {
 	}
 }
 
+func truncOrPad(s string, sp string) string {
+
+	p, err := strconv.Atoi(sp)
+
+	if err != nil {
+		return s
+	}
+
+	if len(s) > p {
+		return s[0:p]
+	} else {
+		return padRightTo(s, p)
+	}
+
+}
+
 func padRightTo(s string, p int) string {
 
 	l := len(s)
@@ -327,6 +346,8 @@ func (alw *LogMessageFormatter) mapPlaceholder(ph string) prefixFormatPlaceHolde
 		return LogLevelFullPadded
 	case "c":
 		return ComponentName
+	case "C":
+		return ComponentNameTrunc
 	}
 
 }

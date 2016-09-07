@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	initiatorComponentName string = instance.FrameworkPrefix + "FrameworkInitiator"
+	initiatorComponentName string = instance.FrameworkPrefix + "Init"
 )
 
 func StartGranitic(customComponents *ioc.ProtoComponents) {
