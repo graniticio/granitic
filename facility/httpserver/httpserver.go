@@ -11,6 +11,7 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
+	"golang.org/x/net/context"
 	"net"
 	"net/http"
 	"regexp"
@@ -135,6 +136,9 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
+
 	received := time.Now()
 	matched := false
 
@@ -155,7 +159,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 		if pattern.MatchString(path) && h.versionMatch(req, handlerPattern.Provider) {
 			h.FrameworkLogger.LogTracef("Matches %s", pattern.String())
 			matched = true
-			identity = handlerPattern.Provider.ServeHTTP(wrw, req)
+			identity = handlerPattern.Provider.ServeHTTP(ctx, wrw, req)
 		}
 	}
 

@@ -6,6 +6,7 @@ import (
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/test"
 	"github.com/graniticio/granitic/ws"
+	"golang.org/x/net/context"
 	"net/http"
 	"os"
 	"testing"
@@ -25,7 +26,7 @@ func TestMinimal(t *testing.T) {
 	uw := NewStringBufferResponseWriter()
 	w := httpendpoint.NewHTTPResponseWriter(uw)
 
-	h.ServeHTTP(w, req)
+	h.ServeHTTP(context.Background(), w, req)
 
 	test.ExpectBool(t, l.Called, true)
 
@@ -47,7 +48,7 @@ func TestAllOptionalPhases(t *testing.T) {
 	h.PreValidateManipulator = l
 	h.PostProcessor = l
 
-	h.ServeHTTP(w, req)
+	h.ServeHTTP(context.Background(), w, req)
 
 	test.ExpectBool(t, l.ProcessCalled, true)
 	test.ExpectBool(t, l.UnmarshallTargetCalled, true)

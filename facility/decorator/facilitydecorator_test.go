@@ -22,7 +22,7 @@ type RejectLogPrim struct {
 func TestMatcher(t *testing.T) {
 
 	d := new(ApplicationLogDecorator)
-	d.FrameworkLogger = logging.CreateAnonymousLogger("test", logging.All)
+	d.FrameworkLogger = new(logging.ConsoleErrorLogger)
 
 	c := new(ioc.Component)
 	c.Name = "Match"

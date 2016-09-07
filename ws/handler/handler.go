@@ -7,6 +7,7 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/validate"
 	"github.com/graniticio/granitic/ws"
+	"golang.org/x/net/context"
 	"net/http"
 	"regexp"
 )
@@ -87,7 +88,7 @@ func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
 }
 
 //HttpEndpointProvider
-func (wh *WsHandler) ServeHTTP(w *httpendpoint.HTTPResponseWriter, req *http.Request) iam.ClientIdentity {
+func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request) iam.ClientIdentity {
 
 	defer func() {
 		if r := recover(); r != nil {

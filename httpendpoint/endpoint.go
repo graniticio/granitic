@@ -1,8 +1,9 @@
 package httpendpoint
 
 import (
-	"net/http"
 	"github.com/graniticio/granitic/iam"
+	"golang.org/x/net/context"
+	"net/http"
 )
 
 type HttpEndPoint struct {
@@ -13,12 +14,10 @@ type HttpEndPoint struct {
 type HttpEndpointProvider interface {
 	SupportedHttpMethods() []string
 	RegexPattern() string
-	ServeHTTP(w *HTTPResponseWriter, req *http.Request) iam.ClientIdentity
+	ServeHTTP(ctx context.Context, w *HTTPResponseWriter, req *http.Request) iam.ClientIdentity
 	VersionAware() bool
 	SupportsVersion(version RequiredVersion) bool
 }
-
-
 
 type RequiredVersion map[string]interface{}
 

@@ -140,7 +140,7 @@ func buildQueryManager() *QueryManager {
 	qm.TrimIdWhiteSpace = true
 	qm.VarMatchRegEx = "\\$\\{([^\\}]*)\\}"
 	qm.NewLine = "\n"
-	qm.FrameworkLogger = logging.CreateAnonymousLogger("querymanager_test", 0)
+	qm.FrameworkLogger = new(logging.ConsoleErrorLogger)
 
 	return qm
 
