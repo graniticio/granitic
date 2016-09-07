@@ -14,7 +14,7 @@ type HttpEndPoint struct {
 type HttpEndpointProvider interface {
 	SupportedHttpMethods() []string
 	RegexPattern() string
-	ServeHTTP(ctx context.Context, w *HTTPResponseWriter, req *http.Request) iam.ClientIdentity
+	ServeHTTP(ctx context.Context, w *HTTPResponseWriter, req *http.Request) (iam.ClientIdentity, context.Context)
 	VersionAware() bool
 	SupportsVersion(version RequiredVersion) bool
 }

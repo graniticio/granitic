@@ -159,7 +159,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 		if pattern.MatchString(path) && h.versionMatch(req, handlerPattern.Provider) {
 			h.FrameworkLogger.LogTracef("Matches %s", pattern.String())
 			matched = true
-			identity = handlerPattern.Provider.ServeHTTP(ctx, wrw, req)
+			identity, ctx = handlerPattern.Provider.ServeHTTP(ctx, wrw, req)
 		}
 	}
 

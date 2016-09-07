@@ -80,7 +80,7 @@ type ProcessOnlyLogic struct {
 	Called bool
 }
 
-func (l *ProcessOnlyLogic) Process(request *ws.WsRequest, response *ws.WsResponse) {
+func (l *ProcessOnlyLogic) Process(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse) {
 	l.Called = true
 }
 
@@ -122,7 +122,7 @@ type AllPhasesLogic struct {
 	PreValidateCalled      bool
 }
 
-func (l *AllPhasesLogic) Process(request *ws.WsRequest, response *ws.WsResponse) {
+func (l *AllPhasesLogic) Process(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse) {
 	l.ProcessCalled = true
 }
 
@@ -132,15 +132,15 @@ func (l *AllPhasesLogic) UnmarshallTarget() interface{} {
 	return new(Body)
 }
 
-func (l *AllPhasesLogic) Validate(errors *ws.ServiceErrors, request *ws.WsRequest) {
+func (l *AllPhasesLogic) Validate(ctx context.Context, errors *ws.ServiceErrors, request *ws.WsRequest) {
 	l.ValidateCalled = true
 }
 
-func (l *AllPhasesLogic) PostProcess(handlerName string, request *ws.WsRequest, response *ws.WsResponse) {
+func (l *AllPhasesLogic) PostProcess(ctx context.Context, handlerName string, request *ws.WsRequest, response *ws.WsResponse) {
 	l.PostProcessCalled = true
 }
 
-func (l *AllPhasesLogic) PreValidate(request *ws.WsRequest, errors *ws.ServiceErrors) (proceed bool) {
+func (l *AllPhasesLogic) PreValidate(ctx context.Context, request *ws.WsRequest, errors *ws.ServiceErrors) (proceed bool) {
 	l.PreValidateCalled = true
 
 	return true

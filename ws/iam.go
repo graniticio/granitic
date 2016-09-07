@@ -1,14 +1,15 @@
 package ws
 
 import (
-	"net/http"
 	"github.com/graniticio/granitic/iam"
+	"golang.org/x/net/context"
+	"net/http"
 )
 
 type WsIdentifier interface {
-	Identify(req *http.Request) iam.ClientIdentity
+	Identify(ctx context.Context, req *http.Request) (iam.ClientIdentity, context.Context)
 }
 
 type WsAccessChecker interface {
-	Allowed(r *WsRequest) bool
+	Allowed(ctx context.Context, r *WsRequest) bool
 }

@@ -15,7 +15,7 @@ import (
 // Indicates that an object is able to continue the processing of a web service request after the automated phases of
 // parsing, binding, authenticating, authorising and auto-validating have been completed.
 type WsRequestProcessor interface {
-	Process(request *ws.WsRequest, response *ws.WsResponse)
+	Process(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse)
 }
 
 // Indicates that an object is interested in observing/modifying a web service request after processing has been completed,
@@ -23,18 +23,18 @@ type WsRequestProcessor interface {
 //
 // It is expected that WsPostProcessors may be shared between multiple instances of WsHandler
 type WsPostProcessor interface {
-	PostProcess(handlerName string, request *ws.WsRequest, response *ws.WsResponse)
+	PostProcess(ctx context.Context, handlerName string, request *ws.WsRequest, response *ws.WsResponse)
 }
 
 // Indicates that an object is interested in observing/modifying a web service request after it has been unmarshalled and parsed, but before automatic and
 // application-defined validation takes place. If an error is encountered, or if the object decides that processing should be halted, it is expected that
 // the implementing object adds one or more errors to the ws.WsResponse and returns false.
 type WsPreValidateManipulator interface {
-	PreValidate(request *ws.WsRequest, errors *ws.ServiceErrors) (proceed bool)
+	PreValidate(ctx context.Context, request *ws.WsRequest, errors *ws.ServiceErrors) (proceed bool)
 }
 
 type WsRequestValidator interface {
-	Validate(errors *ws.ServiceErrors, request *ws.WsRequest)
+	Validate(ctx context.Context, errors *ws.ServiceErrors, request *ws.WsRequest)
 }
 
 type WsUnmarshallTarget interface {
@@ -88,7 +88,7 @@ func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
 }
 
 //HttpEndpointProvider
-func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request) iam.ClientIdentity {
+func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request) (iam.ClientIdentity, context.Context) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -110,13 +110,16 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 	}
 
 	//Try to identify and/or authenticate the caller
-	if !wh.identifyAndAuthenticate(w, req, wsReq) {
-		return wsReq.UserIdentity
+	var okay bool
+
+	if okay, ctx = wh.identifyAndAuthenticate(ctx, w, req, wsReq); !okay {
+
+		return wsReq.UserIdentity, ctx
 	}
 
 	//Check caller has permission to use this resource
-	if !wh.CheckAccessAfterParse && !wh.checkAccess(w, wsReq) {
-		return wsReq.UserIdentity
+	if !wh.CheckAccessAfterParse && !wh.checkAccess(ctx, w, wsReq) {
+		return wsReq.UserIdentity, ctx
 	}
 
 	//Unmarshall body, query parameters and path parameters
@@ -126,38 +129,38 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 
 	if wsReq.HasFrameworkErrors() && !wh.DeferFrameworkErrors {
 		wh.handleFrameworkErrors(w, wsReq)
-		return wsReq.UserIdentity
+		return wsReq.UserIdentity, ctx
 	}
 
 	//Check caller has permission to use this resource
-	if wh.CheckAccessAfterParse && !wh.checkAccess(w, wsReq) {
-		return wsReq.UserIdentity
+	if wh.CheckAccessAfterParse && !wh.checkAccess(ctx, w, wsReq) {
+		return wsReq.UserIdentity, ctx
 	}
 
 	//Validate request
 	var errors ws.ServiceErrors
 	errors.ErrorFinder = wh.ErrorFinder
 
-	wh.validateRequest(wsReq, &errors)
+	wh.validateRequest(ctx, wsReq, &errors)
 
 	if errors.HasErrors() {
 		wh.writeErrorResponse(&errors, w, wsReq)
 
-		return wsReq.UserIdentity
+		return wsReq.UserIdentity, ctx
 	}
 
 	//Execute logic
-	wh.process(wsReq, w)
+	wh.process(ctx, wsReq, w)
 
-	return wsReq.UserIdentity
+	return wsReq.UserIdentity, ctx
 }
 
-func (wh *WsHandler) validateRequest(wsReq *ws.WsRequest, errors *ws.ServiceErrors) {
+func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.WsRequest, errors *ws.ServiceErrors) {
 	if wh.validationEnabled {
 		proceed := true
 
 		if wh.PreValidateManipulator != nil {
-			proceed = wh.PreValidateManipulator.PreValidate(wsReq, errors)
+			proceed = wh.PreValidateManipulator.PreValidate(ctx, wsReq, errors)
 		}
 
 		if !proceed {
@@ -208,7 +211,7 @@ func (wh *WsHandler) validateRequest(wsReq *ws.WsRequest, errors *ws.ServiceErro
 		}
 
 		if wh.validator != nil {
-			wh.validator.Validate(errors, wsReq)
+			wh.validator.Validate(ctx, errors, wsReq)
 		}
 	}
 
@@ -283,7 +286,7 @@ func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *ws.WsRequest) 
 
 }
 
-func (wh *WsHandler) checkAccess(w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) bool {
+func (wh *WsHandler) checkAccess(ctx context.Context, w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) bool {
 
 	ac := wh.AccessChecker
 
@@ -291,7 +294,7 @@ func (wh *WsHandler) checkAccess(w *httpendpoint.HTTPResponseWriter, wsReq *ws.W
 		return true
 	}
 
-	allowed := ac.Allowed(wsReq)
+	allowed := ac.Allowed(ctx, wsReq)
 
 	if allowed {
 		return true
@@ -306,10 +309,10 @@ func (wh *WsHandler) checkAccess(w *httpendpoint.HTTPResponseWriter, wsReq *ws.W
 	}
 }
 
-func (wh *WsHandler) identifyAndAuthenticate(w *httpendpoint.HTTPResponseWriter, req *http.Request, wsReq *ws.WsRequest) bool {
+func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request, wsReq *ws.WsRequest) (bool, context.Context) {
 
 	if wh.UserIdentifier != nil {
-		i := wh.UserIdentifier.Identify(req)
+		i, ctx := wh.UserIdentifier.Identify(ctx, req)
 		wsReq.UserIdentity = i
 
 		if wh.RequireAuthentication && !i.Authenticated() {
@@ -319,7 +322,7 @@ func (wh *WsHandler) identifyAndAuthenticate(w *httpendpoint.HTTPResponseWriter,
 			state.WsRequest = wsReq
 
 			wh.ResponseWriter.Write(state, ws.Abnormal)
-			return false
+			return false, ctx
 		}
 
 	}
@@ -328,7 +331,7 @@ func (wh *WsHandler) identifyAndAuthenticate(w *httpendpoint.HTTPResponseWriter,
 		wsReq.UserIdentity = iam.NewAnonymousIdentity()
 	}
 
-	return true
+	return true, ctx
 
 }
 
@@ -369,7 +372,7 @@ func (wh *WsHandler) handleFrameworkErrors(w *httpendpoint.HTTPResponseWriter, w
 
 }
 
-func (wh *WsHandler) process(request *ws.WsRequest, w *httpendpoint.HTTPResponseWriter) {
+func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *httpendpoint.HTTPResponseWriter) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -379,10 +382,10 @@ func (wh *WsHandler) process(request *ws.WsRequest, w *httpendpoint.HTTPResponse
 	}()
 
 	wsRes := ws.NewWsResponse(wh.ErrorFinder)
-	wh.Logic.Process(request, wsRes)
+	wh.Logic.Process(ctx, request, wsRes)
 
 	if wh.PostProcessor != nil {
-		wh.PostProcessor.PostProcess(wh.ComponentName(), request, wsRes)
+		wh.PostProcessor.PostProcess(ctx, wh.ComponentName(), request, wsRes)
 	}
 
 	state := new(ws.WsProcessState)
