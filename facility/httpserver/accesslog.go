@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/httpendpoint"
+	"github.com/graniticio/granitic/iam"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"github.com/graniticio/granitic/iam"
-	"github.com/graniticio/granitic/httpendpoint"
 )
 
 const DefaultLogBufferLength = 10
@@ -229,7 +229,11 @@ func (alw *AccessLogWriter) parseFormat(format string) error {
 	placeholders := lineRe.FindAllString(format, -1)
 	textFragments := lineRe.Split(format, -1)
 	firstMatch := lineRe.FindStringIndex(format)
-	startsWithPh := (firstMatch[0] == 0) && textFragments[0] != ""
+	var startsWithPh bool
+
+	if len(firstMatch) > 0 {
+		startsWithPh = (firstMatch[0] == 0) && textFragments[0] != ""
+	}
 
 	phCount := len(placeholders)
 	tCount := len(textFragments)

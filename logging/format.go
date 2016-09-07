@@ -184,7 +184,12 @@ func (lmf *LogMessageFormatter) parseFormat(format string) error {
 	placeholders := lineRe.FindAllString(format, -1)
 	textFragments := lineRe.Split(format, -1)
 	firstMatch := lineRe.FindStringIndex(format)
-	startsWithPh := (firstMatch[0] == 0) && textFragments[0] != ""
+
+	var startsWithPh bool
+
+	if len(firstMatch) > 0 {
+		startsWithPh = (firstMatch[0] == 0) && textFragments[0] != ""
+	}
 
 	phCount := len(placeholders)
 	tCount := len(textFragments)
