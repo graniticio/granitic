@@ -5,17 +5,20 @@ type ComponentLoggerManager struct {
 	createdLoggers           map[string]Logger
 	InitalComponentLogLevels map[string]interface{}
 	globalThreshold          LogLevel
+	writers                  []LogWriter
 }
 
 func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLevels map[string]interface{}) *ComponentLoggerManager {
 	loggers := make(map[string]LogThresholdControl)
-	manager := new(ComponentLoggerManager)
-	manager.componentsLogger = loggers
-	manager.createdLoggers = make(map[string]Logger)
-	manager.globalThreshold = globalThreshold
-	manager.InitalComponentLogLevels = initalComponentLogLevels
+	clm := new(ComponentLoggerManager)
+	clm.componentsLogger = loggers
+	clm.createdLoggers = make(map[string]Logger)
+	clm.globalThreshold = globalThreshold
+	clm.InitalComponentLogLevels = initalComponentLogLevels
 
-	return manager
+	clm.writers = []LogWriter{new(ConsoleWriter)}
+
+	return clm
 }
 
 func (clm *ComponentLoggerManager) UpdateGlobalThreshold(globalThreshold LogLevel) {
@@ -56,13 +59,15 @@ func (clm *ComponentLoggerManager) CreateLogger(componentId string) Logger {
 }
 
 func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentId string, threshold LogLevel) Logger {
-	logger := new(LevelAwareLogger)
-	logger.globalLogThreshold = clm.globalThreshold
-	logger.localLogThreshhold = threshold
-	logger.loggerName = componentId
+	l := new(LevelAwareLogger)
+	l.globalLogThreshold = clm.globalThreshold
+	l.localLogThreshhold = threshold
+	l.loggerName = componentId
 
-	clm.componentsLogger[componentId] = logger
-	clm.createdLoggers[componentId] = logger
+	clm.componentsLogger[componentId] = l
+	clm.createdLoggers[componentId] = l
 
-	return logger
+	l.writers = clm.writers
+
+	return l
 }

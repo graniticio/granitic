@@ -25,6 +25,7 @@ type LevelAwareLogger struct {
 	globalLogThreshold LogLevel
 	localLogThreshhold LogLevel
 	loggerName         string
+	writers            []LogWriter
 }
 
 func (lal *LevelAwareLogger) IsLevelEnabled(level LogLevel) bool {
@@ -35,7 +36,9 @@ func (lal *LevelAwareLogger) log(prefix string, level LogLevel, message string) 
 
 	if lal.IsLevelEnabled(level) {
 		t := time.Now()
-		fmt.Printf("%s %s %s: %s\n", t.Format(time.RFC3339), prefix, lal.loggerName, message)
+		m := fmt.Sprintf("%s %s %s: %s\n", t.Format(time.RFC3339), prefix, lal.loggerName, message)
+
+		lal.write(m)
 	}
 
 }
@@ -44,7 +47,17 @@ func (lal *LevelAwareLogger) logf(levelLabel string, level LogLevel, format stri
 	if lal.IsLevelEnabled(level) {
 		t := time.Now()
 		message := fmt.Sprintf(format, a...)
-		fmt.Printf("%s %s %s: %s\n", t.Format(time.RFC3339), levelLabel, lal.loggerName, message)
+		m := fmt.Sprintf("%s %s %s: %s\n", t.Format(time.RFC3339), levelLabel, lal.loggerName, message)
+
+		lal.write(m)
+	}
+
+}
+
+func (lal *LevelAwareLogger) write(m string) {
+
+	for _, w := range lal.writers {
+		w.WriteMessage(m)
 	}
 
 }
