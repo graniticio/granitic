@@ -31,15 +31,16 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 	initialLogLevelsByComponent := ca.ObjectVal("ApplicationLogger.ComponentLogLevels")
 
 	writers, err := alfb.buildWriters(ca)
+	formatter := new(logging.LogMessageFormatter)
 
 	//Update the bootstrapped framework logger with the newly configured writers
-	lm.UpdateWriters(writers)
+	lm.UpdateWritersAndFormatter(writers, formatter)
 
 	if err != nil {
 		return alfb.error(err.Error())
 	}
 
-	alm := logging.CreateComponentLoggerManager(defaultLogLevel, initialLogLevelsByComponent, writers)
+	alm := logging.CreateComponentLoggerManager(defaultLogLevel, initialLogLevelsByComponent, writers, formatter)
 	cn.WrapAndAddProto(applicationLoggingManagerName, alm)
 
 	ald := new(decorator.ApplicationLogDecorator)

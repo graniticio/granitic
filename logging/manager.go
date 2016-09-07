@@ -6,9 +6,12 @@ type ComponentLoggerManager struct {
 	InitalComponentLogLevels map[string]interface{}
 	globalThreshold          LogLevel
 	writers                  []LogWriter
+	formatter                *LogMessageFormatter
 }
 
-func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLevels map[string]interface{}, writers []LogWriter) *ComponentLoggerManager {
+func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLevels map[string]interface{},
+	writers []LogWriter, formatter *LogMessageFormatter) *ComponentLoggerManager {
+
 	loggers := make(map[string]LogRuntimeControl)
 	clm := new(ComponentLoggerManager)
 	clm.componentsLogger = loggers
@@ -17,15 +20,16 @@ func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLe
 	clm.InitalComponentLogLevels = initalComponentLogLevels
 
 	clm.writers = writers
+	clm.formatter = formatter
 
 	return clm
 }
 
-func (clm *ComponentLoggerManager) UpdateWriters(writers []LogWriter) {
+func (clm *ComponentLoggerManager) UpdateWritersAndFormatter(writers []LogWriter, formatter *LogMessageFormatter) {
 	clm.writers = writers
 
 	for _, v := range clm.componentsLogger {
-		v.UpdateWriters(writers)
+		v.UpdateWritersAndFormatter(writers, formatter)
 	}
 }
 
@@ -76,6 +80,7 @@ func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentId string, thres
 	clm.createdLoggers[componentId] = l
 
 	l.writers = clm.writers
+	l.formatter = clm.formatter
 
 	return l
 }

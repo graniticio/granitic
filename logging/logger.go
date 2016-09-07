@@ -6,7 +6,6 @@ package logging
 import (
 	"fmt"
 	"runtime"
-	"time"
 )
 
 type Logger interface {
@@ -26,21 +25,22 @@ type LevelAwareLogger struct {
 	localLogThreshhold LogLevel
 	loggerName         string
 	writers            []LogWriter
+	formatter          *LogMessageFormatter
 }
 
-func (lal *LevelAwareLogger) UpdateWriters(writers []LogWriter) {
-	lal.writers = writers
+func (lal *LevelAwareLogger) UpdateWritersAndFormatter(w []LogWriter, f *LogMessageFormatter) {
+	lal.writers = w
+	lal.formatter = f
 }
 
 func (lal *LevelAwareLogger) IsLevelEnabled(level LogLevel) bool {
 	return level >= lal.localLogThreshhold || level >= lal.globalLogThreshold
 }
 
-func (lal *LevelAwareLogger) log(prefix string, level LogLevel, message string) {
+func (lal *LevelAwareLogger) log(levelLabel string, level LogLevel, message string) {
 
 	if lal.IsLevelEnabled(level) {
-		t := time.Now()
-		m := fmt.Sprintf("%s %s %s: %s\n", t.Format(time.RFC3339), prefix, lal.loggerName, message)
+		m := lal.formatter.Format(levelLabel, lal.loggerName, message)
 
 		lal.write(m)
 	}
@@ -49,9 +49,8 @@ func (lal *LevelAwareLogger) log(prefix string, level LogLevel, message string) 
 func (lal *LevelAwareLogger) logf(levelLabel string, level LogLevel, format string, a ...interface{}) {
 
 	if lal.IsLevelEnabled(level) {
-		t := time.Now()
 		message := fmt.Sprintf(format, a...)
-		m := fmt.Sprintf("%s %s %s: %s\n", t.Format(time.RFC3339), levelLabel, lal.loggerName, message)
+		m := lal.formatter.Format(levelLabel, lal.loggerName, message)
 
 		lal.write(m)
 	}
@@ -129,7 +128,7 @@ func (lal *LevelAwareLogger) SetLoggerName(name string) {
 type LogRuntimeControl interface {
 	SetGlobalThreshold(threshold LogLevel)
 	SetLocalThreshold(threshold LogLevel)
-	UpdateWriters([]LogWriter)
+	UpdateWritersAndFormatter([]LogWriter, *LogMessageFormatter)
 }
 
 func CreateAnonymousLogger(componentId string, threshold LogLevel) Logger {

@@ -42,7 +42,7 @@ func NewFacilitiesInitialisor(cc *ioc.ComponentContainer, flm *logging.Component
 
 func BootstrapFrameworkLogging(bootStrapLogLevel logging.LogLevel) (*logging.ComponentLoggerManager, *ioc.ProtoComponent) {
 
-	flm := logging.CreateComponentLoggerManager(bootStrapLogLevel, nil, []logging.LogWriter{new(logging.ConsoleWriter)})
+	flm := logging.CreateComponentLoggerManager(bootStrapLogLevel, nil, []logging.LogWriter{new(logging.ConsoleWriter)}, new(logging.LogMessageFormatter))
 	proto := ioc.CreateProtoComponent(flm, frameworkLoggingManagerName)
 
 	return flm, proto
