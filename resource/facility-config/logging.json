@@ -5,6 +5,9 @@
     "File": {
       "LogPath": "./granitic.log",
       "BufferSize": 50
+    },
+    "PrefixFormat": {
+      "UtcTimes":     true
     }
   },
 

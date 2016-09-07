@@ -31,14 +31,14 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 	initialLogLevelsByComponent := ca.ObjectVal("ApplicationLogger.ComponentLogLevels")
 
 	writers, err := alfb.buildWriters(ca)
-	formatter := logging.NewFrameworkLogMessageFormatter()
-
-	//Update the bootstrapped framework logger with the newly configured writers
-	lm.UpdateWritersAndFormatter(writers, formatter)
+	formatter, err := alfb.buildFormatter(ca)
 
 	if err != nil {
 		return alfb.error(err.Error())
 	}
+
+	//Update the bootstrapped framework logger with the newly configured writers and formatter
+	lm.UpdateWritersAndFormatter(writers, formatter)
 
 	alm := logging.CreateComponentLoggerManager(defaultLogLevel, initialLogLevelsByComponent, writers, formatter)
 	cn.WrapAndAddProto(applicationLoggingManagerName, alm)
@@ -50,6 +50,26 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 	cn.WrapAndAddProto(applicationLoggingDecoratorName, ald)
 
 	return nil
+}
+
+func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.ConfigAccessor) (*logging.LogMessageFormatter, error) {
+
+	lmf := new(logging.LogMessageFormatter)
+
+	err := ca.Populate("LogWriting.PrefixFormat", lmf)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if lmf.PrefixFormat == "" && lmf.PrefixPreset == "" {
+		lmf.PrefixPreset = logging.FrameworkPresetPrefix
+	}
+
+	err = lmf.Init()
+
+	return lmf, err
+
 }
 
 func (alfb *ApplicationLoggingFacilityBuilder) buildWriters(ca *config.ConfigAccessor) ([]logging.LogWriter, error) {

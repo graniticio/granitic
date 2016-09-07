@@ -8,12 +8,13 @@ import (
 	"time"
 )
 
-const presetFrameworkFormat = "%{02/Jan/2006:15:04:05 Z0700}t %L %c: "
-const presetframeworkName = "framework"
+const presetFrameworkFormat = "%{02/Jan/2006:15:04:05 Z0700}t %P %c: "
+const FrameworkPresetPrefix = "framework"
 const formatRegex = "\\%[a-zA-Z]|\\%\\%|\\%{[^}]*}[a-zA-Z]"
 const varModifiedRegex = "\\%{([^}]*)}([a-zA-Z])"
 const percent = "%"
 const hyphen = "-"
+
 const unsupported = "???"
 
 type prefixFormatPlaceHolder int
@@ -23,6 +24,8 @@ const (
 	PercentSymbol
 	LogTime
 	LogLevelFull
+	LogLevelInitial
+	LogLevelFullPadded
 	ComponentName
 )
 
@@ -72,7 +75,7 @@ func newPlaceholderWithVarLineElement(phType prefixFormatPlaceHolder, variable s
 func NewFrameworkLogMessageFormatter() *LogMessageFormatter {
 	lmf := new(LogMessageFormatter)
 	lmf.UtcTimes = true
-	lmf.PrefixPreset = presetframeworkName
+	lmf.PrefixPreset = FrameworkPresetPrefix
 
 	lmf.Init()
 
@@ -138,6 +141,10 @@ func (alw *LogMessageFormatter) findValue(element *prefixElement, levelLabel, lo
 	case LogLevelFull:
 		return levelLabel
 
+	case LogLevelInitial:
+		return string(levelLabel[0])
+	case LogLevelFullPadded:
+		return padRightTo(levelLabel, 5)
 	default:
 		return unsupported
 
@@ -162,11 +169,11 @@ func (lmf *LogMessageFormatter) Init() error {
 		return lmf.parseFormat(f)
 	} else {
 
-		if pre == presetframeworkName {
+		if pre == FrameworkPresetPrefix {
 			return lmf.parseFormat(presetFrameworkFormat)
 
 		} else {
-			message := fmt.Sprintf("%s is not a supported preset for access log lines", pre)
+			message := fmt.Sprintf("%s is not a supported preset for log prefixes", pre)
 			return errors.New(message)
 		}
 
@@ -178,8 +185,6 @@ func (lmf *LogMessageFormatter) parseFormat(format string) error {
 
 	lineRe := regexp.MustCompile(formatRegex)
 	varRe := regexp.MustCompile(varModifiedRegex)
-
-	fmt.Println("Parsing: " + format)
 
 	placeholders := lineRe.FindAllString(format, -1)
 	textFragments := lineRe.Split(format, -1)
@@ -286,6 +291,25 @@ func intMax(x, y int) int {
 	}
 }
 
+func padRightTo(s string, p int) string {
+
+	l := len(s)
+
+	if l >= p {
+		return s
+	}
+
+	var b bytes.Buffer
+
+	b.WriteString(s)
+
+	for i := l; i < p; i++ {
+		b.WriteString(" ")
+	}
+
+	return b.String()
+}
+
 func (alw *LogMessageFormatter) mapPlaceholder(ph string) prefixFormatPlaceHolder {
 
 	switch ph {
@@ -297,6 +321,10 @@ func (alw *LogMessageFormatter) mapPlaceholder(ph string) prefixFormatPlaceHolde
 		return LogTime
 	case "L":
 		return LogLevelFull
+	case "l":
+		return LogLevelInitial
+	case "P":
+		return LogLevelFullPadded
 	case "c":
 		return ComponentName
 	}
