@@ -11,6 +11,7 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
+	"net"
 	"net/http"
 	"regexp"
 	"sync/atomic"
@@ -29,6 +30,7 @@ type HTTPServer struct {
 	AccessLogWriter             *AccessLogWriter
 	AccessLogging               bool
 	Port                        int
+	Address                     string
 	AbnormalStatusWriter        ws.AbnormalStatusWriter
 	AbnormalStatusWriterName    string
 	ActiveRequests              int64
@@ -95,7 +97,15 @@ func (h *HTTPServer) StartComponent() error {
 func (h *HTTPServer) AllowAccess() error {
 	http.Handle("/", http.HandlerFunc(h.handleAll))
 
-	listenAddress := fmt.Sprintf(":%d", h.Port)
+	listenAddress := fmt.Sprintf("%s:%d", h.Address, h.Port)
+
+	ln, err := net.Listen("tcp", listenAddress)
+
+	if err != nil {
+		return err
+	}
+
+	ln.Close()
 
 	go http.ListenAndServe(listenAddress, nil)
 
