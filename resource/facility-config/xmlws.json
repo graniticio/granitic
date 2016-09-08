@@ -1,6 +1,12 @@
 {
-  "JsonWs": {
+  "XmlWs": {
     "ResponseWriter": {
+      "TemplateDir": "resource/xml/",
+      "AbnormalTemplate": "abnormal",
+      "CacheTemplates": true,
+      "DefaultHeaders": {
+        "Content-Type": "application/xml; charset=utf-8"
+      }
     }
   }
 }

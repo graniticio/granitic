@@ -53,7 +53,7 @@ func (rw *StandardJSONResponseWriter) write(ctx context.Context, res *ws.WsRespo
 		return nil
 	}
 
-	headers := rw.mergeHeaders(res, ch)
+	headers := ws.MergeHeaders(res, ch, rw.DefaultHeaders)
 	ws.WriteHeaders(w, headers)
 
 	s := rw.StatusDeterminer.DetermineCode(res)
@@ -87,34 +87,6 @@ func (rw *StandardJSONResponseWriter) write(ctx context.Context, res *ws.WsRespo
 	_, err = w.Write(data)
 
 	return err
-}
-
-// Merges together the headers that have been defined on the WsResponse, the static default headers attache to this writer
-// and (optionally) those constructed by the  ws.WsCommonResponseHeaderBuilder attached to this writer. The order of precedence,
-// from lowest to highest, is static headers, constructed headers, headers in the WsResponse.
-func (rw *StandardJSONResponseWriter) mergeHeaders(res *ws.WsResponse, ch map[string]string) map[string]string {
-
-	merged := make(map[string]string)
-
-	if rw.DefaultHeaders != nil {
-		for k, v := range rw.DefaultHeaders {
-			merged[k] = v
-		}
-	}
-
-	if ch != nil {
-		for k, v := range ch {
-			merged[k] = v
-		}
-	}
-
-	if res.Headers != nil {
-		for k, v := range res.Headers {
-			merged[k] = v
-		}
-	}
-
-	return merged
 }
 
 func (rw *StandardJSONResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.WsProcessState) error {

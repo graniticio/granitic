@@ -122,7 +122,9 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	if !h.available {
 		state := ws.NewAbnormalState(h.TooBusyStatus, wrw)
-		h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state)
+		if err := h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state); err != nil {
+			h.FrameworkLogger.LogErrorfCtx(ctx, err.Error())
+		}
 		return
 	}
 
@@ -131,7 +133,9 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	if h.MaxConcurrent > 0 && rCount > h.MaxConcurrent {
 		state := ws.NewAbnormalState(h.TooBusyStatus, wrw)
-		h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state)
+		if err := h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state); err != nil {
+			h.FrameworkLogger.LogErrorfCtx(ctx, err.Error())
+		}
 		return
 	}
 
@@ -160,7 +164,9 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	if !matched {
 		state := ws.NewAbnormalState(http.StatusNotFound, wrw)
 
-		h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state)
+		if err := h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state); err != nil {
+			h.FrameworkLogger.LogErrorfCtx(ctx, err.Error())
+		}
 	}
 
 	if h.AccessLogging {
