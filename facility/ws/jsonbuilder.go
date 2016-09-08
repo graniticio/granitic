@@ -1,7 +1,7 @@
 /*
 Package jsonws builds the components required to support JSON-based web-services.
 */
-package jsonws
+package ws
 
 import (
 	"github.com/graniticio/granitic/config"
@@ -17,38 +17,27 @@ import (
 const jsonResponseWriterComponentName = instance.FrameworkPrefix + "JsonResponseWriter"
 const jsonUnmarshallerComponentName = instance.FrameworkPrefix + "JsonUnmarshaller"
 const jsonHandlerDecoratorComponentName = instance.FrameworkPrefix + "JsonHandlerDecorator"
-const wsHttpStatusDeterminerComponentName = instance.FrameworkPrefix + "HttpStatusDeterminer"
-const wsQueryBinderComponentName = instance.FrameworkPrefix + "QueryBinder"
-const wsFrameworkErrorGenerator = instance.FrameworkPrefix + "FrameworkErrorGenerator"
 
 type JSONWsFacilityBuilder struct {
 }
 
 func (fb *JSONWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
+	wc := BuildAndRegisterWsCommon(lm, ca, cn)
+
 	responseWriter := new(json.StandardJSONResponseWriter)
 	ca.Populate("JsonWs.ResponseWriter", responseWriter)
 	cn.WrapAndAddProto(jsonResponseWriterComponentName, responseWriter)
 
-	queryBinder := new(ws.ParamBinder)
-	cn.WrapAndAddProto(wsQueryBinderComponentName, queryBinder)
-
-	statusDeterminer := new(ws.DefaultHttpStatusCodeDeterminer)
-	cn.WrapAndAddProto(wsHttpStatusDeterminerComponentName, statusDeterminer)
-	responseWriter.StatusDeterminer = statusDeterminer
+	responseWriter.StatusDeterminer = wc.StatusDeterminer
 
 	jsonUnmarshaller := new(json.StandardJSONUnmarshaller)
 	cn.WrapAndAddProto(jsonUnmarshallerComponentName, jsonUnmarshaller)
 
-	frameworkErrors := new(ws.FrameworkErrorGenerator)
-	ca.Populate("FrameworkServiceErrors", frameworkErrors)
-	cn.WrapAndAddProto(wsFrameworkErrorGenerator, frameworkErrors)
-
-	queryBinder.FrameworkErrors = frameworkErrors
-	responseWriter.FrameworkErrors = frameworkErrors
+	responseWriter.FrameworkErrors = wc.FrameworkErrors
 
 	decoratorLogger := lm.CreateLogger(jsonHandlerDecoratorComponentName)
-	decorator := JSONWsHandlerDecorator{decoratorLogger, responseWriter, jsonUnmarshaller, queryBinder, frameworkErrors}
+	decorator := JSONWsHandlerDecorator{decoratorLogger, responseWriter, jsonUnmarshaller, wc.ParamBinder, wc.FrameworkErrors}
 	cn.WrapAndAddProto(jsonHandlerDecoratorComponentName, &decorator)
 
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "ErrorFormatter") {

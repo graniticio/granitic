@@ -1,4 +1,4 @@
-package decorator
+package logger
 
 import (
 	"github.com/graniticio/granitic/ioc"
@@ -7,7 +7,6 @@ import (
 	"reflect"
 )
 
-//TODO Rename application log var
 const expectedApplicationLoggerFieldName string = "Log"
 const expectedFrameworkLoggerFieldName string = "FrameworkLogger"
 

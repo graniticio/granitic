@@ -1,4 +1,4 @@
-package decorator
+package logger
 
 import (
 	"github.com/graniticio/granitic/ioc"

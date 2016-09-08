@@ -4,13 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/facility/decorator"
 	"github.com/graniticio/granitic/facility/httpserver"
-	"github.com/graniticio/granitic/facility/jsonws"
 	"github.com/graniticio/granitic/facility/logger"
 	"github.com/graniticio/granitic/facility/querymanager"
 	"github.com/graniticio/granitic/facility/rdbms"
 	"github.com/graniticio/granitic/facility/serviceerror"
+	"github.com/graniticio/granitic/facility/ws"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
@@ -103,7 +102,7 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.ConfigAccessor) error {
 
 	fi.AddFacility(new(querymanager.QueryManagerFacilityBuilder))
 	fi.AddFacility(new(httpserver.HttpServerFacilityBuilder))
-	fi.AddFacility(new(jsonws.JSONWsFacilityBuilder))
+	fi.AddFacility(new(ws.JSONWsFacilityBuilder))
 	fi.AddFacility(new(serviceerror.ServiceErrorManagerFacilityBuilder))
 	fi.AddFacility(new(rdbms.RdbmsAccessFacilityBuilder))
 
@@ -134,7 +133,7 @@ func (fi *FacilitiesInitialisor) updateFrameworkLogLevel() error {
 	flm.UpdateGlobalThreshold(defaultLogLevel)
 	flm.UpdateLocalThreshold(defaultLogLevel)
 
-	fld := new(decorator.FrameworkLogDecorator)
+	fld := new(logger.FrameworkLogDecorator)
 	fld.FrameworkLogger = flm.CreateLogger(frameworkLoggerDecoratorName)
 	fld.LoggerManager = flm
 

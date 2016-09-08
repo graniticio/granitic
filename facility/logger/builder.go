@@ -3,7 +3,6 @@ package logger
 import (
 	"errors"
 	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/facility/decorator"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
@@ -43,7 +42,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 	alm := logging.CreateComponentLoggerManager(defaultLogLevel, initialLogLevelsByComponent, writers, formatter)
 	cn.WrapAndAddProto(applicationLoggingManagerName, alm)
 
-	ald := new(decorator.ApplicationLogDecorator)
+	ald := new(ApplicationLogDecorator)
 	ald.LoggerManager = alm
 	ald.FrameworkLogger = lm.CreateLogger(applicationLoggingDecoratorName)
 
