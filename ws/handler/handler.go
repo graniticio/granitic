@@ -311,8 +311,11 @@ func (wh *WsHandler) checkAccess(ctx context.Context, w *httpendpoint.HTTPRespon
 
 func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request, wsReq *ws.WsRequest) (bool, context.Context) {
 
+	var i iam.ClientIdentity
+
 	if wh.UserIdentifier != nil {
-		i, ctx := wh.UserIdentifier.Identify(ctx, req)
+
+		i, ctx = wh.UserIdentifier.Identify(ctx, req)
 		wsReq.UserIdentity = i
 
 		if wh.RequireAuthentication && !i.Authenticated() {
