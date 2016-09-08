@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"golang.org/x/net/context"
 	"regexp"
 	"strconv"
 	"time"
@@ -91,7 +92,7 @@ type LogMessageFormatter struct {
 	UtcTimes     bool
 }
 
-func (lmf *LogMessageFormatter) Format(levelLabel, loggerName, message string) string {
+func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerName, message string) string {
 	var b bytes.Buffer
 	var t time.Time
 
