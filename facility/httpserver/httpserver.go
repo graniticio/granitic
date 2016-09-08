@@ -48,12 +48,13 @@ func (h *HTTPServer) Container(container *ioc.ComponentContainer) {
 func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HttpEndpointProvider) {
 
 	for _, method := range endPointProvider.SupportedHttpMethods() {
+		var compiledRegex *regexp.Regexp
+		var err error
 
 		pattern := endPointProvider.RegexPattern()
-		compiledRegex, regexError := regexp.Compile(pattern)
 
-		if regexError != nil {
-			h.FrameworkLogger.LogErrorf("Unable to compile regular expression from pattern %s: %s", pattern, regexError.Error())
+		if compiledRegex, err = regexp.Compile(pattern); err != nil {
+			h.FrameworkLogger.LogErrorf("Unable to compile regular expression from pattern %s: %s", pattern, err.Error())
 		}
 
 		h.FrameworkLogger.LogTracef("Registering %s %s", pattern, method)
@@ -78,13 +79,10 @@ func (h *HTTPServer) StartComponent() error {
 	h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
 
 	for name, component := range h.componentContainer.AllComponents() {
-		provider, found := component.Instance.(httpendpoint.HttpEndpointProvider)
 
-		if found {
+		if provider, found := component.Instance.(httpendpoint.HttpEndpointProvider); found {
 			h.FrameworkLogger.LogDebugf("Found HttpEndpointProvider %s", name)
-
 			h.registerProvider(provider)
-
 		}
 	}
 
@@ -96,17 +94,17 @@ func (h *HTTPServer) StartComponent() error {
 }
 
 func (h *HTTPServer) AllowAccess() error {
+
 	http.Handle("/", http.HandlerFunc(h.handleAll))
 
 	listenAddress := fmt.Sprintf("%s:%d", h.Address, h.Port)
 
-	ln, err := net.Listen("tcp", listenAddress)
-
-	if err != nil {
+	//Check if the address is already in use
+	if ln, err := net.Listen("tcp", listenAddress); err == nil {
+		ln.Close()
+	} else {
 		return err
 	}
-
-	ln.Close()
 
 	go http.ListenAndServe(listenAddress, nil)
 

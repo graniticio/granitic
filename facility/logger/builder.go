@@ -56,9 +56,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.ConfigA
 
 	lmf := new(logging.LogMessageFormatter)
 
-	err := ca.Populate("LogWriting.PrefixFormat", lmf)
-
-	if err != nil {
+	if err := ca.Populate("LogWriting.PrefixFormat", lmf); err != nil {
 		return nil, err
 	}
 
@@ -66,43 +64,29 @@ func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.ConfigA
 		lmf.PrefixPreset = logging.FrameworkPresetPrefix
 	}
 
-	err = lmf.Init()
-
-	return lmf, err
+	return lmf, lmf.Init()
 
 }
 
 func (alfb *ApplicationLoggingFacilityBuilder) buildWriters(ca *config.ConfigAccessor) ([]logging.LogWriter, error) {
 	writers := make([]logging.LogWriter, 0)
 
-	console, err := ca.BoolVal("LogWriting.EnableConsoleLogging")
-
-	if err != nil {
+	if console, err := ca.BoolVal("LogWriting.EnableConsoleLogging"); err != nil {
 		return nil, err
-	}
-
-	if console {
+	} else if console {
 		writers = append(writers, new(logging.ConsoleWriter))
 	}
 
-	file, err := ca.BoolVal("LogWriting.EnableFileLogging")
-
-	if err != nil {
+	if file, err := ca.BoolVal("LogWriting.EnableFileLogging"); err != nil {
 		return nil, err
-	}
-
-	if file {
+	} else if file {
 		fileWriter := new(logging.AsynchFileWriter)
 
-		err := ca.Populate("LogWriting.File", fileWriter)
-
-		if err != nil {
+		if err = ca.Populate("LogWriting.File", fileWriter); err != nil {
 			return nil, err
 		}
 
-		err = fileWriter.Init()
-
-		if err != nil {
+		if err = fileWriter.Init(); err != nil {
 			return nil, err
 		}
 
