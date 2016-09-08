@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
-	"github.com/graniticio/granitic/iam"
+	"golang.org/x/net/context"
 	"net/http"
 	"os"
 	"regexp"
@@ -104,13 +104,13 @@ type AccessLogWriter struct {
 	lines         chan string
 }
 
-func (alw *AccessLogWriter) LogRequest(req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time, id iam.ClientIdentity) {
+func (alw *AccessLogWriter) LogRequest(req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time, ctx context.Context) {
 
-	alw.lines <- alw.buildLine(req, res, rec, fin, id)
+	alw.lines <- alw.buildLine(req, res, rec, fin, ctx)
 
 }
 
-func (alw *AccessLogWriter) buildLine(req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time, id iam.ClientIdentity) string {
+func (alw *AccessLogWriter) buildLine(req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time, ctx context.Context) string {
 	var b bytes.Buffer
 
 	if alw.UtcTimes {
@@ -127,9 +127,9 @@ func (alw *AccessLogWriter) buildLine(req *http.Request, res *httpendpoint.HTTPR
 		case Text:
 			b.WriteString(e.content)
 		case Placeholder:
-			b.WriteString(alw.findValue(e, req, res, rec, fin, id))
+			b.WriteString(alw.findValue(e, req, res, rec, fin, ctx))
 		case PlaceholderWithVar:
-			b.WriteString(alw.findValueWithVar(e, req, res, rec, fin, id))
+			b.WriteString(alw.findValueWithVar(e, req, res, rec, fin, ctx))
 		}
 	}
 
@@ -369,7 +369,7 @@ func (alw *AccessLogWriter) mapPlaceholder(ph string) LogFormatPlaceHolder {
 
 }
 
-func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, id iam.ClientIdentity) string {
+func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, ctx context.Context) string {
 	switch element.placeholderType {
 	case RequestHeader:
 		return alw.requestHeader(element.variable, req)
@@ -397,7 +397,7 @@ func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.
 	}
 }
 
-func (alw *AccessLogWriter) findValue(element *LogLineElement, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, id iam.ClientIdentity) string {
+func (alw *AccessLogWriter) findValue(element *LogLineElement, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, ctx context.Context) string {
 
 	switch element.placeholderType {
 
@@ -421,7 +421,7 @@ func (alw *AccessLogWriter) findValue(element *LogLineElement, req *http.Request
 		return hyphen
 
 	case UserId:
-		return alw.userId(id)
+		return alw.userId(ctx)
 
 	case Method:
 		return req.Method
@@ -487,20 +487,11 @@ func (alw *AccessLogWriter) requestHeader(name string, req *http.Request) string
 }
 
 func (alw *AccessLogWriter) requestLine(req *http.Request) string {
-
 	return fmt.Sprintf("%s %s %s", req.Method, req.RequestURI, req.Proto)
-
 }
 
-func (alw *AccessLogWriter) userId(id iam.ClientIdentity) string {
-
-	if id == nil || id.Anonymous() {
-		return hyphen
-
-	} else {
-		return id.LoggableUserId()
-	}
-
+func (alw *AccessLogWriter) userId(ctx context.Context) string {
+	return hyphen
 }
 
 func (alw *AccessLogWriter) PrepareToStop() {

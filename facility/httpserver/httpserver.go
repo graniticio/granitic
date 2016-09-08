@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
-	"github.com/graniticio/granitic/iam"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
@@ -146,8 +145,6 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	h.FrameworkLogger.LogTracef("Finding provider to handle %s %s from %d providers", path, req.Method, len(providersByMethod))
 
-	var identity iam.ClientIdentity
-
 	for _, handlerPattern := range providersByMethod {
 
 		pattern := handlerPattern.Pattern
@@ -157,20 +154,19 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 		if pattern.MatchString(path) && h.versionMatch(req, handlerPattern.Provider) {
 			h.FrameworkLogger.LogTracef("Matches %s", pattern.String())
 			matched = true
-			identity, ctx = handlerPattern.Provider.ServeHTTP(ctx, wrw, req)
+			ctx = handlerPattern.Provider.ServeHTTP(ctx, wrw, req)
 		}
 	}
 
 	if !matched {
 		state := ws.NewAbnormalState(http.StatusNotFound, wrw)
-		state.Identity = identity
 
 		h.AbnormalStatusWriter.WriteAbnormalStatus(state)
 	}
 
 	if h.AccessLogging {
 		finished := time.Now()
-		h.AccessLogWriter.LogRequest(req, wrw, &received, &finished, identity)
+		h.AccessLogWriter.LogRequest(req, wrw, &received, &finished, ctx)
 	}
 
 }

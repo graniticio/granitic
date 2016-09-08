@@ -88,7 +88,7 @@ func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
 }
 
 //HttpEndpointProvider
-func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request) (iam.ClientIdentity, context.Context) {
+func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request) context.Context {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -114,12 +114,12 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 
 	if okay, ctx = wh.identifyAndAuthenticate(ctx, w, req, wsReq); !okay {
 
-		return wsReq.UserIdentity, ctx
+		return ctx
 	}
 
 	//Check caller has permission to use this resource
 	if !wh.CheckAccessAfterParse && !wh.checkAccess(ctx, w, wsReq) {
-		return wsReq.UserIdentity, ctx
+		return ctx
 	}
 
 	//Unmarshall body, query parameters and path parameters
@@ -129,12 +129,12 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 
 	if wsReq.HasFrameworkErrors() && !wh.DeferFrameworkErrors {
 		wh.handleFrameworkErrors(w, wsReq)
-		return wsReq.UserIdentity, ctx
+		return ctx
 	}
 
 	//Check caller has permission to use this resource
 	if wh.CheckAccessAfterParse && !wh.checkAccess(ctx, w, wsReq) {
-		return wsReq.UserIdentity, ctx
+		return ctx
 	}
 
 	//Validate request
@@ -146,13 +146,13 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 	if errors.HasErrors() {
 		wh.writeErrorResponse(&errors, w, wsReq)
 
-		return wsReq.UserIdentity, ctx
+		return ctx
 	}
 
 	//Execute logic
 	wh.process(ctx, wsReq, w)
 
-	return wsReq.UserIdentity, ctx
+	return ctx
 }
 
 func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.WsRequest, errors *ws.ServiceErrors) {
