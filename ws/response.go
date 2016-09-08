@@ -15,6 +15,10 @@ const (
 	Abnormal
 )
 
+type Templated interface {
+	TemplateName() string
+}
+
 type WsProcessState struct {
 	WsRequest          *WsRequest
 	WsResponse         *WsResponse
@@ -37,6 +41,7 @@ type WsResponse struct {
 	Body       interface{}
 	Errors     *ServiceErrors
 	Headers    map[string]string
+	Template   string
 }
 
 func NewWsResponse(errorFinder ServiceErrorFinder) *WsResponse {

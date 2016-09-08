@@ -397,6 +397,10 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 	state.WsResponse = wsRes
 	state.WsRequest = request
 
+	if tr, found := wh.Logic.(ws.Templated); found {
+		wsRes.Template = tr.TemplateName()
+	}
+
 	err := wh.ResponseWriter.Write(ctx, state, ws.Normal)
 
 	if err != nil {

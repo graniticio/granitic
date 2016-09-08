@@ -7,8 +7,9 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
 	"golang.org/x/net/context"
-	"html/template"
 	"net/http"
+	"strconv"
+	"text/template"
 )
 
 type StandardXMLResponseWriter struct {
@@ -17,7 +18,7 @@ type StandardXMLResponseWriter struct {
 	FrameworkErrors  *ws.FrameworkErrorGenerator
 	DefaultHeaders   map[string]string
 	TemplateDir      string
-	StatusTemplates  map[int]string
+	StatusTemplates  map[string]string
 	cachedTemplates  map[string]*template.Template
 	HeaderBuilder    ws.WsCommonResponseHeaderBuilder
 	CacheTemplates   bool
@@ -32,15 +33,33 @@ func (rw *StandardXMLResponseWriter) Write(ctx context.Context, state *ws.WsProc
 	}
 
 	switch outcome {
-	/*case ws.Normal:
-		return rw.write(ctx, state.WsResponse, state.HTTPResponseWriter, ch)
-	case ws.Error:
-		return rw.writeErrors(ctx, state.ServiceErrors, state.HTTPResponseWriter, ch)*/
+	case ws.Normal:
+		return rw.writeNormal(ctx, state.WsResponse, state.HTTPResponseWriter, ch)
+	/*case ws.Error:
+	return rw.writeErrors(ctx, state.ServiceErrors, state.HTTPResponseWriter, ch)*/
 	case ws.Abnormal:
 		return rw.writeAbnormalStatus(ctx, state.Status, state.HTTPResponseWriter, ch)
 	}
 
 	return errors.New("Unsuported ws.WsOutcome value")
+}
+
+func (rw *StandardXMLResponseWriter) writeNormal(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+
+	var t *template.Template
+	var tn string
+	var err error
+
+	if tn = res.Template; tn == "" {
+		return errors.New("No template name set on response. Does your logic component implement ws.Templated?")
+	}
+
+	if t, err = rw.loadTemplate(tn); err != nil {
+		m := fmt.Sprintf("Problem loading XML template %s: %s", tn, err.Error())
+		return errors.New(m)
+	}
+
+	return rw.write(ctx, res, w, ch, t)
 }
 
 func (rw *StandardXMLResponseWriter) write(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string, t *template.Template) error {
@@ -78,11 +97,14 @@ func (rw *StandardXMLResponseWriter) WriteAbnormalStatus(ctx context.Context, st
 func (rw *StandardXMLResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
+	var tn string
 	var err error
 
 	fmt.Printf("Handling %d\n", status)
 
-	tn := rw.AbnormalTemplate
+	if tn = rw.StatusTemplates[strconv.Itoa(status)]; tn == "" {
+		tn = rw.AbnormalTemplate
+	}
 
 	if t, err = rw.loadTemplate(tn); err != nil {
 		m := fmt.Sprintf("Problem loading XML template %s: %s", tn, err.Error())
@@ -122,6 +144,10 @@ func (rw *StandardXMLResponseWriter) loadTemplate(n string) (*template.Template,
 
 func (rw *StandardXMLResponseWriter) StartComponent() error {
 	rw.cachedTemplates = make(map[string]*template.Template)
+
+	if rw.StatusTemplates == nil {
+		rw.StatusTemplates = make(map[string]string)
+	}
 
 	return nil
 }
