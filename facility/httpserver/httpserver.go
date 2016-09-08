@@ -117,10 +117,12 @@ func (h *HTTPServer) AllowAccess() error {
 func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	wrw := httpendpoint.NewHTTPResponseWriter(res)
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	defer cancelFunc()
 
 	if !h.available {
 		state := ws.NewAbnormalState(h.TooBusyStatus, wrw)
-		h.AbnormalStatusWriter.WriteAbnormalStatus(state)
+		h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state)
 		return
 	}
 
@@ -129,12 +131,9 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	if h.MaxConcurrent > 0 && rCount > h.MaxConcurrent {
 		state := ws.NewAbnormalState(h.TooBusyStatus, wrw)
-		h.AbnormalStatusWriter.WriteAbnormalStatus(state)
+		h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state)
 		return
 	}
-
-	ctx, cancelFunc := context.WithCancel(context.Background())
-	defer cancelFunc()
 
 	received := time.Now()
 	matched := false
@@ -161,7 +160,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	if !matched {
 		state := ws.NewAbnormalState(http.StatusNotFound, wrw)
 
-		h.AbnormalStatusWriter.WriteAbnormalStatus(state)
+		h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state)
 	}
 
 	if h.AccessLogging {

@@ -6,6 +6,7 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/types"
+	"golang.org/x/net/context"
 	"regexp"
 	"strconv"
 	"strings"
@@ -161,7 +162,7 @@ func (ov *RuleValidator) ErrorCodesInUse() (codes types.StringSet, sourceName st
 	return ov.codesInUse, ov.componentName
 }
 
-func (ov *RuleValidator) Validate(subject *SubjectContext) ([]*FieldErrors, error) {
+func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) ([]*FieldErrors, error) {
 
 	log := ov.Log
 

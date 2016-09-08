@@ -3,6 +3,7 @@ package ws
 import (
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/iam"
+	"golang.org/x/net/context"
 	"net/http"
 )
 
@@ -49,18 +50,18 @@ func NewWsResponse(errorFinder ServiceErrorFinder) *WsResponse {
 }
 
 type WsResponseWriter interface {
-	Write(state *WsProcessState, outcome WsOutcome) error
+	Write(ctx context.Context, state *WsProcessState, outcome WsOutcome) error
 }
 
 type AbnormalStatusWriter interface {
-	WriteAbnormalStatus(state *WsProcessState) error
+	WriteAbnormalStatus(ctx context.Context, state *WsProcessState) error
 }
 
 // An object that constructs response headers that are common to all web service requests. These may typically be
 // caching instructions or 'processing server' records. Implementations must be extremely cautious when using
 // the information in the supplied WsProcess state as some values may be nil.
 type WsCommonResponseHeaderBuilder interface {
-	BuildHeaders(state *WsProcessState) map[string]string
+	BuildHeaders(ctx context.Context, state *WsProcessState) map[string]string
 }
 
 // Interface for components able to convert a set of service errors into a structure suitable for serialisation.

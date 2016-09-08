@@ -6,6 +6,7 @@ import (
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
+	"golang.org/x/net/context"
 )
 
 type StandardJSONResponseWriter struct {
@@ -21,27 +22,27 @@ type StandardJSONResponseWriter struct {
 	PrefixString     string
 }
 
-func (rw *StandardJSONResponseWriter) Write(state *ws.WsProcessState, outcome ws.WsOutcome) error {
+func (rw *StandardJSONResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
 
 	var ch map[string]string
 
 	if rw.HeaderBuilder != nil {
-		ch = rw.HeaderBuilder.BuildHeaders(state)
+		ch = rw.HeaderBuilder.BuildHeaders(ctx, state)
 	}
 
 	switch outcome {
 	case ws.Normal:
-		return rw.write(state.WsResponse, state.HTTPResponseWriter, ch)
+		return rw.write(ctx, state.WsResponse, state.HTTPResponseWriter, ch)
 	case ws.Error:
-		return rw.writeErrors(state.ServiceErrors, state.HTTPResponseWriter, ch)
+		return rw.writeErrors(ctx, state.ServiceErrors, state.HTTPResponseWriter, ch)
 	case ws.Abnormal:
-		return rw.writeAbnormalStatus(state.Status, state.HTTPResponseWriter, ch)
+		return rw.writeAbnormalStatus(ctx, state.Status, state.HTTPResponseWriter, ch)
 	}
 
 	return errors.New("Unsuported ws.WsOutcome value")
 }
 
-func (rw *StandardJSONResponseWriter) write(res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *StandardJSONResponseWriter) write(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -116,11 +117,11 @@ func (rw *StandardJSONResponseWriter) mergeHeaders(res *ws.WsResponse, ch map[st
 	return merged
 }
 
-func (rw *StandardJSONResponseWriter) WriteAbnormalStatus(state *ws.WsProcessState) error {
-	return rw.Write(state, ws.Abnormal)
+func (rw *StandardJSONResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.WsProcessState) error {
+	return rw.Write(ctx, state, ws.Abnormal)
 }
 
-func (rw *StandardJSONResponseWriter) writeAbnormalStatus(status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *StandardJSONResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	res := new(ws.WsResponse)
 	res.HttpStatus = status
@@ -131,16 +132,16 @@ func (rw *StandardJSONResponseWriter) writeAbnormalStatus(status int, w *httpend
 
 	res.Errors = &errors
 
-	return rw.write(res, w, ch)
+	return rw.write(ctx, res, w, ch)
 
 }
 
-func (rw *StandardJSONResponseWriter) writeErrors(errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *StandardJSONResponseWriter) writeErrors(ctx context.Context, errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	res := new(ws.WsResponse)
 	res.Errors = errors
 
-	return rw.write(res, w, ch)
+	return rw.write(ctx, res, w, ch)
 }
 
 type StandardJSONErrorFormatter struct{}

@@ -110,7 +110,7 @@ func NewStringBufferResponseWriter() *StringBufferResponseWriter {
 
 type NilResponseWriter struct{}
 
-func (rw *NilResponseWriter) Write(state *ws.WsProcessState, outcome ws.WsOutcome) error {
+func (rw *NilResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
 	return nil
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/test"
 	"github.com/graniticio/granitic/types"
+	"golang.org/x/net/context"
 	"testing"
 )
 
@@ -47,7 +48,7 @@ func TestConfigParsing(t *testing.T) {
 	sc := new(SubjectContext)
 	sc.Subject = u
 
-	fe, err := ov.Validate(sc)
+	fe, err := ov.Validate(context.Background(), sc)
 
 	for _, e := range fe {
 		fmt.Printf("%s %q", e.Field, e.ErrorCodes)
