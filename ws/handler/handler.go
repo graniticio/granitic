@@ -92,7 +92,7 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 
 	defer func() {
 		if r := recover(); r != nil {
-			wh.Log.LogErrorfWithTrace("Panic recovered while trying process a request or write its response %s", r)
+			wh.Log.LogErrorfCtxWithTrace(ctx, "Panic recovered while trying process a request or write its response %s", r)
 			wh.writePanicResponse(ctx, r, w)
 		}
 	}()
@@ -123,8 +123,8 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 	}
 
 	//Unmarshall body, query parameters and path parameters
-	wh.unmarshall(req, wsReq)
-	wh.processQueryParams(req, wsReq)
+	wh.unmarshall(ctx, req, wsReq)
+	wh.processQueryParams(ctx, req, wsReq)
 	wh.processPathParams(req, wsReq)
 
 	if wsReq.HasFrameworkErrors() && !wh.DeferFrameworkErrors {
@@ -171,7 +171,7 @@ func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.WsRequest, e
 		ov := wh.AutoValidator
 
 		if body == nil && ov != nil {
-			wh.Log.LogWarnf("Request body is nil but an ObjectValidator is set on the handler. Automatic body validation skipped.")
+			wh.Log.LogWarnfCtx(ctx, "Request body is nil but an ObjectValidator is set on the handler. Automatic body validation skipped.")
 		} else if ov != nil {
 			sc := new(validate.SubjectContext)
 			sc.Subject = body
@@ -180,7 +180,7 @@ func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.WsRequest, e
 
 			if err != nil {
 
-				wh.Log.LogErrorf("Problem encountered during automatic body validation %v", err)
+				wh.Log.LogErrorfCtx(ctx, "Problem encountered during automatic body validation %v", err)
 
 				ce := wh.FrameworkErrors.HttpError(http.StatusInternalServerError)
 				errors.AddError(ce)
@@ -217,7 +217,7 @@ func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.WsRequest, e
 
 }
 
-func (wh *WsHandler) unmarshall(req *http.Request, wsReq *ws.WsRequest) {
+func (wh *WsHandler) unmarshall(ctx context.Context, req *http.Request, wsReq *ws.WsRequest) {
 
 	targetSource, found := wh.Logic.(WsUnmarshallTarget)
 
@@ -229,11 +229,11 @@ func (wh *WsHandler) unmarshall(req *http.Request, wsReq *ws.WsRequest) {
 			return
 		}
 
-		err := wh.Unmarshaller.Unmarshall(req, wsReq)
+		err := wh.Unmarshaller.Unmarshall(ctx, req, wsReq)
 
 		if err != nil {
 
-			wh.Log.LogDebugf("Error unmarshalling request body for %s %s %s", req.URL.Path, req.Method, err)
+			wh.Log.LogDebugfCtx(ctx, "Error unmarshalling request body for %s %s %s", req.URL.Path, req.Method, err)
 
 			m, c := wh.FrameworkErrors.MessageCode(ws.UnableToParseRequest)
 
@@ -261,7 +261,7 @@ func (wh *WsHandler) processPathParams(req *http.Request, wsReq *ws.WsRequest) {
 
 }
 
-func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *ws.WsRequest) {
+func (wh *WsHandler) processQueryParams(ctx context.Context, req *http.Request, wsReq *ws.WsRequest) {
 
 	if wh.DisableQueryParsing {
 		return
@@ -272,7 +272,7 @@ func (wh *WsHandler) processQueryParams(req *http.Request, wsReq *ws.WsRequest) 
 
 	if wh.bindQuery {
 		if wsReq.RequestBody == nil {
-			wh.Log.LogErrorf("Query parameter binding is enabled, but no target available to bind into. Does your Logic component implement the WsUnmarshallTarget interface?")
+			wh.Log.LogErrorfCtx(ctx, "Query parameter binding is enabled, but no target available to bind into. Does your Logic component implement the WsUnmarshallTarget interface?")
 			return
 		}
 
@@ -376,7 +376,7 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 
 	defer func() {
 		if r := recover(); r != nil {
-			wh.Log.LogErrorfWithTrace("Panic recovered while trying process a request or write its response %s", r)
+			wh.Log.LogErrorfCtxWithTrace(ctx, "Panic recovered while trying process a request or write its response %s", r)
 			wh.writePanicResponse(ctx, r, w)
 		}
 	}()
@@ -397,7 +397,7 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 	err := wh.ResponseWriter.Write(ctx, state, ws.Normal)
 
 	if err != nil {
-		wh.Log.LogErrorf("Problem writing response: %s", err.Error())
+		wh.Log.LogErrorfCtx(ctx, "Problem writing response: %s", err.Error())
 	}
 
 }
@@ -408,7 +408,7 @@ func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceE
 
 	defer func() {
 		if r := recover(); r != nil {
-			l.LogErrorfWithTrace("Panic recovered while trying to write a response that was already in error %s", r)
+			l.LogErrorfCtxWithTrace(ctx, "Panic recovered while trying to write a response that was already in error %s", r)
 		}
 	}()
 
@@ -420,7 +420,7 @@ func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceE
 	err := wh.ResponseWriter.Write(ctx, state, ws.Error)
 
 	if err != nil {
-		l.LogErrorf("Problem writing an HTTP response that was already in error", err)
+		l.LogErrorfCtx(ctx, "Problem writing an HTTP response that was already in error", err)
 	}
 
 }
@@ -431,7 +431,7 @@ func (wh *WsHandler) writePanicResponse(ctx context.Context, r interface{}, w *h
 
 	wh.ResponseWriter.Write(ctx, state, ws.Abnormal)
 
-	wh.Log.LogErrorf("Panic recovered but error response served. %s", r)
+	wh.Log.LogErrorfCtx(ctx, "Panic recovered but error response served. %s", r)
 
 }
 

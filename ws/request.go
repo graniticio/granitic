@@ -3,6 +3,7 @@ package ws
 import (
 	"github.com/graniticio/granitic/iam"
 	"github.com/graniticio/granitic/types"
+	"golang.org/x/net/context"
 	"net/http"
 )
 
@@ -49,7 +50,7 @@ func (wsr *WsRequest) BoundFields() types.StringSet {
 }
 
 type WsUnmarshaller interface {
-	Unmarshall(req *http.Request, wsReq *WsRequest) error
+	Unmarshall(ctx context.Context, req *http.Request, wsReq *WsRequest) error
 }
 
 type DirectHTTPAccess struct {

@@ -47,7 +47,7 @@ func (rw *StandardJSONResponseWriter) write(ctx context.Context, res *ws.WsRespo
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
 		if rw.FrameworkLogger.IsLevelEnabled(logging.Debug) {
-			rw.FrameworkLogger.LogDebugf("Response already written to.")
+			rw.FrameworkLogger.LogDebugfCtx(ctx, "Response already written to.")
 		}
 
 		return nil
