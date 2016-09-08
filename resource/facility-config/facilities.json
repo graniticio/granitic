@@ -2,6 +2,7 @@
   "Facilities": {
     "HttpServer": false,
     "JsonWs": false,
+    "XmlWs": false,
     "FrameworkLogging": true,
     "ApplicationLogging": true,
     "QueryManager": false,

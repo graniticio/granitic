@@ -2,6 +2,7 @@ package ws
 
 import (
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/facility/httpserver"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
@@ -11,6 +12,14 @@ import (
 const wsHttpStatusDeterminerComponentName = instance.FrameworkPrefix + "HttpStatusDeterminer"
 const wsParamBinderComponentName = instance.FrameworkPrefix + "ParamBinder"
 const wsFrameworkErrorGenerator = instance.FrameworkPrefix + "FrameworkErrorGenerator"
+
+func OfferAbnormalStatusWriter(arw ws.AbnormalStatusWriter, cc *ioc.ComponentContainer) {
+
+	if !cc.ModifierExists(httpserver.HttpServerComponentName, httpserver.HttpServerAbnormalStatusFieldName) {
+		//The HTTP server does not have an AbnormalStatusWriter defined
+		cc.AddModifier(httpserver.HttpServerComponentName, httpserver.HttpServerAbnormalStatusFieldName, jsonResponseWriterComponentName)
+	}
+}
 
 func BuildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) *WsCommon {
 
