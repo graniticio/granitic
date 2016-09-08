@@ -15,7 +15,6 @@ const FrameworkPresetPrefix = "framework"
 const formatRegex = "\\%[a-zA-Z]|\\%\\%|\\%{[^}]*}[a-zA-Z]"
 const varModifiedRegex = "\\%{([^}]*)}([a-zA-Z])"
 const percent = "%"
-const hyphen = "-"
 
 const unsupported = "???"
 
@@ -30,6 +29,7 @@ const (
 	LogLevelFullPadded
 	ComponentName
 	ComponentNameTrunc
+	CtxValue
 )
 
 type logPrefixElementType int
@@ -90,11 +90,16 @@ type LogMessageFormatter struct {
 	PrefixFormat string
 	PrefixPreset string
 	UtcTimes     bool
+	Unset        string
 }
 
 func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerName, message string) string {
 	var b bytes.Buffer
 	var t time.Time
+
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	if lmf.UtcTimes {
 		t = time.Now().UTC()
@@ -110,7 +115,7 @@ func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerNa
 		case Placeholder:
 			b.WriteString(lmf.findValue(e, levelLabel, loggerName, &t))
 		case PlaceholderWithVar:
-			b.WriteString(lmf.findValueWithVar(e, levelLabel, loggerName, &t))
+			b.WriteString(lmf.findValueWithVar(ctx, e, levelLabel, loggerName, &t))
 		}
 	}
 
@@ -120,16 +125,32 @@ func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerNa
 	return b.String()
 }
 
-func (alw *LogMessageFormatter) findValueWithVar(element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
+func (alw *LogMessageFormatter) findValueWithVar(ctx context.Context, element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
 	switch element.placeholderType {
 	case LogTime:
 		return loggedAt.Format(element.variable)
 	case ComponentNameTrunc:
 		return truncOrPad(loggerName, element.variable)
+	case CtxValue:
+		return alw.ctxValue(ctx, element.variable)
 	default:
 		return unsupported
 
 	}
+}
+
+func (alw *LogMessageFormatter) ctxValue(ctx context.Context, key string) string {
+
+	var v interface{}
+
+	if v = ctx.Value(key); v != nil {
+
+		return fmt.Sprintf("%v", v)
+
+	} else {
+		return alw.Unset
+	}
+
 }
 
 func (alw *LogMessageFormatter) findValue(element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
@@ -349,6 +370,8 @@ func (alw *LogMessageFormatter) mapPlaceholder(ph string) prefixFormatPlaceHolde
 		return ComponentName
 	case "C":
 		return ComponentNameTrunc
+	case "X":
+		return CtxValue
 	}
 
 }

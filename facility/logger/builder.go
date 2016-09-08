@@ -56,7 +56,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.ConfigA
 
 	lmf := new(logging.LogMessageFormatter)
 
-	if err := ca.Populate("LogWriting.PrefixFormat", lmf); err != nil {
+	if err := ca.Populate("LogWriting.Format", lmf); err != nil {
 		return nil, err
 	}
 
