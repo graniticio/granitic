@@ -21,7 +21,7 @@ func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 	um := new(xml.StandardXmlUnmarshaller)
 	cc.WrapAndAddProto(xmlUnmarshallerName, um)
 
-	rw := new(xml.StandardXMLResponseWriter)
+	rw := new(xml.TemplatedXMLResponseWriter)
 	ca.Populate("XmlWs.ResponseWriter", rw)
 	cc.WrapAndAddProto(xmlResponseWriterName, rw)
 

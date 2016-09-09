@@ -8,13 +8,12 @@ import (
 	"github.com/graniticio/granitic/ws"
 	"golang.org/x/net/context"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strconv"
 	"text/template"
 )
 
-type StandardXMLResponseWriter struct {
+type TemplatedXMLResponseWriter struct {
 	FrameworkLogger  logging.Logger
 	StatusDeterminer ws.HttpStatusCodeDeterminer
 	FrameworkErrors  *ws.FrameworkErrorGenerator
@@ -27,7 +26,7 @@ type StandardXMLResponseWriter struct {
 	ErrorTemplate    string
 }
 
-func (rw *StandardXMLResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
+func (rw *TemplatedXMLResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
 	var ch map[string]string
 
 	if rw.HeaderBuilder != nil {
@@ -46,7 +45,7 @@ func (rw *StandardXMLResponseWriter) Write(ctx context.Context, state *ws.WsProc
 	return errors.New("Unsuported ws.WsOutcome value")
 }
 
-func (rw *StandardXMLResponseWriter) writeNormal(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXMLResponseWriter) writeNormal(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string
@@ -62,7 +61,7 @@ func (rw *StandardXMLResponseWriter) writeNormal(ctx context.Context, res *ws.Ws
 	return rw.write(ctx, res, w, ch, t)
 }
 
-func (rw *StandardXMLResponseWriter) write(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string, t *template.Template) error {
+func (rw *TemplatedXMLResponseWriter) write(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string, t *template.Template) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -89,7 +88,7 @@ func (rw *StandardXMLResponseWriter) write(ctx context.Context, res *ws.WsRespon
 
 }
 
-func (rw *StandardXMLResponseWriter) writeErrors(ctx context.Context, res *ws.WsResponse, se *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXMLResponseWriter) writeErrors(ctx context.Context, res *ws.WsResponse, se *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string
@@ -111,12 +110,12 @@ func (rw *StandardXMLResponseWriter) writeErrors(ctx context.Context, res *ws.Ws
 	return rw.write(ctx, res, w, ch, t)
 }
 
-func (rw *StandardXMLResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.WsProcessState) error {
+func (rw *TemplatedXMLResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.WsProcessState) error {
 
 	return rw.Write(ctx, state, ws.Abnormal)
 }
 
-func (rw *StandardXMLResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXMLResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string
@@ -142,7 +141,7 @@ func (rw *StandardXMLResponseWriter) writeAbnormalStatus(ctx context.Context, st
 
 }
 
-func (rw *StandardXMLResponseWriter) StartComponent() error {
+func (rw *TemplatedXMLResponseWriter) StartComponent() error {
 
 	if rw.AbnormalTemplate == "" {
 		return errors.New("You must specify a template for abnormal HTTP statuses via the AbnormalTemplate field.")
@@ -161,7 +160,7 @@ func (rw *StandardXMLResponseWriter) StartComponent() error {
 	return nil
 }
 
-func (rw *StandardXMLResponseWriter) preLoadTemplates(baseDir string) error {
+func (rw *TemplatedXMLResponseWriter) preLoadTemplates(baseDir string) error {
 	if tp, err := rw.templatePaths(rw.TemplateDir); err != nil {
 		m := fmt.Sprintf("Problem converting template directory into a list of file paths %s: %s", baseDir, err)
 		return errors.New(m)
@@ -177,7 +176,7 @@ func (rw *StandardXMLResponseWriter) preLoadTemplates(baseDir string) error {
 	return nil
 }
 
-func (rw *StandardXMLResponseWriter) templatePaths(baseDir string) ([]string, error) {
+func (rw *TemplatedXMLResponseWriter) templatePaths(baseDir string) ([]string, error) {
 	var di []os.FileInfo
 	var err error
 
@@ -206,12 +205,4 @@ func (rw *StandardXMLResponseWriter) templatePaths(baseDir string) ([]string, er
 	}
 
 	return tp, nil
-}
-
-type StandardXmlUnmarshaller struct {
-}
-
-func (um *StandardXmlUnmarshaller) Unmarshall(ctx context.Context, req *http.Request, wsReq *ws.WsRequest) error {
-
-	return nil
 }

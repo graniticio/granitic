@@ -416,7 +416,7 @@ func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceE
 
 	defer func() {
 		if r := recover(); r != nil {
-			l.LogErrorfCtxWithTrace(ctx, "Panic recovered while trying to write a response that was already in error %s", r)
+			l.LogErrorfCtxWithTrace(ctx, "Panic recovered while trying to write a response that was already in error %v", r)
 		}
 	}()
 
