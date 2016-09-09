@@ -7,8 +7,11 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
 	"golang.org/x/net/context"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"text/template"
 )
 
@@ -19,9 +22,10 @@ type StandardXMLResponseWriter struct {
 	DefaultHeaders   map[string]string
 	TemplateDir      string
 	StatusTemplates  map[string]string
-	cachedTemplates  map[string]*template.Template
+	templates        map[string]*template.Template
 	HeaderBuilder    ws.WsCommonResponseHeaderBuilder
 	CacheTemplates   bool
+	PreLoad          bool
 	AbnormalTemplate string
 }
 
@@ -126,7 +130,7 @@ func (rw *StandardXMLResponseWriter) writeAbnormalStatus(ctx context.Context, st
 
 func (rw *StandardXMLResponseWriter) loadTemplate(n string) (*template.Template, error) {
 
-	if t := rw.cachedTemplates[n]; rw.CacheTemplates && t != nil {
+	if t := rw.templates[n]; rw.CacheTemplates && t != nil {
 		return t, nil
 	}
 
@@ -135,7 +139,7 @@ func (rw *StandardXMLResponseWriter) loadTemplate(n string) (*template.Template,
 	} else {
 
 		if rw.CacheTemplates {
-			rw.cachedTemplates[n] = t
+			rw.templates[n] = t
 		}
 
 		return t, nil
@@ -143,10 +147,53 @@ func (rw *StandardXMLResponseWriter) loadTemplate(n string) (*template.Template,
 }
 
 func (rw *StandardXMLResponseWriter) StartComponent() error {
-	rw.cachedTemplates = make(map[string]*template.Template)
+	rw.templates = make(map[string]*template.Template)
+
+	if rw.AbnormalTemplate == "" {
+		return errors.New("You must specify a template for abnormal HTTP statuses via the AbnormalTemplate field.")
+	}
+
+	if rw.TemplateDir == "" {
+		return errors.New("You must specify a directory containing XML templates via the TemplateDir field.")
+	}
 
 	if rw.StatusTemplates == nil {
 		rw.StatusTemplates = make(map[string]string)
+	}
+
+	if rw.PreLoad {
+		if err := rw.preLoadTemplates(rw.TemplateDir); err != nil {
+			return err
+		} else {
+			rw.FrameworkLogger.LogDebugf("Pre-loaded %d XML template(s) into cache.", len(rw.templates))
+		}
+	}
+
+	return nil
+}
+
+func (rw *StandardXMLResponseWriter) preLoadTemplates(baseDir string) error {
+	var di []os.FileInfo
+	var err error
+
+	if di, err = ioutil.ReadDir(baseDir); err != nil {
+		m := fmt.Sprintf("Problem opening template directory or sub-directory %s: %s", baseDir, err.Error())
+		return errors.New(m)
+	}
+
+	for _, f := range di {
+		if f.IsDir() {
+			return rw.preLoadTemplates(baseDir + "/" + f.Name())
+		} else {
+
+			n := baseDir + "/" + f.Name()
+			n = strings.Replace(n, rw.TemplateDir+"/", "", -1)
+
+			if _, err := rw.loadTemplate(n); err != nil {
+				return err
+			}
+
+		}
 	}
 
 	return nil

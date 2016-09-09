@@ -4,6 +4,7 @@
       "TemplateDir": "resource/xml/",
       "AbnormalTemplate": "abnormal",
       "CacheTemplates": true,
+      "PreLoad": true,
       "DefaultHeaders": {
         "Content-Type": "application/xml; charset=utf-8"
       }
