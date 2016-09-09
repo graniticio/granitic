@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"text/template"
 )
 
@@ -22,11 +21,10 @@ type StandardXMLResponseWriter struct {
 	DefaultHeaders   map[string]string
 	TemplateDir      string
 	StatusTemplates  map[string]string
-	templates        map[string]*template.Template
+	templates        *template.Template
 	HeaderBuilder    ws.WsCommonResponseHeaderBuilder
-	CacheTemplates   bool
-	PreLoad          bool
 	AbnormalTemplate string
+	ErrorTemplate    string
 }
 
 func (rw *StandardXMLResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
@@ -39,8 +37,8 @@ func (rw *StandardXMLResponseWriter) Write(ctx context.Context, state *ws.WsProc
 	switch outcome {
 	case ws.Normal:
 		return rw.writeNormal(ctx, state.WsResponse, state.HTTPResponseWriter, ch)
-	/*case ws.Error:
-	return rw.writeErrors(ctx, state.ServiceErrors, state.HTTPResponseWriter, ch)*/
+	case ws.Error:
+		return rw.writeErrors(ctx, state.WsResponse, state.ServiceErrors, state.HTTPResponseWriter, ch)
 	case ws.Abnormal:
 		return rw.writeAbnormalStatus(ctx, state.Status, state.HTTPResponseWriter, ch)
 	}
@@ -52,15 +50,13 @@ func (rw *StandardXMLResponseWriter) writeNormal(ctx context.Context, res *ws.Ws
 
 	var t *template.Template
 	var tn string
-	var err error
 
 	if tn = res.Template; tn == "" {
 		return errors.New("No template name set on response. Does your logic component implement ws.Templated?")
 	}
 
-	if t, err = rw.loadTemplate(tn); err != nil {
-		m := fmt.Sprintf("Problem loading XML template %s: %s", tn, err.Error())
-		return errors.New(m)
+	if t = rw.templates.Lookup(tn); t == nil {
+		return errors.New("No such template " + tn)
 	}
 
 	return rw.write(ctx, res, w, ch, t)
@@ -93,6 +89,28 @@ func (rw *StandardXMLResponseWriter) write(ctx context.Context, res *ws.WsRespon
 
 }
 
+func (rw *StandardXMLResponseWriter) writeErrors(ctx context.Context, res *ws.WsResponse, se *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+
+	var t *template.Template
+	var tn string
+
+	res.Errors = se
+
+	if res.Template != "" {
+		tn = res.Template
+	} else if rw.ErrorTemplate != "" {
+		tn = rw.ErrorTemplate
+	} else {
+		tn = rw.AbnormalTemplate
+	}
+
+	if t = rw.templates.Lookup(tn); t == nil {
+		return errors.New("No such template " + tn)
+	}
+
+	return rw.write(ctx, res, w, ch, t)
+}
+
 func (rw *StandardXMLResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.WsProcessState) error {
 
 	return rw.Write(ctx, state, ws.Abnormal)
@@ -102,17 +120,13 @@ func (rw *StandardXMLResponseWriter) writeAbnormalStatus(ctx context.Context, st
 
 	var t *template.Template
 	var tn string
-	var err error
-
-	fmt.Printf("Handling %d\n", status)
 
 	if tn = rw.StatusTemplates[strconv.Itoa(status)]; tn == "" {
 		tn = rw.AbnormalTemplate
 	}
 
-	if t, err = rw.loadTemplate(tn); err != nil {
-		m := fmt.Sprintf("Problem loading XML template %s: %s", tn, err.Error())
-		return errors.New(m)
+	if t = rw.templates.Lookup(tn); t == nil {
+		return errors.New("No such template " + tn)
 	}
 
 	res := new(ws.WsResponse)
@@ -128,26 +142,7 @@ func (rw *StandardXMLResponseWriter) writeAbnormalStatus(ctx context.Context, st
 
 }
 
-func (rw *StandardXMLResponseWriter) loadTemplate(n string) (*template.Template, error) {
-
-	if t := rw.templates[n]; rw.CacheTemplates && t != nil {
-		return t, nil
-	}
-
-	if t, err := template.ParseFiles(rw.TemplateDir + n); err != nil {
-		return nil, err
-	} else {
-
-		if rw.CacheTemplates {
-			rw.templates[n] = t
-		}
-
-		return t, nil
-	}
-}
-
 func (rw *StandardXMLResponseWriter) StartComponent() error {
-	rw.templates = make(map[string]*template.Template)
 
 	if rw.AbnormalTemplate == "" {
 		return errors.New("You must specify a template for abnormal HTTP statuses via the AbnormalTemplate field.")
@@ -161,42 +156,56 @@ func (rw *StandardXMLResponseWriter) StartComponent() error {
 		rw.StatusTemplates = make(map[string]string)
 	}
 
-	if rw.PreLoad {
-		if err := rw.preLoadTemplates(rw.TemplateDir); err != nil {
-			return err
-		} else {
-			rw.FrameworkLogger.LogDebugf("Pre-loaded %d XML template(s) into cache.", len(rw.templates))
-		}
-	}
+	rw.preLoadTemplates(rw.TemplateDir)
 
 	return nil
 }
 
 func (rw *StandardXMLResponseWriter) preLoadTemplates(baseDir string) error {
-	var di []os.FileInfo
-	var err error
-
-	if di, err = ioutil.ReadDir(baseDir); err != nil {
-		m := fmt.Sprintf("Problem opening template directory or sub-directory %s: %s", baseDir, err.Error())
+	if tp, err := rw.templatePaths(rw.TemplateDir); err != nil {
+		m := fmt.Sprintf("Problem converting template directory into a list of file paths %s: %s", baseDir, err)
 		return errors.New(m)
-	}
+	} else {
 
-	for _, f := range di {
-		if f.IsDir() {
-			return rw.preLoadTemplates(baseDir + "/" + f.Name())
-		} else {
-
-			n := baseDir + "/" + f.Name()
-			n = strings.Replace(n, rw.TemplateDir+"/", "", -1)
-
-			if _, err := rw.loadTemplate(n); err != nil {
-				return err
-			}
-
+		if rw.templates, err = template.ParseFiles(tp...); err != nil {
+			m := fmt.Sprintf("Problem parsing template files: %s", err)
+			return errors.New(m)
 		}
+
 	}
 
 	return nil
+}
+
+func (rw *StandardXMLResponseWriter) templatePaths(baseDir string) ([]string, error) {
+	var di []os.FileInfo
+	var err error
+
+	tp := make([]string, 0)
+
+	if di, err = ioutil.ReadDir(baseDir); err != nil {
+		m := fmt.Sprintf("Problem opening template directory or sub-directory %s: %s", baseDir, err.Error())
+		return nil, errors.New(m)
+	}
+
+	for _, f := range di {
+
+		n := baseDir + "/" + f.Name()
+
+		if f.IsDir() {
+			if a, err := rw.templatePaths(n); err == nil {
+				tp = append(tp, a...)
+			} else {
+				return nil, err
+			}
+		} else {
+			tp = append(tp, n)
+
+		}
+
+	}
+
+	return tp, nil
 }
 
 type StandardXmlUnmarshaller struct {

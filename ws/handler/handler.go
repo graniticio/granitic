@@ -397,6 +397,7 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 	state.WsResponse = wsRes
 	state.WsRequest = request
 
+	// Template based response writing
 	if tr, found := wh.Logic.(ws.Templated); found {
 		wsRes.Template = tr.TemplateName()
 	}
@@ -423,6 +424,22 @@ func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceE
 	state.ServiceErrors = errors
 	state.WsRequest = wsReq
 	state.HTTPResponseWriter = w
+
+	// Template based response writing
+	if tr, found := wh.Logic.(ws.Templated); found {
+
+		res := new(ws.WsResponse)
+		state.WsResponse = res
+
+		if tr.UseWhenError() {
+			res.Template = tr.TemplateName()
+		}
+
+		if et, found := wh.Logic.(ws.ErrorTemplate); found {
+			res.Template = et.ErrorTemplateName()
+		}
+
+	}
 
 	err := wh.ResponseWriter.Write(ctx, state, ws.Error)
 

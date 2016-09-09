@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"fmt"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
@@ -16,8 +15,6 @@ type XMLWsFacilityBuilder struct {
 }
 
 func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
-
-	fmt.Println("Constructing XML facility")
 
 	wc := BuildAndRegisterWsCommon(lm, ca, cc)
 

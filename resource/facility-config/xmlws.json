@@ -1,7 +1,7 @@
 {
   "XmlWs": {
     "ResponseWriter": {
-      "TemplateDir": "resource/xml/",
+      "TemplateDir": "resource/xml",
       "AbnormalTemplate": "abnormal",
       "CacheTemplates": true,
       "PreLoad": true,

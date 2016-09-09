@@ -17,6 +17,11 @@ const (
 
 type Templated interface {
 	TemplateName() string
+	UseWhenError() bool
+}
+
+type ErrorTemplate interface {
+	ErrorTemplateName() string
 }
 
 type WsProcessState struct {
