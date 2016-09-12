@@ -8,6 +8,7 @@ import (
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/ws"
 	"github.com/graniticio/granitic/ws/json"
 )
 
@@ -24,7 +25,7 @@ func (fb *JSONWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	um := new(json.StandardJSONUnmarshaller)
 	cn.WrapAndAddProto(jsonUnmarshallerComponentName, um)
 
-	rw := new(json.StandardJSONResponseWriter)
+	rw := new(ws.MarshallingResponseWriter)
 	ca.Populate("JsonWs.ResponseWriter", rw)
 	cn.WrapAndAddProto(jsonResponseWriterComponentName, rw)
 
@@ -41,6 +42,13 @@ func (fb *JSONWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 		wrap := new(json.StandardJSONResponseWrapper)
 		ca.Populate("JsonWs.ResponseWrapper", wrap)
 		rw.ResponseWrapper = wrap
+	}
+
+	if !cn.ModifierExists(jsonResponseWriterComponentName, "MarshalingWriter") {
+
+		mw := new(json.JSONMarshalingWriter)
+		ca.Populate("JsonWs.Marshal", mw)
+		rw.MarshalingWriter = mw
 	}
 
 	OfferAbnormalStatusWriter(rw, cn, jsonResponseWriterComponentName)

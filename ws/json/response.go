@@ -2,118 +2,59 @@ package json
 
 import (
 	"encoding/json"
-	"errors"
-	"github.com/graniticio/granitic/httpendpoint"
-	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
-	"golang.org/x/net/context"
+	"net/http"
 )
 
-type StandardJSONResponseWriter struct {
-	FrameworkLogger  logging.Logger
-	StatusDeterminer ws.HttpStatusCodeDeterminer
-	FrameworkErrors  *ws.FrameworkErrorGenerator
-	DefaultHeaders   map[string]string
-	ResponseWrapper  ws.ResponseWrapper
-	HeaderBuilder    ws.WsCommonResponseHeaderBuilder
-	ErrorFormatter   ws.ErrorFormatter
-	PrettyPrint      bool
-	IndentString     string
-	PrefixString     string
+type JSONMarshalingWriter struct {
+	PrettyPrint  bool
+	IndentString string
+	PrefixString string
 }
 
-func (rw *StandardJSONResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
+func (mw *JSONMarshalingWriter) MarshalAndWrite(data interface{}, w http.ResponseWriter) error {
 
-	var ch map[string]string
-
-	if rw.HeaderBuilder != nil {
-		ch = rw.HeaderBuilder.BuildHeaders(ctx, state)
-	}
-
-	switch outcome {
-	case ws.Normal:
-		return rw.write(ctx, state.WsResponse, state.HTTPResponseWriter, ch)
-	case ws.Error:
-		return rw.writeErrors(ctx, state.ServiceErrors, state.HTTPResponseWriter, ch)
-	case ws.Abnormal:
-		return rw.writeAbnormalStatus(ctx, state.Status, state.HTTPResponseWriter, ch)
-	}
-
-	return errors.New("Unsuported ws.WsOutcome value")
-}
-
-func (rw *StandardJSONResponseWriter) write(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
-
-	if w.DataSent {
-		//This HTTP response has already been written to by another component - not safe to continue
-		if rw.FrameworkLogger.IsLevelEnabled(logging.Debug) {
-			rw.FrameworkLogger.LogDebugfCtx(ctx, "Response already written to.")
-		}
-
-		return nil
-	}
-
-	headers := ws.MergeHeaders(res, ch, rw.DefaultHeaders)
-	ws.WriteHeaders(w, headers)
-
-	s := rw.StatusDeterminer.DetermineCode(res)
-	w.WriteHeader(s)
-
-	e := res.Errors
-
-	if res.Body == nil && !e.HasErrors() {
-		return nil
-	}
-
-	ef := rw.ErrorFormatter
-	wrap := rw.ResponseWrapper
-
-	fe := ef.FormatErrors(e)
-	wrapper := wrap.WrapResponse(res.Body, fe)
-
-	var data []byte
+	var b []byte
 	var err error
 
-	if rw.PrettyPrint {
-		data, err = json.MarshalIndent(wrapper, rw.PrefixString, rw.IndentString)
+	if mw.PrettyPrint {
+		b, err = json.MarshalIndent(data, mw.PrefixString, mw.IndentString)
 	} else {
-		data, err = json.Marshal(wrapper)
+		b, err = json.Marshal(data)
 	}
 
 	if err != nil {
 		return err
 	}
 
-	_, err = w.Write(data)
+	_, err = w.Write(b)
 
 	return err
-}
-
-func (rw *StandardJSONResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.WsProcessState) error {
-	return rw.Write(ctx, state, ws.Abnormal)
-}
-
-func (rw *StandardJSONResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
-
-	res := new(ws.WsResponse)
-	res.HttpStatus = status
-	var errors ws.ServiceErrors
-
-	e := rw.FrameworkErrors.HttpError(status)
-	errors.AddError(e)
-
-	res.Errors = &errors
-
-	return rw.write(ctx, res, w, ch)
 
 }
 
-func (rw *StandardJSONResponseWriter) writeErrors(ctx context.Context, errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+type errorWrapper struct {
+	Code    string
+	Message string
+}
 
-	res := new(ws.WsResponse)
-	res.Errors = errors
+type StandardJSONResponseWrapper struct {
+	ErrorsFieldName string
+	BodyFieldName   string
+}
 
-	return rw.write(ctx, res, w, ch)
+func (rw *StandardJSONResponseWrapper) WrapResponse(body interface{}, errors interface{}) interface{} {
+	f := make(map[string]interface{})
+
+	if errors != nil {
+		f[rw.ErrorsFieldName] = errors
+	}
+
+	if body != nil {
+		f[rw.BodyFieldName] = body
+	}
+
+	return f
 }
 
 type StandardJSONErrorFormatter struct{}
@@ -159,30 +100,6 @@ func (ef *StandardJSONErrorFormatter) FormatErrors(errors *ws.ServiceErrors) int
 
 	if len(fieldErrors) > 0 {
 		f["ByField"] = fieldErrors
-	}
-
-	return f
-}
-
-type errorWrapper struct {
-	Code    string
-	Message string
-}
-
-type StandardJSONResponseWrapper struct {
-	ErrorsFieldName string
-	BodyFieldName   string
-}
-
-func (rw *StandardJSONResponseWrapper) WrapResponse(body interface{}, errors interface{}) interface{} {
-	f := make(map[string]interface{})
-
-	if errors != nil {
-		f[rw.ErrorsFieldName] = errors
-	}
-
-	if body != nil {
-		f[rw.BodyFieldName] = body
 	}
 
 	return f
