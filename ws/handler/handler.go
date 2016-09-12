@@ -69,6 +69,7 @@ type WsHandler struct {
 	PathMatchPattern       string                      // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
 	PostProcessor          WsPostProcessor             //
 	PreValidateManipulator WsPreValidateManipulator    //
+	PreventAutoWiring      bool                        // Stop the framwework automatically adding this handler to an HTTP server
 	ResponseWriter         ws.WsResponseWriter         //
 	RequireAuthentication  bool                        // Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
 	Unmarshaller           ws.WsUnmarshaller           //
@@ -360,6 +361,11 @@ func (wh *WsHandler) VersionAware() bool {
 //HttpEndpointProvider
 func (wh *WsHandler) SupportsVersion(version httpendpoint.RequiredVersion) bool {
 	return wh.VersionAssessor.SupportsVersion(wh.ComponentName(), version)
+}
+
+//HttpEndpointProvider
+func (wh *WsHandler) AutoWireable() bool {
+	return !wh.PreventAutoWiring
 }
 
 func (wh *WsHandler) handleFrameworkErrors(ctx context.Context, w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) {

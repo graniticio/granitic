@@ -8,6 +8,7 @@ import (
 	"github.com/graniticio/granitic/facility/logger"
 	"github.com/graniticio/granitic/facility/querymanager"
 	"github.com/graniticio/granitic/facility/rdbms"
+	"github.com/graniticio/granitic/facility/runtimectl"
 	"github.com/graniticio/granitic/facility/serviceerror"
 	"github.com/graniticio/granitic/facility/ws"
 	"github.com/graniticio/granitic/instance"
@@ -106,6 +107,7 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.ConfigAccessor) error {
 	fi.AddFacility(new(ws.XMLWsFacilityBuilder))
 	fi.AddFacility(new(serviceerror.ServiceErrorManagerFacilityBuilder))
 	fi.AddFacility(new(rdbms.RdbmsAccessFacilityBuilder))
+	fi.AddFacility(new(runtimectl.RuntimeCtlFacilityBuilder))
 
 	err := fi.buildEnabledFacilities()
 

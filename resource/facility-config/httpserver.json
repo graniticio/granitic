@@ -2,6 +2,7 @@
   "HttpServer":{
     "Port": 8080,
     "AccessLogging": false,
-    "TooBusyStatus": 503
+    "TooBusyStatus": 503,
+    "AutoFindHandlers": true
   }
 }

@@ -29,6 +29,7 @@ type HTTPServer struct {
 	FrameworkLogger             logging.Logger
 	AccessLogWriter             *AccessLogWriter
 	AccessLogging               bool
+	AutoFindHandlers            bool
 	Port                        int
 	Address                     string
 	AbnormalStatusWriter        ws.AbnormalStatusWriter
@@ -75,13 +76,16 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HttpEndpoint
 
 func (h *HTTPServer) StartComponent() error {
 
-	h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
+	if h.AutoFindHandlers {
 
-	for name, component := range h.componentContainer.AllComponents() {
+		h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
 
-		if provider, found := component.Instance.(httpendpoint.HttpEndpointProvider); found {
-			h.FrameworkLogger.LogDebugf("Found HttpEndpointProvider %s", name)
-			h.registerProvider(provider)
+		for name, component := range h.componentContainer.AllComponents() {
+
+			if provider, found := component.Instance.(httpendpoint.HttpEndpointProvider); found && provider.AutoWireable() {
+				h.FrameworkLogger.LogDebugf("Found HttpEndpointProvider %s", name)
+				h.registerProvider(provider)
+			}
 		}
 	}
 

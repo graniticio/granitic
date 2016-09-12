@@ -16,6 +16,7 @@ type HttpEndpointProvider interface {
 	ServeHTTP(ctx context.Context, w *HTTPResponseWriter, req *http.Request) context.Context
 	VersionAware() bool
 	SupportsVersion(version RequiredVersion) bool
+	AutoWireable() bool
 }
 
 type RequiredVersion map[string]interface{}
