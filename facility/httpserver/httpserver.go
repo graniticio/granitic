@@ -98,7 +98,11 @@ func (h *HTTPServer) StartComponent() error {
 
 func (h *HTTPServer) AllowAccess() error {
 
-	http.Handle("/", http.HandlerFunc(h.handleAll))
+	sm := http.NewServeMux()
+	sm.Handle("/", http.HandlerFunc(h.handleAll))
+
+	sv := new(http.Server)
+	sv.Handler = sm
 
 	listenAddress := fmt.Sprintf("%s:%d", h.Address, h.Port)
 
@@ -109,9 +113,11 @@ func (h *HTTPServer) AllowAccess() error {
 		return err
 	}
 
-	go http.ListenAndServe(listenAddress, nil)
+	sv.Addr = listenAddress
 
-	h.FrameworkLogger.LogInfof("HTTP server started listening on %d", h.Port)
+	go sv.ListenAndServe()
+
+	h.FrameworkLogger.LogInfof("Listening on %d", h.Port)
 
 	h.available = true
 
