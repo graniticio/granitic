@@ -6,6 +6,7 @@ import (
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/ws"
 	"github.com/graniticio/granitic/ws/xml"
 )
 
@@ -28,19 +29,24 @@ func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 
 	mode, _ := ca.StringVal("XmlWs.ResponseMode")
 
+	var rw ws.WsResponseWriter
+
 	switch mode {
 	case templateMode:
-		fb.createTemplateComponents(ca, cc, wc, um, lm)
+		rw = fb.createTemplateComponents(ca, cc, wc)
 	case marshalMode:
+		rw = fb.createMarshalComponents(ca, cc, wc)
 	default:
 		return errors.New("XmlWs.ResponseMode must be set to either TEMPLATE or MARHSAL")
 	}
 
+	BuildRegisterWsDecorator(cc, rw, um, wc, lm)
+	OfferAbnormalStatusWriter(rw.(ws.AbnormalStatusWriter), cc, xmlResponseWriterName)
+
 	return nil
 }
 
-func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *WsCommon,
-	um *xml.StandardXmlUnmarshaller, lm *logging.ComponentLoggerManager) {
+func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *WsCommon) ws.WsResponseWriter {
 
 	rw := new(xml.TemplatedXMLResponseWriter)
 	ca.Populate("XmlWs.ResponseWriter", rw)
@@ -49,8 +55,37 @@ func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccess
 	rw.FrameworkErrors = wc.FrameworkErrors
 	rw.StatusDeterminer = wc.StatusDeterminer
 
-	BuildRegisterWsDecorator(cc, rw, um, wc, lm)
-	OfferAbnormalStatusWriter(rw, cc, xmlResponseWriterName)
+	return rw
+
+}
+
+func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *WsCommon) ws.WsResponseWriter {
+
+	rw := new(ws.MarshallingResponseWriter)
+	ca.Populate("XmlWs.ResponseWriter", rw)
+	cc.WrapAndAddProto(xmlResponseWriterName, rw)
+
+	rw.StatusDeterminer = wc.StatusDeterminer
+	rw.FrameworkErrors = wc.FrameworkErrors
+
+	if !cc.ModifierExists(xmlResponseWriterName, "ErrorFormatter") {
+		rw.ErrorFormatter = new(xml.StandardXMLErrorFormatter)
+	}
+
+	if !cc.ModifierExists(xmlResponseWriterName, "ResponseWrapper") {
+		wrap := new(xml.StandardXMLResponseWrapper)
+		rw.ResponseWrapper = wrap
+	}
+
+	if !cc.ModifierExists(xmlResponseWriterName, "MarshalingWriter") {
+
+		mw := new(xml.XMLMarshalingWriter)
+		ca.Populate("XmlWs.Marshal", mw)
+		rw.MarshalingWriter = mw
+	}
+
+	return rw
+
 }
 
 func (fb *XMLWsFacilityBuilder) FacilityName() string {

@@ -117,3 +117,20 @@ func CategoryToCode(c ServiceErrorCategory) string {
 		return "H"
 	}
 }
+
+func CategoryToName(c ServiceErrorCategory) string {
+	switch c {
+	default:
+		return "Unknown"
+	case Unexpected:
+		return "Unexpected"
+	case Security:
+		return "Security"
+	case Logic:
+		return "Logic"
+	case Client:
+		return "Client"
+	case HTTP:
+		return "HTTP"
+	}
+}
