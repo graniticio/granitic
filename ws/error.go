@@ -60,13 +60,17 @@ func (se *ServiceErrors) AddError(e *CategorisedError) {
 
 }
 
-func (se *ServiceErrors) AddPredefinedError(code string) error {
+func (se *ServiceErrors) AddPredefinedError(code string, field ...string) error {
 
 	if se.ErrorFinder == nil {
 		panic("No source of errors defined")
 	}
 
 	e := se.ErrorFinder.Find(code)
+
+	if len(field) > 0 {
+		e.Field = field[0]
+	}
 
 	if e == nil {
 		message := fmt.Sprintf("An error occured with code %s, but no error message is available", code)
