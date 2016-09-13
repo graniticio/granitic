@@ -95,6 +95,11 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 
 	h.AutoValidator = v
 
+	rm := new(validate.UnparsedRuleManager)
+	ca.SetField("Rules", "RuntimeCtl.SharedRules", rm)
+
+	v.RuleManager = rm
+
 	//Error finder
 	sem := new(serviceerror.ServiceErrorManager)
 	sem.PanicOnMissing = true
