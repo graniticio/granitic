@@ -25,6 +25,7 @@ type RegisteredProvider struct {
 
 type HTTPServer struct {
 	registeredProvidersByMethod map[string][]*RegisteredProvider
+	unregisteredProviders       map[string]httpendpoint.HttpEndpointProvider
 	componentContainer          *ioc.ComponentContainer
 	FrameworkLogger             logging.Logger
 	AccessLogWriter             *AccessLogWriter
@@ -76,10 +77,9 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HttpEndpoint
 
 func (h *HTTPServer) StartComponent() error {
 
+	h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
+
 	if h.AutoFindHandlers {
-
-		h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
-
 		for name, component := range h.componentContainer.AllComponents() {
 
 			if provider, found := component.Instance.(httpendpoint.HttpEndpointProvider); found && provider.AutoWireable() {
@@ -87,6 +87,16 @@ func (h *HTTPServer) StartComponent() error {
 				h.registerProvider(provider)
 			}
 		}
+	} else if h.unregisteredProviders != nil {
+
+		for _, provider := range h.unregisteredProviders {
+
+			h.registerProvider(provider)
+
+		}
+
+	} else {
+		return errors.New("Auto finding of handlers is disabled, but handlers have not been set manually.")
 	}
 
 	if h.AbnormalStatusWriter == nil {
@@ -122,6 +132,10 @@ func (h *HTTPServer) AllowAccess() error {
 	h.available = true
 
 	return nil
+}
+
+func (h *HTTPServer) SetProvidersManually(p map[string]httpendpoint.HttpEndpointProvider) {
+	h.unregisteredProviders = p
 }
 
 func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {

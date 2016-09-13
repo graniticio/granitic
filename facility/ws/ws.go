@@ -74,12 +74,12 @@ type WsHandlerDecorator struct {
 }
 
 func (jwhd *WsHandlerDecorator) OfInterest(component *ioc.Component) bool {
-	switch component.Instance.(type) {
+	switch h := component.Instance.(type) {
 	default:
 		jwhd.FrameworkLogger.LogTracef("No interest %s", component.Name)
 		return false
 	case *handler.WsHandler:
-		return true
+		return h.AutoWireable()
 	}
 }
 
