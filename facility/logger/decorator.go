@@ -27,7 +27,9 @@ func (ald *ApplicationLogDecorator) OfInterest(component *ioc.Component) bool {
 		targetFieldType := reflecttools.TypeOfField(component.Instance, expectedApplicationLoggerFieldName)
 		typeOfLogger := reflect.TypeOf(ald.FrameworkLogger)
 
-		if typeOfLogger.AssignableTo(targetFieldType) {
+		v := reflect.ValueOf(component.Instance).Elem().FieldByName(expectedApplicationLoggerFieldName)
+
+		if typeOfLogger.AssignableTo(targetFieldType) && v.IsNil() {
 			result = true
 		}
 
@@ -60,7 +62,11 @@ type FrameworkLogDecorator struct {
 
 func (fld *FrameworkLogDecorator) OfInterest(component *ioc.Component) bool {
 
-	result := reflecttools.HasFieldOfName(component.Instance, expectedFrameworkLoggerFieldName)
+	hasField := reflecttools.HasFieldOfName(component.Instance, expectedFrameworkLoggerFieldName)
+
+	v := reflect.ValueOf(component.Instance).Elem().FieldByName(expectedFrameworkLoggerFieldName)
+
+	result := hasField && v.IsNil()
 
 	frameworkLog := fld.FrameworkLogger
 

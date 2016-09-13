@@ -85,7 +85,10 @@ type WsHandler struct {
 }
 
 func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
-	wh.ErrorFinder = finder
+
+	if wh.ErrorFinder == nil {
+		wh.ErrorFinder = finder
+	}
 }
 
 //HttpEndpointProvider

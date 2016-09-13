@@ -16,13 +16,22 @@ type ServiceErrorManager struct {
 	FrameworkLogger  logging.Logger
 	PanicOnMissing   bool
 	errorCodeSources []ErrorCodeSource
+	componentName    string
+}
+
+func (sem *ServiceErrorManager) ComponentName() string {
+	return sem.componentName
+}
+
+func (sem *ServiceErrorManager) SetComponentName(name string) {
+	sem.componentName = name
 }
 
 func (sem *ServiceErrorManager) Find(code string) *ws.CategorisedError {
 	e := sem.errors[code]
 
 	if e == nil {
-		message := fmt.Sprintf("ServiceErrorManager could not find error with code %s", code)
+		message := fmt.Sprintf("%s could not find error with code %s", sem.componentName, code)
 
 		if sem.PanicOnMissing {
 			panic(message)
@@ -157,7 +166,11 @@ type ErrorCodeSourceDecorator struct {
 }
 
 func (ecs *ErrorCodeSourceDecorator) OfInterest(component *ioc.Component) bool {
-	_, found := component.Instance.(ErrorCodeSource)
+	s, found := component.Instance.(ErrorCodeSource)
+
+	if found {
+		return s.ValidateMissing()
+	}
 
 	return found
 }
@@ -174,4 +187,5 @@ type FrameworkServiceErrorFinder interface {
 
 type ErrorCodeSource interface {
 	ErrorCodesInUse() (codes types.StringSet, sourceName string)
+	ValidateMissing() bool
 }

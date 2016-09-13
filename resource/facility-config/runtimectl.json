@@ -25,6 +25,13 @@
     "CommandHandler": {
       "HttpMethod": "POST",
       "PathMatchPattern": "^/command$"
-    }
+    },
+    "CommandValidation": [
+      ["Command", "STR:INV_COMMAND", "REQ", "HARDTRIM", "LEN:3-20", "REG:^[a-zA-Z]{1}[\\w-]+:COMMAND_PATTERN"]
+    ],
+    "Errors": [
+      ["C", "INV_COMMAND", "Command must be provided and must be a string, 3-20 characters in length."],
+      ["C", "COMMAND_PATTERN", "Command must start with a letter and only contain letters, numbers, - and _"]
+    ]
   }
 }

@@ -144,6 +144,11 @@ type RuleValidator struct {
 	componentName          string
 	codesInUse             types.StringSet
 	Log                    logging.Logger
+	DisableCodeValidation  bool
+}
+
+func (ov *RuleValidator) ValidateMissing() bool {
+	return !ov.DisableCodeValidation
 }
 
 func (ov *RuleValidator) Container(container *ioc.ComponentContainer) {

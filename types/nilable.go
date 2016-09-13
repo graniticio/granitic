@@ -32,7 +32,7 @@ func (ns *NilableString) MarshalJSON() ([]byte, error) {
 }
 
 func (ns *NilableString) UnmarshalJSON(b []byte) error {
-	ns.val = string(b)
+	json.Unmarshal(b, &ns.val)
 	ns.set = true
 
 	return nil
