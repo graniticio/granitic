@@ -16,25 +16,28 @@ import (
 )
 
 const (
-	runtimeCtlServer          = instance.FrameworkPrefix + "CtlServer"
-	runtimeCtlResponseWriter  = instance.FrameworkPrefix + "CtlResponseWriter"
-	runtimeCtlFrameworkErrors = instance.FrameworkPrefix + "CtlFrameworkErrors"
-	runtimeCtlCommandHandler  = instance.FrameworkPrefix + "CtlCommandHandler"
-	runtimeCtlUnmarshaller    = instance.FrameworkPrefix + "CtlUnmarshaller"
-	runtimeCtlValidator       = instance.FrameworkPrefix + "CtlValidator"
-	runtimeCtlServiceErrors   = instance.FrameworkPrefix + "CtlServiceErrors"
-	defaultValidationCode     = "INV_CTL_REQUEST"
+	runtimeCtlServer           = instance.FrameworkPrefix + "CtlServer"
+	runtimeCtlResponseWriter   = instance.FrameworkPrefix + "CtlResponseWriter"
+	runtimeCtlFrameworkErrors  = instance.FrameworkPrefix + "CtlFrameworkErrors"
+	runtimeCtlCommandHandler   = instance.FrameworkPrefix + "CtlCommandHandler"
+	runtimeCtlUnmarshaller     = instance.FrameworkPrefix + "CtlUnmarshaller"
+	runtimeCtlValidator        = instance.FrameworkPrefix + "CtlValidator"
+	runtimeCtlServiceErrors    = instance.FrameworkPrefix + "CtlServiceErrors"
+	runtimeCtlCommandDecorator = instance.FrameworkPrefix + "CtlCommandDecorator"
+	runtimeCtlCommandManager   = instance.FrameworkPrefix + "CtlCommandManager"
+	shutdownCommand            = instance.FrameworkPrefix + "CommandShutdown"
+	defaultValidationCode      = "INV_CTL_REQUEST"
 )
 
 type RuntimeCtlFacilityBuilder struct {
 }
 
-func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
 
 	sv := new(httpserver.HTTPServer)
 	ca.Populate("RuntimeCtl.Server", sv)
 
-	cn.WrapAndAddProto(runtimeCtlServer, sv)
+	cc.WrapAndAddProto(runtimeCtlServer, sv)
 
 	rw := new(ws.MarshallingResponseWriter)
 	ca.Populate("RuntimeCtl.ResponseWriter", rw)
@@ -80,18 +83,18 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	handlers[runtimeCtlCommandHandler] = h
 	sv.SetProvidersManually(handlers)
 
-	cn.WrapAndAddProto(runtimeCtlCommandHandler, h)
+	cc.WrapAndAddProto(runtimeCtlCommandHandler, h)
 
 	//Validator
 	v := new(validate.RuleValidator)
-	v.ComponentFinder = cn
+	v.ComponentFinder = cc
 	v.DefaultErrorCode = defaultValidationCode
 	v.Log = lm.CreateLogger(runtimeCtlValidator)
 	v.DisableCodeValidation = true
 
 	ca.SetField("Rules", "RuntimeCtl.CommandValidation", v)
 
-	cn.WrapAndAddProto(runtimeCtlValidator, v)
+	cc.WrapAndAddProto(runtimeCtlValidator, v)
 
 	h.AutoValidator = v
 
@@ -109,11 +112,31 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 
 	sem.LoadErrors(e.Unparsed)
 
-	cn.WrapAndAddProto(runtimeCtlServiceErrors, sem)
+	cc.WrapAndAddProto(runtimeCtlServiceErrors, sem)
 
 	h.ErrorFinder = sem
 
+	//Command manager
+	cm := new(ctl.CommandManager)
+	cm.FrameworkLogger = lm.CreateLogger(runtimeCtlCommandManager)
+	cc.WrapAndAddProto(runtimeCtlCommandManager, cm)
+
+	//Command decorator
+	cd := new(ctl.CommandDecorator)
+	cd.CommandManager = cm
+	cd.FrameworkLogger = lm.CreateLogger(runtimeCtlCommandDecorator)
+	cc.WrapAndAddProto(runtimeCtlCommandDecorator, cd)
+
+	fb.createBuiltinCommands(lm, cc)
+
 	return nil
+}
+
+func (fb *RuntimeCtlFacilityBuilder) createBuiltinCommands(lm *logging.ComponentLoggerManager, cc *ioc.ComponentContainer) {
+
+	sd := new(ShutdownCommand)
+	cc.WrapAndAddProto(shutdownCommand, sd)
+
 }
 
 func (fb *RuntimeCtlFacilityBuilder) FacilityName() string {

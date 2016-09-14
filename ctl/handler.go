@@ -25,13 +25,13 @@ const (
 
 func (cl *CommandLogic) Validate(ctx context.Context, se *ws.ServiceErrors, request *ws.WsRequest) {
 
-	sub := request.RequestBody.(*CtlCommand)
+	sub := request.RequestBody.(*ctlCommandRequest)
 
 	cl.validateArgs(se, sub)
 
 }
 
-func (cl *CommandLogic) validateArgs(se *ws.ServiceErrors, sub *CtlCommand) {
+func (cl *CommandLogic) validateArgs(se *ws.ServiceErrors, sub *ctlCommandRequest) {
 	if sub.Arguments != nil {
 		ac := len(sub.Arguments)
 
@@ -63,10 +63,10 @@ func (cl *CommandLogic) validateArgs(se *ws.ServiceErrors, sub *CtlCommand) {
 }
 
 func (cl *CommandLogic) UnmarshallTarget() interface{} {
-	return new(CtlCommand)
+	return new(ctlCommandRequest)
 }
 
-type CtlCommand struct {
+type ctlCommandRequest struct {
 	Command    *types.NilableString
 	Qualifiers []*types.NilableString
 	Arguments  map[string]string
