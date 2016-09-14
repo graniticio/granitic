@@ -41,7 +41,8 @@
       ["C", "QUAL_LENGTH", "Qualifiers must be a maximum of 64 characters long"],
       ["C", "QUAL_PATTERN", "Command must start with a letter and only contain letters, numbers, - and _"],
       ["C", "ARG_PATTERN", "Argument names must be 1-20 characters long and start with a letter."],
-      ["C", "ARG_TOO_LONG", "Argument values must be 1-256 characters long."]
+      ["C", "ARG_TOO_LONG", "Argument values must be 1-256 characters long."],
+      ["C", "UNKNOWN_COMMAND", "No command with that name is registered."]
     ]
   }
 }

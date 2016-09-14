@@ -17,6 +17,7 @@ import (
 
 const (
 	runtimeCtlServer           = instance.FrameworkPrefix + "CtlServer"
+	runtimeCtlLogic            = instance.FrameworkPrefix + "CtlLogic"
 	runtimeCtlResponseWriter   = instance.FrameworkPrefix + "CtlResponseWriter"
 	runtimeCtlFrameworkErrors  = instance.FrameworkPrefix + "CtlFrameworkErrors"
 	runtimeCtlCommandHandler   = instance.FrameworkPrefix + "CtlCommandHandler"
@@ -68,7 +69,6 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	h.PreventAutoWiring = true
 	ca.Populate("RuntimeCtl.CommandHandler", h)
 	h.Log = lm.CreateLogger(runtimeCtlCommandHandler)
-	h.Logic = new(ctl.CommandLogic)
 	h.DisablePathParsing = true
 	h.DisableQueryParsing = true
 	h.ResponseWriter = rw
@@ -128,6 +128,12 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	cc.WrapAndAddProto(runtimeCtlCommandDecorator, cd)
 
 	fb.createBuiltinCommands(lm, cc)
+
+	//Command logic
+	cl := new(ctl.CommandLogic)
+	cl.FrameworkLogger = lm.CreateLogger(runtimeCtlLogic)
+	cl.CommandManager = cm
+	h.Logic = cl
 
 	return nil
 }

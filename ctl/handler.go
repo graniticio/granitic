@@ -2,25 +2,39 @@ package ctl
 
 import (
 	"fmt"
+	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/types"
 	"github.com/graniticio/granitic/ws"
 	"golang.org/x/net/context"
 	"regexp"
+	"strings"
 )
 
 type CommandLogic struct {
+	FrameworkLogger logging.Logger
+	CommandManager  *CommandManager
 }
 
 func (cl *CommandLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
 
+	cr := req.RequestBody.(*ctlCommandRequest)
+
+	name := cl.normaliseCommandName(cr)
+	comm := cl.CommandManager.Find(name)
+
+	cl.FrameworkLogger.LogInfof("Executing runtime command '%s'", name)
+
+	comm.ExecuteCommand(cr.Qualifiers, cr.Arguments)
+
 }
 
 const (
-	maxArgs      = 32
-	tooManyArgs  = "TOO_MANY_ARGS"
-	argKeyFormat = "ARG_PATTERN"
-	argMaxLength = 256
-	tooLongArg   = "ARG_TOO_LONG"
+	maxArgs        = 32
+	tooManyArgs    = "TOO_MANY_ARGS"
+	unknownCommand = "UNKNOWN_COMMAND"
+	argKeyFormat   = "ARG_PATTERN"
+	argMaxLength   = 256
+	tooLongArg     = "ARG_TOO_LONG"
 )
 
 func (cl *CommandLogic) Validate(ctx context.Context, se *ws.ServiceErrors, request *ws.WsRequest) {
@@ -28,6 +42,17 @@ func (cl *CommandLogic) Validate(ctx context.Context, se *ws.ServiceErrors, requ
 	sub := request.RequestBody.(*ctlCommandRequest)
 
 	cl.validateArgs(se, sub)
+
+	if se.HasErrors() {
+		return
+	}
+
+	name := cl.normaliseCommandName(sub)
+	comm := cl.CommandManager.Find(name)
+
+	if comm == nil {
+		se.AddPredefinedError(unknownCommand, "Command")
+	}
 
 }
 
@@ -62,12 +87,16 @@ func (cl *CommandLogic) validateArgs(se *ws.ServiceErrors, sub *ctlCommandReques
 	}
 }
 
+func (cl *CommandLogic) normaliseCommandName(cr *ctlCommandRequest) string {
+	return strings.ToLower(cr.Command.String())
+}
+
 func (cl *CommandLogic) UnmarshallTarget() interface{} {
 	return new(ctlCommandRequest)
 }
 
 type ctlCommandRequest struct {
 	Command    *types.NilableString
-	Qualifiers []*types.NilableString
+	Qualifiers []string
 	Arguments  map[string]string
 }

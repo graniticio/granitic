@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
 	"os"
 	"strings"
@@ -24,12 +25,12 @@ func checkForGraniticHome() {
 
 	if gh == "" {
 		fmt.Printf("%s environment variable is not set.\n")
-		ExitError()
+		instance.ExitError()
 	}
 
 	if strings.HasSuffix(gh, "/") || strings.HasSuffix(gh, "\\") {
 		fmt.Printf("%s environment variable should not end with a / or \\.\n")
-		ExitError()
+		instance.ExitError()
 	}
 
 }
@@ -66,7 +67,7 @@ func processCommandLineArgs(is *InitialSettings) {
 
 	if err != nil {
 		fmt.Println(err)
-		ExitError()
+		instance.ExitError()
 	}
 
 	paths := strings.Split(*configFilePtr, ",")
@@ -74,7 +75,7 @@ func processCommandLineArgs(is *InitialSettings) {
 
 	if err != nil {
 		fmt.Println(err)
-		ExitError()
+		instance.ExitError()
 	}
 
 	is.Configuration = append(is.Configuration, userConfig...)
@@ -119,18 +120,10 @@ func builtInConfigFiles() []string {
 
 		fmt.Printf("Problem loading Grantic's built-in configuration from %s:\n", d)
 		fmt.Println(err.Error())
-		ExitError()
+		instance.ExitError()
 
 	}
 
 	return files
 
-}
-
-func ExitError() {
-	os.Exit(1)
-}
-
-func ExitNormal() {
-	os.Exit(0)
 }

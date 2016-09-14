@@ -44,7 +44,7 @@ func (i *initiator) Start(customComponents *ioc.ProtoComponents, is *config.Init
 	go func() {
 		<-c
 		i.shutdown(container)
-		config.ExitNormal()
+		instance.ExitNormal()
 	}()
 
 	for {
@@ -101,7 +101,7 @@ func (i *initiator) shutdownIfError(err error, cc *ioc.ComponentContainer) {
 	if err != nil {
 		i.logger.LogFatalf(err.Error())
 		i.shutdown(cc)
-		config.ExitError()
+		instance.ExitError()
 	}
 
 }
@@ -109,7 +109,7 @@ func (i *initiator) shutdownIfError(err error, cc *ioc.ComponentContainer) {
 // Log that the container is stopping and let the container stop its
 // components gracefully
 func (i *initiator) shutdown(cc *ioc.ComponentContainer) {
-	i.logger.LogInfof("Shutting down")
+	i.logger.LogInfof("Shutting down (system signal)")
 
 	cc.ShutdownComponents()
 }
@@ -128,7 +128,7 @@ func (i *initiator) createConfigAccessor(configPaths []string, flm *logging.Comp
 
 	if err != nil {
 		i.logger.LogFatalf(err.Error())
-		config.ExitError()
+		instance.ExitError()
 	}
 
 	return &config.ConfigAccessor{mergedJson, fl}
