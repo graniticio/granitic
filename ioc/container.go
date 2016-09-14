@@ -319,7 +319,7 @@ func (cc *ComponentContainer) Populate() error {
 		os.Exit(-1)
 	}
 
-	cc.decorateComponents(decorators)
+	cc.runDecorators(decorators)
 
 	cc.protoComponents = nil
 
@@ -388,20 +388,42 @@ func (cc *ComponentContainer) mergeDependencies(comp string, cd map[string]strin
 	return merged
 }
 
-func (cc *ComponentContainer) decorateComponents(decorators map[string]ComponentDecorator) {
+func (cc *ComponentContainer) runDecorators(decorators map[string]ComponentDecorator) {
 
-	for _, component := range cc.allComponents {
-		for _, decorator := range decorators {
+	decs := len(decorators)
+	done := make(chan string, decs)
 
-			if decorator.OfInterest(component) {
-				decorator.DecorateComponent(component, cc)
-			}
+	for n, d := range decorators {
+
+		go cc.runDecorator(n, d, done)
+	}
+
+	doneCount := 0
+
+	for {
+		<-done
+		doneCount += 1
+
+		if doneCount >= decs {
+			break
 		}
+
 	}
 
 	for n, _ := range decorators {
 		delete(cc.allComponents, n)
 	}
+}
+
+func (cc *ComponentContainer) runDecorator(name string, cd ComponentDecorator, ch chan<- string) {
+
+	for _, component := range cc.allComponents {
+		if cd.OfInterest(component) {
+			cd.DecorateComponent(component, cc)
+		}
+	}
+
+	ch <- name
 }
 
 func (cc *ComponentContainer) captureDecorator(component *Component, decorators map[string]ComponentDecorator) {
