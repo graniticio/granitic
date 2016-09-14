@@ -2,3 +2,7 @@
 *.iml
 
 
+/cmd/grnc-ctl/grnc-ctl
+.DS_Store
+cmd/.DS_Store
+cmd/grnc-ctl/grnc-ctl
