@@ -193,6 +193,8 @@ func columnOutput(co *commandOutcome) {
 
 	}
 
+	fmt.Println()
+
 }
 
 func spaces(w int) string {
