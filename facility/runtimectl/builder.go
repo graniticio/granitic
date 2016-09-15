@@ -27,6 +27,7 @@ const (
 	runtimeCtlCommandDecorator = instance.FrameworkPrefix + "CtlCommandDecorator"
 	runtimeCtlCommandManager   = instance.FrameworkPrefix + "CtlCommandManager"
 	shutdownCommand            = instance.FrameworkPrefix + "CommandShutdown"
+	helpCommand                = instance.FrameworkPrefix + "CommandHelp"
 	defaultValidationCode      = "INV_CTL_REQUEST"
 )
 
@@ -127,7 +128,7 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	cd.FrameworkLogger = lm.CreateLogger(runtimeCtlCommandDecorator)
 	cc.WrapAndAddProto(runtimeCtlCommandDecorator, cd)
 
-	fb.createBuiltinCommands(lm, cc)
+	fb.createBuiltinCommands(lm, cc, cm)
 
 	//Command logic
 	cl := new(ctl.CommandLogic)
@@ -138,10 +139,14 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	return nil
 }
 
-func (fb *RuntimeCtlFacilityBuilder) createBuiltinCommands(lm *logging.ComponentLoggerManager, cc *ioc.ComponentContainer) {
+func (fb *RuntimeCtlFacilityBuilder) createBuiltinCommands(lm *logging.ComponentLoggerManager, cc *ioc.ComponentContainer, cm *ctl.CommandManager) {
 
 	sd := new(ShutdownCommand)
 	cc.WrapAndAddProto(shutdownCommand, sd)
+
+	hc := new(HelpCommand)
+	hc.commandManager = cm
+	cc.WrapAndAddProto(helpCommand, hc)
 
 }
 

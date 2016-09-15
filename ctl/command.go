@@ -5,6 +5,9 @@ import "github.com/graniticio/granitic/ws"
 type Command interface {
 	ExecuteCommand(qualifiers []string, args map[string]string) (*CommandOutcome, []*ws.CategorisedError)
 	Name() string
+	Summmary() string
+	Usage() string
+	Help() []string
 }
 
 type renderMode string

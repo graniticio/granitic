@@ -10,6 +10,9 @@ import (
 
 const (
 	shutdownCommandName = "shutdown"
+	shutdownSummary     = "Stops all components then exits the application"
+	shutdownUsage       = "shutdown"
+	shutdownHelp        = "Causes the IoC container to stop each component according to the lifecyle interfaces they implement."
 )
 
 type ShutdownCommand struct {
@@ -40,4 +43,16 @@ func (csd *ShutdownCommand) startShutdown() {
 
 func (csd *ShutdownCommand) Name() string {
 	return shutdownCommandName
+}
+
+func (csd *ShutdownCommand) Summmary() string {
+	return shutdownSummary
+}
+
+func (csd *ShutdownCommand) Usage() string {
+	return shutdownUsage
+}
+
+func (csd *ShutdownCommand) Help() []string {
+	return []string{shutdownHelp}
 }
