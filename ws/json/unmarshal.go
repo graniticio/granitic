@@ -16,6 +16,8 @@ func (ju *StandardJSONUnmarshaller) Unmarshall(ctx context.Context, req *http.Re
 
 	err := json.NewDecoder(req.Body).Decode(&wsReq.RequestBody)
 
+	req.Body.Close()
+
 	return err
 
 }

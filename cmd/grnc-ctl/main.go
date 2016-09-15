@@ -68,17 +68,31 @@ func runCommand(ta *toolArgs, cr *ctlCommandRequest) {
 	url := fmt.Sprintf("http://%s:%d/command", ta.Host, ta.Port)
 
 	var b []byte
+	var err error
 
-	b, err := json.Marshal(cr)
-
-	if err != nil {
+	if b, err = json.Marshal(cr); err != nil {
 		exitError("Problem creating web service request from tool arguments %s", err.Error())
 	}
 
-	http.Post(url, "application/json; charset=utf-8", bytes.NewReader(b))
+	var r *http.Response
 
-	fmt.Println(url)
+	if r, err = http.Post(url, "application/json; charset=utf-8", bytes.NewReader(b)); err != nil {
+		exitError("Problem executing web service call: %s", err.Error())
+	}
 
+	assessStatusCode(r.StatusCode)
+
+}
+
+func assessStatusCode(s int) {
+	switch s {
+	case http.StatusServiceUnavailable:
+		exitError("Server is busy")
+	case http.StatusOK, http.StatusBadRequest, http.StatusConflict:
+		return
+	default:
+		exitError("Unexpected HTTP %d response from server", s)
+	}
 }
 
 func extractCommandArgs(args []string) (map[string]string, []string) {
