@@ -11,6 +11,7 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/reflecttools"
 	"os"
+	"sort"
 	"time"
 )
 
@@ -49,8 +50,22 @@ func (cc *ComponentContainer) ComponentByName(name string) *Component {
 	return cc.allComponents[name]
 }
 
-func (cc *ComponentContainer) AllComponents() map[string]*Component {
-	return cc.allComponents
+func (cc *ComponentContainer) AllComponents() []*Component {
+
+	ac := make([]*Component, len(cc.allComponents))
+
+	i := 0
+
+	for _, v := range cc.allComponents {
+
+		ac[i] = v
+		i++
+
+	}
+
+	sort.Sort(ByName{ac})
+
+	return ac
 }
 
 func (cc *ComponentContainer) AddModifier(comp string, field string, dep string) {

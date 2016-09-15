@@ -4,6 +4,11 @@ type Startable interface {
 	StartComponent() error
 }
 
+type Suspendable interface {
+	Suspend() error
+	Resume() error
+}
+
 type Stoppable interface {
 	PrepareToStop()
 	ReadyToStop() (bool, error)

@@ -59,6 +59,15 @@ type Component struct {
 	Name     string
 }
 
+type Components []*Component
+
+func (s Components) Len() int      { return len(s) }
+func (s Components) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+type ByName struct{ Components }
+
+func (s ByName) Less(i, j int) bool { return s.Components[i].Name < s.Components[j].Name }
+
 type ComponentNamer interface {
 	ComponentName() string
 	SetComponentName(name string)

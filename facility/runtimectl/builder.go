@@ -28,6 +28,7 @@ const (
 	runtimeCtlCommandManager   = instance.FrameworkPrefix + "CtlCommandManager"
 	shutdownCommand            = instance.FrameworkPrefix + "CommandShutdown"
 	helpCommand                = instance.FrameworkPrefix + "CommandHelp"
+	componentsCommand          = instance.FrameworkPrefix + "CommandComponents"
 	defaultValidationCode      = "INV_CTL_REQUEST"
 )
 
@@ -108,7 +109,7 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	sem := new(serviceerror.ServiceErrorManager)
 	sem.PanicOnMissing = true
 
-	e := new(errors)
+	e := new(errorsWrapper)
 	ca.SetField("Unparsed", "RuntimeCtl.Errors", e)
 
 	sem.LoadErrors(e.Unparsed)
@@ -148,6 +149,9 @@ func (fb *RuntimeCtlFacilityBuilder) createBuiltinCommands(lm *logging.Component
 	hc.commandManager = cm
 	cc.WrapAndAddProto(helpCommand, hc)
 
+	cs := new(ComponentsCommand)
+	cc.WrapAndAddProto(componentsCommand, cs)
+
 }
 
 func (fb *RuntimeCtlFacilityBuilder) FacilityName() string {
@@ -158,6 +162,6 @@ func (fb *RuntimeCtlFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
 
-type errors struct {
+type errorsWrapper struct {
 	Unparsed []interface{}
 }

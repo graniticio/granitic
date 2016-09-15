@@ -80,7 +80,9 @@ func (h *HTTPServer) StartComponent() error {
 	h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
 
 	if h.AutoFindHandlers {
-		for name, component := range h.componentContainer.AllComponents() {
+		for _, component := range h.componentContainer.AllComponents() {
+
+			name := component.Name
 
 			if provider, found := component.Instance.(httpendpoint.HttpEndpointProvider); found && provider.AutoWireable() {
 				h.FrameworkLogger.LogDebugf("Found HttpEndpointProvider %s", name)

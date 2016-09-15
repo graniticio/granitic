@@ -147,6 +147,8 @@ func columnOutput(co *commandOutcome) {
 
 	if co.OutputHeader != "" {
 		fmt.Printf("\n%s\n\n", co.OutputHeader)
+	} else {
+		fmt.Println()
 	}
 
 	if co.OutputBody == nil {
@@ -171,6 +173,9 @@ func columnOutput(co *commandOutcome) {
 
 			fmt.Printf("  %s  ", padRightTo(l[0], firstColMax))
 
+			if ll == 1 {
+				fmt.Printf("\n")
+			}
 		}
 
 		if ll > 1 {
