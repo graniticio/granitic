@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	runtimeCtlServer           = instance.FrameworkPrefix + "CtlServer"
+	RuntimeCtlServer           = instance.FrameworkPrefix + "CtlServer"
 	runtimeCtlLogic            = instance.FrameworkPrefix + "CtlLogic"
 	runtimeCtlResponseWriter   = instance.FrameworkPrefix + "CtlResponseWriter"
 	runtimeCtlFrameworkErrors  = instance.FrameworkPrefix + "CtlFrameworkErrors"
@@ -41,7 +41,7 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	sv := new(httpserver.HTTPServer)
 	ca.Populate("RuntimeCtl.Server", sv)
 
-	cc.WrapAndAddProto(runtimeCtlServer, sv)
+	cc.WrapAndAddProto(RuntimeCtlServer, sv)
 
 	rw := new(ws.MarshallingResponseWriter)
 	ca.Populate("RuntimeCtl.ResponseWriter", rw)

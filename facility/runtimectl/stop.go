@@ -39,23 +39,31 @@ func (c *StopCommand) ExecuteCommand(qualifiers []string, args map[string]string
 func (c *StopCommand) stopAll(args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
 
 	var includeFramework bool
+	var allowStopCtlServer bool
 	var err error
 
 	if includeFramework, err = showBuiltin(args); err != nil {
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 	}
 
-	fmt.Printf("Include fw? %v\n", includeFramework)
-
 	sm := make(map[string]ioc.Stoppable)
 
 	names := make([][]string, 0)
+
+	if allowStopCtlServer, err = includeRuntime(args); err != nil {
+		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
+	}
 
 	for _, c := range c.container.AllComponents() {
 
 		fw := isFramework(c)
 
 		if ((fw && includeFramework) || !fw) && matchesFilter(stop, c.Instance) {
+
+			if c.Name == RuntimeCtlServer && !allowStopCtlServer {
+				continue
+			}
+
 			sm[c.Name] = c.Instance.(ioc.Stoppable)
 			names = append(names, []string{c.Name})
 		}
@@ -69,6 +77,8 @@ func (c *StopCommand) stopAll(args map[string]string) (*ctl.CommandOutcome, []*w
 	co.OutputHeader = "Stopping:"
 	co.OutputBody = names
 	co.RenderHint = ctl.Columns
+
+	go c.runStop(sm)
 
 	return co, nil
 }
@@ -103,6 +113,12 @@ func (c *StopCommand) stopSingle(name string) (*ctl.CommandOutcome, []*ws.Catego
 }
 
 func (c *StopCommand) runStop(comps map[string]ioc.Stoppable) {
+
+	err := c.container.StopComponents(comps)
+
+	if err != nil {
+		c.FrameworkLogger.LogErrorf("Problem stopping components " + err.Error())
+	}
 
 }
 
