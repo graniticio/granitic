@@ -291,9 +291,9 @@ func paragraphOutput(co *commandOutcome) {
 				for _, c := range cropped {
 					fmt.Printf("  %s\n", c)
 				}
-			}
 
-			fmt.Println()
+				fmt.Printf("\n")
+			}
 
 		}
 

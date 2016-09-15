@@ -111,7 +111,7 @@ func (i *initiator) shutdownIfError(err error, cc *ioc.ComponentContainer) {
 func (i *initiator) shutdown(cc *ioc.ComponentContainer) {
 	i.logger.LogInfof("Shutting down (system signal)")
 
-	cc.ShutdownComponents()
+	cc.StopAll()
 }
 
 // Merge together all of the local and remote JSON configuration files and wrap them in a *config.ConfigAccessor

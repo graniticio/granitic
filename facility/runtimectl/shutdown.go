@@ -38,7 +38,7 @@ func (csd *ShutdownCommand) ExecuteCommand(qualifiers []string, args map[string]
 func (csd *ShutdownCommand) startShutdown() {
 	csd.FrameworkLogger.LogInfof("Shutting down (runtime command)")
 
-	csd.container.ShutdownComponents()
+	csd.container.StopAll()
 	instance.ExitNormal()
 }
 

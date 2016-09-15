@@ -198,29 +198,38 @@ func (cc *ComponentContainer) waitForBlockers(retestInterval time.Duration, maxT
 
 }
 
-func (cc *ComponentContainer) ShutdownComponents() error {
+func (cc *ComponentContainer) StopAll() error {
 
-	for _, c := range cc.stoppable {
+	comps := make(map[string]Stoppable)
 
-		s := c.Instance.(Stoppable)
+	for _, v := range cc.stoppable {
+
+		comps[v.Name] = v.Instance.(Stoppable)
+
+	}
+
+	return cc.StopComponents(comps)
+
+}
+
+func (cc *ComponentContainer) StopComponents(comps map[string]Stoppable) error {
+	for _, s := range comps {
 		s.PrepareToStop()
 	}
 
 	cc.waitForReadyToStop(5*time.Second, 10, 3)
 
-	for _, c := range cc.stoppable {
+	for n, s := range comps {
 
-		s := c.Instance.(Stoppable)
 		err := s.Stop()
 
 		if err != nil {
-			cc.FrameworkLogger.LogErrorf("%s did not stop cleanly %s", c.Name, err)
+			cc.FrameworkLogger.LogErrorf("%s did not stop cleanly %s", n, err)
 		}
 
 	}
 
 	return nil
-
 }
 
 func (cc *ComponentContainer) waitForReadyToStop(retestInterval time.Duration, maxTries int, warnAfterTries int) {

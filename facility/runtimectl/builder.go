@@ -29,6 +29,7 @@ const (
 	shutdownCommand            = instance.FrameworkPrefix + "CommandShutdown"
 	helpCommand                = instance.FrameworkPrefix + "CommandHelp"
 	componentsCommand          = instance.FrameworkPrefix + "CommandComponents"
+	stopCommand                = instance.FrameworkPrefix + "CommandStop"
 	defaultValidationCode      = "INV_CTL_REQUEST"
 )
 
@@ -143,15 +144,22 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 func (fb *RuntimeCtlFacilityBuilder) createBuiltinCommands(lm *logging.ComponentLoggerManager, cc *ioc.ComponentContainer, cm *ctl.CommandManager) {
 
 	sd := new(ShutdownCommand)
-	cc.WrapAndAddProto(shutdownCommand, sd)
+	fb.addCommand(cc, shutdownCommand, sd)
 
 	hc := new(HelpCommand)
 	hc.commandManager = cm
-	cc.WrapAndAddProto(helpCommand, hc)
+	fb.addCommand(cc, helpCommand, hc)
 
 	cs := new(ComponentsCommand)
-	cc.WrapAndAddProto(componentsCommand, cs)
+	fb.addCommand(cc, componentsCommand, cs)
 
+	sc := new(StopCommand)
+	fb.addCommand(cc, stopCommand, sc)
+
+}
+
+func (fb *RuntimeCtlFacilityBuilder) addCommand(cc *ioc.ComponentContainer, name string, c ctl.Command) {
+	cc.WrapAndAddProto(name, c)
 }
 
 func (fb *RuntimeCtlFacilityBuilder) FacilityName() string {
