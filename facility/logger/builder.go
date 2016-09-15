@@ -2,7 +2,9 @@ package logger
 
 import (
 	"errors"
+	"fmt"
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/facility/runtimectl"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
@@ -48,7 +50,25 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 
 	cn.WrapAndAddProto(applicationLoggingDecoratorName, ald)
 
+	alfb.addRuntimeCommands(ca, alm, lm, cn)
+
 	return nil
+}
+
+func (alfb *ApplicationLoggingFacilityBuilder) addRuntimeCommands(ca *config.ConfigAccessor, alm *logging.ComponentLoggerManager, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
+
+	if !runtimectl.RuntimeCtlEnabled(ca) {
+		return
+	}
+
+	gll := new(runtimectl.GlobalLogLevelCommand)
+	gll.ApplicationManager = alm
+	gll.FrameworkManager = flm
+
+	cn.WrapAndAddProto(runtimectl.GLLComponentName, gll)
+
+	fmt.Println("Adding commands")
+
 }
 
 func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.ConfigAccessor) (*logging.LogMessageFormatter, error) {

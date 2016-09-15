@@ -3,6 +3,7 @@ package runtimectl
 import (
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"strconv"
@@ -24,6 +25,20 @@ func findLifecycleFilter(args map[string]string) (lifecycleFilter, error) {
 	v := args[lcArg]
 
 	return fromFilterArg(v)
+
+}
+
+func RuntimeCtlEnabled(ca *config.ConfigAccessor) bool {
+
+	p := "Facilities.RuntimeCtl"
+
+	if !ca.PathExists(p) {
+		return false
+	}
+
+	b, _ := ca.BoolVal(p)
+
+	return b
 
 }
 
