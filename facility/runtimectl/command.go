@@ -12,7 +12,8 @@ const (
 	shutdownCommandName = "shutdown"
 	shutdownSummary     = "Stops all components then exits the application"
 	shutdownUsage       = "shutdown"
-	shutdownHelp        = "Causes the IoC container to stop each component according to the lifecyle interfaces they implement."
+	shutdownHelp        = "Causes the IoC container to stop each component according to the lifecyle interfaces they implement. " +
+		"The Granitic application will exit once all components have stopped."
 )
 
 type ShutdownCommand struct {

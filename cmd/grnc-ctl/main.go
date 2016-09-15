@@ -131,10 +131,160 @@ func renderOutput(res *ctlResponse) {
 		return
 	}
 
+	if co.RenderHint == "COLUMNS" {
+		columnOutput(co)
+	} else {
+		paragraphOutput(co)
+	}
+}
+
+func columnOutput(co *commandOutcome) {
+
+	tWidth := 120
+	indent := 2
+	minWidth := 20
+
 	if co.OutputHeader != "" {
-		fmt.Println(co.OutputHeader)
+		fmt.Printf("\n%s\n\n", co.OutputHeader)
 	}
 
+	if co.OutputBody == nil {
+		return
+	}
+
+	firstColMax := maxWidth(co.OutputBody, 0)
+	firstColWidth := firstColMax + (indent * 2)
+	secondColWidth := tWidth - firstColWidth
+
+	if secondColWidth < minWidth {
+		secondColWidth = minWidth
+	}
+
+	spaceCol := spaces(firstColWidth)
+
+	for _, l := range co.OutputBody {
+
+		ll := len(l)
+
+		if ll > 0 {
+
+			fmt.Printf("  %s  ", padRightTo(l[0], firstColMax))
+
+		}
+
+		if ll > 1 {
+			sm := splitToMax(l[1], secondColWidth)
+
+			sml := len(sm)
+
+			if sml > 0 {
+				fmt.Printf("%s\n", sm[0])
+			}
+
+			if sml > 1 {
+
+				for _, m := range sm[1:] {
+					fmt.Printf("%s%s\n", spaceCol, m)
+				}
+
+			}
+
+		}
+
+	}
+
+}
+
+func spaces(w int) string {
+
+	var b bytes.Buffer
+
+	for i := 0; i < w; i++ {
+		b.WriteString(" ")
+	}
+
+	return b.String()
+}
+
+func splitToMax(original string, max int) []string {
+
+	result := make([]string, 0)
+
+	var b bytes.Buffer
+
+	split := strings.Split(original, " ")
+
+	for i, s := range split {
+
+		if i < (len(split) - 1) {
+			s = s + " "
+		}
+
+		bs := b.Len()
+		sl := len(s)
+
+		if bs+sl > max {
+
+			if bs == 0 {
+				result = append(result, s)
+			} else {
+				result = append(result, b.String())
+				b.Reset()
+				b.WriteString(s)
+			}
+
+		} else {
+			b.WriteString(s)
+		}
+	}
+
+	if b.Len() > 0 {
+		result = append(result, b.String())
+	}
+
+	return result
+}
+
+func maxWidth(c [][]string, i int) int {
+
+	widest := 0
+
+	for _, l := range c {
+
+		if len(l) > i {
+			cw := len(l[i])
+
+			if cw > widest {
+				widest = cw
+			}
+
+		}
+
+	}
+
+	return widest
+}
+
+func paragraphOutput(co *commandOutcome) {
+	if co.OutputHeader != "" {
+		fmt.Printf("\n%s\n", co.OutputHeader)
+	}
+
+	if co.OutputBody != nil {
+
+		fmt.Println()
+
+		for _, p := range co.OutputBody {
+
+			for _, s := range p {
+				fmt.Println(s)
+			}
+
+			fmt.Println()
+
+		}
+
+	}
 }
 
 func assessStatusCode(s int) {
@@ -345,4 +495,23 @@ type commandOutcome struct {
 	OutputHeader string
 	OutputBody   [][]string
 	RenderHint   string
+}
+
+func padRightTo(s string, p int) string {
+
+	l := len(s)
+
+	if l >= p {
+		return s
+	}
+
+	var b bytes.Buffer
+
+	b.WriteString(s)
+
+	for i := l; i < p; i++ {
+		b.WriteString(" ")
+	}
+
+	return b.String()
 }

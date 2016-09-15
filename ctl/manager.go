@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/logging"
+	"sort"
 )
 
 type CommandManager struct {
@@ -29,8 +30,24 @@ func (cm *CommandManager) Register(command Command) error {
 	}
 
 	cm.commands[name] = command
-
 	cm.FrameworkLogger.LogDebugf("Registered command %s", name)
 
 	return nil
+}
+
+func (cm *CommandManager) All() []Command {
+
+	if cm.commands == nil {
+		return []Command{}
+	}
+
+	s := make([]Command, 0)
+
+	for _, v := range cm.commands {
+		s = append(s, v)
+	}
+
+	sort.Sort(ByName{s})
+
+	return s
 }
