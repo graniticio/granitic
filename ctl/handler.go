@@ -10,6 +10,15 @@ import (
 	"strings"
 )
 
+const (
+	maxArgs        = 32
+	tooManyArgs    = "TOO_MANY_ARGS"
+	unknownCommand = "UNKNOWN_COMMAND"
+	argKeyFormat   = "ARG_PATTERN"
+	argMaxLength   = 256
+	tooLongArg     = "ARG_TOO_LONG"
+)
+
 type CommandLogic struct {
 	FrameworkLogger logging.Logger
 	CommandManager  *CommandManager
@@ -24,18 +33,17 @@ func (cl *CommandLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.
 
 	cl.FrameworkLogger.LogInfof("Executing runtime command '%s'", name)
 
-	comm.ExecuteCommand(cr.Qualifiers, cr.Arguments)
+	co, errs := comm.ExecuteCommand(cr.Qualifiers, cr.Arguments)
+
+	if errs != nil {
+		for _, e := range errs {
+			res.Errors.AddError(e)
+		}
+	}
+
+	res.Body = co
 
 }
-
-const (
-	maxArgs        = 32
-	tooManyArgs    = "TOO_MANY_ARGS"
-	unknownCommand = "UNKNOWN_COMMAND"
-	argKeyFormat   = "ARG_PATTERN"
-	argMaxLength   = 256
-	tooLongArg     = "ARG_TOO_LONG"
-)
 
 func (cl *CommandLogic) Validate(ctx context.Context, se *ws.ServiceErrors, request *ws.WsRequest) {
 

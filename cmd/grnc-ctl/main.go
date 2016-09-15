@@ -82,6 +82,59 @@ func runCommand(ta *toolArgs, cr *ctlCommandRequest) {
 
 	assessStatusCode(r.StatusCode)
 
+	var res ctlResponse
+
+	if err := json.NewDecoder(r.Body).Decode(&res); err != nil {
+		exitError("Unable to parse the response from the application")
+	}
+
+	processErrors(&res)
+	renderOutput(&res)
+
+}
+
+func processErrors(res *ctlResponse) {
+
+	if res.Errors == nil || (res.Errors.ByField == nil && res.Errors.General == nil) {
+		return
+	}
+
+	messages := make([]string, 0)
+
+	if res.Errors.ByField != nil {
+
+		for _, es := range res.Errors.ByField {
+
+			for _, e := range es {
+				messages = append(messages, e.Message)
+			}
+
+		}
+
+	}
+
+	if res.Errors.General != nil {
+		for _, e := range res.Errors.General {
+			messages = append(messages, e.Message)
+		}
+	}
+
+	printErrors(messages)
+
+}
+
+func renderOutput(res *ctlResponse) {
+
+	co := res.Response
+
+	if co == nil {
+		return
+	}
+
+	if co.OutputHeader != "" {
+		fmt.Println(co.OutputHeader)
+	}
+
 }
 
 func assessStatusCode(s int) {
@@ -253,6 +306,14 @@ func tabPrint(s string, t int) {
 	fmt.Println(s)
 }
 
+func printErrors(messages []string) {
+
+	for _, message := range messages {
+		fmt.Printf("grnc-ctl: %s\n", message)
+	}
+	os.Exit(1)
+}
+
 func exitError(message string, a ...interface{}) {
 
 	m := "grnc-ctl: " + message + "\n"
@@ -263,4 +324,25 @@ func exitError(message string, a ...interface{}) {
 
 func exitNormal() {
 	os.Exit(0)
+}
+
+type ctlResponse struct {
+	Errors   *ctlErrors
+	Response *commandOutcome
+}
+
+type ctlErrors struct {
+	ByField map[string][]errorWrapper
+	General []errorWrapper
+}
+
+type errorWrapper struct {
+	Code    string
+	Message string
+}
+
+type commandOutcome struct {
+	OutputHeader string
+	OutputBody   [][]string
+	RenderHint   string
 }

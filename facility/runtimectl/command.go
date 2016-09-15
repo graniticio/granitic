@@ -5,6 +5,7 @@ import (
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/ws"
 )
 
 const (
@@ -20,11 +21,14 @@ func (csd *ShutdownCommand) Container(container *ioc.ComponentContainer) {
 	csd.container = container
 }
 
-func (csd *ShutdownCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, error) {
+func (csd *ShutdownCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
 
 	go csd.startShutdown()
 
-	return nil, nil
+	co := new(ctl.CommandOutcome)
+	co.OutputHeader = "Shutdown initiated"
+
+	return co, nil
 }
 
 func (csd *ShutdownCommand) startShutdown() {
