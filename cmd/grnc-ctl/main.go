@@ -26,6 +26,7 @@ const (
 	defaultPort      = 9099
 	minPort          = 1
 	maxPort          = 65535
+	termWidth        = 120
 )
 
 func main() {
@@ -140,7 +141,7 @@ func renderOutput(res *ctlResponse) {
 
 func columnOutput(co *commandOutcome) {
 
-	tWidth := 120
+	tWidth := termWidth
 	indent := 2
 	minWidth := 20
 
@@ -279,7 +280,12 @@ func paragraphOutput(co *commandOutcome) {
 		for _, p := range co.OutputBody {
 
 			for _, s := range p {
-				fmt.Println(s)
+
+				cropped := splitToMax(s, termWidth-2)
+
+				for _, c := range cropped {
+					fmt.Printf("  %s\n", c)
+				}
 			}
 
 			fmt.Println()

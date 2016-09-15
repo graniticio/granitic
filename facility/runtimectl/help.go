@@ -9,7 +9,7 @@ import (
 
 const (
 	helpCommandName = "help"
-	helpSummary     = "Show all available commands or show help on a specific command"
+	helpSummary     = "Show a list of all available commands or show help on a specific command."
 	helpUsage       = "help [command]"
 	helpHelp        = "Without qualifiers, help will display a list of available runtime commands. " +
 		"With a command name as a qualifier, it will display detailed help and usage for that command."
