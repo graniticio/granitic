@@ -1,5 +1,8 @@
 {
   "RuntimeCtl": {
+    "Manager": {
+
+    },
     "Server":{
       "Port": 9099,
       "AccessLogging": false,

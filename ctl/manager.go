@@ -10,6 +10,7 @@ import (
 type CommandManager struct {
 	FrameworkLogger logging.Logger
 	commands        map[string]Command
+	Disabled        []string
 }
 
 func (cm *CommandManager) Find(name string) Command {

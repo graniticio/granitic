@@ -121,6 +121,9 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 
 	//Command manager
 	cm := new(ctl.CommandManager)
+
+	ca.Populate("RuntimeCtl.Manager", cm)
+
 	cm.FrameworkLogger = lm.CreateLogger(runtimeCtlCommandManager)
 	cc.WrapAndAddProto(runtimeCtlCommandManager, cm)
 
