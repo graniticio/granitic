@@ -1,6 +1,7 @@
 package runtimectl
 
 import (
+	"fmt"
 	"github.com/graniticio/granitic/ctl"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
@@ -30,9 +31,42 @@ func (c *LogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]st
 
 	if len(qualifiers) == 0 {
 		return c.showCurrentLevel(args)
+	} else {
+		return c.setLevel(qualifiers)
+	}
+}
+
+func (c *LogLevelCommand) setLevel(qualifiers []string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+
+	var err error
+	var ll logging.LogLevel
+
+	if len(qualifiers) < 2 {
+		return nil, []*ws.CategorisedError{ctl.NewCommandClientError("You must provide a component name and a loging level.")}
 	}
 
-	return nil, nil
+	name := qualifiers[0]
+	label := qualifiers[1]
+
+	if ll, err = logging.LogLevelFromLabel(label); err != nil {
+		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
+	}
+
+	logger := c.ApplicationManager.LoggerByName(name)
+
+	if logger == nil {
+		logger = c.FrameworkManager.LoggerByName(name)
+	}
+
+	if logger == nil {
+		m := fmt.Sprintf("Component %s does not exist or does not have a logger attached.", name)
+		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(m)}
+	}
+
+	logger.SetLocalThreshold(ll)
+
+	return new(ctl.CommandOutcome), nil
+
 }
 
 func (c *LogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
