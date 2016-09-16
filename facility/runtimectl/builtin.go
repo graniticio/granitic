@@ -46,7 +46,7 @@ func includeRuntime(args map[string]string) (bool, error) {
 	return boolArg(args, rcArg)
 }
 
-func showBuiltin(args map[string]string) (bool, error) {
+func operateOnFramework(args map[string]string) (bool, error) {
 	return boolArg(args, fwArg)
 }
 

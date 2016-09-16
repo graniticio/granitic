@@ -1,6 +1,7 @@
 package runtimectl
 
 import (
+	"fmt"
 	"github.com/graniticio/granitic/ctl"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
@@ -24,7 +25,44 @@ type GlobalLogLevelCommand struct {
 
 func (c *GlobalLogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
 
+	if len(qualifiers) == 0 {
+		return c.showCurrentLevel(args)
+	}
+
 	return nil, nil
+}
+
+func (c *GlobalLogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+
+	var m string
+	var err error
+	var showFrameworkThreshold bool
+
+	if showFrameworkThreshold, err = operateOnFramework(args); err != nil {
+		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
+	}
+
+	if showFrameworkThreshold {
+
+		cl := c.FrameworkManager.GlobalLevel()
+		label := logging.LabelFromLevel(cl)
+
+		m = fmt.Sprintf("Global logging threshold for Granitic framwork components is set to %s", label)
+
+	} else {
+
+		cl := c.ApplicationManager.GlobalLevel()
+		label := logging.LabelFromLevel(cl)
+
+		m = fmt.Sprintf("Global logging threshold for application components is set to %s", label)
+
+	}
+
+	co := new(ctl.CommandOutcome)
+	co.OutputHeader = m
+
+	return co, nil
+
 }
 
 func (c *GlobalLogLevelCommand) Name() string {

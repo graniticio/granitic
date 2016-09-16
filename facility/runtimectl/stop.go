@@ -42,7 +42,7 @@ func (c *StopCommand) stopAll(args map[string]string) (*ctl.CommandOutcome, []*w
 	var allowStopCtlServer bool
 	var err error
 
-	if includeFramework, err = showBuiltin(args); err != nil {
+	if includeFramework, err = operateOnFramework(args); err != nil {
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 	}
 

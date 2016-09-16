@@ -32,7 +32,7 @@ func (c *ComponentsCommand) ExecuteCommand(qualifiers []string, args map[string]
 	var lcFilter lifecycleFilter
 	var err error
 
-	if frameworkOnly, err = showBuiltin(args); err != nil {
+	if frameworkOnly, err = operateOnFramework(args); err != nil {
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 	}
 
