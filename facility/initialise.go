@@ -130,11 +130,10 @@ func (fi *FacilitiesInitialisor) updateFrameworkLogLevel() error {
 		return errors.New(configErrorPrefix + err.Error())
 	}
 
-	initialLogLevelsByComponent := fi.ConfigAccessor.ObjectVal("FrameworkLogger.ComponentLogLevels")
+	il := fi.ConfigAccessor.ObjectVal("FrameworkLogger.ComponentLogLevels")
 
-	flm.InitalComponentLogLevels = initialLogLevelsByComponent
-	flm.UpdateGlobalThreshold(defaultLogLevel)
-	flm.UpdateLocalThreshold(defaultLogLevel)
+	flm.SetInitialLogLevels(il)
+	flm.SetGlobalThreshold(defaultLogLevel)
 
 	fld := new(logger.FrameworkLogDecorator)
 	fld.FrameworkLogger = flm.CreateLogger(frameworkLoggerDecoratorName)

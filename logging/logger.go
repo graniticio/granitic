@@ -30,8 +30,17 @@ type Logger interface {
 	IsLevelEnabled(level LogLevel) bool
 }
 
+type GlobalLevel interface {
+	GlobalLevel() LogLevel
+}
+
+type RuntimeControllableLog interface {
+	SetThreshold(threshold LogLevel)
+	UpdateWritersAndFormatter([]LogWriter, *LogMessageFormatter)
+}
+
 type LevelAwareLogger struct {
-	globalLogThreshold LogLevel
+	global             GlobalLevel
 	localLogThreshhold LogLevel
 	loggerName         string
 	writers            []LogWriter
@@ -44,7 +53,19 @@ func (lal *LevelAwareLogger) UpdateWritersAndFormatter(w []LogWriter, f *LogMess
 }
 
 func (lal *LevelAwareLogger) IsLevelEnabled(level LogLevel) bool {
-	return level >= lal.localLogThreshhold || level >= lal.globalLogThreshold
+
+	var el LogLevel
+
+	gl := lal.global.GlobalLevel()
+	ll := lal.localLogThreshhold
+
+	if ll == All {
+		el = gl
+	} else {
+		el = ll
+	}
+
+	return level >= el
 }
 
 func (lal *LevelAwareLogger) log(ctx context.Context, levelLabel string, level LogLevel, message string) {
@@ -155,16 +176,11 @@ func (lal *LevelAwareLogger) LogFatalf(format string, a ...interface{}) {
 	lal.logf(nil, FatalLabel, Fatal, format, a...)
 }
 
-func (lal *LevelAwareLogger) SetGlobalThreshold(threshold LogLevel) {
-	lal.globalLogThreshold = threshold
-}
-
 func (lal *LevelAwareLogger) SetLocalThreshold(threshold LogLevel) {
 	lal.localLogThreshhold = threshold
 }
 
 func (lal *LevelAwareLogger) SetThreshold(threshold LogLevel) {
-	lal.SetGlobalThreshold(threshold)
 	lal.SetLocalThreshold(threshold)
 }
 
@@ -172,17 +188,23 @@ func (lal *LevelAwareLogger) SetLoggerName(name string) {
 	lal.loggerName = name
 }
 
-type LogRuntimeControl interface {
-	SetGlobalThreshold(threshold LogLevel)
-	SetLocalThreshold(threshold LogLevel)
-	UpdateWritersAndFormatter([]LogWriter, *LogMessageFormatter)
-}
-
 func CreateAnonymousLogger(componentId string, threshold LogLevel) Logger {
 	logger := new(LevelAwareLogger)
-	logger.globalLogThreshold = threshold
+
+	gls := new(globalLogSource)
+	gls.level = threshold
+
+	logger.global = gls
 	logger.localLogThreshhold = threshold
 	logger.loggerName = componentId
 
 	return logger
+}
+
+type globalLogSource struct {
+	level LogLevel
+}
+
+func (ls *globalLogSource) GlobalLevel() LogLevel {
+	return ls.level
 }
