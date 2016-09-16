@@ -2,7 +2,6 @@ package logger
 
 import (
 	"errors"
-	"fmt"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility/runtimectl"
 	"github.com/graniticio/granitic/instance"
@@ -66,8 +65,6 @@ func (alfb *ApplicationLoggingFacilityBuilder) addRuntimeCommands(ca *config.Con
 	gll.FrameworkManager = flm
 
 	cn.WrapAndAddProto(runtimectl.GLLComponentName, gll)
-
-	fmt.Println("Adding commands")
 
 }
 

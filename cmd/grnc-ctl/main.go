@@ -276,6 +276,10 @@ func maxWidth(c [][]string, i int) int {
 func paragraphOutput(co *commandOutcome) {
 	if co.OutputHeader != "" {
 		fmt.Printf("\n%s\n", co.OutputHeader)
+
+		if co.OutputBody == nil {
+			fmt.Println()
+		}
 	}
 
 	if co.OutputBody != nil {

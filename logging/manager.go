@@ -38,6 +38,7 @@ func (clm *ComponentLoggerManager) UpdateWritersAndFormatter(writers []LogWriter
 }
 
 func (clm *ComponentLoggerManager) SetGlobalThreshold(globalThreshold LogLevel) {
+
 	clm.globalThreshold = globalThreshold
 }
 
@@ -69,7 +70,9 @@ func (clm *ComponentLoggerManager) CreateLogger(componentId string) Logger {
 		return clm.createdLoggers[componentId]
 	}
 
-	threshold := clm.globalThreshold
+	var threshold LogLevel
+
+	threshold = All
 
 	if clm.initalComponentLogLevels != nil {
 
