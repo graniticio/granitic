@@ -66,6 +66,12 @@ func (alfb *ApplicationLoggingFacilityBuilder) addRuntimeCommands(ca *config.Con
 
 	cn.WrapAndAddProto(runtimectl.GLLComponentName, gll)
 
+	llc := new(runtimectl.LogLevelCommand)
+	llc.ApplicationManager = alm
+	llc.FrameworkManager = flm
+
+	cn.WrapAndAddProto(runtimectl.LLComponentName, llc)
+
 }
 
 func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.ConfigAccessor) (*logging.LogMessageFormatter, error) {
