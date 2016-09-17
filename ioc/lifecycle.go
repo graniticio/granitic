@@ -3,7 +3,8 @@ package ioc
 type LifecycleSupport int
 
 const (
-	CanStart = iota
+	None = iota
+	CanStart
 	CanStop
 	CanSuspend
 	CanBlockStart

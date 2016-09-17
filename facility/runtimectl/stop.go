@@ -58,7 +58,7 @@ func (c *StopCommand) stopAll(args map[string]string) (*ctl.CommandOutcome, []*w
 
 		fw := isFramework(c)
 
-		if ((fw && includeFramework) || !fw) && matchesFilter(stop, c.Instance) {
+		if ((fw && includeFramework) || !fw) && matchesFilter(ioc.CanStop, c.Instance) {
 
 			if c.Name == RuntimeCtlServer && !allowStopCtlServer {
 				continue

@@ -29,7 +29,7 @@ func (c *ComponentsCommand) Container(container *ioc.ComponentContainer) {
 func (c *ComponentsCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
 
 	var frameworkOnly bool
-	var lcFilter lifecycleFilter
+	var lcFilter ioc.LifecycleSupport
 	var err error
 
 	if frameworkOnly, err = operateOnFramework(args); err != nil {

@@ -16,10 +16,10 @@ const (
 	rcArg = "rc"
 )
 
-func findLifecycleFilter(args map[string]string) (lifecycleFilter, error) {
+func findLifecycleFilter(args map[string]string) (ioc.LifecycleSupport, error) {
 
 	if args == nil || len(args) == 0 || args[lcArg] == "" {
-		return all, nil
+		return ioc.None, nil
 	}
 
 	v := args[lcArg]
@@ -71,57 +71,48 @@ func boolArg(args map[string]string, n string) (bool, error) {
 
 }
 
-func matchesFilter(f lifecycleFilter, i interface{}) bool {
+func fromFilterArg(arg string) (ioc.LifecycleSupport, error) {
+
+	s := strings.ToLower(arg)
+
+	switch s {
+	case "", "all":
+		return ioc.None, nil
+	case "stop":
+		return ioc.CanStop, nil
+	case "start":
+		return ioc.CanStart, nil
+	case "suspend":
+		return ioc.CanSuspend, nil
+	}
+
+	m := fmt.Sprintf("%s is not a recognised lifecycle filter (all, stop, start, suspend)", arg)
+
+	return ioc.None, errors.New(m)
+
+}
+
+func matchesFilter(f ioc.LifecycleSupport, i interface{}) bool {
 
 	switch f {
-	case all:
+	case ioc.None:
 		return true
 
-	case start:
+	case ioc.CanStart:
 		_, found := i.(ioc.Startable)
 		return found
 
-	case stop:
+	case ioc.CanStop:
 		_, found := i.(ioc.Stoppable)
 		return found
 
-	case suspend:
+	case ioc.CanSuspend:
 		_, found := i.(ioc.Suspendable)
 		return found
 
 	}
 
 	return true
-}
-
-type lifecycleFilter int
-
-const (
-	all = iota
-	stop
-	start
-	suspend
-)
-
-func fromFilterArg(arg string) (lifecycleFilter, error) {
-
-	s := strings.ToLower(arg)
-
-	switch s {
-	case "", "all":
-		return all, nil
-	case "stop":
-		return stop, nil
-	case "start":
-		return start, nil
-	case "suspend":
-		return suspend, nil
-	}
-
-	m := fmt.Sprintf("%s is not a recognised lifecycle filter (all, stop, start, suspend)", arg)
-
-	return all, errors.New(m)
-
 }
 
 func isFramework(c *ioc.Component) bool {
