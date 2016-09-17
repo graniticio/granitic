@@ -29,25 +29,26 @@ func NewComponentContainer(loggingManager *logging.ComponentLoggerManager, confi
 	cc.FrameworkLogger = loggingManager.CreateLogger(containerComponentName)
 	cc.configAccessor = configAccessor
 	cc.modifiers = make(map[string]map[string]string)
-
+	cc.byLifecycleSupport = make(map[LifecycleSupport][]*Component)
 	return cc
 
 }
 
 type ComponentContainer struct {
-	allComponents   map[string]*Component
-	protoComponents map[string]*ProtoComponent
-	FrameworkLogger logging.Logger
-	configAccessor  *config.ConfigAccessor
-	startable       []*Component
-	stoppable       []*Component
-	blocker         []*Component
-	accessible      []*Component
-	modifiers       map[string]map[string]string
+	allComponents      map[string]*Component
+	protoComponents    map[string]*ProtoComponent
+	FrameworkLogger    logging.Logger
+	configAccessor     *config.ConfigAccessor
+	byLifecycleSupport map[LifecycleSupport][]*Component
+	modifiers          map[string]map[string]string
 }
 
 func (cc *ComponentContainer) ComponentByName(name string) *Component {
 	return cc.allComponents[name]
+}
+
+func (cc *ComponentContainer) ByLifecycleSupport(ls LifecycleSupport) []*Component {
+	return cc.byLifecycleSupport[ls]
 }
 
 func (cc *ComponentContainer) AllComponents() []*Component {
@@ -137,7 +138,7 @@ func (cc *ComponentContainer) StartComponents() error {
 		}
 	}()
 
-	for _, component := range cc.startable {
+	for _, component := range cc.byLifecycleSupport[CanStart] {
 
 		startable := component.Instance.(Startable)
 
@@ -150,7 +151,7 @@ func (cc *ComponentContainer) StartComponents() error {
 
 	}
 
-	if len(cc.blocker) != 0 {
+	if len(cc.byLifecycleSupport[CanBlockStart]) != 0 {
 		err := cc.waitForBlockers(5*time.Second, 12, 0)
 
 		if err != nil {
@@ -159,7 +160,7 @@ func (cc *ComponentContainer) StartComponents() error {
 
 	}
 
-	for _, component := range cc.accessible {
+	for _, component := range cc.byLifecycleSupport[CanBeAccessed] {
 
 		accessible := component.Instance.(Accessible)
 		err := accessible.AllowAccess()
@@ -170,7 +171,6 @@ func (cc *ComponentContainer) StartComponents() error {
 
 	}
 
-	cc.startable = nil
 	cc.configAccessor = nil
 
 	return nil
@@ -202,7 +202,7 @@ func (cc *ComponentContainer) StopAll() error {
 
 	comps := make(map[string]Stoppable)
 
-	for _, v := range cc.stoppable {
+	for _, v := range cc.byLifecycleSupport[CanStop] {
 
 		comps[v.Name] = v.Instance.(Stoppable)
 
@@ -254,7 +254,7 @@ func (cc *ComponentContainer) countBlocking(warn bool) (int, []string) {
 	notReady := 0
 	names := []string{}
 
-	for _, c := range cc.blocker {
+	for _, c := range cc.byLifecycleSupport[CanBlockStart] {
 		ab := c.Instance.(AccessibilityBlocker)
 
 		block, err := ab.BlockAccess()
@@ -281,7 +281,7 @@ func (cc *ComponentContainer) countNotReady(warn bool) int {
 
 	notReady := 0
 
-	for _, c := range cc.stoppable {
+	for _, c := range cc.byLifecycleSupport[CanStop] {
 		s := c.Instance.(Stoppable)
 
 		ready, err := s.ReadyToStop()
@@ -471,32 +471,39 @@ func (cc *ComponentContainer) addComponent(component *Component) {
 		n.SetComponentName(component.Name)
 	}
 
-	_, startable := component.Instance.(Startable)
-
-	if startable {
+	if _, startable := component.Instance.(Startable); startable {
 		l.LogTracef("%s is Startable", component.Name)
-		cc.startable = append(cc.startable, component)
+		cc.addBySupport(component, CanStart)
 	}
 
-	_, stoppable := component.Instance.(Stoppable)
-
-	if stoppable {
+	if _, stoppable := component.Instance.(Stoppable); stoppable {
 		l.LogTracef("%s is Stoppable", component.Name)
-		cc.stoppable = append(cc.stoppable, component)
+		cc.addBySupport(component, CanStop)
 	}
 
-	_, blocker := component.Instance.(AccessibilityBlocker)
-
-	if blocker {
+	if _, blocker := component.Instance.(AccessibilityBlocker); blocker {
 		l.LogTracef("%s is an AvailabilityBlocker", component.Name)
-		cc.blocker = append(cc.blocker, component)
+		cc.addBySupport(component, CanBlockStart)
 	}
 
-	_, accessible := component.Instance.(Accessible)
-
-	if accessible {
+	if _, accessible := component.Instance.(Accessible); accessible {
 		l.LogTracef("%s is a Accesible", component.Name)
-		cc.accessible = append(cc.accessible, component)
+		cc.addBySupport(component, CanBeAccessed)
 	}
+
+}
+
+func (cc *ComponentContainer) addBySupport(c *Component, ls LifecycleSupport) {
+
+	a := cc.byLifecycleSupport[ls]
+
+	if a == nil {
+		a = make([]*Component, 1)
+		a[0] = c
+	} else {
+		a = append(a, c)
+	}
+
+	cc.byLifecycleSupport[ls] = a
 
 }

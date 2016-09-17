@@ -1,5 +1,15 @@
 package ioc
 
+type LifecycleSupport int
+
+const (
+	CanStart = iota
+	CanStop
+	CanSuspend
+	CanBlockStart
+	CanBeAccessed
+)
+
 type Startable interface {
 	StartComponent() error
 }
