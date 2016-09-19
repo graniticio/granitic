@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"os"
 	"regexp"
@@ -31,6 +32,7 @@ type QueryManager struct {
 	StringWrapWith     string
 	NewLine            string
 	tokenisedTemplates map[string]*QueryTemplate
+	state              ioc.ComponentState
 }
 
 func (qm *QueryManager) SubstituteMap(queryId string, params map[string]interface{}) (string, error) {
@@ -73,6 +75,12 @@ func (qm *QueryManager) SubstituteMap(queryId string, params map[string]interfac
 }
 
 func (qm *QueryManager) StartComponent() error {
+
+	if qm.state != ioc.StoppedState {
+		return nil
+	}
+	qm.state = ioc.StartingState
+
 	fl := qm.FrameworkLogger
 	fl.LogDebugf("Starting QueryManager")
 	fl.LogDebugf(qm.TemplateLocation)
@@ -83,6 +91,8 @@ func (qm *QueryManager) StartComponent() error {
 
 		qm.tokenisedTemplates = qm.parseQueryFiles(queryFiles)
 		fl.LogDebugf("Started QueryManager with %d queries", len(qm.tokenisedTemplates))
+
+		qm.state = ioc.RunningState
 
 		return nil
 

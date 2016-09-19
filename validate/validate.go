@@ -145,6 +145,7 @@ type RuleValidator struct {
 	codesInUse             types.StringSet
 	Log                    logging.Logger
 	DisableCodeValidation  bool
+	state                  ioc.ComponentState
 }
 
 func (ov *RuleValidator) ValidateMissing() bool {
@@ -286,6 +287,12 @@ func (ov *RuleValidator) parentsOkay(v Validator, fieldsWithProblems types.Strin
 
 func (ov *RuleValidator) StartComponent() error {
 
+	if ov.state != ioc.StoppedState {
+		return nil
+	}
+
+	ov.state = ioc.StartingState
+
 	if ov.Rules == nil {
 		return errors.New("No Rules specified for validator.")
 	}
@@ -350,6 +357,8 @@ func (ov *RuleValidator) parseRules() error {
 		}
 
 	}
+
+	ov.state = ioc.RunningState
 
 	return err
 }

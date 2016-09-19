@@ -3,6 +3,7 @@ package rdbms
 import (
 	"database/sql"
 	"github.com/graniticio/granitic/facility/querymanager"
+	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 )
 
@@ -21,6 +22,7 @@ type DefaultRdbmsClientManager struct {
 	QueryManager                  *querymanager.QueryManager
 	db                            *sql.DB
 	FrameworkLogger               logging.Logger
+	state                         ioc.ComponentState
 }
 
 func (drcm *DefaultRdbmsClientManager) Client() *RdbmsClient {
@@ -33,6 +35,12 @@ func (drcm *DefaultRdbmsClientManager) ClientFromContext(context interface{}) *R
 
 func (drcm *DefaultRdbmsClientManager) StartComponent() error {
 
+	if drcm.state != ioc.StoppedState {
+		return nil
+	}
+
+	drcm.state = ioc.StartingState
+
 	db, err := drcm.Provider.Database()
 
 	if err != nil {
@@ -40,12 +48,16 @@ func (drcm *DefaultRdbmsClientManager) StartComponent() error {
 
 	} else {
 		drcm.db = db
+
+		drcm.state = ioc.RunningState
+
 		return nil
 	}
 
 }
 
 func (drcm *DefaultRdbmsClientManager) PrepareToStop() {
+	drcm.state = ioc.StoppingState
 
 }
 
@@ -56,6 +68,8 @@ func (drcm *DefaultRdbmsClientManager) ReadyToStop() (bool, error) {
 func (drcm *DefaultRdbmsClientManager) Stop() error {
 
 	db := drcm.db
+
+	drcm.state = ioc.StoppedState
 
 	if db != nil {
 		return db.Close()

@@ -39,7 +39,7 @@ type HTTPServer struct {
 	MaxConcurrent               int64
 	TooBusyStatus               int
 	VersionExtractor            httpendpoint.RequestedVersionExtractor
-	available                   bool
+	state                       ioc.ComponentState
 }
 
 func (h *HTTPServer) Container(container *ioc.ComponentContainer) {
@@ -77,6 +77,11 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HttpEndpoint
 
 func (h *HTTPServer) StartComponent() error {
 
+	if h.state != ioc.StoppedState {
+		return nil
+	}
+
+	h.state = ioc.StartingState
 	h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
 
 	if h.AutoFindHandlers {
@@ -105,25 +110,38 @@ func (h *HTTPServer) StartComponent() error {
 		return errors.New("No AbnormalStatusWriter set.")
 	}
 
+	h.state = ioc.AwaitingAccessState
+
 	return nil
 }
 
 func (h *HTTPServer) Suspend() error {
-	h.available = false
+
+	if h.state != ioc.RunningState {
+		return nil
+	}
+
+	h.state = ioc.SuspendedState
 
 	return nil
 }
 
 func (h *HTTPServer) Resume() error {
 
-	if h.available == false {
-		h.available = true
+	if h.state != ioc.SuspendedState {
+		return nil
 	}
+
+	h.state = ioc.RunningState
 
 	return nil
 }
 
 func (h *HTTPServer) AllowAccess() error {
+
+	if h.state != ioc.AwaitingAccessState {
+		return nil
+	}
 
 	sm := http.NewServeMux()
 	sm.Handle("/", http.HandlerFunc(h.handleAll))
@@ -146,7 +164,7 @@ func (h *HTTPServer) AllowAccess() error {
 
 	h.FrameworkLogger.LogInfof("Listening on %d", h.Port)
 
-	h.available = true
+	h.state = ioc.RunningState
 
 	return nil
 }
@@ -161,7 +179,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
-	if !h.available {
+	if h.state != ioc.RunningState {
 		state := ws.NewAbnormalState(h.TooBusyStatus, wrw)
 		if err := h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state); err != nil {
 			h.FrameworkLogger.LogErrorfCtx(ctx, err.Error())
@@ -230,7 +248,7 @@ func (h *HTTPServer) versionMatch(r *http.Request, p httpendpoint.HttpEndpointPr
 }
 
 func (h *HTTPServer) PrepareToStop() {
-	h.available = false
+	h.state = ioc.StoppingState
 }
 
 func (h *HTTPServer) ReadyToStop() (bool, error) {
@@ -248,5 +266,8 @@ func (h *HTTPServer) ReadyToStop() (bool, error) {
 }
 
 func (h *HTTPServer) Stop() error {
+
+	h.state = ioc.StoppedState
+
 	return nil
 }

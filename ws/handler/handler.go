@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/iam"
+	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/validate"
 	"github.com/graniticio/granitic/ws"
@@ -80,6 +81,7 @@ type WsHandler struct {
 	httpMethods            []string
 	componentName          string
 	pathRegex              *regexp.Regexp
+	state                  ioc.ComponentState
 	validationEnabled      bool
 	validator              WsRequestValidator
 }
@@ -470,6 +472,12 @@ func (wh *WsHandler) writePanicResponse(ctx context.Context, r interface{}, w *h
 
 func (wh *WsHandler) StartComponent() error {
 
+	if wh.state != ioc.StoppedState {
+		return nil
+	}
+
+	wh.state = ioc.StartingState
+
 	if wh.PathMatchPattern == "" || wh.HttpMethod == "" || wh.Logic == nil {
 		return errors.New("Handlers must have at least a PathMatchPattern string, HttpMethod string and Logic component set.")
 	}
@@ -505,6 +513,8 @@ func (wh *WsHandler) StartComponent() error {
 	if wh.DeferAutoErrors && wh.validator == nil {
 		return errors.New("If you want to defer errors generated during auto validation, your logic component must implement WsRequestValidator.")
 	}
+
+	wh.state = ioc.RunningState
 
 	return nil
 

@@ -1,5 +1,18 @@
 package ioc
 
+type ComponentState int
+
+const (
+	StoppedState = iota
+	StoppingState
+	StartingState
+	AwaitingAccessState
+	RunningState
+	SuspendingState
+	SuspendedState
+	ResumingState
+)
+
 type ProtoComponents struct {
 	Components            []*ProtoComponent
 	FrameworkDependencies map[string]map[string]string

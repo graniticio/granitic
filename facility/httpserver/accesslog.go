@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
+	"github.com/graniticio/granitic/ioc"
 	"golang.org/x/net/context"
 	"net/http"
 	"os"
@@ -102,6 +103,7 @@ type AccessLogWriter struct {
 	UtcTimes      bool
 	elements      []*LogLineElement
 	lines         chan string
+	state         ioc.ComponentState
 }
 
 func (alw *AccessLogWriter) LogRequest(req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time, ctx context.Context) {
@@ -141,6 +143,12 @@ func (alw *AccessLogWriter) buildLine(req *http.Request, res *httpendpoint.HTTPR
 
 func (alw *AccessLogWriter) StartComponent() error {
 
+	if alw.state != ioc.StoppedState {
+		return nil
+	}
+
+	alw.state = ioc.StartingState
+
 	alw.lines = make(chan string, DefaultLogBufferLength)
 
 	err := alw.configureLogFormat()
@@ -152,6 +160,8 @@ func (alw *AccessLogWriter) StartComponent() error {
 	err = alw.openFile()
 
 	go alw.watchLineBuffer()
+
+	alw.state = ioc.RunningState
 
 	return err
 
@@ -495,6 +505,7 @@ func (alw *AccessLogWriter) userId(ctx context.Context) string {
 }
 
 func (alw *AccessLogWriter) PrepareToStop() {
+	alw.state = ioc.StoppingState
 
 }
 
@@ -507,6 +518,8 @@ func (alw *AccessLogWriter) Stop() error {
 	if alw.logFile != nil {
 		return alw.logFile.Close()
 	}
+
+	alw.state = ioc.StoppedState
 
 	return nil
 }

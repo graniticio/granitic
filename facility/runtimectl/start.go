@@ -41,7 +41,7 @@ func invokeStart(comps []*ioc.Component, l logging.Logger, cc *ioc.ComponentCont
 	}()
 
 	if err := cc.Lifecycle.Start(comps); err != nil {
-		l.LogErrorf("Problem starting components from remote command", err.Error())
+		l.LogErrorf("Problem starting components from remote command %s", err.Error())
 	}
 
 }

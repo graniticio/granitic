@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
+	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
 	"golang.org/x/net/context"
@@ -24,6 +25,7 @@ type TemplatedXMLResponseWriter struct {
 	HeaderBuilder    ws.WsCommonResponseHeaderBuilder
 	AbnormalTemplate string
 	ErrorTemplate    string
+	state            ioc.ComponentState
 }
 
 func (rw *TemplatedXMLResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
@@ -143,6 +145,12 @@ func (rw *TemplatedXMLResponseWriter) writeAbnormalStatus(ctx context.Context, s
 
 func (rw *TemplatedXMLResponseWriter) StartComponent() error {
 
+	if rw.state != ioc.StoppedState {
+		return nil
+	}
+
+	rw.state = ioc.StartingState
+
 	if rw.AbnormalTemplate == "" {
 		return errors.New("You must specify a template for abnormal HTTP statuses via the AbnormalTemplate field.")
 	}
@@ -156,6 +164,8 @@ func (rw *TemplatedXMLResponseWriter) StartComponent() error {
 	}
 
 	rw.preLoadTemplates(rw.TemplateDir)
+
+	rw.state = ioc.RunningState
 
 	return nil
 }
