@@ -6,6 +6,7 @@ import (
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -113,6 +114,43 @@ func matchesFilter(f ioc.LifecycleSupport, i interface{}) bool {
 	}
 
 	return true
+}
+
+func filteredComponents(cc *ioc.ComponentContainer, ls ioc.LifecycleSupport, of ownershipFilter, nameSort bool) []*ioc.Component {
+
+	var base []*ioc.Component
+
+	switch ls {
+	case ioc.None:
+		base = cc.AllComponents()
+	default:
+		base = cc.ByLifecycleSupport(ls)
+	}
+
+	filtered := make([]*ioc.Component, 0)
+
+	for _, bc := range base {
+
+		switch of {
+		case FrameworkOwned:
+			if !isFramework(bc) {
+				continue
+			}
+		case ApplicationOwned:
+			if isFramework(bc) {
+				continue
+			}
+		}
+
+		filtered = append(filtered, bc)
+
+	}
+
+	if nameSort {
+		sort.Sort(ioc.ByName{filtered})
+	}
+
+	return filtered
 }
 
 func isFramework(c *ioc.Component) bool {

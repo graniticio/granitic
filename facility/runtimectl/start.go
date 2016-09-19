@@ -50,6 +50,14 @@ func isStartable(i interface{}) (bool, error) {
 
 func findStartable(cc *ioc.ComponentContainer, frameworkMode bool, exclude ...string) []*ioc.Component {
 
-	return nil
+	var of ownershipFilter
+
+	if frameworkMode {
+		of = FrameworkOwned
+	} else {
+		of = ApplicationOwned
+	}
+
+	return filteredComponents(cc, ioc.CanStart, of, true)
 
 }

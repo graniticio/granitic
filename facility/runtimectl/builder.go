@@ -156,8 +156,8 @@ func (fb *RuntimeCtlFacilityBuilder) createBuiltinCommands(lm *logging.Component
 	cs := new(ComponentsCommand)
 	fb.addCommand(cc, componentsCommand, cs)
 
-	sc := new(StopCommand)
-	fb.addCommand(cc, stopCommand, sc)
+	stopc := NewStopCommand()
+	fb.addCommand(cc, stopCommand, stopc)
 
 	startc := NewStartCommand()
 	fb.addCommand(cc, startCommandName, startc)

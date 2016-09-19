@@ -12,8 +12,8 @@ type ownershipFilter int
 
 const (
 	All = iota
-	Framework
-	Application
+	FrameworkOwned
+	ApplicationOwned
 )
 
 type invokeOperation func([]*ioc.Component, logging.Logger, *ioc.ComponentContainer)

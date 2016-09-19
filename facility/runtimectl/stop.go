@@ -1,11 +1,9 @@
 package runtimectl
 
 import (
-	"fmt"
-	"github.com/graniticio/granitic/ctl"
+	"errors"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/ws"
 )
 
 const (
@@ -17,120 +15,50 @@ const (
 	stopHelpThree   = "If the '-rc true' AND '-fw true' arguments are supplied, the runtime command control server will also be stopped and no further runtime control of the application will be possible."
 )
 
-type StopCommand struct {
-	FrameworkLogger logging.Logger
-	container       *ioc.ComponentContainer
+func NewStopCommand() *LifecycleCommand {
+
+	sc := new(LifecycleCommand)
+
+	sc.checkFunc = isStoppable
+	sc.filterFunc = findStoppable
+	sc.invokeFunc = invokeStop
+	sc.commandHelp = []string{stopHelp, stopHelpTwo, stopHelpThree}
+	sc.commandName = stopCommandName
+	sc.commandSummary = stopSummary
+	sc.commandUsage = stopUsage
+
+	sc.outputPrefix = "Stopping"
+	sc.noneFoundMessage = "No stoppable components found."
+
+	return sc
 }
 
-func (c *StopCommand) Container(container *ioc.ComponentContainer) {
-	c.container = container
+func invokeStop(comps []*ioc.Component, l logging.Logger, cc *ioc.ComponentContainer) {
+	cc.Lifecycle.StopComponents(comps)
 }
 
-func (c *StopCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func isStoppable(i interface{}) (bool, error) {
 
-	if len(qualifiers) > 0 {
-		return c.stopSingle(qualifiers[0])
+	if _, found := i.(ioc.Stoppable); found {
+		return found, nil
 	} else {
-		return c.stopAll(args)
+
+		return false, errors.New("Component does not implement ioc.Startable")
+
 	}
 
 }
 
-func (c *StopCommand) stopAll(args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func findStoppable(cc *ioc.ComponentContainer, frameworkMode bool, exclude ...string) []*ioc.Component {
 
-	var includeFramework bool
-	var allowStopCtlServer bool
-	var err error
+	var of ownershipFilter
 
-	if includeFramework, err = operateOnFramework(args); err != nil {
-		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
-	}
-
-	sm := make([]*ioc.Component, 0)
-	names := make([][]string, 0)
-
-	if allowStopCtlServer, err = includeRuntime(args); err != nil {
-		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
-	}
-
-	for _, c := range c.container.AllComponents() {
-
-		fw := isFramework(c)
-
-		if ((fw && includeFramework) || !fw) && matchesFilter(ioc.CanStop, c.Instance) {
-
-			if c.Name == RuntimeCtlServer && !allowStopCtlServer {
-				continue
-			}
-
-			sm = append(sm, c)
-			names = append(names, []string{c.Name})
-		}
-	}
-
-	if len(names) == 0 {
-		return nil, []*ws.CategorisedError{ctl.NewCommandClientError("No stoppable components found.")}
-	}
-
-	co := new(ctl.CommandOutcome)
-	co.OutputHeader = "Stopping:"
-	co.OutputBody = names
-	co.RenderHint = ctl.Columns
-
-	go c.runStop(sm)
-
-	return co, nil
-}
-
-func (c *StopCommand) stopSingle(name string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
-
-	comp := c.container.ComponentByName(name)
-
-	if comp == nil {
-		m := fmt.Sprintf("Unrecognised component %s", name)
-
-		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(m)}
-	}
-
-	if _, found := comp.Instance.(ioc.Stoppable); found {
-
-		go c.runStop([]*ioc.Component{comp})
-
-		co := new(ctl.CommandOutcome)
-		co.OutputHeader = "Stopping " + name
-
-		return co, nil
-
+	if frameworkMode {
+		of = FrameworkOwned
 	} else {
-		m := fmt.Sprintf("Component %s is not stoppable (does not implement ioc.Stoppable)", name)
-
-		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(m)}
+		of = ApplicationOwned
 	}
 
-}
+	return filteredComponents(cc, ioc.CanStop, of, true)
 
-func (c *StopCommand) runStop(comps []*ioc.Component) {
-
-	err := c.container.Lifecycle.StopComponents(comps)
-
-	if err != nil {
-		c.FrameworkLogger.LogErrorf("Problem stopping components " + err.Error())
-	}
-
-}
-
-func (c *StopCommand) Name() string {
-	return stopCommandName
-}
-
-func (c *StopCommand) Summmary() string {
-	return stopSummary
-}
-
-func (c *StopCommand) Usage() string {
-	return stopUsage
-}
-
-func (c *StopCommand) Help() []string {
-	return []string{stopHelp, stopHelpTwo, stopHelpThree}
 }
