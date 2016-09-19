@@ -12,11 +12,11 @@ import (
 	"github.com/graniticio/granitic/reflecttools"
 	"os"
 	"sort"
-	"time"
 )
 
 const containerDecoratorComponentName = instance.FrameworkPrefix + "ContainerDecorator"
 const containerComponentName = instance.FrameworkPrefix + "Container"
+const lifecycleComponentName = instance.FrameworkPrefix + "LifecycleManager"
 
 type ComponentByNameFinder interface {
 	ComponentByName(string) *Component
@@ -30,6 +30,13 @@ func NewComponentContainer(loggingManager *logging.ComponentLoggerManager, confi
 	cc.configAccessor = configAccessor
 	cc.modifiers = make(map[string]map[string]string)
 	cc.byLifecycleSupport = make(map[LifecycleSupport][]*Component)
+
+	lm := new(LifecycleManager)
+	lm.container = cc
+	lm.FrameworkLogger = loggingManager.CreateLogger(lifecycleComponentName)
+
+	cc.Lifecycle = lm
+
 	return cc
 
 }
@@ -41,6 +48,7 @@ type ComponentContainer struct {
 	configAccessor     *config.ConfigAccessor
 	byLifecycleSupport map[LifecycleSupport][]*Component
 	modifiers          map[string]map[string]string
+	Lifecycle          *LifecycleManager
 }
 
 func (cc *ComponentContainer) ComponentByName(name string) *Component {
@@ -127,181 +135,6 @@ func (cc *ComponentContainer) AddProtos(protos []*ProtoComponent) {
 	for _, p := range protos {
 		cc.AddProto(p)
 	}
-}
-
-func (cc *ComponentContainer) StartComponents() error {
-
-	defer func() {
-		if r := recover(); r != nil {
-			cc.FrameworkLogger.LogErrorfWithTrace("Panic recovered while starting components components %s", r)
-			os.Exit(-1)
-		}
-	}()
-
-	for _, component := range cc.byLifecycleSupport[CanStart] {
-
-		startable := component.Instance.(Startable)
-
-		err := startable.StartComponent()
-
-		if err != nil {
-			message := fmt.Sprintf("Unable to start %s: %s", component.Name, err)
-			return errors.New(message)
-		}
-
-	}
-
-	if len(cc.byLifecycleSupport[CanBlockStart]) != 0 {
-		err := cc.waitForBlockers(5*time.Second, 12, 0)
-
-		if err != nil {
-			return err
-		}
-
-	}
-
-	for _, component := range cc.byLifecycleSupport[CanBeAccessed] {
-
-		accessible := component.Instance.(Accessible)
-		err := accessible.AllowAccess()
-
-		if err != nil {
-			return err
-		}
-
-	}
-
-	cc.configAccessor = nil
-
-	return nil
-}
-
-func (cc *ComponentContainer) waitForBlockers(retestInterval time.Duration, maxTries int, warnAfterTries int) error {
-
-	var names []string
-
-	for i := 0; i < maxTries; i++ {
-
-		notReady, cNames := cc.countBlocking(i > warnAfterTries)
-		names = cNames
-
-		if notReady == 0 {
-			return nil
-		} else {
-			time.Sleep(retestInterval)
-		}
-	}
-
-	message := fmt.Sprintf("Startup blocked by %v", names)
-
-	return errors.New(message)
-
-}
-
-func (cc *ComponentContainer) StopAll() error {
-
-	comps := make(map[string]Stoppable)
-
-	for _, v := range cc.byLifecycleSupport[CanStop] {
-
-		comps[v.Name] = v.Instance.(Stoppable)
-
-	}
-
-	return cc.StopComponents(comps)
-
-}
-
-func (cc *ComponentContainer) StopComponents(comps map[string]Stoppable) error {
-	for _, s := range comps {
-		s.PrepareToStop()
-	}
-
-	cc.waitForReadyToStop(5*time.Second, 10, 3)
-
-	for n, s := range comps {
-
-		err := s.Stop()
-
-		if err != nil {
-			cc.FrameworkLogger.LogErrorf("%s did not stop cleanly %s", n, err)
-		}
-
-	}
-
-	return nil
-}
-
-func (cc *ComponentContainer) waitForReadyToStop(retestInterval time.Duration, maxTries int, warnAfterTries int) {
-
-	for i := 0; i < maxTries; i++ {
-
-		notReady := cc.countNotReady(i > warnAfterTries)
-
-		if notReady == 0 {
-			return
-		} else {
-			time.Sleep(retestInterval)
-		}
-	}
-
-	cc.FrameworkLogger.LogFatalf("Some components not ready to stop, stopping anyway")
-
-}
-
-func (cc *ComponentContainer) countBlocking(warn bool) (int, []string) {
-
-	notReady := 0
-	names := []string{}
-
-	for _, c := range cc.byLifecycleSupport[CanBlockStart] {
-		ab := c.Instance.(AccessibilityBlocker)
-
-		block, err := ab.BlockAccess()
-
-		if block {
-			notReady += 1
-			names = append(names, c.Name)
-			if warn {
-				if err != nil {
-					cc.FrameworkLogger.LogErrorf("%s blocking startup: %s", c.Name, err)
-				} else {
-					cc.FrameworkLogger.LogErrorf("%s blocking startup (no reason given)", c.Name)
-				}
-
-			}
-		}
-
-	}
-
-	return notReady, names
-}
-
-func (cc *ComponentContainer) countNotReady(warn bool) int {
-
-	notReady := 0
-
-	for _, c := range cc.byLifecycleSupport[CanStop] {
-		s := c.Instance.(Stoppable)
-
-		ready, err := s.ReadyToStop()
-
-		if !ready {
-			notReady += 1
-
-			if warn {
-				if err != nil {
-					cc.FrameworkLogger.LogWarnf("%s is not ready to stop: %s", c.Name, err)
-				} else {
-					cc.FrameworkLogger.LogWarnf("%s is not ready to stop (no reason given)", c.Name)
-				}
-
-			}
-		}
-
-	}
-
-	return notReady
 }
 
 func (cc *ComponentContainer) Populate() error {

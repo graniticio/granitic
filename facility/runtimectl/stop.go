@@ -114,7 +114,7 @@ func (c *StopCommand) stopSingle(name string) (*ctl.CommandOutcome, []*ws.Catego
 
 func (c *StopCommand) runStop(comps map[string]ioc.Stoppable) {
 
-	err := c.container.StopComponents(comps)
+	err := c.container.Lifecycle.StopComponents(comps)
 
 	if err != nil {
 		c.FrameworkLogger.LogErrorf("Problem stopping components " + err.Error())

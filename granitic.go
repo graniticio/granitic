@@ -85,7 +85,7 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 	runtime.GC()
 
 	//Start all startable components
-	err = cc.StartComponents()
+	err = cc.Lifecycle.StartAll()
 	i.shutdownIfError(err, cc)
 
 	elapsed := time.Since(is.StartTime)
@@ -111,7 +111,7 @@ func (i *initiator) shutdownIfError(err error, cc *ioc.ComponentContainer) {
 func (i *initiator) shutdown(cc *ioc.ComponentContainer) {
 	i.logger.LogInfof("Shutting down (system signal)")
 
-	cc.StopAll()
+	cc.Lifecycle.StopAll()
 }
 
 // Merge together all of the local and remote JSON configuration files and wrap them in a *config.ConfigAccessor
