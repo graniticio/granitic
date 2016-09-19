@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/types"
 	"io/ioutil"
 	"os"
 	"path"
@@ -108,6 +109,8 @@ func writePackage(w *bufio.Writer) {
 func writeImports(w *bufio.Writer, configAccessor *config.ConfigAccessor) {
 	packages := configAccessor.Array(packagesField)
 
+	seen := types.NewEmptyOrderedStringSet()
+
 	w.WriteString("import (\n")
 
 	iocImp := tabIndent(quoteString(iocImport), 1)
@@ -115,7 +118,15 @@ func writeImports(w *bufio.Writer, configAccessor *config.ConfigAccessor) {
 
 	for _, packageName := range packages {
 
-		i := quoteString(packageName.(string))
+		p := packageName.(string)
+
+		if seen.Contains(p) {
+			continue
+		} else {
+			seen.Add(p)
+		}
+
+		i := quoteString(p)
 		i = tabIndent(i, 1)
 		w.WriteString(i + newline)
 	}
@@ -620,6 +631,7 @@ func loadConfig(l string) *config.ConfigAccessor {
 	}
 
 	jm := new(config.JSONMerger)
+	jm.MergeArrays = true
 	jm.Logger = new(logging.ConsoleErrorLogger)
 
 	mc, err := jm.LoadAndMergeConfig(fl)

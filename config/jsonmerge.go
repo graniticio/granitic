@@ -24,7 +24,8 @@ func NewJSONMerger(flm *logging.ComponentLoggerManager) *JSONMerger {
 }
 
 type JSONMerger struct {
-	Logger logging.Logger
+	Logger      logging.Logger
+	MergeArrays bool
 }
 
 func (jm *JSONMerger) LoadAndMergeConfig(files []string) (map[string]interface{}, error) {
@@ -104,6 +105,8 @@ func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]
 
 			if existingEntryType == JsonMap && newEntryType == JsonMap {
 				jm.merge(existingEntry.(map[string]interface{}), value.(map[string]interface{}))
+			} else if jm.MergeArrays && existingEntryType == JsonArray && newEntryType == JsonArray {
+				base[key] = jm.mergeArrays(existingEntry.([]interface{}), value.([]interface{}))
 			} else {
 				base[key] = value
 			}
@@ -116,4 +119,8 @@ func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]
 	}
 
 	return base
+}
+
+func (jm *JSONMerger) mergeArrays(a []interface{}, b []interface{}) []interface{} {
+	return append(a, b...)
 }
