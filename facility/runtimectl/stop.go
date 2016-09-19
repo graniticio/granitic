@@ -46,8 +46,7 @@ func (c *StopCommand) stopAll(args map[string]string) (*ctl.CommandOutcome, []*w
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 	}
 
-	sm := make(map[string]ioc.Stoppable)
-
+	sm := make([]*ioc.Component, 0)
 	names := make([][]string, 0)
 
 	if allowStopCtlServer, err = includeRuntime(args); err != nil {
@@ -64,7 +63,7 @@ func (c *StopCommand) stopAll(args map[string]string) (*ctl.CommandOutcome, []*w
 				continue
 			}
 
-			sm[c.Name] = c.Instance.(ioc.Stoppable)
+			sm = append(sm, c)
 			names = append(names, []string{c.Name})
 		}
 	}
@@ -93,11 +92,9 @@ func (c *StopCommand) stopSingle(name string) (*ctl.CommandOutcome, []*ws.Catego
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(m)}
 	}
 
-	if s, found := comp.Instance.(ioc.Stoppable); found {
+	if _, found := comp.Instance.(ioc.Stoppable); found {
 
-		sm := make(map[string]ioc.Stoppable)
-		sm[name] = s
-		go c.runStop(sm)
+		go c.runStop([]*ioc.Component{comp})
 
 		co := new(ctl.CommandOutcome)
 		co.OutputHeader = "Stopping " + name
@@ -112,7 +109,7 @@ func (c *StopCommand) stopSingle(name string) (*ctl.CommandOutcome, []*ws.Catego
 
 }
 
-func (c *StopCommand) runStop(comps map[string]ioc.Stoppable) {
+func (c *StopCommand) runStop(comps []*ioc.Component) {
 
 	err := c.container.Lifecycle.StopComponents(comps)
 

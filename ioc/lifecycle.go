@@ -110,31 +110,25 @@ func (lm *LifecycleManager) waitForBlockers(retestInterval time.Duration, maxTri
 
 func (lm *LifecycleManager) StopAll() error {
 
-	comps := make(map[string]Stoppable)
-
-	for _, v := range lm.container.byLifecycleSupport[CanStop] {
-
-		comps[v.Name] = v.Instance.(Stoppable)
-
-	}
-
-	return lm.StopComponents(comps)
+	return lm.StopComponents(lm.container.byLifecycleSupport[CanStop])
 
 }
 
-func (lm *LifecycleManager) StopComponents(comps map[string]Stoppable) error {
+func (lm *LifecycleManager) StopComponents(comps []*Component) error {
+
 	for _, s := range comps {
-		s.PrepareToStop()
+
+		s.Instance.(Stoppable).PrepareToStop()
 	}
 
 	lm.waitForReadyToStop(5*time.Second, 10, 3)
 
-	for n, s := range comps {
+	for _, s := range comps {
 
-		err := s.Stop()
+		err := s.Instance.(Stoppable).Stop()
 
 		if err != nil {
-			lm.FrameworkLogger.LogErrorf("%s did not stop cleanly %s", n, err)
+			lm.FrameworkLogger.LogErrorf("%s did not stop cleanly %s", s.Name, err)
 		}
 
 	}
