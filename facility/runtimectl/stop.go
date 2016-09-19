@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"os"
 )
 
 const (
@@ -34,7 +35,16 @@ func NewStopCommand() *LifecycleCommand {
 }
 
 func invokeStop(comps []*ioc.Component, l logging.Logger, cc *ioc.ComponentContainer) {
-	cc.Lifecycle.StopComponents(comps)
+
+	defer func() {
+		if r := recover(); r != nil {
+			l.LogErrorfWithTrace("Panic recovered while stopping components components %s", r)
+		}
+	}()
+
+	if err := cc.Lifecycle.StopComponents(comps); err != nil {
+		l.LogErrorf("Problem stopping components from remote command", err.Error())
+	}
 }
 
 func isStoppable(i interface{}) (bool, error) {

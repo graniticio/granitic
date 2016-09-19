@@ -34,6 +34,16 @@ func NewStartCommand() *LifecycleCommand {
 
 func invokeStart(comps []*ioc.Component, l logging.Logger, cc *ioc.ComponentContainer) {
 
+	defer func() {
+		if r := recover(); r != nil {
+			l.LogErrorfWithTrace("Panic recovered while starting components components %s", r)
+		}
+	}()
+
+	if err := cc.Lifecycle.Start(comps); err != nil {
+		l.LogErrorf("Problem starting components from remote command", err.Error())
+	}
+
 }
 
 func isStartable(i interface{}) (bool, error) {

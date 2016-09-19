@@ -56,7 +56,31 @@ func (lm *LifecycleManager) StartAll() error {
 		}
 	}()
 
-	for _, component := range lm.container.byLifecycleSupport[CanStart] {
+	startable := lm.container.byLifecycleSupport[CanStart]
+	accessible := lm.container.byLifecycleSupport[CanBeAccessed]
+
+	return lm.start(startable, accessible)
+}
+
+func (lm *LifecycleManager) Start(startable []*Component) error {
+
+	accessible := make([]*Component, 0)
+
+	for _, c := range startable {
+
+		if _, found := c.Instance.(Accessible); found {
+			accessible = append(accessible, c)
+		}
+
+	}
+
+	return lm.start(startable, accessible)
+
+}
+
+func (lm *LifecycleManager) start(start []*Component, access []*Component) error {
+
+	for _, component := range start {
 
 		startable := component.Instance.(Startable)
 
@@ -74,7 +98,7 @@ func (lm *LifecycleManager) StartAll() error {
 
 	}
 
-	for _, component := range lm.container.byLifecycleSupport[CanBeAccessed] {
+	for _, component := range access {
 
 		accessible := component.Instance.(Accessible)
 		if err := accessible.AllowAccess(); err != nil {
