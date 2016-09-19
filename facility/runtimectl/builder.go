@@ -30,6 +30,8 @@ const (
 	helpCommand                = instance.FrameworkPrefix + "CommandHelp"
 	componentsCommand          = instance.FrameworkPrefix + "CommandComponents"
 	stopCommand                = instance.FrameworkPrefix + "CommandStop"
+	suspendCommand             = instance.FrameworkPrefix + "CommandSuspend"
+	resumeCommand              = instance.FrameworkPrefix + "CommandResume"
 	defaultValidationCode      = "INV_CTL_REQUEST"
 )
 
@@ -161,6 +163,12 @@ func (fb *RuntimeCtlFacilityBuilder) createBuiltinCommands(lm *logging.Component
 
 	startc := NewStartCommand()
 	fb.addCommand(cc, startCommandName, startc)
+
+	suspendc := NewSuspendCommand()
+	fb.addCommand(cc, suspendCommandName, suspendc)
+
+	resumec := NewResumeCommand()
+	fb.addCommand(cc, resumeCommandName, resumec)
 
 }
 

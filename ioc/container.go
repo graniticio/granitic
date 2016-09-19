@@ -324,6 +324,11 @@ func (cc *ComponentContainer) addComponent(component *Component) {
 		cc.addBySupport(component, CanBeAccessed)
 	}
 
+	if _, suspendable := component.Instance.(Suspendable); suspendable {
+		l.LogTracef("%s is a Suspendable", component.Name)
+		cc.addBySupport(component, CanSuspend)
+	}
+
 }
 
 func (cc *ComponentContainer) addBySupport(c *Component, ls LifecycleSupport) {

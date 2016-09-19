@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
-	"os"
 )
 
 const (
@@ -38,7 +37,7 @@ func invokeStop(comps []*ioc.Component, l logging.Logger, cc *ioc.ComponentConta
 
 	defer func() {
 		if r := recover(); r != nil {
-			l.LogErrorfWithTrace("Panic recovered while stopping components components %s", r)
+			l.LogErrorfWithTrace("Panic recovered while stopping components %s", r)
 		}
 	}()
 

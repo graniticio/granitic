@@ -138,6 +138,32 @@ func (lm *LifecycleManager) StopAll() error {
 
 }
 
+func (lm *LifecycleManager) SuspendComponents(comps []*Component) error {
+
+	for _, c := range comps {
+
+		if err := c.Instance.(Suspendable).Suspend(); err != nil {
+			lm.FrameworkLogger.LogErrorf("Problem suspending %s: %s", c.Name, err.Error())
+		}
+
+	}
+
+	return nil
+}
+
+func (lm *LifecycleManager) ResumeComponents(comps []*Component) error {
+
+	for _, c := range comps {
+
+		if err := c.Instance.(Suspendable).Resume(); err != nil {
+			lm.FrameworkLogger.LogErrorf("Problem resuming %s: %s", c.Name, err.Error())
+		}
+
+	}
+
+	return nil
+}
+
 func (lm *LifecycleManager) StopComponents(comps []*Component) error {
 
 	for _, s := range comps {
@@ -149,10 +175,8 @@ func (lm *LifecycleManager) StopComponents(comps []*Component) error {
 
 	for _, s := range comps {
 
-		err := s.Instance.(Stoppable).Stop()
-
-		if err != nil {
-			lm.FrameworkLogger.LogErrorf("%s did not stop cleanly %s", s.Name, err)
+		if err := s.Instance.(Stoppable).Stop(); err != nil {
+			lm.FrameworkLogger.LogErrorf("%s did not stop cleanly %s", s.Name, err.Error())
 		}
 
 	}

@@ -108,6 +108,21 @@ func (h *HTTPServer) StartComponent() error {
 	return nil
 }
 
+func (h *HTTPServer) Suspend() error {
+	h.available = false
+
+	return nil
+}
+
+func (h *HTTPServer) Resume() error {
+
+	if h.available == false {
+		h.available = true
+	}
+
+	return nil
+}
+
 func (h *HTTPServer) AllowAccess() error {
 
 	sm := http.NewServeMux()

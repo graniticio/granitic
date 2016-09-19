@@ -36,7 +36,7 @@ func invokeStart(comps []*ioc.Component, l logging.Logger, cc *ioc.ComponentCont
 
 	defer func() {
 		if r := recover(); r != nil {
-			l.LogErrorfWithTrace("Panic recovered while starting components components %s", r)
+			l.LogErrorfWithTrace("Panic recovered while starting components %s", r)
 		}
 	}()
 
