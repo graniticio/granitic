@@ -9,6 +9,7 @@ import (
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/types"
 	"github.com/graniticio/granitic/validate"
 	"github.com/graniticio/granitic/ws"
 	"github.com/graniticio/granitic/ws/handler"
@@ -125,6 +126,12 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	cm := new(ctl.CommandManager)
 
 	ca.Populate("RuntimeCtl.Manager", cm)
+
+	if cm.Disabled == nil {
+		cm.DisabledLookup = types.NewEmptyOrderedStringSet()
+	} else {
+		cm.DisabledLookup = types.NewOrderedStringSet(cm.Disabled)
+	}
 
 	cm.FrameworkLogger = lm.CreateLogger(runtimeCtlCommandManager)
 	cc.WrapAndAddProto(runtimeCtlCommandManager, cm)
