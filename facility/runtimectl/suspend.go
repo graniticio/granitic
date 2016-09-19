@@ -100,11 +100,11 @@ func findSuspendable(cc *ioc.ComponentContainer, frameworkMode bool, exclude ...
 	var of ownershipFilter
 
 	if frameworkMode {
-		of = FrameworkOwned
+		of = All
 	} else {
 		of = ApplicationOwned
 	}
 
-	return filteredComponents(cc, ioc.CanSuspend, of, true)
+	return filteredComponents(cc, ioc.CanSuspend, of, true, exclude...)
 
 }

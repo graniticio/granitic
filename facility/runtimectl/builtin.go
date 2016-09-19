@@ -6,6 +6,7 @@ import (
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
+	"github.com/graniticio/granitic/types"
 	"sort"
 	"strconv"
 	"strings"
@@ -116,9 +117,17 @@ func matchesFilter(f ioc.LifecycleSupport, i interface{}) bool {
 	return true
 }
 
-func filteredComponents(cc *ioc.ComponentContainer, ls ioc.LifecycleSupport, of ownershipFilter, nameSort bool) []*ioc.Component {
+func filteredComponents(cc *ioc.ComponentContainer, ls ioc.LifecycleSupport, of ownershipFilter, nameSort bool, ex ...string) []*ioc.Component {
 
 	var base []*ioc.Component
+
+	var exclude types.StringSet
+
+	if ex == nil {
+		exclude = types.NewEmptyOrderedStringSet()
+	} else {
+		exclude = types.NewOrderedStringSet(ex)
+	}
 
 	switch ls {
 	case ioc.None:
@@ -130,6 +139,9 @@ func filteredComponents(cc *ioc.ComponentContainer, ls ioc.LifecycleSupport, of 
 	filtered := make([]*ioc.Component, 0)
 
 	for _, bc := range base {
+		if exclude.Contains(bc.Name) {
+			continue
+		}
 
 		switch of {
 		case FrameworkOwned:

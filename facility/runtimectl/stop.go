@@ -63,11 +63,11 @@ func findStoppable(cc *ioc.ComponentContainer, frameworkMode bool, exclude ...st
 	var of ownershipFilter
 
 	if frameworkMode {
-		of = FrameworkOwned
+		of = All
 	} else {
 		of = ApplicationOwned
 	}
 
-	return filteredComponents(cc, ioc.CanStop, of, true)
+	return filteredComponents(cc, ioc.CanStop, of, true, exclude...)
 
 }
