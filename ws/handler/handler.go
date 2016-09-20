@@ -63,11 +63,11 @@ type WsHandler struct {
 	ErrorFinder            ws.ServiceErrorFinder       // An object that provides access to application defined error messages for use during validation.
 	FieldQueryParam        map[string]string           // A map of fields on the request body object and the names of query parameters that should be used to populate them
 	FrameworkErrors        *ws.FrameworkErrorGenerator // An object that provides access to built-in error messages to use when an error is found during the automated phases of request processing.
-	HttpMethod             string                      // The HTTP method (GET, POST etc) that this handler supports.
+	HTTPMethod             string                      // The HTTP method (GET, POST etc) that this handler supports.
 	Log                    logging.Logger              //
 	Logic                  WsRequestProcessor          // The object representing the 'logic' behind this handler.
 	ParamBinder            *ws.ParamBinder             //
-	PathMatchPattern       string                      // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
+	PathPattern            string                      // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
 	PostProcessor          WsPostProcessor             //
 	PreValidateManipulator WsPreValidateManipulator    //
 	PreventAutoWiring      bool                        // Stop the framwework automatically adding this handler to an HTTP server
@@ -349,13 +349,13 @@ func (wh *WsHandler) SupportedHttpMethods() []string {
 	if len(wh.httpMethods) > 0 {
 		return wh.httpMethods
 	} else {
-		return []string{wh.HttpMethod}
+		return []string{wh.HTTPMethod}
 	}
 }
 
 //HttpEndpointProvider
 func (wh *WsHandler) RegexPattern() string {
-	return wh.PathMatchPattern
+	return wh.PathPattern
 }
 
 //HttpEndpointProvider
@@ -478,8 +478,8 @@ func (wh *WsHandler) StartComponent() error {
 
 	wh.state = ioc.StartingState
 
-	if wh.PathMatchPattern == "" || wh.HttpMethod == "" || wh.Logic == nil {
-		return errors.New("Handlers must have at least a PathMatchPattern string, HttpMethod string and Logic component set.")
+	if wh.PathPattern == "" || wh.HTTPMethod == "" || wh.Logic == nil {
+		return errors.New("Handlers must have at least a PathPattern string, HttpMethod string and Logic component set.")
 	}
 
 	if wh.AutoValidator != nil && wh.ErrorFinder == nil {
@@ -500,7 +500,7 @@ func (wh *WsHandler) StartComponent() error {
 
 		wh.bindPathParams = len(wh.BindPathParams) > 0
 
-		r, err := regexp.Compile(wh.PathMatchPattern)
+		r, err := regexp.Compile(wh.PathPattern)
 
 		if err != nil {
 			return err

@@ -27,7 +27,7 @@
     },
     "CommandHandler": {
       "HttpMethod": "POST",
-      "PathMatchPattern": "^/command$"
+      "PathPattern": "^/command$"
     },
     "SharedRules": {
       "qualifier": [ "STR", "LEN:1-64:QUAL_LENGTH", "REG:^[a-zA-Z]{1}[\\w-]*:QUAL_PATTERN"]

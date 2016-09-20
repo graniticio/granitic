@@ -2,6 +2,7 @@ package serviceerror
 
 import (
 	"errors"
+	"fmt"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
@@ -46,10 +47,8 @@ func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.Compo
 		return errors.New("Unable to load service error messages from configuration: " + err.Error())
 	}
 
-	messages := ca.Array(definitionsPath)
-
-	if messages == nil {
-		manager.FrameworkLogger.LogWarnf("No error definitions found at config path %s", definitionsPath)
+	if messages, err := fb.loadMessagesFromConfig(definitionsPath, ca); err != nil {
+		return err
 	} else {
 		manager.LoadErrors(messages)
 	}
@@ -63,4 +62,22 @@ func (fb *ServiceErrorManagerFacilityBuilder) FacilityName() string {
 
 func (fb *ServiceErrorManagerFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
+}
+
+func (fb *ServiceErrorManagerFacilityBuilder) loadMessagesFromConfig(dPath string, ca *config.ConfigAccessor) ([]interface{}, error) {
+
+	if !ca.PathExists(dPath) {
+		m := fmt.Sprintf("No error definitions found at config path %s", dPath)
+		return nil, errors.New(m)
+	}
+
+	i := ca.Value(dPath)
+
+	if config.JsonType(i) != config.JsonArray {
+		m := fmt.Sprintf("Couldn't load error messages from config path %s. Make sure the path exists in your configuration and that %s is an array of string arrays ([][]string)", dPath, dPath)
+		return nil, errors.New(m)
+	}
+
+	return ca.Array(dPath), nil
+
 }

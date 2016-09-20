@@ -68,8 +68,8 @@ func GetHandler(t *testing.T) (*WsHandler, *http.Request) {
 
 	test.ExpectNil(t, err)
 	h := new(WsHandler)
-	h.PathMatchPattern = "/test$"
-	h.HttpMethod = "GET"
+	h.PathPattern = "/test$"
+	h.HTTPMethod = "GET"
 	h.ResponseWriter = new(NilResponseWriter)
 	h.componentName = "testHandler"
 
