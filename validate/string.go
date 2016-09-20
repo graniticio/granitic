@@ -416,7 +416,10 @@ func (sv *StringValidator) addOperation(o *stringOperation) {
 	}
 
 	sv.operations = append(sv.operations, o)
-	sv.codesInUse.Add(o.ErrCode)
+
+	if o.ErrCode != "" {
+		sv.codesInUse.Add(o.ErrCode)
+	}
 }
 
 func (sv *StringValidator) Operation(c string) (StringValidationOperation, error) {
