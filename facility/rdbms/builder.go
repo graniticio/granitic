@@ -9,6 +9,8 @@ import (
 )
 
 const rdbmsClientManagerName = instance.FrameworkPrefix + "RdbmsClientManager"
+const providerDecorator = instance.FrameworkPrefix + "DbProviderDecorator"
+const managerDecorator = instance.FrameworkPrefix + "DbClientManagerDecorator"
 
 type RdbmsAccessFacilityBuilder struct {
 }
@@ -20,10 +22,24 @@ func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLo
 
 	proto := ioc.CreateProtoComponent(manager, rdbmsClientManagerName)
 
-	proto.AddDependency("Provider", manager.DatabaseProviderComponentName)
 	proto.AddDependency("QueryManager", querymanager.QueryManagerComponentName)
 
 	cn.AddProto(proto)
+
+	pd := new(DatabaseProviderDecorator)
+	pd.receiver = manager
+
+	cn.WrapAndAddProto(providerDecorator, pd)
+
+	if manager.DisableAutoInjection {
+		return nil
+	}
+
+	md := new(ClientManagerDecorator)
+	md.fieldNames = manager.InjectFieldNames
+	md.manager = manager
+
+	cn.WrapAndAddProto(managerDecorator, md)
 
 	return nil
 
@@ -35,4 +51,20 @@ func (rafb *RdbmsAccessFacilityBuilder) FacilityName() string {
 
 func (rafb *RdbmsAccessFacilityBuilder) DependsOnFacilities() []string {
 	return []string{querymanager.QueryManagerFacilityName}
+}
+
+type DatabaseProviderDecorator struct {
+	receiver ProviderComponentReceiver
+}
+
+func (dpd *DatabaseProviderDecorator) OfInterest(component *ioc.Component) bool {
+
+	_, found := component.Instance.(DatabaseProvider)
+
+	return found
+}
+
+func (dpd *DatabaseProviderDecorator) DecorateComponent(c *ioc.Component, cc *ioc.ComponentContainer) {
+	dpd.receiver.RegisterProvider(c)
+
 }

@@ -2,74 +2,151 @@ package rdbms
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"github.com/graniticio/granitic/facility/querymanager"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"golang.org/x/net/context"
 )
 
 type DatabaseProvider interface {
 	Database() (*sql.DB, error)
+	DatabaseFromContext(ctx context.Context) (*sql.DB, error)
 }
 
 type RdbmsClientManager interface {
-	Client() *RdbmsClient
-	ClientFromContext(context interface{}) *RdbmsClient
+	Client() (*RdbmsClient, error)
+	ClientFromContext(ctx context.Context) (*RdbmsClient, error)
+}
+
+type ProviderComponentReceiver interface {
+	RegisterProvider(p *ioc.Component)
 }
 
 type DefaultRdbmsClientManager struct {
-	Provider                      DatabaseProvider
-	DatabaseProviderComponentName string
-	QueryManager                  *querymanager.QueryManager
-	db                            *sql.DB
-	FrameworkLogger               logging.Logger
-	state                         ioc.ComponentState
+	DisableAutoInjection bool
+	InjectFieldNames     []string
+	Provider             DatabaseProvider
+	ProviderName         string
+	QueryManager         *querymanager.QueryManager
+	db                   *sql.DB
+	FrameworkLogger      logging.Logger
+	state                ioc.ComponentState
+	candidateProviders   []*ioc.Component
 }
 
-func (drcm *DefaultRdbmsClientManager) Client() *RdbmsClient {
-	return newRdbmsClient(drcm.db, drcm.QueryManager)
+func (cm *DefaultRdbmsClientManager) RegisterProvider(p *ioc.Component) {
+
+	if cm.candidateProviders == nil {
+		cm.candidateProviders = []*ioc.Component{p}
+	} else {
+		cm.candidateProviders = append(cm.candidateProviders, p)
+	}
 }
 
-func (drcm *DefaultRdbmsClientManager) ClientFromContext(context interface{}) *RdbmsClient {
-	return drcm.Client()
+func (cm *DefaultRdbmsClientManager) Client() (*RdbmsClient, error) {
+
+	var db *sql.DB
+	var err error
+
+	if db, err = cm.Provider.Database(); err != nil {
+		return nil, err
+	}
+
+	return newRdbmsClient(db, cm.QueryManager), nil
 }
 
-func (drcm *DefaultRdbmsClientManager) StartComponent() error {
+func (cm *DefaultRdbmsClientManager) ClientFromContext(ctx context.Context) (*RdbmsClient, error) {
+	var db *sql.DB
+	var err error
 
-	if drcm.state != ioc.StoppedState {
+	if db, err = cm.Provider.DatabaseFromContext(ctx); err != nil {
+		return nil, err
+	}
+
+	return newRdbmsClient(db, cm.QueryManager), nil
+}
+
+func (cm *DefaultRdbmsClientManager) StartComponent() error {
+
+	if cm.state != ioc.StoppedState {
 		return nil
 	}
 
-	drcm.state = ioc.StartingState
+	cm.state = ioc.StartingState
 
-	db, err := drcm.Provider.Database()
-
-	if err != nil {
+	if err := cm.selectProvider(); err != nil {
 		return err
+	}
+
+	cm.state = ioc.RunningState
+
+	return nil
+}
+
+func (cm *DefaultRdbmsClientManager) selectProvider() error {
+
+	if cm.Provider != nil {
+		return nil
+	}
+
+	cp := cm.candidateProviders
+	l := len(cp)
+
+	if l == 0 {
+		return errors.New("No components implementing rdbms.DatabaseProvider are available.")
+	} else if l == 1 {
+		cm.Provider = cp[0].Instance.(DatabaseProvider)
 
 	} else {
-		drcm.db = db
 
-		drcm.state = ioc.RunningState
+		if cm.ProviderName == "" {
+			return errors.New("Multiple components implementing rdbms.DatabaseProvider are available, but no ProviderName provided to allow one to be chosen.")
+		}
 
-		return nil
+		cm.Provider = cm.findProviderByName()
+
+		if cm.Provider == nil {
+
+			m := fmt.Sprintf("No component called %s and implementing rdbms.DatabaseProvider is available", cm.ProviderName)
+			return errors.New(m)
+
+		}
+
 	}
 
-}
-
-func (drcm *DefaultRdbmsClientManager) PrepareToStop() {
-	drcm.state = ioc.StoppingState
+	return nil
 
 }
 
-func (drcm *DefaultRdbmsClientManager) ReadyToStop() (bool, error) {
+func (cm *DefaultRdbmsClientManager) findProviderByName() DatabaseProvider {
+
+	for _, c := range cm.candidateProviders {
+
+		if c.Name == cm.ProviderName {
+			return c.Instance.(DatabaseProvider)
+		}
+
+	}
+
+	return nil
+}
+
+func (cm *DefaultRdbmsClientManager) PrepareToStop() {
+	cm.state = ioc.StoppingState
+
+}
+
+func (cm *DefaultRdbmsClientManager) ReadyToStop() (bool, error) {
 	return true, nil
 }
 
-func (drcm *DefaultRdbmsClientManager) Stop() error {
+func (cm *DefaultRdbmsClientManager) Stop() error {
 
-	db := drcm.db
+	db := cm.db
 
-	drcm.state = ioc.StoppedState
+	cm.state = ioc.StoppedState
 
 	if db != nil {
 		return db.Close()

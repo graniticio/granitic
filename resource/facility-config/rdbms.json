@@ -1,5 +1,7 @@
 {
   "RdbmsAccess":{
-    "DatabaseProviderComponentName": "databaseProvider"
+    "DatabaseProviderComponentName": "databaseProvider",
+    "DisableAutoInjection": false,
+    "InjectFieldNames": ["DBClientManager"]
   }
 }
