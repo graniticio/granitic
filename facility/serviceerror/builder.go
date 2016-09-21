@@ -78,6 +78,10 @@ func (fb *ServiceErrorManagerFacilityBuilder) loadMessagesFromConfig(dPath strin
 		return nil, errors.New(m)
 	}
 
-	return ca.Array(dPath), nil
+	if v, err := ca.Array(dPath); err == nil {
+		return v, nil
+	} else {
+		return nil, err
+	}
 
 }

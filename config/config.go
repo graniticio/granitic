@@ -47,14 +47,19 @@ func (c *ConfigAccessor) Value(path string) interface{} {
 
 }
 
-func (c *ConfigAccessor) ObjectVal(path string) map[string]interface{} {
+func (c *ConfigAccessor) ObjectVal(path string) (map[string]interface{}, error) {
 
 	value := c.Value(path)
 
 	if value == nil {
-		return nil
+		return nil, nil
 	} else {
-		return value.(map[string]interface{})
+		if v, found := value.(map[string]interface{}); found {
+			return v, nil
+		} else {
+			m := fmt.Sprintf("Unable to convert the value at %s to a JSON map/object.", path)
+			return nil, errors.New(m)
+		}
 	}
 }
 
@@ -73,7 +78,6 @@ func (c *ConfigAccessor) StringVal(path string) (string, error) {
 	} else {
 		message := fmt.Sprintf("Value at %s is %q and cannot be converted to a string", path, v)
 		return "", errors.New(message)
-
 	}
 
 }
@@ -86,9 +90,7 @@ func (c *ConfigAccessor) IntVal(path string) (int, error) {
 		return 0, errors.New("No such path " + path)
 	}
 
-	f, found := v.(float64)
-
-	if found {
+	if f, found := v.(float64); found {
 		return int(f), nil
 	} else {
 		message := fmt.Sprintf("Value at %s is %q and cannot be converted to an int", path, v)
@@ -105,9 +107,7 @@ func (c *ConfigAccessor) Float64Val(path string) (float64, error) {
 		return 0, errors.New("No such path " + path)
 	}
 
-	f, found := v.(float64)
-
-	if found {
+	if f, found := v.(float64); found {
 		return f, nil
 	} else {
 		message := fmt.Sprintf("Value at %s is %q and cannot be converted to a float64", path, v)
@@ -116,14 +116,20 @@ func (c *ConfigAccessor) Float64Val(path string) (float64, error) {
 	}
 }
 
-func (c *ConfigAccessor) Array(path string) []interface{} {
+func (c *ConfigAccessor) Array(path string) ([]interface{}, error) {
 
 	value := c.Value(path)
 
 	if value == nil {
-		return nil
+		return nil, nil
 	} else {
-		return c.Value(path).([]interface{})
+
+		if v, found := value.([]interface{}); found {
+			return v, nil
+		} else {
+			m := fmt.Sprintf("Unable to convert the value at %s to a JSON array.", path)
+			return nil, errors.New(m)
+		}
 	}
 }
 
@@ -135,9 +141,7 @@ func (c *ConfigAccessor) BoolVal(path string) (bool, error) {
 		return false, errors.New("No such path " + path)
 	}
 
-	b, found := v.(bool)
-
-	if found {
+	if b, found := v.(bool); found {
 		return b, nil
 	} else {
 		message := fmt.Sprintf("Value at %s is %q and cannot be converted to a bool", path, v)
@@ -206,7 +210,12 @@ func (ca *ConfigAccessor) SetField(fieldName string, path string, target interfa
 		f, _ := ca.Float64Val(path)
 		targetField.SetFloat(f)
 	case reflect.Map:
-		ca.populateMapField(targetField, ca.ObjectVal(path))
+
+		if v, err := ca.ObjectVal(path); err == nil {
+			ca.populateMapField(targetField, v)
+		} else {
+			return err
+		}
 	case reflect.Slice:
 		ca.populateSlice(targetField, path, target)
 
@@ -253,7 +262,6 @@ func (ca *ConfigAccessor) populateMapField(targetField reflect.Value, contents m
 
 }
 
-//TODO support arrays other than string arrays
 func (ca *ConfigAccessor) arrayVal(a reflect.Value) reflect.Value {
 
 	v := a.Interface().([]interface{})
@@ -290,10 +298,13 @@ func (ca *ConfigAccessor) Populate(path string, target interface{}) error {
 		return errors.New("No such path: " + path)
 	}
 
-	object := ca.ObjectVal(path)
-	data, _ := json.Marshal(object)
+	if object, err := ca.ObjectVal(path); err == nil {
+		data, _ := json.Marshal(object)
 
-	json.Unmarshal(data, target)
+		json.Unmarshal(data, target)
 
-	return nil
+		return nil
+	} else {
+		return err
+	}
 }

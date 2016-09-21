@@ -81,7 +81,9 @@ func writeBindings(w *bufio.Writer, ca *config.ConfigAccessor) {
 	writePackage(w)
 	writeImports(w, ca)
 
-	c := ca.ObjectVal(componentsField)
+	c, err := ca.ObjectVal(componentsField)
+	checkErr(err)
+
 	t := parseTemplates(ca)
 
 	writeEntryFunctionOpen(w, len(c))
@@ -107,7 +109,8 @@ func writePackage(w *bufio.Writer) {
 }
 
 func writeImports(w *bufio.Writer, configAccessor *config.ConfigAccessor) {
-	packages := configAccessor.Array(packagesField)
+	packages, err := configAccessor.Array(packagesField)
+	checkErr(err)
 
 	seen := types.NewEmptyOrderedStringSet()
 
@@ -286,7 +289,7 @@ func assessMapValueType(a map[string]interface{}) string {
 	var sampleVal interface{}
 
 	if len(a) == 0 {
-		fatal("This tool does not support empty maps as component values as the type of the map can't be determined.")
+		exitError("This tool does not support empty maps as component values as the type of the map can't be determined.")
 	}
 
 	for _, v := range a {
@@ -295,7 +298,7 @@ func assessMapValueType(a map[string]interface{}) string {
 		sampleVal = v
 
 		if newType == config.JsonMap {
-			fatal("This tool does not support nested maps/objects as component values.\n")
+			exitError("This tool does not support nested maps/objects as component values.\n")
 		}
 
 		if currentType == config.Unset {
@@ -323,7 +326,7 @@ func assessArrayType(a []interface{}) string {
 	var currentType = config.Unset
 
 	if len(a) == 0 {
-		fatal("This tool does not support zero-length (empty) arrays as component values as the type can't be determined.")
+		exitError("This tool does not support zero-length (empty) arrays as component values as the type can't be determined.")
 	}
 
 	for _, v := range a {
@@ -331,7 +334,7 @@ func assessArrayType(a []interface{}) string {
 		newType := config.JsonType(v)
 
 		if newType == config.JsonMap || newType == config.JsonArray {
-			fatal("This tool does not support multi-dimensional arrays or object arrays as component values\n")
+			exitError("This tool does not support multi-dimensional arrays or object arrays as component values\n")
 		}
 
 		if currentType == config.Unset {
@@ -411,14 +414,14 @@ func validateHasTypeField(v map[string]interface{}, name string) {
 
 	if t == nil {
 		m := fmt.Sprintf("Component %s does not have a 'type' defined in its component defintion (or any parent templates).\n", name)
-		fatal(m)
+		exitError(m)
 	}
 
 	_, found := t.(string)
 
 	if !found {
 		m := fmt.Sprintf("Component %s has a 'type' field defined but the value of the field is not a string.\n", name)
-		fatal(m)
+		exitError(m)
 	}
 
 }
@@ -450,13 +453,13 @@ func writeMergedAndExit(ca *config.ConfigAccessor, f string) {
 	b, err := json.MarshalIndent(ca.JsonData, "", "\t")
 
 	if err != nil {
-		fatal(err.Error())
+		exitError(err.Error())
 	}
 
 	err = ioutil.WriteFile(f, b, 0644)
 
 	if err != nil {
-		fatal(err.Error())
+		exitError(err.Error())
 	}
 
 	os.Exit(0)
@@ -468,7 +471,7 @@ func openOutputFile(p string) *os.File {
 
 	if err != nil {
 		m := fmt.Sprintf(err.Error() + "\n")
-		fatal(m)
+		exitError(m)
 	}
 
 	return f
@@ -482,7 +485,8 @@ func parseTemplates(ca *config.ConfigAccessor) map[string]interface{} {
 		return flattened
 	}
 
-	templates := ca.ObjectVal(templatesField)
+	templates, err := ca.ObjectVal(templatesField)
+	checkErr(err)
 
 	for _, template := range templates {
 		replaceAliases(template.(map[string]interface{}))
@@ -517,7 +521,8 @@ func writeFrameworkModifiers(w *bufio.Writer, ca *config.ConfigAccessor) {
 		return
 	}
 
-	fm := ca.ObjectVal(frameworkField)
+	fm, err := ca.ObjectVal(frameworkField)
+	checkErr(err)
 
 	for fc, mods := range fm {
 
@@ -593,12 +598,12 @@ func checkForTemplateLoop(template map[string]interface{}, templates map[string]
 
 	if contains(chain, p) {
 		message := fmt.Sprintf("Invalid template inheritance %v\n", append(chain, p))
-		fatal(message)
+		exitError(message)
 	}
 
 	if templates[p] == nil {
 		message := fmt.Sprintf("No template exists with name %s\n", p)
-		fatal(message)
+		exitError(message)
 	}
 
 	checkForTemplateLoop(templates[p].(map[string]interface{}), templates, append(chain, p))
@@ -615,11 +620,6 @@ func contains(a []string, c string) bool {
 	return false
 }
 
-func fatal(m string) {
-	fmt.Printf(m)
-	os.Exit(-1)
-}
-
 func loadConfig(l string) *config.ConfigAccessor {
 
 	s := strings.Split(l, ",")
@@ -627,7 +627,7 @@ func loadConfig(l string) *config.ConfigAccessor {
 
 	if err != nil {
 		m := fmt.Sprintf("Problem loading config from %s %s", l, err.Error())
-		fatal(m)
+		exitError(m)
 	}
 
 	jm := new(config.JSONMerger)
@@ -638,7 +638,7 @@ func loadConfig(l string) *config.ConfigAccessor {
 
 	if err != nil {
 		m := fmt.Sprintf("Problem merging JSON files togther: %s", err.Error())
-		fatal(m)
+		exitError(m)
 	}
 
 	ca := new(config.ConfigAccessor)
@@ -647,9 +647,23 @@ func loadConfig(l string) *config.ConfigAccessor {
 
 	if !ca.PathExists(packagesField) || !ca.PathExists(componentsField) {
 		m := fmt.Sprintf("The merged component definition file must contain a %s and a %s section.\n", packagesField, componentsField)
-		fatal(m)
+		exitError(m)
 
 	}
 
 	return ca
+}
+
+func exitError(message string, a ...interface{}) {
+
+	m := "grnc-ctl: " + message + "\n"
+
+	fmt.Printf(m, a...)
+	os.Exit(1)
+}
+
+func checkErr(e error) {
+	if e != nil {
+		exitError(e.Error())
+	}
 }

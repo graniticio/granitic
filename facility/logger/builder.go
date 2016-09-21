@@ -28,7 +28,11 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 		return alfb.error(err.Error())
 	}
 
-	initialLogLevelsByComponent := ca.ObjectVal("ApplicationLogger.ComponentLogLevels")
+	initialLogLevelsByComponent, err := ca.ObjectVal("ApplicationLogger.ComponentLogLevels")
+
+	if err != nil {
+		return err
+	}
 
 	writers, err := alfb.buildWriters(ca)
 	formatter, err := alfb.buildFormatter(ca)

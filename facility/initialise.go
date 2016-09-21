@@ -93,7 +93,12 @@ func (fi *FacilitiesInitialisor) buildEnabledFacilities() error {
 func (fi *FacilitiesInitialisor) Initialise(ca *config.ConfigAccessor) error {
 	fi.ConfigAccessor = ca
 
-	fc := ca.ObjectVal("Facilities")
+	fc, err := ca.ObjectVal("Facilities")
+
+	if err != nil {
+		return err
+	}
+
 	fi.facilityStatus = fc
 	fi.updateFrameworkLogLevel()
 
@@ -109,7 +114,7 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.ConfigAccessor) error {
 	fi.AddFacility(new(rdbms.RdbmsAccessFacilityBuilder))
 	fi.AddFacility(new(runtimectl.RuntimeCtlFacilityBuilder))
 
-	err := fi.buildEnabledFacilities()
+	err = fi.buildEnabledFacilities()
 
 	return err
 }
@@ -130,7 +135,11 @@ func (fi *FacilitiesInitialisor) updateFrameworkLogLevel() error {
 		return errors.New(configErrorPrefix + err.Error())
 	}
 
-	il := fi.ConfigAccessor.ObjectVal("FrameworkLogger.ComponentLogLevels")
+	il, err := fi.ConfigAccessor.ObjectVal("FrameworkLogger.ComponentLogLevels")
+
+	if err != nil {
+		return err
+	}
 
 	flm.SetInitialLogLevels(il)
 	flm.SetGlobalThreshold(defaultLogLevel)
