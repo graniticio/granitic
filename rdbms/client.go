@@ -6,7 +6,7 @@ import (
 	"github.com/graniticio/granitic/dbquery"
 )
 
-type InsertWithReturnedID func(string, *RDBMSClient) (int64, error)
+type InsertWithReturnedID func(string, *RDBMSClient, *int64) error
 
 func newRDBMSClient(database *sql.DB, querymanager querymanager.QueryManager, insertFunc InsertWithReturnedID) *RDBMSClient {
 	rc := new(RDBMSClient)
@@ -22,6 +22,35 @@ type RDBMSClient struct {
 	queryManager querymanager.QueryManager
 	tx           *sql.Tx
 	lastID       InsertWithReturnedID
+}
+
+// Finds the ID of record or if the record does not exist, inserts a new record and retrieves the newly assigned ID
+func (rc *RDBMSClient) FlowExistingIDOrInsertTags(checkQueryId, insertQueryId string, idTarget *int64, tagSource ...interface{}) error {
+
+	if p, err := ParamsFromTags(tagSource...); err != nil {
+
+		return err
+	} else {
+		return rc.FlowExistingIDOrInsertParams(checkQueryId, insertQueryId, idTarget, p)
+	}
+
+}
+
+func (rc *RDBMSClient) FlowExistingIDOrInsertParams(checkQueryId, insertQueryId string, idTarget *int64, p map[string]interface{}) error {
+
+	if found, err := rc.SelectIDParamsSingleResult(checkQueryId, p, idTarget); err != nil {
+		return err
+	} else if found {
+		return nil
+	} else {
+
+		if err = rc.InsertIDParamsAssigned(insertQueryId, p, idTarget); err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }
 
 func (rc *RDBMSClient) InsertIDTags(queryId string, tagSource interface{}) (sql.Result, error) {
@@ -45,22 +74,60 @@ func (rc *RDBMSClient) InsertIDParams(queryId string, params map[string]interfac
 
 }
 
-func (rc *RDBMSClient) InsertIDTagsAssigned(queryId string, tagSource interface{}) (int64, error) {
+func (rc *RDBMSClient) InsertIDTagsAssigned(queryId string, tagSource interface{}, target *int64) error {
 	if p, err := ParamsFromTags(tagSource); err != nil {
-		return 0, err
+		return err
 	} else {
-
-		return rc.InsertIDParamsAssigned(queryId, p)
+		return rc.InsertIDParamsAssigned(queryId, p, target)
 	}
 }
 
-func (rc *RDBMSClient) InsertIDParamsAssigned(queryId string, params map[string]interface{}) (int64, error) {
+func (rc *RDBMSClient) InsertIDParamsAssigned(queryId string, params map[string]interface{}, target *int64) error {
 
 	if query, err := rc.queryManager.SubstituteMap(queryId, params); err != nil {
-		return 0, err
+		return err
 	} else {
 
-		return rc.lastID(query, rc)
+		return rc.lastID(query, rc, target)
+	}
+
+}
+
+func (rc *RDBMSClient) SelectIDTagsSingleResult(queryId string, tagSource interface{}, target interface{}) (bool, error) {
+	if p, err := ParamsFromTags(tagSource); err != nil {
+		return false, err
+	} else {
+		return rc.SelectIDParamsSingleResult(queryId, p, target)
+	}
+}
+
+func (rc *RDBMSClient) SelectIDParamSingleResult(queryId string, name string, value interface{}, target interface{}) (bool, error) {
+	p := make(map[string]interface{})
+	p[name] = value
+
+	return rc.SelectIDParamsSingleResult(queryId, p, target)
+}
+
+func (rc *RDBMSClient) SelectIDParamsSingleResult(queryId string, params map[string]interface{}, target interface{}) (bool, error) {
+
+	var r *sql.Rows
+	var err error
+
+	if r, err = rc.SelectIDParams(queryId, params); err != nil {
+		return false, err
+	}
+
+	defer r.Close()
+
+	if r.Next() {
+
+		if err := r.Scan(target); err != nil {
+			return false, err
+		} else {
+			return true, nil
+		}
+	} else {
+		return false, nil
 	}
 
 }
