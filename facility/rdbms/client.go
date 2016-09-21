@@ -6,21 +6,21 @@ import (
 	"github.com/graniticio/granitic/facility/querymanager"
 )
 
-func newRdbmsClient(database *sql.DB, querymanager *querymanager.QueryManager) *RdbmsClient {
-	rc := new(RdbmsClient)
+func newRDBMSClient(database *sql.DB, querymanager *querymanager.QueryManager) *RDBMSClient {
+	rc := new(RDBMSClient)
 	rc.db = database
 	rc.queryManager = querymanager
 
 	return rc
 }
 
-type RdbmsClient struct {
+type RDBMSClient struct {
 	db           *sql.DB
 	queryManager *querymanager.QueryManager
 	tx           *sql.Tx
 }
 
-func (rc *RdbmsClient) InsertQueryIdParamMap(queryId string, params map[string]interface{}) (sql.Result, error) {
+func (rc *RDBMSClient) InsertQueryIdParamMap(queryId string, params map[string]interface{}) (sql.Result, error) {
 
 	query, err := rc.queryManager.SubstituteMap(queryId, params)
 
@@ -33,7 +33,7 @@ func (rc *RdbmsClient) InsertQueryIdParamMap(queryId string, params map[string]i
 	return result, err
 }
 
-func (rc *RdbmsClient) InsertQueryIdParamMapReturnedId(queryId string, params map[string]interface{}) (int, error) {
+func (rc *RDBMSClient) InsertQueryIdParamMapReturnedId(queryId string, params map[string]interface{}) (int, error) {
 
 	query, err := rc.queryManager.SubstituteMap(queryId, params)
 
@@ -48,7 +48,7 @@ func (rc *RdbmsClient) InsertQueryIdParamMapReturnedId(queryId string, params ma
 	return id, err
 }
 
-func (rc *RdbmsClient) SelectQueryIdParamMap(queryId string, params map[string]interface{}) (*sql.Rows, error) {
+func (rc *RDBMSClient) SelectQueryIdParamMap(queryId string, params map[string]interface{}) (*sql.Rows, error) {
 	query, err := rc.queryManager.SubstituteMap(queryId, params)
 
 	if err != nil {
@@ -59,7 +59,7 @@ func (rc *RdbmsClient) SelectQueryIdParamMap(queryId string, params map[string]i
 
 }
 
-func (rc *RdbmsClient) StartTransaction() error {
+func (rc *RDBMSClient) StartTransaction() error {
 
 	if rc.tx != nil {
 		return errors.New("Transaction already open")
@@ -76,14 +76,14 @@ func (rc *RdbmsClient) StartTransaction() error {
 	}
 }
 
-func (rc *RdbmsClient) Rollback() {
+func (rc *RDBMSClient) Rollback() {
 
 	if rc.tx != nil {
 		rc.tx.Rollback()
 	}
 }
 
-func (rc *RdbmsClient) CommitTransaction() error {
+func (rc *RDBMSClient) CommitTransaction() error {
 
 	if rc.tx == nil {
 		return errors.New("No open transaction to commit")
@@ -96,7 +96,7 @@ func (rc *RdbmsClient) CommitTransaction() error {
 	}
 }
 
-func (rc *RdbmsClient) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (rc *RDBMSClient) Exec(query string, args ...interface{}) (sql.Result, error) {
 
 	tx := rc.tx
 
@@ -108,7 +108,7 @@ func (rc *RdbmsClient) Exec(query string, args ...interface{}) (sql.Result, erro
 
 }
 
-func (rc *RdbmsClient) Query(query string, args ...interface{}) (*sql.Rows, error) {
+func (rc *RDBMSClient) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	tx := rc.tx
 
 	if tx != nil {
@@ -118,7 +118,7 @@ func (rc *RdbmsClient) Query(query string, args ...interface{}) (*sql.Rows, erro
 	}
 }
 
-func (rc *RdbmsClient) QueryRow(query string, args ...interface{}) *sql.Row {
+func (rc *RDBMSClient) QueryRow(query string, args ...interface{}) *sql.Row {
 	tx := rc.tx
 
 	if tx != nil {

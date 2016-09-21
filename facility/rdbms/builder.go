@@ -12,12 +12,12 @@ const rdbmsClientManagerName = instance.FrameworkPrefix + "RdbmsClientManager"
 const providerDecorator = instance.FrameworkPrefix + "DbProviderDecorator"
 const managerDecorator = instance.FrameworkPrefix + "DbClientManagerDecorator"
 
-type RdbmsAccessFacilityBuilder struct {
+type RDBMSAccessFacilityBuilder struct {
 }
 
-func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (rafb *RDBMSAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	manager := new(DefaultRdbmsClientManager)
+	manager := new(DefaultRDBMSClientManager)
 	ca.Populate("RdbmsAccess", manager)
 
 	proto := ioc.CreateProtoComponent(manager, rdbmsClientManagerName)
@@ -45,11 +45,11 @@ func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLo
 
 }
 
-func (rafb *RdbmsAccessFacilityBuilder) FacilityName() string {
+func (rafb *RDBMSAccessFacilityBuilder) FacilityName() string {
 	return "RdbmsAccess"
 }
 
-func (rafb *RdbmsAccessFacilityBuilder) DependsOnFacilities() []string {
+func (rafb *RDBMSAccessFacilityBuilder) DependsOnFacilities() []string {
 	return []string{querymanager.QueryManagerFacilityName}
 }
 

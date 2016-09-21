@@ -15,16 +15,16 @@ type DatabaseProvider interface {
 	DatabaseFromContext(ctx context.Context) (*sql.DB, error)
 }
 
-type RdbmsClientManager interface {
-	Client() (*RdbmsClient, error)
-	ClientFromContext(ctx context.Context) (*RdbmsClient, error)
+type RDBMSClientManager interface {
+	Client() (*RDBMSClient, error)
+	ClientFromContext(ctx context.Context) (*RDBMSClient, error)
 }
 
 type ProviderComponentReceiver interface {
 	RegisterProvider(p *ioc.Component)
 }
 
-type DefaultRdbmsClientManager struct {
+type DefaultRDBMSClientManager struct {
 	DisableAutoInjection bool
 	InjectFieldNames     []string
 	Provider             DatabaseProvider
@@ -36,7 +36,7 @@ type DefaultRdbmsClientManager struct {
 	candidateProviders   []*ioc.Component
 }
 
-func (cm *DefaultRdbmsClientManager) RegisterProvider(p *ioc.Component) {
+func (cm *DefaultRDBMSClientManager) RegisterProvider(p *ioc.Component) {
 
 	if cm.candidateProviders == nil {
 		cm.candidateProviders = []*ioc.Component{p}
@@ -45,7 +45,7 @@ func (cm *DefaultRdbmsClientManager) RegisterProvider(p *ioc.Component) {
 	}
 }
 
-func (cm *DefaultRdbmsClientManager) Client() (*RdbmsClient, error) {
+func (cm *DefaultRDBMSClientManager) Client() (*RDBMSClient, error) {
 
 	var db *sql.DB
 	var err error
@@ -54,10 +54,10 @@ func (cm *DefaultRdbmsClientManager) Client() (*RdbmsClient, error) {
 		return nil, err
 	}
 
-	return newRdbmsClient(db, cm.QueryManager), nil
+	return newRDBMSClient(db, cm.QueryManager), nil
 }
 
-func (cm *DefaultRdbmsClientManager) ClientFromContext(ctx context.Context) (*RdbmsClient, error) {
+func (cm *DefaultRDBMSClientManager) ClientFromContext(ctx context.Context) (*RDBMSClient, error) {
 	var db *sql.DB
 	var err error
 
@@ -65,10 +65,10 @@ func (cm *DefaultRdbmsClientManager) ClientFromContext(ctx context.Context) (*Rd
 		return nil, err
 	}
 
-	return newRdbmsClient(db, cm.QueryManager), nil
+	return newRDBMSClient(db, cm.QueryManager), nil
 }
 
-func (cm *DefaultRdbmsClientManager) StartComponent() error {
+func (cm *DefaultRDBMSClientManager) StartComponent() error {
 
 	if cm.state != ioc.StoppedState {
 		return nil
@@ -85,7 +85,7 @@ func (cm *DefaultRdbmsClientManager) StartComponent() error {
 	return nil
 }
 
-func (cm *DefaultRdbmsClientManager) selectProvider() error {
+func (cm *DefaultRDBMSClientManager) selectProvider() error {
 
 	if cm.Provider != nil {
 		return nil
@@ -120,7 +120,7 @@ func (cm *DefaultRdbmsClientManager) selectProvider() error {
 
 }
 
-func (cm *DefaultRdbmsClientManager) findProviderByName() DatabaseProvider {
+func (cm *DefaultRDBMSClientManager) findProviderByName() DatabaseProvider {
 
 	for _, c := range cm.candidateProviders {
 
@@ -133,16 +133,16 @@ func (cm *DefaultRdbmsClientManager) findProviderByName() DatabaseProvider {
 	return nil
 }
 
-func (cm *DefaultRdbmsClientManager) PrepareToStop() {
+func (cm *DefaultRDBMSClientManager) PrepareToStop() {
 	cm.state = ioc.StoppingState
 
 }
 
-func (cm *DefaultRdbmsClientManager) ReadyToStop() (bool, error) {
+func (cm *DefaultRDBMSClientManager) ReadyToStop() (bool, error) {
 	return true, nil
 }
 
-func (cm *DefaultRdbmsClientManager) Stop() error {
+func (cm *DefaultRDBMSClientManager) Stop() error {
 
 	db := cm.db
 
