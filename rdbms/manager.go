@@ -13,6 +13,7 @@ import (
 type DatabaseProvider interface {
 	Database() (*sql.DB, error)
 	DatabaseFromContext(ctx context.Context) (*sql.DB, error)
+	InsertIDFunc() InsertWithReturnedID
 }
 
 type RDBMSClientManager interface {
@@ -74,7 +75,7 @@ func (cm *DefaultRDBMSClientManager) Client() (*RDBMSClient, error) {
 		return nil, err
 	}
 
-	return newRDBMSClient(db, cm.QueryManager), nil
+	return newRDBMSClient(db, cm.QueryManager, cm.Provider.InsertIDFunc()), nil
 }
 
 func (cm *DefaultRDBMSClientManager) ClientFromContext(ctx context.Context) (*RDBMSClient, error) {
@@ -85,7 +86,7 @@ func (cm *DefaultRDBMSClientManager) ClientFromContext(ctx context.Context) (*RD
 		return nil, err
 	}
 
-	return newRDBMSClient(db, cm.QueryManager), nil
+	return newRDBMSClient(db, cm.QueryManager, cm.Provider.InsertIDFunc()), nil
 }
 
 func (cm *DefaultRDBMSClientManager) StartComponent() error {

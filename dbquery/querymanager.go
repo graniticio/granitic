@@ -16,6 +16,7 @@ import (
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/types"
 	"os"
 	"regexp"
 	"strconv"
@@ -63,18 +64,34 @@ func (qm *TemplatedQueryManager) SubstituteMap(queryId string, params map[string
 
 			switch t := paramValue.(type) {
 			default:
-				return "", errors.New(fmt.Sprintf("Value for paramter %s is not a supported type.", token.Content))
+				return "", errors.New(fmt.Sprintf("Value for parameter %s is not a supported type.", token.Content))
 			case string:
 				b.WriteString(t)
+			case *types.NilableString:
+				b.WriteString(t.String())
+			case types.NilableString:
+				b.WriteString(t.String())
 			case int:
 				b.WriteString(strconv.Itoa(t))
+			case int64:
+				b.WriteString(strconv.FormatInt(t, 10))
+			case *types.NilableInt64:
+				b.WriteString(strconv.FormatInt(t.Int64(), 10))
+			case types.NilableInt64:
+				b.WriteString(strconv.FormatInt(t.Int64(), 10))
 			}
 
 		}
 
 	}
 
-	return b.String(), nil
+	q := b.String()
+
+	if qm.FrameworkLogger.IsLevelEnabled(logging.Debug) {
+		qm.FrameworkLogger.LogDebugf(q)
+	}
+
+	return q, nil
 
 }
 
