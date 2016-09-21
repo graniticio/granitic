@@ -22,7 +22,11 @@ import (
 	"strings"
 )
 
-type QueryManager struct {
+type QueryManager interface {
+	SubstituteMap(queryId string, params map[string]interface{}) (string, error)
+}
+
+type TemplatedQueryManager struct {
 	TemplateLocation   string
 	VarMatchRegEx      string
 	FrameworkLogger    logging.Logger
@@ -35,7 +39,7 @@ type QueryManager struct {
 	state              ioc.ComponentState
 }
 
-func (qm *QueryManager) SubstituteMap(queryId string, params map[string]interface{}) (string, error) {
+func (qm *TemplatedQueryManager) SubstituteMap(queryId string, params map[string]interface{}) (string, error) {
 
 	template := qm.tokenisedTemplates[queryId]
 
@@ -74,7 +78,7 @@ func (qm *QueryManager) SubstituteMap(queryId string, params map[string]interfac
 
 }
 
-func (qm *QueryManager) StartComponent() error {
+func (qm *TemplatedQueryManager) StartComponent() error {
 
 	if qm.state != ioc.StoppedState {
 		return nil
@@ -103,7 +107,7 @@ func (qm *QueryManager) StartComponent() error {
 
 }
 
-func (qm *QueryManager) parseQueryFiles(files []string) map[string]*QueryTemplate {
+func (qm *TemplatedQueryManager) parseQueryFiles(files []string) map[string]*QueryTemplate {
 	fl := qm.FrameworkLogger
 	tokenisedTemplates := map[string]*QueryTemplate{}
 	re := regexp.MustCompile(qm.VarMatchRegEx)
@@ -128,7 +132,7 @@ func (qm *QueryManager) parseQueryFiles(files []string) map[string]*QueryTemplat
 	return tokenisedTemplates
 }
 
-func (qm *QueryManager) scanAndParse(scanner *bufio.Scanner, tokenisedTemplates map[string]*QueryTemplate, re *regexp.Regexp) {
+func (qm *TemplatedQueryManager) scanAndParse(scanner *bufio.Scanner, tokenisedTemplates map[string]*QueryTemplate, re *regexp.Regexp) {
 
 	var currentTemplate *QueryTemplate = nil
 	var fragmentBuffer bytes.Buffer
@@ -216,7 +220,7 @@ func intMax(x, y int) int {
 	}
 }
 
-func (qm *QueryManager) addVar(token string, currentTemplate *QueryTemplate) {
+func (qm *TemplatedQueryManager) addVar(token string, currentTemplate *QueryTemplate) {
 
 	index, err := strconv.Atoi(token)
 
@@ -227,7 +231,7 @@ func (qm *QueryManager) addVar(token string, currentTemplate *QueryTemplate) {
 	}
 }
 
-func (qm *QueryManager) isIdLine(line string) (bool, string) {
+func (qm *TemplatedQueryManager) isIdLine(line string) (bool, string) {
 	idPrefix := qm.QueryIdPrefix
 
 	if strings.HasPrefix(line, idPrefix) {
@@ -244,7 +248,7 @@ func (qm *QueryManager) isIdLine(line string) (bool, string) {
 	}
 }
 
-func (qm *QueryManager) isBlankLine(line string) bool {
+func (qm *TemplatedQueryManager) isBlankLine(line string) bool {
 	return len(strings.TrimSpace(line)) == 0
 }
 

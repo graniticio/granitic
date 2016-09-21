@@ -132,9 +132,9 @@ func ToString(tokens []*QueryTemplateToken) string {
 	return buffer.String()
 }
 
-func buildQueryManager() *QueryManager {
+func buildQueryManager() *TemplatedQueryManager {
 
-	qm := new(QueryManager)
+	qm := new(TemplatedQueryManager)
 	qm.QueryIdPrefix = "ID:"
 	qm.StringWrapWith = "'"
 	qm.TrimIdWhiteSpace = true

@@ -2,13 +2,14 @@ package rdbms
 
 import (
 	"github.com/graniticio/granitic/ioc"
+	"github.com/graniticio/granitic/rdbms"
 	"github.com/graniticio/granitic/reflecttools"
 	"reflect"
 )
 
 type ClientManagerDecorator struct {
 	fieldNames []string
-	manager    RDBMSClientManager
+	manager    rdbms.RDBMSClientManager
 }
 
 func (cmd *ClientManagerDecorator) OfInterest(component *ioc.Component) bool {

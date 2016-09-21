@@ -6,6 +6,7 @@ import (
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/rdbms"
 )
 
 const rdbmsClientManagerName = instance.FrameworkPrefix + "RdbmsClientManager"
@@ -17,7 +18,7 @@ type RDBMSAccessFacilityBuilder struct {
 
 func (rafb *RDBMSAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	manager := new(DefaultRDBMSClientManager)
+	manager := new(rdbms.DefaultRDBMSClientManager)
 	ca.Populate("RdbmsAccess", manager)
 
 	proto := ioc.CreateProtoComponent(manager, rdbmsClientManagerName)
@@ -54,12 +55,12 @@ func (rafb *RDBMSAccessFacilityBuilder) DependsOnFacilities() []string {
 }
 
 type DatabaseProviderDecorator struct {
-	receiver ProviderComponentReceiver
+	receiver rdbms.ProviderComponentReceiver
 }
 
 func (dpd *DatabaseProviderDecorator) OfInterest(component *ioc.Component) bool {
 
-	_, found := component.Instance.(DatabaseProvider)
+	_, found := component.Instance.(rdbms.DatabaseProvider)
 
 	return found
 }

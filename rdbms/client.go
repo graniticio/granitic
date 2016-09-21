@@ -3,10 +3,10 @@ package rdbms
 import (
 	"database/sql"
 	"errors"
-	"github.com/graniticio/granitic/facility/querymanager"
+	"github.com/graniticio/granitic/dbquery"
 )
 
-func newRDBMSClient(database *sql.DB, querymanager *querymanager.QueryManager) *RDBMSClient {
+func newRDBMSClient(database *sql.DB, querymanager querymanager.QueryManager) *RDBMSClient {
 	rc := new(RDBMSClient)
 	rc.db = database
 	rc.queryManager = querymanager
@@ -16,7 +16,7 @@ func newRDBMSClient(database *sql.DB, querymanager *querymanager.QueryManager) *
 
 type RDBMSClient struct {
 	db           *sql.DB
-	queryManager *querymanager.QueryManager
+	queryManager querymanager.QueryManager
 	tx           *sql.Tx
 }
 
