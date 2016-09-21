@@ -30,10 +30,30 @@ type DefaultRDBMSClientManager struct {
 	Provider             DatabaseProvider
 	ProviderName         string
 	QueryManager         querymanager.QueryManager
-	db                   *sql.DB
+	BlockUntilConnected  bool
 	FrameworkLogger      logging.Logger
 	state                ioc.ComponentState
 	candidateProviders   []*ioc.Component
+}
+
+func (cm *DefaultRDBMSClientManager) BlockAccess() (bool, error) {
+
+	if !cm.BlockUntilConnected {
+		return false, nil
+	}
+
+	db, err := cm.Provider.Database()
+
+	if err != nil {
+		return true, errors.New("Unable to connect to database: " + err.Error())
+	}
+
+	if err = db.Ping(); err == nil {
+		return false, nil
+	} else {
+		return true, errors.New("Unable to connect to database: " + err.Error())
+	}
+
 }
 
 func (cm *DefaultRDBMSClientManager) RegisterProvider(p *ioc.Component) {
@@ -143,14 +163,5 @@ func (cm *DefaultRDBMSClientManager) ReadyToStop() (bool, error) {
 }
 
 func (cm *DefaultRDBMSClientManager) Stop() error {
-
-	db := cm.db
-
-	cm.state = ioc.StoppedState
-
-	if db != nil {
-		return db.Close()
-	} else {
-		return nil
-	}
+	return nil
 }
