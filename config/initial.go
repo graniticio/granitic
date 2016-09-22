@@ -40,6 +40,7 @@ type InitialSettings struct {
 	Configuration     []string
 	GraniticHome      string
 	StartTime         time.Time
+	InstanceID        string
 }
 
 func InitialSettingsFromEnvironment() *InitialSettings {
@@ -61,6 +62,7 @@ func InitialSettingsFromEnvironment() *InitialSettings {
 func processCommandLineArgs(is *InitialSettings) {
 	configFilePtr := flag.String("c", "resource/config", "Path to container configuration files")
 	startupLogLevel := flag.String("l", "INFO", "Logging threshold for messages from components during bootstrap")
+	instanceID := flag.String("i", "", "A unique identifier for this instance of the application")
 	flag.Parse()
 
 	ll, err := logging.LogLevelFromLabel(*startupLogLevel)
@@ -80,6 +82,7 @@ func processCommandLineArgs(is *InitialSettings) {
 
 	is.Configuration = append(is.Configuration, userConfig...)
 	is.FrameworkLogLevel = ll
+	is.InstanceID = *instanceID
 
 }
 

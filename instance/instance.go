@@ -27,3 +27,9 @@ type System struct {
 	StopTriesBeforeWarn  int           //How many times a stoppable component can declare it is not ready to stop before a warning message is logged
 
 }
+
+const InstanceIDComponentName = FrameworkPrefix + "InstanceIdentifier"
+
+type InstanceIdentifier struct {
+	ID string
+}

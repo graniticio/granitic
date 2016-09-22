@@ -73,6 +73,9 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 	cc := ioc.NewComponentContainer(frameworkLoggingManager, ca, ss)
 	cc.AddProto(logManageProto)
 
+	//Assign an identity to this instance of the application
+	i.createInstanceIdentifier(is, cc)
+
 	//Register user components with container
 	cc.AddProtos(ac.Components)
 	cc.AddModifiers(ac.FrameworkDependencies)
@@ -104,6 +107,19 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 	l.LogInfof("Ready (startup time %s)", elapsed)
 
 	return cc
+}
+
+func (i *initiator) createInstanceIdentifier(is *config.InitialSettings, cc *ioc.ComponentContainer) {
+	id := is.InstanceID
+
+	if id != "" {
+		ii := new(instance.InstanceIdentifier)
+		ii.ID = id
+		cc.WrapAndAddProto(instance.InstanceIDComponentName, ii)
+
+		i.logger.LogInfof("Instance ID: %s", id)
+	}
+
 }
 
 // Cleanly stop the container and any running components in the event of an error
