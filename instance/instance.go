@@ -28,8 +28,12 @@ type System struct {
 
 }
 
-const InstanceIDComponentName = FrameworkPrefix + "InstanceIdentifier"
+const InstanceIDComponent = FrameworkPrefix + "InstanceIdentifier"
 
 type InstanceIdentifier struct {
 	ID string
+}
+
+type InstanceIdentifierReceiver interface {
+	RegisterInstanceID(*InstanceIdentifier)
 }
