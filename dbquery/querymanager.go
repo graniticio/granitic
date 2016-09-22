@@ -24,7 +24,15 @@ import (
 )
 
 type QueryManager interface {
-	SubstituteMap(queryId string, params map[string]interface{}) (string, error)
+	BuildQueryFromID(qid string, params map[string]interface{}) (string, error)
+	FragmentFromID(qid string) (string, error)
+}
+
+func NewTemplatedQueryManager() *TemplatedQueryManager {
+	qm := new(TemplatedQueryManager)
+	qm.fragments = make(map[string]string)
+
+	return qm
 }
 
 type TemplatedQueryManager struct {
@@ -37,16 +45,41 @@ type TemplatedQueryManager struct {
 	StringWrapWith     string
 	NewLine            string
 	tokenisedTemplates map[string]*QueryTemplate
+	fragments          map[string]string
 	state              ioc.ComponentState
 }
 
-func (qm *TemplatedQueryManager) SubstituteMap(queryId string, params map[string]interface{}) (string, error) {
+func (qm *TemplatedQueryManager) FragmentFromID(qid string) (string, error) {
 
-	template := qm.tokenisedTemplates[queryId]
+	f := qm.fragments[qid]
+
+	if f != "" {
+		return f, nil
+	}
+
+	p := make(map[string]interface{})
+
+	f, err := qm.BuildQueryFromID(qid, p)
+
+	if err != nil {
+		qm.fragments[qid] = f
+	}
+
+	return f, err
+
+}
+
+func (qm *TemplatedQueryManager) BuildQueryFromID(qid string, params map[string]interface{}) (string, error) {
+	template := qm.tokenisedTemplates[qid]
 
 	if template == nil {
-		return "", errors.New("Unknown query " + queryId)
+		return "", errors.New("Unknown query " + qid)
 	}
+
+	return qm.buildQueryFromTemplate(qid, template, params)
+}
+
+func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *QueryTemplate, params map[string]interface{}) (string, error) {
 
 	var b bytes.Buffer
 
@@ -59,7 +92,7 @@ func (qm *TemplatedQueryManager) SubstituteMap(queryId string, params map[string
 			paramValue := params[token.Content]
 
 			if paramValue == nil {
-				return "", errors.New(fmt.Sprintf("Query %s requires a parameter named %s but none supplied.", queryId, token.Content))
+				return "", errors.New(fmt.Sprintf("Query %s requires a parameter named %s but none supplied.", qid, token.Content))
 			}
 
 			switch t := paramValue.(type) {

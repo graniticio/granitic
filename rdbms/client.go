@@ -6,31 +6,12 @@ import (
 	"github.com/graniticio/granitic/dbquery"
 )
 
-type InsertWithReturnedID func(string, *RDBMSClient, *int64) error
-
-func DefaultInsertWithReturnedID(query string, client *RDBMSClient, target *int64) error {
-
-	if r, err := client.Exec(query); err != nil {
-		return err
-	} else {
-		if id, err := r.LastInsertId(); err != nil {
-			return err
-		} else {
-
-			*target = id
-
-			return nil
-		}
-	}
-
-}
-
 func newRDBMSClient(database *sql.DB, querymanager querymanager.QueryManager, insertFunc InsertWithReturnedID) *RDBMSClient {
 	rc := new(RDBMSClient)
 	rc.db = database
 	rc.queryManager = querymanager
 	rc.lastID = insertFunc
-
+	rc.emptyParams = make(map[string]interface{})
 	return rc
 }
 
@@ -39,29 +20,51 @@ type RDBMSClient struct {
 	queryManager querymanager.QueryManager
 	tx           *sql.Tx
 	lastID       InsertWithReturnedID
+	tempQueries  map[string]string
+	emptyParams  map[string]interface{}
+}
+
+func (rc *RDBMSClient) FindFragment(qid string) (string, error) {
+	return rc.queryManager.FragmentFromID(qid)
+}
+
+func (rc *RDBMSClient) BuildQueryQIDTags(qid string, tagSource interface{}) (string, error) {
+	if p, err := ParamsFromTags(tagSource); err != nil {
+		return "", err
+	} else {
+
+		return rc.BuildQueryQIDParams(qid, p)
+	}
+}
+
+func (rc *RDBMSClient) BuildQueryQIDParams(qid string, p map[string]interface{}) (string, error) {
+	return rc.queryManager.BuildQueryFromID(qid, p)
+}
+
+func (rc *RDBMSClient) RegisterTempQuery(qid string, query string) {
+	rc.tempQueries[qid] = query
 }
 
 // Finds the ID of record or if the record does not exist, inserts a new record and retrieves the newly assigned ID
-func (rc *RDBMSClient) FlowExistingIDOrInsertTags(checkQueryId, insertQueryId string, idTarget *int64, tagSource ...interface{}) error {
+func (rc *RDBMSClient) ExistingIDOrInsertTags(checkQueryId, insertQueryId string, idTarget *int64, tagSource ...interface{}) error {
 
 	if p, err := ParamsFromTags(tagSource...); err != nil {
-
 		return err
 	} else {
-		return rc.FlowExistingIDOrInsertParams(checkQueryId, insertQueryId, idTarget, p)
+		return rc.ExistingIDOrInsertParams(checkQueryId, insertQueryId, idTarget, p)
 	}
 
 }
 
-func (rc *RDBMSClient) FlowExistingIDOrInsertParams(checkQueryId, insertQueryId string, idTarget *int64, p map[string]interface{}) error {
+func (rc *RDBMSClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId string, idTarget *int64, p map[string]interface{}) error {
 
-	if found, err := rc.SelectIDParamsSingleResult(checkQueryId, p, idTarget); err != nil {
+	if found, err := rc.SelectSingleResultQIDParams(checkQueryId, p, idTarget); err != nil {
 		return err
 	} else if found {
 		return nil
 	} else {
 
-		if err = rc.InsertIDParamsAssigned(insertQueryId, p, idTarget); err != nil {
+		if err = rc.InsertCaptureQIDParams(insertQueryId, p, idTarget); err != nil {
 			return err
 		}
 
@@ -70,20 +73,20 @@ func (rc *RDBMSClient) FlowExistingIDOrInsertParams(checkQueryId, insertQueryId 
 	return nil
 }
 
-func (rc *RDBMSClient) InsertIDTags(queryId string, tagSource interface{}) (sql.Result, error) {
+func (rc *RDBMSClient) InsertQIDTags(qid string, tagSource interface{}) (sql.Result, error) {
 
 	if p, err := ParamsFromTags(tagSource); err != nil {
 		return nil, err
 	} else {
 
-		return rc.InsertIDParams(queryId, p)
+		return rc.InsertQIDParams(qid, p)
 	}
 
 }
 
-func (rc *RDBMSClient) InsertIDParams(queryId string, params map[string]interface{}) (sql.Result, error) {
+func (rc *RDBMSClient) InsertQIDParams(qid string, params map[string]interface{}) (sql.Result, error) {
 
-	if query, err := rc.queryManager.SubstituteMap(queryId, params); err != nil {
+	if query, err := rc.buildQuery(qid, params); err != nil {
 		return nil, err
 	} else {
 		return rc.Exec(query)
@@ -91,17 +94,17 @@ func (rc *RDBMSClient) InsertIDParams(queryId string, params map[string]interfac
 
 }
 
-func (rc *RDBMSClient) InsertIDTagsAssigned(queryId string, tagSource interface{}, target *int64) error {
+func (rc *RDBMSClient) InsertCaptureQIDTags(qid string, tagSource interface{}, target *int64) error {
 	if p, err := ParamsFromTags(tagSource); err != nil {
 		return err
 	} else {
-		return rc.InsertIDParamsAssigned(queryId, p, target)
+		return rc.InsertCaptureQIDParams(qid, p, target)
 	}
 }
 
-func (rc *RDBMSClient) InsertIDParamsAssigned(queryId string, params map[string]interface{}, target *int64) error {
+func (rc *RDBMSClient) InsertCaptureQIDParams(qid string, params map[string]interface{}, target *int64) error {
 
-	if query, err := rc.queryManager.SubstituteMap(queryId, params); err != nil {
+	if query, err := rc.buildQuery(qid, params); err != nil {
 		return err
 	} else {
 
@@ -110,27 +113,31 @@ func (rc *RDBMSClient) InsertIDParamsAssigned(queryId string, params map[string]
 
 }
 
-func (rc *RDBMSClient) SelectIDTagsSingleResult(queryId string, tagSource interface{}, target interface{}) (bool, error) {
+func (rc *RDBMSClient) SelectSingleResultQID(qid string, tagSource interface{}, target interface{}) (bool, error) {
+	return rc.SelectSingleResultQIDParams(qid, rc.emptyParams, target)
+}
+
+func (rc *RDBMSClient) SelectSingleResultQIDTags(qid string, tagSource interface{}, target interface{}) (bool, error) {
 	if p, err := ParamsFromTags(tagSource); err != nil {
 		return false, err
 	} else {
-		return rc.SelectIDParamsSingleResult(queryId, p, target)
+		return rc.SelectSingleResultQIDParams(qid, p, target)
 	}
 }
 
-func (rc *RDBMSClient) SelectIDParamSingleResult(queryId string, name string, value interface{}, target interface{}) (bool, error) {
+func (rc *RDBMSClient) SelectSingleResultQIDParam(qid string, name string, value interface{}, target interface{}) (bool, error) {
 	p := make(map[string]interface{})
 	p[name] = value
 
-	return rc.SelectIDParamsSingleResult(queryId, p, target)
+	return rc.SelectSingleResultQIDParams(qid, p, target)
 }
 
-func (rc *RDBMSClient) SelectIDParamsSingleResult(queryId string, params map[string]interface{}, target interface{}) (bool, error) {
+func (rc *RDBMSClient) SelectSingleResultQIDParams(qid string, params map[string]interface{}, target interface{}) (bool, error) {
 
 	var r *sql.Rows
 	var err error
 
-	if r, err = rc.SelectIDParams(queryId, params); err != nil {
+	if r, err = rc.SelectQIDParams(qid, params); err != nil {
 		return false, err
 	}
 
@@ -149,21 +156,37 @@ func (rc *RDBMSClient) SelectIDParamsSingleResult(queryId string, params map[str
 
 }
 
-func (rc *RDBMSClient) SelectIDParam(queryId string, name string, value interface{}) (*sql.Rows, error) {
+func (rc *RDBMSClient) SelectQID(qid string) (*sql.Rows, error) {
+	return rc.SelectQIDParams(qid, rc.emptyParams)
+}
+
+func (rc *RDBMSClient) SelectQIDParam(qid string, name string, value interface{}) (*sql.Rows, error) {
 	p := make(map[string]interface{})
 	p[name] = value
 
-	return rc.SelectIDParams(queryId, p)
+	return rc.SelectQIDParams(qid, p)
 }
 
-func (rc *RDBMSClient) SelectIDParams(queryId string, params map[string]interface{}) (*sql.Rows, error) {
-	query, err := rc.queryManager.SubstituteMap(queryId, params)
+func (rc *RDBMSClient) SelectQIDParams(qid string, params map[string]interface{}) (*sql.Rows, error) {
+	query, err := rc.buildQuery(qid, params)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return rc.Query(query)
+
+}
+
+func (rc *RDBMSClient) buildQuery(qid string, p map[string]interface{}) (string, error) {
+
+	tq := rc.tempQueries[qid]
+
+	if tq != "" {
+		return tq, nil
+	} else {
+		return rc.queryManager.BuildQueryFromID(qid, p)
+	}
 
 }
 
