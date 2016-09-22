@@ -33,6 +33,10 @@ type ConfigAccessor struct {
 	FrameworkLogger logging.Logger
 }
 
+func (c *ConfigAccessor) Flush() {
+	c.JsonData = nil
+}
+
 func (c *ConfigAccessor) PathExists(path string) bool {
 	value := c.Value(path)
 

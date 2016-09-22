@@ -22,20 +22,21 @@ type ComponentByNameFinder interface {
 	ComponentByName(string) *Component
 }
 
-func NewComponentContainer(loggingManager *logging.ComponentLoggerManager, configAccessor *config.ConfigAccessor) *ComponentContainer {
+func NewComponentContainer(logm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, sys *instance.System) *ComponentContainer {
 
 	cc := new(ComponentContainer)
 	cc.protoComponents = make(map[string]*ProtoComponent)
-	cc.FrameworkLogger = loggingManager.CreateLogger(containerComponentName)
-	cc.configAccessor = configAccessor
+	cc.FrameworkLogger = logm.CreateLogger(containerComponentName)
+	cc.configAccessor = ca
 	cc.modifiers = make(map[string]map[string]string)
 	cc.byLifecycleSupport = make(map[LifecycleSupport][]*Component)
+	cc.system = sys
 
-	lm := new(LifecycleManager)
-	lm.container = cc
-	lm.FrameworkLogger = loggingManager.CreateLogger(lifecycleComponentName)
-
-	cc.Lifecycle = lm
+	lcm := new(LifecycleManager)
+	lcm.container = cc
+	lcm.FrameworkLogger = logm.CreateLogger(lifecycleComponentName)
+	lcm.system = sys
+	cc.Lifecycle = lcm
 
 	return cc
 
@@ -49,6 +50,7 @@ type ComponentContainer struct {
 	byLifecycleSupport map[LifecycleSupport][]*Component
 	modifiers          map[string]map[string]string
 	Lifecycle          *LifecycleManager
+	system             *instance.System
 }
 
 func (cc *ComponentContainer) ComponentByName(name string) *Component {

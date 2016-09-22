@@ -18,6 +18,7 @@ import (
 
 const (
 	initiatorComponentName string = instance.FrameworkPrefix + "Init"
+	systemPath                    = "System"
 )
 
 func StartGranitic(customComponents *ioc.ProtoComponents) {
@@ -64,7 +65,12 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 
 	//Merge all configuration files and create a container
 	ca := i.createConfigAccessor(is.Configuration, frameworkLoggingManager)
-	cc := ioc.NewComponentContainer(frameworkLoggingManager, ca)
+
+	//Load system settings from config
+	ss := i.loadSystemsSettings(ca)
+
+	//Create the IoC container
+	cc := ioc.NewComponentContainer(frameworkLoggingManager, ca, ss)
 	cc.AddProto(logManageProto)
 
 	//Register user components with container
@@ -81,8 +87,14 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 	err = cc.Populate()
 	i.shutdownIfError(err, cc)
 
-	//Proto components and config no longer needed
-	runtime.GC()
+	//Proto components no longer needed
+	if ss.FlushMergedConfig {
+		ca.Flush()
+	}
+
+	if ss.GCAfterConfigure {
+		runtime.GC()
+	}
 
 	//Start all startable components
 	err = cc.Lifecycle.StartAll()
@@ -144,4 +156,25 @@ func (i *initiator) logConfigLocations(configPaths []string) {
 			i.logger.LogDebugf(fileName)
 		}
 	}
+}
+
+// Load system settings covering memory management and start/stop behaviour from configuration
+func (i *initiator) loadSystemsSettings(ca *config.ConfigAccessor) *instance.System {
+
+	s := new(instance.System)
+	l := i.logger
+
+	if ca.PathExists(systemPath) {
+
+		if err := ca.Populate(systemPath, s); err != nil {
+			l.LogFatalf("Problem loading system settings from config: " + err.Error())
+			instance.ExitError()
+		}
+
+	} else {
+		l.LogFatalf("Cannot find path %s in configuration.", systemPath)
+		instance.ExitError()
+	}
+
+	return s
 }

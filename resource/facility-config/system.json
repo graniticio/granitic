@@ -1,0 +1,13 @@
+{
+  "System": {
+    "BlockIntervalMS": 2000,
+    "BlockRetries": 15,
+    "BlockTriesBeforeWarn": 0,
+    "FlushMergedConfig": true,
+    "GCAfterConfigure": true,
+    "GCAfterStart": false,
+    "StopIntervalMS": 2000,
+    "StopRetries": 15,
+    "StopTriesBeforeWarn": 3
+  }
+}

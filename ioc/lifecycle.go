@@ -3,8 +3,10 @@ package ioc
 import (
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
 	"os"
+	"runtime"
 	"time"
 )
 
@@ -45,6 +47,7 @@ type Accessible interface {
 type LifecycleManager struct {
 	container       *ComponentContainer
 	FrameworkLogger logging.Logger
+	system          *instance.System
 }
 
 func (lm *LifecycleManager) StartAll() error {
@@ -91,8 +94,16 @@ func (lm *LifecycleManager) start(start []*Component, access []*Component) error
 
 	}
 
+	if lm.system.GCAfterStart {
+		runtime.GC()
+	}
+
 	if len(lm.container.byLifecycleSupport[CanBlockStart]) != 0 {
-		if err := lm.waitForBlockers(5*time.Second, 12, 0); err != nil {
+
+		sys := lm.system
+		bi := sys.BlockIntervalMS * time.Millisecond
+
+		if err := lm.waitForBlockers(bi, sys.BlockRetries, sys.BlockTriesBeforeWarn); err != nil {
 			return err
 		}
 
@@ -170,8 +181,10 @@ func (lm *LifecycleManager) StopComponents(comps []*Component) error {
 
 		s.Instance.(Stoppable).PrepareToStop()
 	}
+	sys := lm.system
+	si := sys.StopIntervalMS * time.Millisecond
 
-	lm.waitForReadyToStop(5*time.Second, 10, 3)
+	lm.waitForReadyToStop(si, sys.StopRetries, sys.StopTriesBeforeWarn)
 
 	for _, s := range comps {
 
