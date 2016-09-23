@@ -12,6 +12,7 @@ func newRDBMSClient(database *sql.DB, querymanager querymanager.QueryManager, in
 	rc.queryManager = querymanager
 	rc.lastID = insertFunc
 	rc.emptyParams = make(map[string]interface{})
+	rc.binder = new(RowBinder)
 	return rc
 }
 
@@ -22,6 +23,7 @@ type RDBMSClient struct {
 	lastID       InsertWithReturnedID
 	tempQueries  map[string]string
 	emptyParams  map[string]interface{}
+	binder       *RowBinder
 }
 
 func (rc *RDBMSClient) FindFragment(qid string) (string, error) {
@@ -58,7 +60,7 @@ func (rc *RDBMSClient) ExistingIDOrInsertTags(checkQueryId, insertQueryId string
 
 func (rc *RDBMSClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId string, idTarget *int64, p map[string]interface{}) error {
 
-	if found, err := rc.SelectSingleResultQIDParams(checkQueryId, p, idTarget); err != nil {
+	if found, err := rc.SelectBindSingleQIDParams(checkQueryId, p, idTarget); err != nil {
 		return err
 	} else if found {
 		return nil
@@ -113,26 +115,26 @@ func (rc *RDBMSClient) InsertCaptureQIDParams(qid string, params map[string]inte
 
 }
 
-func (rc *RDBMSClient) SelectSingleResultQID(qid string, tagSource interface{}, target interface{}) (bool, error) {
-	return rc.SelectSingleResultQIDParams(qid, rc.emptyParams, target)
+func (rc *RDBMSClient) SelectBindSingleQID(qid string, tagSource interface{}, target interface{}) (bool, error) {
+	return rc.SelectBindSingleQIDParams(qid, rc.emptyParams, target)
 }
 
-func (rc *RDBMSClient) SelectSingleResultQIDTags(qid string, tagSource interface{}, target interface{}) (bool, error) {
+func (rc *RDBMSClient) SelectBindSingleQIDTags(qid string, tagSource interface{}, target interface{}) (bool, error) {
 	if p, err := ParamsFromTags(tagSource); err != nil {
 		return false, err
 	} else {
-		return rc.SelectSingleResultQIDParams(qid, p, target)
+		return rc.SelectBindSingleQIDParams(qid, p, target)
 	}
 }
 
-func (rc *RDBMSClient) SelectSingleResultQIDParam(qid string, name string, value interface{}, target interface{}) (bool, error) {
+func (rc *RDBMSClient) SelectBindSingleQIDParam(qid string, name string, value interface{}, target interface{}) (bool, error) {
 	p := make(map[string]interface{})
 	p[name] = value
 
-	return rc.SelectSingleResultQIDParams(qid, p, target)
+	return rc.SelectBindSingleQIDParams(qid, p, target)
 }
 
-func (rc *RDBMSClient) SelectSingleResultQIDParams(qid string, params map[string]interface{}, target interface{}) (bool, error) {
+func (rc *RDBMSClient) SelectBindSingleQIDParams(qid string, params map[string]interface{}, target interface{}) (bool, error) {
 
 	var r *sql.Rows
 	var err error
@@ -152,6 +154,20 @@ func (rc *RDBMSClient) SelectSingleResultQIDParams(qid string, params map[string
 		}
 	} else {
 		return false, nil
+	}
+
+}
+
+func (rc *RDBMSClient) SelectBindQIDParams(qid string, params map[string]interface{}, template interface{}) ([]interface{}, error) {
+
+	if r, err := rc.SelectQIDParams(qid, params); err != nil {
+		return nil, err
+	} else {
+
+		defer r.Close()
+
+		return rc.binder.BindRows(r, template)
+
 	}
 
 }
