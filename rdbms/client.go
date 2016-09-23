@@ -43,6 +43,32 @@ func (rc *RDBMSClient) BuildQueryQIDParams(qid string, p map[string]interface{})
 	return rc.queryManager.BuildQueryFromID(qid, p)
 }
 
+func (rc *RDBMSClient) DeleteQIDTags(qid string, tagSource interface{}) (sql.Result, error) {
+
+	if p, err := ParamsFromTags(tagSource); err != nil {
+		return nil, err
+	} else {
+
+		return rc.DeleteQIDParams(qid, p)
+	}
+
+}
+
+func (rc *RDBMSClient) DeleteQIDParams(qid string, params map[string]interface{}) (sql.Result, error) {
+
+	return rc.execQIDParams(qid, params)
+
+}
+
+func (rc *RDBMSClient) DeleteQIDParam(qid string, name string, value interface{}) (sql.Result, error) {
+
+	p := make(map[string]interface{})
+	p[name] = value
+
+	return rc.execQIDParams(qid, p)
+
+}
+
 func (rc *RDBMSClient) RegisterTempQuery(qid string, query string) {
 	rc.tempQueries[qid] = query
 }
@@ -88,11 +114,7 @@ func (rc *RDBMSClient) InsertQIDTags(qid string, tagSource interface{}) (sql.Res
 
 func (rc *RDBMSClient) InsertQIDParams(qid string, params map[string]interface{}) (sql.Result, error) {
 
-	if query, err := rc.buildQuery(qid, params); err != nil {
-		return nil, err
-	} else {
-		return rc.Exec(query)
-	}
+	return rc.execQIDParams(qid, params)
 
 }
 
@@ -115,7 +137,7 @@ func (rc *RDBMSClient) InsertCaptureQIDParams(qid string, params map[string]inte
 
 }
 
-func (rc *RDBMSClient) SelectBindSingleQID(qid string, tagSource interface{}, target interface{}) (bool, error) {
+func (rc *RDBMSClient) SelectBindSingleQID(qid string, target interface{}) (bool, error) {
 	return rc.SelectBindSingleQIDParams(qid, rc.emptyParams, target)
 }
 
@@ -149,6 +171,17 @@ func (rc *RDBMSClient) SelectBindSingleQIDParams(qid string, params map[string]i
 
 }
 
+func (rc *RDBMSClient) SelectBindQID(qid string, template interface{}) ([]interface{}, error) {
+	return rc.SelectBindQIDParams(qid, rc.emptyParams, template)
+}
+
+func (rc *RDBMSClient) SelectBindQIDParam(qid string, name string, value interface{}, template interface{}) ([]interface{}, error) {
+	p := make(map[string]interface{})
+	p[name] = value
+
+	return rc.SelectBindQIDParams(qid, p, template)
+}
+
 func (rc *RDBMSClient) SelectBindQIDParams(qid string, params map[string]interface{}, template interface{}) ([]interface{}, error) {
 
 	if r, err := rc.SelectQIDParams(qid, params); err != nil {
@@ -161,6 +194,14 @@ func (rc *RDBMSClient) SelectBindQIDParams(qid string, params map[string]interfa
 
 	}
 
+}
+
+func (rc *RDBMSClient) SelectBindQIDTags(qid string, tagSource interface{}, template interface{}) ([]interface{}, error) {
+	if p, err := ParamsFromTags(tagSource); err != nil {
+		return nil, err
+	} else {
+		return rc.SelectBindQIDParams(qid, p, template)
+	}
 }
 
 func (rc *RDBMSClient) SelectQID(qid string) (*sql.Rows, error) {
@@ -182,6 +223,42 @@ func (rc *RDBMSClient) SelectQIDParams(qid string, params map[string]interface{}
 	}
 
 	return rc.Query(query)
+
+}
+
+func (rc *RDBMSClient) UpdateQIDTags(qid string, tagSource interface{}) (sql.Result, error) {
+
+	if p, err := ParamsFromTags(tagSource); err != nil {
+		return nil, err
+	} else {
+
+		return rc.UpdateQIDParams(qid, p)
+	}
+
+}
+
+func (rc *RDBMSClient) UpdateQIDParams(qid string, params map[string]interface{}) (sql.Result, error) {
+
+	return rc.execQIDParams(qid, params)
+
+}
+
+func (rc *RDBMSClient) UpdateQIDParam(qid string, name string, value interface{}) (sql.Result, error) {
+
+	p := make(map[string]interface{})
+	p[name] = value
+
+	return rc.execQIDParams(qid, p)
+
+}
+
+func (rc *RDBMSClient) execQIDParams(qid string, params map[string]interface{}) (sql.Result, error) {
+
+	if query, err := rc.buildQuery(qid, params); err != nil {
+		return nil, err
+	} else {
+		return rc.Exec(query)
+	}
 
 }
 

@@ -407,13 +407,20 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 	state.HTTPResponseWriter = w
 	state.WsResponse = wsRes
 	state.WsRequest = request
+	state.Status = wsRes.HttpStatus
 
 	// Template based response writing
 	if tr, found := wh.Logic.(ws.Templated); found {
 		wsRes.Template = tr.TemplateName()
 	}
 
-	err := wh.ResponseWriter.Write(ctx, state, ws.Normal)
+	var err error
+
+	if wsRes.HttpStatus < 300 {
+		err = wh.ResponseWriter.Write(ctx, state, ws.Normal)
+	} else {
+		err = wh.ResponseWriter.Write(ctx, state, ws.Abnormal)
+	}
 
 	if err != nil {
 		wh.Log.LogErrorfCtx(ctx, "Problem writing response: %s", err.Error())
