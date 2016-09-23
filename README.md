@@ -1,6 +1,6 @@
 # Granitic
 
-Granitic is a framework and platform for building and deploying web services and micro services in Go.
+Granitic is a framework and lightweight application server for building and running web and micro services written in Go. 
 
 It features:
 
