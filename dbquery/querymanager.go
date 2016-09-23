@@ -92,12 +92,12 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *Qu
 			paramValue := params[token.Content]
 
 			if paramValue == nil {
-				return "", errors.New(fmt.Sprintf("Query %s requires a parameter named %s but none supplied.", qid, token.Content))
+				return "", errors.New(fmt.Sprintf("TemplatedQueryManager: Query %s requires a parameter named %s but none supplied.", qid, token.Content))
 			}
 
 			switch t := paramValue.(type) {
 			default:
-				return "", errors.New(fmt.Sprintf("Value for parameter %s is not a supported type.", token.Content))
+				return "", errors.New(fmt.Sprintf("TemplatedQueryManager: Value for parameter %s is not a supported type. (type is %T)", token.Content, t))
 			case string:
 				b.WriteString(t)
 			case *types.NilableString:

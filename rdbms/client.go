@@ -145,16 +145,7 @@ func (rc *RDBMSClient) SelectBindSingleQIDParams(qid string, params map[string]i
 
 	defer r.Close()
 
-	if r.Next() {
-
-		if err := r.Scan(target); err != nil {
-			return false, err
-		} else {
-			return true, nil
-		}
-	} else {
-		return false, nil
-	}
+	return rc.binder.BindRow(r, target)
 
 }
 

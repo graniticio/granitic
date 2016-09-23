@@ -13,8 +13,45 @@ import (
 type RowBinder struct {
 }
 
-func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) error {
-	return nil
+func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
+
+	if !rt.IsPointerToStruct(t) {
+
+		if r.Next() {
+			return true, r.Scan(t)
+		}
+
+		return false, nil
+
+	}
+
+	if results, err := rb.BindRows(r, t); err != nil {
+		return false, err
+	} else {
+
+		rs := len(results)
+
+		if rs == 0 {
+			return false, nil
+		}
+
+		if rs != 1 {
+			m := fmt.Sprintf("BindRow: query returned %d rows, expected zero or one row.", rs)
+			return false, errors.New(m)
+		}
+
+		tr := reflect.ValueOf(t).Elem()
+		rr := reflect.ValueOf(results[0]).Elem()
+
+		for i := 0; i < tr.NumField(); i++ {
+
+			tr.Field(i).Set(rr.Field(i))
+
+		}
+
+	}
+
+	return true, nil
 }
 
 func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error) {
