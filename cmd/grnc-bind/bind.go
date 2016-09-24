@@ -1,5 +1,38 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file.
+
 /*
-The grnc-bind tool, used to convert JSON component definitions into Go source.
+	The grnc-bind tool, used to convert Granitic's JSON component definition files into Go source.
+
+	Go does not support a 'type-from-name' mechanism for instantiating objects, so the container cannot create arbitrarily typed
+	objects at runtime. Instead, Granitic component definition files are used to generate Go source files that will be
+	compiled along with your application. The grnc-bind tool performs this code generation.
+
+	In most cases, the grnc-bind command will be run, without arguments, in your application's root directory (the same folder
+	that contains your resources directory. The tool will merge together any .json files found in resources/components and
+	create a file bindings/bindings.go. This file includes a single function:
+
+		Components() *ioc.ProtoComponents
+
+	The results of that function are then included in your application's call to start Granticic. E.g.
+
+		func main() {
+			granitic.StartGranitic(bindings.Components())
+		}
+
+	grnc-bind will need to be re-run whenever a component definition file is modified.
+
+	Usage of grnc-bind:
+
+		grnc-bind [-c component-files] [-m merged-file-out] [-o generated-file]
+
+		-c string
+			A comma separated list of component definition files or directories containing component definition files (default "resource/components")
+		-m string
+			The path of a file where the merged component defintion file should be written to. Execution will halt after writing.
+		-o string
+			Path to the Go source file that will be generated (default "bindings/bindings.go")
+
 */
 package main
 
