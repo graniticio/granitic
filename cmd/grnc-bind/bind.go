@@ -2,7 +2,7 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file.
 
 /*
-	The grnc-bind tool, used to convert Granitic's JSON component definition files into Go source.
+	The grnc-bind tool - used to convert Granitic's JSON component definition files into Go source.
 
 	Go does not support a 'type-from-name' mechanism for instantiating objects, so the container cannot create arbitrarily typed
 	objects at runtime. Instead, Granitic component definition files are used to generate Go source files that will be
