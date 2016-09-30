@@ -1,5 +1,5 @@
 // Copyright 2016 Granitic. All rights reserved.
-// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
 	The grnc-bind tool - used to convert Granitic's JSON component definition files into Go source.

@@ -1,3 +1,43 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
+/*
+	The grnc-project tool, used to generate skeleton project files for a new Granitic application.
+
+	Running
+
+		grnc-project project-name
+
+	Will create the following files and directories:
+
+		project-name
+		project-name/.gitignore
+		project-name/project-name.go
+		project-name/resource/components/components.json
+		project-name/resource/config/config.json
+
+	This will allow a minimal Granitic application to be built and started by running:
+
+		cd project-name && grnc-bind && go build && ./project-name
+
+	Developers should pay attention to the import statements in the generated project-name.go file. It will contain a line similar
+	to:
+
+		import "./bindings"
+
+	This is a relative import path, which will allow the project to be built and run with no knowledge of your workspace
+	layout, but will prevent your application being installed with 'go install' and isn't considered good Go practice.
+	The line should be changed to a non-relative path that reflects the layout of your Go workspace, which is most often:
+
+		import "github.com/yourGitHubUser/yourPackage/bindings"
+
+	The .gitignore file contains:
+
+		bindings*
+		project-name
+
+	Which prevents the output of 'grnc-bind' and 'go build' being included in your repository.
+*/
 package main
 
 import (

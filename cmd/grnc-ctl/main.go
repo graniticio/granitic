@@ -1,5 +1,46 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 /*
-The grnc-ctl tool, used to control running instances of Granitic.
+	The grnc-ctl tool, used to control running instances of Granitic applications.
+
+	Any Granitic application that enables the RuntimeCtl facility can be interacted with at runtime using this tool. Each
+	type of action that can be performed is referred to as a 'command'. Any component implementing the ctl.Commmand interface
+	will be automatically made available to grnc-ctl.
+
+	A number of built-in commands are available to perform common management tasks such as shutting down or suspending an application
+	or modifying the log-level of an individual component.
+
+	Run
+
+		grnc-ctl help
+
+	to see a list of all commands, then
+
+		grnct-ctl help command-name
+
+	to see usage and detailed help on an indiviudal command.
+
+	Usage of grnc-ctl:
+
+		grnc-ctl [options] command [qualifiers] [command_args]
+
+		--port, --p  The port on which the application is listening for control messages (default 9099).
+		--host, --h  The host on which the application is running (default localhost).
+
+	Built-in commands:
+
+		components    Show a list of the names of components managed by the IoC container.
+		global-level  Views or sets the global logging threshold for application or framework components.
+		help          Show a list of all available commands or show help on a specific command.
+		log-level     Views or sets a specific logging threshold for application or framework components.
+		resume        Resumes one component or all components that have previously been suspended.
+		shutdown      Stops all components then exits the application.
+		start         Starts one component or all components.
+		stop          Stops one component or all components.
+		suspend       Suspends one component or all components.
+
+
 */
 package main
 
