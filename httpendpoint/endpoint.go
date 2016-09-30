@@ -44,7 +44,7 @@ type HttpEndpointProvider interface {
 	// VersionAware returns true if this endpoint supports request version matching.
 	VersionAware() bool
 
-	// SupportsVersion returns true if this endpoint supports the version functionality required by the requester. Behaviour is undefined if
+	// SupportsVersion returns true if this endpoint supports the version of functionality required by the requester. Behaviour is undefined if
 	// VersionAware is false. Version matching is application-specific and not defined by Granitic.
 	SupportsVersion(version RequiredVersion) bool
 
