@@ -19,11 +19,19 @@ const (
 	tooLongArg     = "ARG_TOO_LONG"
 )
 
+// CommandLogic handles the validation of an HTTP call from grnc-ctl, matching that call to a ctl.Command and invoking that command.
+// An instance of CommandLogic is automatically created as part of the RuntimeCtl facility and it is not required (or recommended) that
+// user applications create components of this type.
 type CommandLogic struct {
+	// Logger used by Granitic framework components. Automatically injected.
 	FrameworkLogger logging.Logger
-	CommandManager  *CommandManager
+
+	// An instance of CommandManager that contains all known commands.
+	CommandManager *CommandManager
 }
 
+// Implements handler.WsRequestProcessor. Whenever a valid request is handled, the name of the invoked command is logged at INFO level
+// to assist with auditing.
 func (cl *CommandLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
 
 	cr := req.RequestBody.(*ctlCommandRequest)
@@ -45,6 +53,7 @@ func (cl *CommandLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.
 
 }
 
+// Implements handler.WsRequestValidator.
 func (cl *CommandLogic) Validate(ctx context.Context, se *ws.ServiceErrors, request *ws.WsRequest) {
 
 	sub := request.RequestBody.(*ctlCommandRequest)
@@ -99,6 +108,7 @@ func (cl *CommandLogic) normaliseCommandName(cr *ctlCommandRequest) string {
 	return strings.ToLower(cr.Command.String())
 }
 
+// Implements handler.WsUnmarshallTarget
 func (cl *CommandLogic) UnmarshallTarget() interface{} {
 	return new(ctlCommandRequest)
 }

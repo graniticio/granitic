@@ -8,17 +8,27 @@ import (
 	"sort"
 )
 
+// Created as a component as part of the RuntimeCtl facility, CommandManager acts a registry for all components that
+// implement ctl.Command. See http://granitic.io/1.0/ref/runtime-control for details on how to configure this component.
 type CommandManager struct {
+	// Logger used by Granitic framework components. Automatically injected.
 	FrameworkLogger logging.Logger
 	commands        map[string]Command
-	Disabled        []string
-	DisabledLookup  types.StringSet
+
+	// A slice of command names that should not be registered, effectively disabling their use. Populated via configuration.
+	Disabled []string
+
+	// The contents of Disabled converted to a Set at facility instantiation time.
+	DisabledLookup types.StringSet
 }
 
+// Find returns a command that has a Name() exactly matching the supplied string.
 func (cm *CommandManager) Find(name string) Command {
 	return cm.commands[name]
 }
 
+// Register stores a reference to the supplied Command and will return it via the Find method, unless the name
+// of the command is in the Disabled slice. Returns an error if the command's name is already in use.
 func (cm *CommandManager) Register(command Command) error {
 
 	name := command.Name()
@@ -43,6 +53,7 @@ func (cm *CommandManager) Register(command Command) error {
 	return nil
 }
 
+// All returns a slice of all of the currently registered commands.
 func (cm *CommandManager) All() []Command {
 
 	if cm.commands == nil {

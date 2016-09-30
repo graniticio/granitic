@@ -38,7 +38,7 @@ func (c *LifecycleCommand) Container(container *ioc.ComponentContainer) {
 	c.container = container
 }
 
-func (c *LifecycleCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *LifecycleCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	if len(qualifiers) > 0 {
 		return c.invokeSingle(qualifiers[0])
@@ -48,7 +48,7 @@ func (c *LifecycleCommand) ExecuteCommand(qualifiers []string, args map[string]s
 
 }
 
-func (c *LifecycleCommand) invokeAll(args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *LifecycleCommand) invokeAll(args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	var includeFramework bool
 	var allowStopCtlServer bool
@@ -71,7 +71,7 @@ func (c *LifecycleCommand) invokeAll(args map[string]string) (*ctl.CommandOutcom
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(c.noneFoundMessage)}
 	}
 
-	co := new(ctl.CommandOutcome)
+	co := new(ctl.CommandOutput)
 	co.OutputHeader = c.outputPrefix + ":"
 	co.OutputBody = c.names(sm)
 	co.RenderHint = ctl.Columns
@@ -91,7 +91,7 @@ func (c *LifecycleCommand) names(cs []*ioc.Component) [][]string {
 	return n
 }
 
-func (c *LifecycleCommand) invokeSingle(name string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *LifecycleCommand) invokeSingle(name string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	comp := c.container.ComponentByName(name)
 
@@ -105,7 +105,7 @@ func (c *LifecycleCommand) invokeSingle(name string) (*ctl.CommandOutcome, []*ws
 
 		go c.invokeFunc([]*ioc.Component{comp}, c.FrameworkLogger, c.container)
 
-		co := new(ctl.CommandOutcome)
+		co := new(ctl.CommandOutput)
 		co.OutputHeader = c.outputPrefix + " " + name
 
 		return co, nil

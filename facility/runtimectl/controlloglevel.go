@@ -27,7 +27,7 @@ type LogLevelCommand struct {
 	ApplicationManager *logging.ComponentLoggerManager
 }
 
-func (c *LogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *LogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	if len(qualifiers) == 0 {
 		return c.showCurrentLevel(args)
@@ -36,7 +36,7 @@ func (c *LogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]st
 	}
 }
 
-func (c *LogLevelCommand) setLevel(qualifiers []string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *LogLevelCommand) setLevel(qualifiers []string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	var err error
 	var ll logging.LogLevel
@@ -65,11 +65,11 @@ func (c *LogLevelCommand) setLevel(qualifiers []string) (*ctl.CommandOutcome, []
 
 	logger.SetLocalThreshold(ll)
 
-	return new(ctl.CommandOutcome), nil
+	return new(ctl.CommandOutput), nil
 
 }
 
-func (c *LogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *LogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	var comps []*logging.ComponentLevel
 	var err error
@@ -97,7 +97,7 @@ func (c *LogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.Command
 
 	}
 
-	co := new(ctl.CommandOutcome)
+	co := new(ctl.CommandOutput)
 	co.OutputBody = filtered
 	co.RenderHint = ctl.Columns
 

@@ -26,7 +26,7 @@ func (c *ComponentsCommand) Container(container *ioc.ComponentContainer) {
 	c.container = container
 }
 
-func (c *ComponentsCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *ComponentsCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	var frameworkOnly bool
 	var lcFilter ioc.LifecycleSupport
@@ -51,7 +51,7 @@ func (c *ComponentsCommand) ExecuteCommand(qualifiers []string, args map[string]
 		}
 	}
 
-	co := new(ctl.CommandOutcome)
+	co := new(ctl.CommandOutput)
 	co.OutputBody = names
 	co.RenderHint = ctl.Columns
 

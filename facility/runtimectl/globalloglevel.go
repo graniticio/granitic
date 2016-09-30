@@ -23,7 +23,7 @@ type GlobalLogLevelCommand struct {
 	ApplicationManager *logging.ComponentLoggerManager
 }
 
-func (c *GlobalLogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *GlobalLogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	if len(qualifiers) == 0 {
 		return c.showCurrentLevel(args)
@@ -34,7 +34,7 @@ func (c *GlobalLogLevelCommand) ExecuteCommand(qualifiers []string, args map[str
 	return nil, nil
 }
 
-func (c *GlobalLogLevelCommand) setLevel(label string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *GlobalLogLevelCommand) setLevel(label string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 	var err error
 	var setFramework bool
 	var ll logging.LogLevel
@@ -53,10 +53,10 @@ func (c *GlobalLogLevelCommand) setLevel(label string, args map[string]string) (
 		c.ApplicationManager.SetGlobalThreshold(ll)
 	}
 
-	return new(ctl.CommandOutcome), nil
+	return new(ctl.CommandOutput), nil
 }
 
-func (c *GlobalLogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *GlobalLogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	var m string
 	var err error
@@ -82,7 +82,7 @@ func (c *GlobalLogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.C
 
 	}
 
-	co := new(ctl.CommandOutcome)
+	co := new(ctl.CommandOutput)
 	co.OutputHeader = m
 
 	return co, nil

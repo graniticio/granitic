@@ -21,7 +21,7 @@ type HelpCommand struct {
 	commandManager  *ctl.CommandManager
 }
 
-func (c *HelpCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (c *HelpCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	if len(qualifiers) > 0 {
 		cn := qualifiers[0]
@@ -43,8 +43,8 @@ func (c *HelpCommand) ExecuteCommand(qualifiers []string, args map[string]string
 	return c.listing(), nil
 }
 
-func (c *HelpCommand) detail(command ctl.Command) *ctl.CommandOutcome {
-	co := new(ctl.CommandOutcome)
+func (c *HelpCommand) detail(command ctl.Command) *ctl.CommandOutput {
+	co := new(ctl.CommandOutput)
 	co.RenderHint = ctl.Paragraph
 	co.OutputHeader = "Command usage: " + command.Usage()
 	co.OutputBody = [][]string{command.Help()}
@@ -52,8 +52,8 @@ func (c *HelpCommand) detail(command ctl.Command) *ctl.CommandOutcome {
 	return co
 }
 
-func (c *HelpCommand) listing() *ctl.CommandOutcome {
-	co := new(ctl.CommandOutcome)
+func (c *HelpCommand) listing() *ctl.CommandOutput {
+	co := new(ctl.CommandOutput)
 	co.RenderHint = ctl.Columns
 	co.OutputHeader = helpListHeader
 

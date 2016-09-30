@@ -25,11 +25,11 @@ func (csd *ShutdownCommand) Container(container *ioc.ComponentContainer) {
 	csd.container = container
 }
 
-func (csd *ShutdownCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutcome, []*ws.CategorisedError) {
+func (csd *ShutdownCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	go csd.startShutdown()
 
-	co := new(ctl.CommandOutcome)
+	co := new(ctl.CommandOutput)
 	co.OutputHeader = "Shutdown initiated"
 
 	return co, nil
