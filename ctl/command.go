@@ -2,11 +2,11 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-Package ctl provides functionality for runtime control of Granitic applications.
+Package ctl provides functionality for the runtime control of Granitic applications.
 
 If the RuntimeControl facility is enabled for a Granitic application (see http://granitic.io/1.0/ref/runtime-control),
 the grnc-ctl command line utility can be used to issue commands to that application via HTTP. Note that the HTTP server
-and handlers instantiated to facilitate runtime control is completely separate from the HTTP server that handles user defined
+and handlers instantiated to facilitate runtime control are completely separate from the HTTP server that handles user-defined
 web services.
 
 Each command is associated with a component hosted in the IoC container that implements the ctl.Command interface described
