@@ -52,8 +52,12 @@ type HttpEndpointProvider interface {
 	AutoWireable() bool
 }
 
+// A semi-structured type to allow applications flexibility in defining what a 'version' is.
 type RequiredVersion map[string]interface{}
 
+// RequestedVersionExtractor is implemented by applications to create a component that can determine what version of
+// functionality is required by an incoming HTTP request
 type RequestedVersionExtractor interface {
+	// Extract examines an HTTP request to determine what version of functionality is required.
 	Extract(*http.Request) RequiredVersion
 }
