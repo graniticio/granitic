@@ -68,8 +68,9 @@ import (
 )
 
 const (
-	initiatorComponentName string = instance.FrameworkPrefix + "Init"
-	systemPath                    = "System"
+	initiatorComponentName      string = instance.FrameworkPrefix + "Init"
+	systemPath                         = "System"
+	configAccessorComponentName string = instance.FrameworkPrefix + "ConfigAccessor"
 )
 
 // StartGranitic starts the IoC container and populates it with the supplied list of prototype components. Any settings
@@ -214,7 +215,7 @@ func (i *initiator) createConfigAccessor(configPaths []string, flm *logging.Comp
 
 	i.logConfigLocations(configPaths)
 
-	fl := flm.CreateLogger(config.ConfigAccessorComponentName)
+	fl := flm.CreateLogger(configAccessorComponentName)
 
 	jm := config.NewJSONMerger(flm)
 
