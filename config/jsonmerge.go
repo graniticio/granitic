@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package config
 
 import (
@@ -13,8 +16,7 @@ import (
 
 const jsonMergerComponentName string = instance.FrameworkPrefix + "JsonMerger"
 
-type JSONObject map[string]interface{}
-
+// NewJSONMerger creates a JSONMerger with a Logger
 func NewJSONMerger(flm *logging.ComponentLoggerManager) *JSONMerger {
 	jm := new(JSONMerger)
 
@@ -23,11 +25,20 @@ func NewJSONMerger(flm *logging.ComponentLoggerManager) *JSONMerger {
 	return jm
 }
 
+// A JSONMerger can merge a sequence of JSON configuration files (from a filesystem or HTTP URL) into a single
+// view of configuration that will be used to configure Grantic's facilities and the user's IoC components. See the top
+// of this page for a brief explanation of how merging works.
 type JSONMerger struct {
-	Logger      logging.Logger
+	// Logger used by Granitic framework components. Automatically injected.
+	Logger logging.Logger
+
+	// True if arrays should be joined when merging; false if the entire conetnts of the array should be overwritten.
 	MergeArrays bool
 }
 
+// LoadAndMergeConfig takes a list of file paths or URIs to JSON files and merges them into a single in-memory object representation.
+// See the top of this page for a brief explanation of how merging works. Returns an error if a remote URI returned a 4xx or 5xx response code,
+// a file or folder could not be accessed or if two files could not be merged dued to JSON parsing errors.
 func (jm *JSONMerger) LoadAndMergeConfig(files []string) (map[string]interface{}, error) {
 
 	var mergedConfig map[string]interface{}

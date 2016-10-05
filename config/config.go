@@ -5,9 +5,9 @@
 Package config provides functionality for working with configuration files and command line arguments to a Granitic application.
 
 Grantic uses JSON files to store component definitions (declarations of, and relationships between, components to
-run in the IoC container) and configuration (variables used by IoC components that may vary between environments). A
-defintion of the use and syntax of these files are outside of the scope of a GoDoc page, but are described in detail
-at http://granitic.io/1.0/ref/components and http://granitic.io/1.0/ref/config
+run in the IoC container) and configuration (variables used by IoC components that may vary between environments and settings
+for Grantic's built-in facilities). A defintion of the use and syntax of these files are outside of the scope of a GoDoc page,
+but are described in detail at http://granitic.io/1.0/ref/components and http://granitic.io/1.0/ref/config
 
 This package defines functionality for loading a JSON file (from a filesystem or via HTTP) and merging multiple files into
 a single view. This is a key concept in Granitic.
@@ -111,7 +111,10 @@ const (
 // A ConfigAccessor provides access to a merged view of configuration files during the initialisation and
 // configuration of the Granitic IoC container.
 type ConfigAccessor struct {
-	JsonData        map[string]interface{}
+	// The merged JSON configuration in object form.
+	JsonData map[string]interface{}
+
+	// Logger used by Granitic framework components. Automatically injected.
 	FrameworkLogger logging.Logger
 }
 

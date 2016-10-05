@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package config
 
 import (
@@ -42,6 +45,9 @@ func FindConfigFilesInDir(dirPath string) ([]string, error) {
 	return files, nil
 }
 
+// FileListFromPath takes a string that could represent a path to a directory
+// or a path to a file and returns a list of file paths. If the path is to directory,
+// any files in that directory are included in the result. Any sub-directories are recursively entered.
 func FileListFromPath(path string) ([]string, error) {
 
 	files := make([]string, 0)
