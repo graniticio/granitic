@@ -1,5 +1,14 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 /*
 Package test provides tools for Granitic's unit tests.
+
+One of Grantic's design principles is that Granitic should not introduce
+dependencies on third-party libraries, so this package contains convenience methods for making Grantic's built-in unit tests
+more usable and readable that would be better served by a third-party test library.
+
+These methods are not recommended for use in user applications or tests.
 */
 package test
 
@@ -10,10 +19,12 @@ import (
 	"testing"
 )
 
+// TestFilePath finds the absolute path of a file that is provided relative to the resource/test directory.
 func TestFilePath(file string) string {
 	return os.Getenv("GRANITIC_HOME") + "/resource/test/" + file
 }
 
+// ExpectString stops a test and logs an error if the string to be checked does not have the expected value.
 func ExpectString(t *testing.T, check, expected string) bool {
 	if expected != check {
 		l := determineLine()
@@ -24,6 +35,7 @@ func ExpectString(t *testing.T, check, expected string) bool {
 	}
 }
 
+// ExpectBool stops a test and logs an error if the bool to be checked does not have the expected value.
 func ExpectBool(t *testing.T, check, expected bool) bool {
 	if expected != check {
 		l := determineLine()
@@ -34,6 +46,7 @@ func ExpectBool(t *testing.T, check, expected bool) bool {
 	}
 }
 
+// ExpectInt stops a test and logs an error if the int to be checked does not have the expected value.
 func ExpectInt(t *testing.T, check, expected int) bool {
 	if expected != check {
 		l := determineLine()
@@ -44,6 +57,7 @@ func ExpectInt(t *testing.T, check, expected int) bool {
 	}
 }
 
+// ExpectFloat stops a test and logs an error if the float to be checked does not have the expected value.
 func ExpectFloat(t *testing.T, check, expected float64) bool {
 	if expected != check {
 		l := determineLine()
@@ -54,6 +68,7 @@ func ExpectFloat(t *testing.T, check, expected float64) bool {
 	}
 }
 
+// ExpectNil stops a test and logs an error if the value to check is not nil
 func ExpectNil(t *testing.T, check interface{}) bool {
 	if check == nil {
 		return true
@@ -65,6 +80,7 @@ func ExpectNil(t *testing.T, check interface{}) bool {
 	}
 }
 
+// ExpectNil stops a test and logs an error if the value to check is nil
 func ExpectNotNil(t *testing.T, check interface{}) bool {
 	if check != nil {
 		return true
