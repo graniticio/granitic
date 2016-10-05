@@ -3,10 +3,10 @@ package rdbms
 import (
 	"database/sql"
 	"errors"
-	"github.com/graniticio/granitic/dbquery"
+	"github.com/graniticio/granitic/dsquery"
 )
 
-func newRDBMSClient(database *sql.DB, querymanager dbquery.QueryManager, insertFunc InsertWithReturnedID) *RDBMSClient {
+func newRDBMSClient(database *sql.DB, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedID) *RDBMSClient {
 	rc := new(RDBMSClient)
 	rc.db = database
 	rc.queryManager = querymanager
@@ -18,7 +18,7 @@ func newRDBMSClient(database *sql.DB, querymanager dbquery.QueryManager, insertF
 
 type RDBMSClient struct {
 	db           *sql.DB
-	queryManager dbquery.QueryManager
+	queryManager dsquery.QueryManager
 	tx           *sql.Tx
 	lastID       InsertWithReturnedID
 	tempQueries  map[string]string

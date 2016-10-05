@@ -1,4 +1,4 @@
-package dbquery
+package dsquery
 
 import (
 	"bytes"

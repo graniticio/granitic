@@ -1,12 +1,11 @@
-/*
-Package querymanager provides and supports the QueryManager facility. The QueryManager provides a mechanism for
-loading query templates from plain text files and allowing code to combine those templates with parameters to create a
-query ready for execution.
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
-The QueryManager is generic and is suitable for managing query templates for any data source that is interacted with via
-text queries.
+/*
+Package dbquery provides mechanisms for managing templated queries to be executed against a data source. The types in
+this package are agnostic to.
 */
-package dbquery
+package dsquery
 
 import (
 	"bufio"

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/dbquery"
+	"github.com/graniticio/granitic/dsquery"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"golang.org/x/net/context"
@@ -30,7 +30,7 @@ type DefaultRDBMSClientManager struct {
 	InjectFieldNames     []string
 	Provider             DatabaseProvider
 	ProviderName         string
-	QueryManager         dbquery.QueryManager
+	QueryManager         dsquery.QueryManager
 	BlockUntilConnected  bool
 	FrameworkLogger      logging.Logger
 	state                ioc.ComponentState
