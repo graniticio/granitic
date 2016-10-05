@@ -6,7 +6,7 @@ query ready for execution.
 The QueryManager is generic and is suitable for managing query templates for any data source that is interacted with via
 text queries.
 */
-package querymanager
+package dbquery
 
 import (
 	"bufio"

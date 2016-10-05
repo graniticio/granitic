@@ -1,4 +1,4 @@
-package querymanager
+package dbquery
 
 import (
 	"bytes"

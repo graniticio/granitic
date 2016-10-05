@@ -16,7 +16,7 @@ type QueryManagerFacilityBuilder struct {
 
 func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	queryManager := new(querymanager.TemplatedQueryManager)
+	queryManager := new(dbquery.TemplatedQueryManager)
 	ca.Populate("QueryManager", queryManager)
 
 	cn.WrapAndAddProto(QueryManagerComponentName, queryManager)

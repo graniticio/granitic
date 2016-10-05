@@ -30,7 +30,7 @@ type DefaultRDBMSClientManager struct {
 	InjectFieldNames     []string
 	Provider             DatabaseProvider
 	ProviderName         string
-	QueryManager         querymanager.QueryManager
+	QueryManager         dbquery.QueryManager
 	BlockUntilConnected  bool
 	FrameworkLogger      logging.Logger
 	state                ioc.ComponentState

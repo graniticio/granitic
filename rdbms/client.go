@@ -6,7 +6,7 @@ import (
 	"github.com/graniticio/granitic/dbquery"
 )
 
-func newRDBMSClient(database *sql.DB, querymanager querymanager.QueryManager, insertFunc InsertWithReturnedID) *RDBMSClient {
+func newRDBMSClient(database *sql.DB, querymanager dbquery.QueryManager, insertFunc InsertWithReturnedID) *RDBMSClient {
 	rc := new(RDBMSClient)
 	rc.db = database
 	rc.queryManager = querymanager
@@ -18,7 +18,7 @@ func newRDBMSClient(database *sql.DB, querymanager querymanager.QueryManager, in
 
 type RDBMSClient struct {
 	db           *sql.DB
-	queryManager querymanager.QueryManager
+	queryManager dbquery.QueryManager
 	tx           *sql.Tx
 	lastID       InsertWithReturnedID
 	tempQueries  map[string]string
