@@ -36,6 +36,18 @@ func LoadConfigFromFile(f string) *ConfigAccessor {
 
 }
 
+func TestFindConfigFiles(t *testing.T) {
+
+	p := test.TestFilePath("folders")
+
+	r, err := FindConfigFilesInDir(p)
+
+	test.ExpectNil(t, err)
+
+	test.ExpectInt(t, len(r), 4)
+
+}
+
 func TestSimpleConfig(t *testing.T) {
 
 	ca := LoadConfigFromFile("simple.json")

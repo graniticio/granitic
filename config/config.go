@@ -2,7 +2,7 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-Package config provides functionality for working with configuration files.
+Package config provides functionality for working with configuration files and command line arguments to a Granitic application.
 
 Grantic uses JSON files to store component definitions (declarations of, and relationships between, components to
 run in the IoC container) and configuration (variables used by IoC components that may vary between environments). A
