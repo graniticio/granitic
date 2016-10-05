@@ -1,5 +1,8 @@
 /*
-Package reflectools provides utility functions for working with the Go's reflect package.
+Package reflectools provides utility functions for working with Go's reflect package.
+
+These functions are highly specific to Granitic's internal use of reflection and are not recommended for use in user
+applications.
 */
 package reflecttools
 
@@ -12,6 +15,8 @@ import (
 
 const dotPathSep = "."
 
+// SetPtrToStruct is used to inject an object into the specified field on a another object. The target object, supplied value and the type
+// of the named target field must all be a pointer to a struct.
 func SetPtrToStruct(target interface{}, field string, valuePointer interface{}) error {
 
 	if !IsPointerToStruct(target) {
@@ -54,18 +59,21 @@ func SetPtrToStruct(target interface{}, field string, valuePointer interface{}) 
 	return nil
 }
 
+// NilPointer returns true if the supplied reflect value is a pointer that does not point a valid value.
 func NilPointer(v reflect.Value) bool {
 
 	return v.Kind() == reflect.Ptr && !v.Elem().IsValid()
 
 }
 
+// NilPointer returns true is the supplied reflect value is a Map and is nil.
 func NilMap(v reflect.Value) bool {
 
 	return v.Kind() == reflect.Map && v.IsNil()
 
 }
 
+// IsPointerToStruct returns true if the supplied interfaces is a pointer to a struct.
 func IsPointerToStruct(p interface{}) bool {
 
 	pv := reflect.ValueOf(p)
@@ -85,6 +93,8 @@ func IsPointerToStruct(p interface{}) bool {
 	return true
 }
 
+// HasFieldOfName assumes the supplied interface is a pointer to a struct and checks to see if the underlying struct
+// has a field of the supplied name. It does not check to see if the field is writable.
 func HasFieldOfName(i interface{}, fieldName string) bool {
 	r := reflect.ValueOf(i).Elem()
 	f := r.FieldByName(fieldName)
@@ -92,6 +102,8 @@ func HasFieldOfName(i interface{}, fieldName string) bool {
 	return f.IsValid()
 }
 
+// HasFieldOfName assumes the supplied interface is a pointer to a struct and checks to see if the underlying struct
+// has a writable field of the supplied name.
 func HasWritableFieldOfName(i interface{}, fieldName string) bool {
 	r := reflect.ValueOf(i).Elem()
 	f := r.FieldByName(fieldName)
@@ -99,36 +111,50 @@ func HasWritableFieldOfName(i interface{}, fieldName string) bool {
 	return f.IsValid() && f.CanSet()
 }
 
+// TypeOfField assumes the supplied interface is a pointer to a struct and that the supplied field name exists on that struct, then
+// finds the reflect type of that field.
 func TypeOfField(i interface{}, name string) reflect.Type {
 	r := reflect.ValueOf(i).Elem()
 	return r.FieldByName(name).Type()
 }
 
+// SetInt64 assumes that the supplied interface is a pointer to a struct and has a writable int64 field of the supplied name, then
+// sets the field of the supplied value.
 func SetInt64(i interface{}, name string, v int64) {
 	t := FieldValue(i, name)
 	t.SetInt(v)
 }
 
+// SetFloat64 assumes that the supplied interface is a pointer to a struct and has a writable float64 field of the supplied name, then
+// sets the field of the supplied value.
 func SetFloat64(i interface{}, name string, v float64) {
 	t := FieldValue(i, name)
 	t.SetFloat(v)
 }
 
+// SetUint64 assumes that the supplied interface is a pointer to a struct and has a writable uint64 field of the supplied name, then
+// sets the field of the supplied value.
 func SetUint64(i interface{}, name string, v uint64) {
 	t := FieldValue(i, name)
 	t.SetUint(v)
 }
 
+// SetBool assumes that the supplied interface is a pointer to a struct and has a writable bool field of the supplied name, then
+// sets the field of the supplied value.
 func SetBool(i interface{}, name string, b bool) {
 	t := FieldValue(i, name)
 	t.SetBool(b)
 }
 
+// SetString assumes that the supplied interface is a pointer to a struct and has a writable string field of the supplied name, then
+// sets the field of the supplied value.
 func SetString(i interface{}, name string, s string) {
 	t := FieldValue(i, name)
 	t.SetString(s)
 }
 
+// FieldValue assumes the supplied interface is a pointer to a struct, an interface or a struct and has a valid field of the supplied
+// name, then returns the reflect value of that field.
 func FieldValue(i interface{}, name string) reflect.Value {
 
 	var r reflect.Value
@@ -144,14 +170,21 @@ func FieldValue(i interface{}, name string) reflect.Value {
 	return r.FieldByName(name)
 }
 
+// TargetFieldIsArray assumes the supplied interface is a pointer to a struct, an interface or a struct
+// and has a valid field of the supplied name, then returns true if the reflect type of that field is Array. Note that
+// this method will return false for Slice fields.
 func TargetFieldIsArray(i interface{}, name string) bool {
 	return TypeOfField(i, name).Kind() == reflect.Array
 }
 
+// ExtractDotPath converts a dot-delimited path into a string array of its constiuent parts. E.g. "a.b.c" becomes
+// ["a","b","c"]
 func ExtractDotPath(path string) []string {
 	return strings.SplitN(path, dotPathSep, -1)
 }
 
+// FindNestedField take the output of ExtractDotPath and uses it to traverse an object graph to find a value. Apart from
+// final value, each intermediate step in the graph must be a struct or pointer to a struct.
 func FindNestedField(path []string, v interface{}) (reflect.Value, error) {
 
 	pl := len(path)
