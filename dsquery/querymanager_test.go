@@ -89,13 +89,13 @@ func TestMultiQueryNameVars(t *testing.T) {
 	}
 }
 
-func NamedVarCount(tokens []*QueryTemplateToken) int {
+func NamedVarCount(tokens []*queryTemplateToken) int {
 
 	count := 0
 
 	for _, token := range tokens {
 
-		if token.Type == VarName {
+		if token.Type == varNameToken {
 
 			count += 1
 		}
@@ -121,7 +121,7 @@ func LoadRefFile(path string) string {
 	return string(bytes)
 }
 
-func ToString(tokens []*QueryTemplateToken) string {
+func ToString(tokens []*queryTemplateToken) string {
 
 	var buffer bytes.Buffer
 

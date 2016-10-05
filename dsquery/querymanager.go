@@ -2,8 +2,16 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-Package dbquery provides mechanisms for managing templated queries to be executed against a data source. The types in
-this package are agnostic to.
+Package dsquery provides mechanisms for managing templated queries to be executed against a data source.
+
+The types in this package are agnostic to the type of data source being used (e.g. RDBMS, NoSQL, cache). Instead, these types are
+concerned with reading templated queries from files and populating those templates with variables a runtime. The actual
+execution of queries is the responsibilty of clients that understand the type of data source in use (see the rdbms package).
+
+Most Granitic applications requiring access to a data source will enable the QueryManager facility which provides access
+to an instance of the TemplatedQueryManager type defined in this package. Instructions on configuring and using the
+QueryManager facility can be found at http://granitic.io/1.0/ref/query-manager.
+
 */
 package dsquery
 
@@ -22,11 +30,21 @@ import (
 	"strings"
 )
 
+// A QueryManager is a type that is able to populate a pre-defined template query given a set of named parameters
+// and return a complete query ready for execution against some data source.
 type QueryManager interface {
+	// BuildQueryFromID finds a template with the supplied query ID and uses the supplied named parameters to populate
+	// that template. Returns the populated query or an error if the template could not be found or there was a problem
+	// populating the query.
 	BuildQueryFromID(qid string, params map[string]interface{}) (string, error)
+
+	// FragmentFromID is used to recover a template which does not have any parameters to populate (a fragment). This is most commonly
+	// used when code needs to dynamically construct a query from several fragments and templates. Returns the fragment
+	// or an error if the fragment could not be found.
 	FragmentFromID(qid string) (string, error)
 }
 
+// NewTemplatedQueryManager creates a new, empty TemplatedQueryManager.
 func NewTemplatedQueryManager() *TemplatedQueryManager {
 	qm := new(TemplatedQueryManager)
 	qm.fragments = make(map[string]string)
@@ -34,20 +52,41 @@ func NewTemplatedQueryManager() *TemplatedQueryManager {
 	return qm
 }
 
+// An implementation of QueryManager that reads files containing template queries, tokenizes them and populates them
+// on demand with maps of named parameters. This is the implementation provided by the QueryManager facility. See
+// http://granitic.io/1.0/ref/query-manager for details.
 type TemplatedQueryManager struct {
-	TemplateLocation   string
-	VarMatchRegEx      string
-	FrameworkLogger    logging.Logger
-	QueryIdPrefix      string
-	TrimIdWhiteSpace   bool
-	WrapStrings        bool
-	StringWrapWith     string
+	// The path to a folder where template files are stored.
+	TemplateLocation string
+
+	// A regular expression that allows variable names to be recognised in queries.
+	VarMatchRegEx string
+
+	// Logger used by Granitic framework components. Automatically injected.
+	FrameworkLogger logging.Logger
+
+	// Lines in a template file starting with this string are considered to indicate the start of a new query template. The remainder
+	// of the line will be used as the ID of that query template.
+	QueryIdPrefix string
+
+	// Whether or not query IDs should have leading and trailing whitespace removed.
+	TrimIdWhiteSpace bool
+
+	// Whether string parameters should have their contents wrapped with the string defined in StringWrapWith before
+	// being injected into the query. For example, SQL RDBMSs usually require strings to be wrapped with ' or "
+	WrapStrings bool
+
+	// A string that will be used as a prefix and suffix to a string parameter if WrapStrings is true.
+	StringWrapWith string
+
+	// The character sequence that indicates a new line in a template file (e.g. \n)
 	NewLine            string
-	tokenisedTemplates map[string]*QueryTemplate
+	tokenisedTemplates map[string]*queryTemplate
 	fragments          map[string]string
 	state              ioc.ComponentState
 }
 
+// See QueryManager.FragmentFromID
 func (qm *TemplatedQueryManager) FragmentFromID(qid string) (string, error) {
 
 	f := qm.fragments[qid]
@@ -68,6 +107,7 @@ func (qm *TemplatedQueryManager) FragmentFromID(qid string) (string, error) {
 
 }
 
+// See QueryManager.BuildQueryFromID
 func (qm *TemplatedQueryManager) BuildQueryFromID(qid string, params map[string]interface{}) (string, error) {
 	template := qm.tokenisedTemplates[qid]
 
@@ -78,13 +118,13 @@ func (qm *TemplatedQueryManager) BuildQueryFromID(qid string, params map[string]
 	return qm.buildQueryFromTemplate(qid, template, params)
 }
 
-func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *QueryTemplate, params map[string]interface{}) (string, error) {
+func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *queryTemplate, params map[string]interface{}) (string, error) {
 
 	var b bytes.Buffer
 
 	for _, token := range template.Tokens {
 
-		if token.Type == Fragment {
+		if token.Type == fragmentToken {
 			b.WriteString(token.Content)
 		} else {
 
@@ -127,6 +167,8 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *Qu
 
 }
 
+// StartComponent is called by the IoC container. Loads, parses and tokenizes query templates. Returns an error
+// if there was a problem loading, parsing or tokenizing.
 func (qm *TemplatedQueryManager) StartComponent() error {
 
 	if qm.state != ioc.StoppedState {
@@ -156,9 +198,9 @@ func (qm *TemplatedQueryManager) StartComponent() error {
 
 }
 
-func (qm *TemplatedQueryManager) parseQueryFiles(files []string) map[string]*QueryTemplate {
+func (qm *TemplatedQueryManager) parseQueryFiles(files []string) map[string]*queryTemplate {
 	fl := qm.FrameworkLogger
-	tokenisedTemplates := map[string]*QueryTemplate{}
+	tokenisedTemplates := map[string]*queryTemplate{}
 	re := regexp.MustCompile(qm.VarMatchRegEx)
 
 	for _, filePath := range files {
@@ -181,9 +223,9 @@ func (qm *TemplatedQueryManager) parseQueryFiles(files []string) map[string]*Que
 	return tokenisedTemplates
 }
 
-func (qm *TemplatedQueryManager) scanAndParse(scanner *bufio.Scanner, tokenisedTemplates map[string]*QueryTemplate, re *regexp.Regexp) {
+func (qm *TemplatedQueryManager) scanAndParse(scanner *bufio.Scanner, tokenisedTemplates map[string]*queryTemplate, re *regexp.Regexp) {
 
-	var currentTemplate *QueryTemplate = nil
+	var currentTemplate *queryTemplate = nil
 	var fragmentBuffer bytes.Buffer
 
 	for scanner.Scan() {
@@ -197,7 +239,7 @@ func (qm *TemplatedQueryManager) scanAndParse(scanner *bufio.Scanner, tokenisedT
 				currentTemplate.Finalise()
 			}
 
-			currentTemplate = NewQueryTemplate(id, &fragmentBuffer)
+			currentTemplate = newQueryTemplate(id, &fragmentBuffer)
 			tokenisedTemplates[id] = currentTemplate
 			continue
 		}
@@ -269,7 +311,7 @@ func intMax(x, y int) int {
 	}
 }
 
-func (qm *TemplatedQueryManager) addVar(token string, currentTemplate *QueryTemplate) {
+func (qm *TemplatedQueryManager) addVar(token string, currentTemplate *queryTemplate) {
 
 	index, err := strconv.Atoi(token)
 
@@ -301,32 +343,32 @@ func (qm *TemplatedQueryManager) isBlankLine(line string) bool {
 	return len(strings.TrimSpace(line)) == 0
 }
 
-type QueryTokenType int
+type queryTokenType int
 
 const (
-	Fragment = iota
-	VarName
-	VarIndex
+	fragmentToken = iota
+	varNameToken
+	varIndexToken
 )
 
-type QueryTemplate struct {
-	Tokens         []*QueryTemplateToken
+type queryTemplate struct {
+	Tokens         []*queryTemplateToken
 	Id             string
-	currentToken   *QueryTemplateToken
+	currentToken   *queryTemplateToken
 	fragmentBuffer *bytes.Buffer
 }
 
-func (qt *QueryTemplate) Finalise() {
+func (qt *queryTemplate) Finalise() {
 	qt.closeFragmentToken()
 	qt.fragmentBuffer = nil
 }
 
-func (qt *QueryTemplate) AddFragmentContent(fragment string) {
+func (qt *queryTemplate) AddFragmentContent(fragment string) {
 
 	t := qt.currentToken
 
-	if t == nil || t.Type != Fragment {
-		t = NewQueryTemplateToken(Fragment)
+	if t == nil || t.Type != fragmentToken {
+		t = NewQueryTemplateToken(fragmentToken)
 		qt.Tokens = append(qt.Tokens, t)
 		qt.currentToken = t
 	}
@@ -334,46 +376,46 @@ func (qt *QueryTemplate) AddFragmentContent(fragment string) {
 	qt.fragmentBuffer.WriteString(fragment)
 }
 
-func (qt *QueryTemplate) closeFragmentToken() {
+func (qt *queryTemplate) closeFragmentToken() {
 
 	t := qt.currentToken
-	if t.Type == Fragment {
+	if t.Type == fragmentToken {
 		t.Content = qt.fragmentBuffer.String()
 		qt.fragmentBuffer.Reset()
 	}
 
 }
 
-func (qt *QueryTemplate) AddIndexedVar(index int) {
+func (qt *queryTemplate) AddIndexedVar(index int) {
 
 	qt.closeFragmentToken()
 	t := qt.currentToken
 
-	t = NewQueryTemplateToken(VarIndex)
+	t = NewQueryTemplateToken(varIndexToken)
 	t.Index = index
 
 	qt.Tokens = append(qt.Tokens, t)
 	qt.currentToken = t
 }
 
-func (qt *QueryTemplate) AddLabelledVar(label string) {
+func (qt *queryTemplate) AddLabelledVar(label string) {
 
 	qt.closeFragmentToken()
 	t := qt.currentToken
 
-	t = NewQueryTemplateToken(VarName)
+	t = NewQueryTemplateToken(varNameToken)
 	t.Content = label
 
 	qt.Tokens = append(qt.Tokens, t)
 	qt.currentToken = t
 }
 
-func (qt *QueryTemplate) EndLine() {
+func (qt *queryTemplate) EndLine() {
 	qt.AddFragmentContent("\n")
 }
 
-func NewQueryTemplate(id string, buffer *bytes.Buffer) *QueryTemplate {
-	t := new(QueryTemplate)
+func newQueryTemplate(id string, buffer *bytes.Buffer) *queryTemplate {
+	t := new(queryTemplate)
 	t.Id = id
 	t.currentToken = nil
 	t.fragmentBuffer = buffer
@@ -381,32 +423,32 @@ func NewQueryTemplate(id string, buffer *bytes.Buffer) *QueryTemplate {
 	return t
 }
 
-type QueryTemplateToken struct {
-	Type    QueryTokenType
+type queryTemplateToken struct {
+	Type    queryTokenType
 	Content string
 	Index   int
 }
 
-func NewQueryTemplateToken(tokenType QueryTokenType) *QueryTemplateToken {
-	token := new(QueryTemplateToken)
+func NewQueryTemplateToken(tokenType queryTokenType) *queryTemplateToken {
+	token := new(queryTemplateToken)
 	token.Type = tokenType
 
 	return token
 }
 
-func (qtt *QueryTemplateToken) GetContent() string {
+func (qtt *queryTemplateToken) GetContent() string {
 	return qtt.Content
 }
 
-func (qtt *QueryTemplateToken) String() string {
+func (qtt *queryTemplateToken) String() string {
 
 	switch qtt.Type {
 
-	case Fragment:
+	case fragmentToken:
 		return qtt.Content
-	case VarName:
+	case varNameToken:
 		return fmt.Sprintf("VN:%s", qtt.Content)
-	case VarIndex:
+	case varIndexToken:
 		return fmt.Sprintf("VI:%d", qtt.Index)
 	default:
 		return ""
