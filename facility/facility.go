@@ -4,16 +4,16 @@
 /*
 Package facility defines the high-level features that Granitic makes available to applications.
 
-A facility is Granitic's term for a group of components that together provide a high level feature to application developers,
+A facility is Granitic's term for a group of components that together provide a high-level feature to application developers,
 like logging or service error management. This package contains several sub-packages, one for each facility that can be
 enabled and configured by user applications.
 
 A full description of how facilities can be enabled and configured can be found at http://granitic.io/1.0/ref/facilities but a basic description
-of how they work follows.
+of how they work follows:
 
 Enabling and disabling facilities
 
-The features that are available to applications, and whether they are enabled by default or not, can be seen in the file:
+The features that are available to applications, and whether they are enabled by default or not, are enumerated in the file:
 
 	$GRANITIC_HOME/resource/facility-config/facilities.json
 
@@ -77,8 +77,17 @@ import (
 	"github.com/graniticio/granitic/logging"
 )
 
+// A facility builder is responsible for programmatically constructing the objects required to support a facility and,
+// where required, adding them to the IoC container.
 type FacilityBuilder interface {
+	//BuildAndRegister constructs the components that together constitute the facility and stores them in the IoC
+	// container.
 	BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error
+
+	//FacilityName returns the facility's unique name. Used to check whether the facility is enabled in configuration.
 	FacilityName() string
+
+	//DependsOnFacilities returns the names of other facilities that must be enabled in order for this facility to run
+	//correctly.
 	DependsOnFacilities() []string
 }
