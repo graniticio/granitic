@@ -1,5 +1,15 @@
 /*
 Package httpserver provides a configurable HTTP server for processing web-service requests.
+
+The HttpServer facility provides a server that will listen for HTTP web-service requests and map them to the web-service
+endpoints defined by your application. A full description of how to configure this facility can be found at http://granitic.io/1.0/ref/http-server
+
+This package defines two main types HTTPServer and AccessLogWriter. HTTPServer is a layer over Go's built-in http.Server adding runtime control (suspension, resumption)
+and mapping of requests to instances of ws.Handler. AccessLogWriter supports Apache/Tomcat style access log formatting and writing.
+
+Most applications will only need to enable this facility (probably changing the listen Port) and define mappings between incoming paths and application logic in their
+component definition files. See handler.WsHandler for more details.
+
 */
 package httpserver
 
@@ -18,30 +28,57 @@ import (
 	"time"
 )
 
-type RegisteredProvider struct {
+type registeredProvider struct {
 	Provider httpendpoint.HttpEndpointProvider
 	Pattern  *regexp.Regexp
 }
 
 type HTTPServer struct {
-	registeredProvidersByMethod map[string][]*RegisteredProvider
+	registeredProvidersByMethod map[string][]*registeredProvider
 	unregisteredProviders       map[string]httpendpoint.HttpEndpointProvider
 	componentContainer          *ioc.ComponentContainer
-	FrameworkLogger             logging.Logger
-	AccessLogWriter             *AccessLogWriter
-	AccessLogging               bool
-	AutoFindHandlers            bool
-	Port                        int
-	Address                     string
-	AbnormalStatusWriter        ws.AbnormalStatusWriter
-	AbnormalStatusWriterName    string
-	ActiveRequests              int64
-	MaxConcurrent               int64
-	TooBusyStatus               int
-	VersionExtractor            httpendpoint.RequestedVersionExtractor
-	state                       ioc.ComponentState
+
+	// Logger used by Granitic framework components. Automatically injected.
+	FrameworkLogger logging.Logger
+
+	// A component able to write an access log. Automatically added by this facility's builder, is access log support is enabled.
+	AccessLogWriter *AccessLogWriter
+
+	// Whether or not access logging should be enabled.
+	AccessLogging bool
+
+	// Whether or not instances of httpendpoint.HttpEndpointProvider found in the IoC container should be automatically
+	// registered with this server
+	AutoFindHandlers bool
+
+	// The TCP port on which the HTTP server should listen for requests.
+	Port int
+
+	// The IP/hostname this server should listen on, follows standard Go net package syntax. Empty string means listen on all.
+	Address string
+
+	// A component able to write valid HTTP responses in the event a user request results in an abnormal result
+	// (not found, server too busy, panic in application logic). If you use the JsonWs or XmlWs facility, this is automatically injected.
+	AbnormalStatusWriter ws.AbnormalStatusWriter
+
+	// The name of a component in the IoC container that should be used as an AbnormalStatusWriter if one is not being auto-injected.
+	AbnormalStatusWriterName string
+
+	// The number of HTTP requests currently being handled by the server.
+	ActiveRequests int64
+
+	// How many concurrent requests the server should allow before returning 'too busy' responses to subsequent requests.
+	MaxConcurrent int64
+
+	// The HTTP status code returned with 'too busy responses'. Normally 503
+	TooBusyStatus int
+
+	// A component able to examine an incoming request and determine which version of functionality is being requested.
+	VersionExtractor httpendpoint.RequestedVersionExtractor
+	state            ioc.ComponentState
 }
 
+// Implements ioc.ContainerAccessor
 func (h *HTTPServer) Container(container *ioc.ComponentContainer) {
 	h.componentContainer = container
 }
@@ -60,12 +97,12 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HttpEndpoint
 
 		h.FrameworkLogger.LogTracef("Registering %s %s", pattern, method)
 
-		rp := RegisteredProvider{endPointProvider, compiledRegex}
+		rp := registeredProvider{endPointProvider, compiledRegex}
 
 		providersForMethod := h.registeredProvidersByMethod[method]
 
 		if providersForMethod == nil {
-			providersForMethod = make([]*RegisteredProvider, 1)
+			providersForMethod = make([]*registeredProvider, 1)
 			providersForMethod[0] = &rp
 			h.registeredProvidersByMethod[method] = providersForMethod
 		} else {
@@ -75,6 +112,9 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HttpEndpoint
 
 }
 
+// StartComponent Finds and registers any available httpendpoint.HttpEndpointProvider components (normally instances of
+// handler.WsHandler) unless auto finding of handlers is disabled. The server does not actually start listening for
+// requests until the IoC container calls AllowAccess.
 func (h *HTTPServer) StartComponent() error {
 
 	if h.state != ioc.StoppedState {
@@ -82,7 +122,7 @@ func (h *HTTPServer) StartComponent() error {
 	}
 
 	h.state = ioc.StartingState
-	h.registeredProvidersByMethod = make(map[string][]*RegisteredProvider)
+	h.registeredProvidersByMethod = make(map[string][]*registeredProvider)
 
 	if h.AutoFindHandlers {
 		for _, component := range h.componentContainer.AllComponents() {
@@ -115,6 +155,7 @@ func (h *HTTPServer) StartComponent() error {
 	return nil
 }
 
+// Suspend causes all subsequent new HTTP requests to receive a 'too busy' response until Resume is called.
 func (h *HTTPServer) Suspend() error {
 
 	if h.state != ioc.RunningState {
@@ -126,6 +167,7 @@ func (h *HTTPServer) Suspend() error {
 	return nil
 }
 
+// Resume allows subsequent requests to be processed normally (reserves the effect of calling Suspend).
 func (h *HTTPServer) Resume() error {
 
 	if h.state != ioc.SuspendedState {
@@ -137,6 +179,7 @@ func (h *HTTPServer) Resume() error {
 	return nil
 }
 
+// AllowAccess starts the server listening on the configured address and port. Returns an error if the port is already in use.
 func (h *HTTPServer) AllowAccess() error {
 
 	if h.state != ioc.AwaitingAccessState {
@@ -169,6 +212,7 @@ func (h *HTTPServer) AllowAccess() error {
 	return nil
 }
 
+// SetProvidersManually manually injects a set of httpendpoint.HttpEndpointProviders when auto finding is disabled.
 func (h *HTTPServer) SetProvidersManually(p map[string]httpendpoint.HttpEndpointProvider) {
 	h.unregisteredProviders = p
 }
@@ -247,10 +291,12 @@ func (h *HTTPServer) versionMatch(r *http.Request, p httpendpoint.HttpEndpointPr
 
 }
 
+// PrepareToStop sets state to Stopping. Any subsequent requests will receive a 'too busy response'
 func (h *HTTPServer) PrepareToStop() {
 	h.state = ioc.StoppingState
 }
 
+// ReadyToStop returns false is the server is currently handling any requests.
 func (h *HTTPServer) ReadyToStop() (bool, error) {
 	a := h.ActiveRequests
 	ready := a <= 0
@@ -265,6 +311,8 @@ func (h *HTTPServer) ReadyToStop() (bool, error) {
 	}
 }
 
+// Stop sets state to Stopped. Any subsequent requests will receive a 'too busy response'. Note that the HTTP
+// server is still listening on its configured port and address.
 func (h *HTTPServer) Stop() error {
 
 	h.state = ioc.StoppedState
