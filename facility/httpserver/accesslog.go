@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package httpserver
 
 import (
@@ -15,97 +18,116 @@ import (
 	"time"
 )
 
-const DefaultLogBufferLength = 10
 const percent = "%"
 const hyphen = "-"
-const unsupported = "???"
+const unsupportedPlaceholder = "???"
 const presetCommonName = "common"
 const presetCommonFormat = "%h %l %u %t \"%r\" %s %b"
 const presetCombinedName = "combined"
-const presetCombinedFormat = "%h %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-agent}i\""
+
+// The log format used when AccessLogWriter.LogLinePreset is set to combined. Similar to the Apache HTTP preset of the same name.
+const PresetCombinedFormat = "%h %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-agent}i\""
 
 const presetframeworkName = "framework"
-const presetFrameworkFormat = "%h XFF[%{X-Forwarded-For}i] %l %u [%{02/Jan/2006:15:04:05 Z0700}t] \"%m %U%q\" %s %bB %{us}Tμs"
+
+// The log format used when AccessLogWriter.LogLinePreset is set to framework. Uses the X-Forwarded-For header to show all
+// IP addresses that the request has been proxied for (useful for services that sit behind multiple load-balancers and proxies) and logs
+// processing time in microseconds.
+const PresetFrameworkFormat = "%h XFF[%{X-Forwarded-For}i] %l %u [%{02/Jan/2006:15:04:05 Z0700}t] \"%m %U%q\" %s %bB %{us}Tμs"
 
 const formatRegex = "\\%[a-zA-Z]|\\%\\%|\\%{[^}]*}[a-zA-Z]"
 const varModifiedRegex = "\\%{([^}]*)}([a-zA-Z])"
 const commonLogDateFormat = "[02/Jan/2006:15:04:05 -0700]"
 
-type LogFormatPlaceHolder int
+type logFormatPlaceHolder int
 
 const (
-	Unsupported = iota
-	RemoteHost
-	ClientId
-	UserId
-	ReceivedTime
-	RequestLine
-	StatusCode
-	BytesReturned
-	BytesReturnedClf
-	RequestHeader
-	PercentSymbol
-	Method
-	Path
-	Query
-	ProcessTimeMicro
-	ProcessTime
+	unsupported = iota
+	remoteHost
+	clientId
+	userId
+	receivedTime
+	requestLine
+	statusCode
+	bytesReturned
+	bytesReturnedClf
+	requestHeader
+	percentSymbol
+	method
+	path
+	puery
+	processTimeMicro
+	processTime
 )
 
-type LogLineElementType int
+type logLineTokenType int
 
 const (
-	Text = iota
-	Placeholder
-	PlaceholderWithVar
+	textToken = iota
+	placeholderToken
+	placeholderWithVar
 )
 
-type LogLineElement struct {
-	elementType     LogLineElementType
-	placeholderType LogFormatPlaceHolder
+type logLineToken struct {
+	tokenType       logLineTokenType
+	placeholderType logFormatPlaceHolder
 	content         string
 	variable        string
 }
 
-func newTextLogLineElement(text string) *LogLineElement {
+func newTextLogLineElement(text string) *logLineToken {
 
-	e := new(LogLineElement)
-	e.elementType = Text
+	e := new(logLineToken)
+	e.tokenType = textToken
 	e.content = text
 
 	return e
 }
 
-func newPlaceholderLineElement(phType LogFormatPlaceHolder) *LogLineElement {
+func newPlaceholderLineElement(phType logFormatPlaceHolder) *logLineToken {
 
-	e := new(LogLineElement)
-	e.elementType = Placeholder
+	e := new(logLineToken)
+	e.tokenType = placeholderToken
 	e.placeholderType = phType
 
 	return e
 }
 
-func newPlaceholderWithVarLineElement(phType LogFormatPlaceHolder, variable string) *LogLineElement {
+func newPlaceholderWithVarLineElement(phType logFormatPlaceHolder, variable string) *logLineToken {
 
-	e := new(LogLineElement)
-	e.elementType = PlaceholderWithVar
+	e := new(logLineToken)
+	e.tokenType = placeholderWithVar
 	e.placeholderType = phType
 	e.variable = variable
 
 	return e
 }
 
+// A component able to asynchronously write an Apache HTTPD style access log. See the top of this GoDoc page for more information.
 type AccessLogWriter struct {
-	logFile       *os.File
-	LogPath       string
+	logFile *os.File
+	// The path of the log file to be written to (and created if required)
+	LogPath string
+
+	// The format of each log line. See the top of this GoDoc page for supported formats. Mutually exclusive with LogLinePreset.
 	LogLineFormat string
+
+	// A pre-defined format. Supported values are framework or combined. Mutually exclusive with LogLineFormat.
 	LogLinePreset string
-	UtcTimes      bool
-	elements      []*LogLineElement
-	lines         chan string
-	state         ioc.ComponentState
+
+	//The number of lines that can be buffered for asynchronous writing to the log file before calls to LogRequest block.
+	LineBufferSize int
+
+	//Whether or not timestamps should be converted to UTC before they are written to the access log.
+	UtcTimes bool
+
+	elements []*logLineToken
+	lines    chan string
+	state    ioc.ComponentState
 }
 
+// LogRequest generates an access log line according the configured format. As long as the number of log lines waiting to
+// be written to the file does not exceed the value of AccessLogWriter.LineBufferSize, this method will return immediately.
 func (alw *AccessLogWriter) LogRequest(req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time, ctx context.Context) {
 
 	alw.lines <- alw.buildLine(req, res, rec, fin, ctx)
@@ -125,12 +147,12 @@ func (alw *AccessLogWriter) buildLine(req *http.Request, res *httpendpoint.HTTPR
 
 	for _, e := range alw.elements {
 
-		switch e.elementType {
-		case Text:
+		switch e.tokenType {
+		case textToken:
 			b.WriteString(e.content)
-		case Placeholder:
+		case placeholderToken:
 			b.WriteString(alw.findValue(e, req, res, rec, fin, ctx))
-		case PlaceholderWithVar:
+		case placeholderWithVar:
 			b.WriteString(alw.findValueWithVar(e, req, res, rec, fin, ctx))
 		}
 	}
@@ -141,6 +163,8 @@ func (alw *AccessLogWriter) buildLine(req *http.Request, res *httpendpoint.HTTPR
 
 }
 
+// StartComponent parses the specified log format, sets up a channel to buffer lines for asynchrnous writing and opens the log file. An error
+// is returned if any of these steps fails.
 func (alw *AccessLogWriter) StartComponent() error {
 
 	if alw.state != ioc.StoppedState {
@@ -149,7 +173,7 @@ func (alw *AccessLogWriter) StartComponent() error {
 
 	alw.state = ioc.StartingState
 
-	alw.lines = make(chan string, DefaultLogBufferLength)
+	alw.lines = make(chan string, alw.LineBufferSize)
 
 	err := alw.configureLogFormat()
 
@@ -216,10 +240,10 @@ func (alw *AccessLogWriter) configureLogFormat() error {
 			return alw.parseFormat(presetCommonFormat)
 
 		} else if pre == presetCombinedName {
-			return alw.parseFormat(presetCombinedFormat)
+			return alw.parseFormat(PresetCombinedFormat)
 
 		} else if pre == presetframeworkName {
-			return alw.parseFormat(presetFrameworkFormat)
+			return alw.parseFormat(PresetFrameworkFormat)
 
 		} else {
 			message := fmt.Sprintf("%s is not a supported preset for access log lines", pre)
@@ -303,7 +327,7 @@ func (alw *AccessLogWriter) addPlaceholder(ph string, re *regexp.Regexp) error {
 
 		lfph := alw.mapPlaceholder(formatTypeCode)
 
-		if lfph == Unsupported {
+		if lfph == unsupported {
 			message := fmt.Sprintf("%s is not a supported field for formatting access log lines", ph)
 			return errors.New(message)
 		} else {
@@ -319,7 +343,7 @@ func (alw *AccessLogWriter) addPlaceholder(ph string, re *regexp.Regexp) error {
 
 		lfph := alw.mapPlaceholder(formatTypeCode)
 
-		if lfph == Unsupported {
+		if lfph == unsupported {
 			message := fmt.Sprintf("%s is not a supported field for formatting access log lines", ph)
 			return errors.New(message)
 		} else {
@@ -340,54 +364,54 @@ func intMax(x, y int) int {
 	}
 }
 
-func (alw *AccessLogWriter) mapPlaceholder(ph string) LogFormatPlaceHolder {
+func (alw *AccessLogWriter) mapPlaceholder(ph string) logFormatPlaceHolder {
 
 	switch ph {
 	default:
-		return Unsupported
+		return unsupported
 	case "%":
-		return PercentSymbol
+		return percentSymbol
 	case "b":
-		return BytesReturnedClf
+		return bytesReturnedClf
 	case "B":
-		return BytesReturned
+		return bytesReturned
 	case "D":
-		return ProcessTimeMicro
+		return processTimeMicro
 	case "h":
-		return RemoteHost
+		return remoteHost
 	case "i":
-		return RequestHeader
+		return requestHeader
 	case "l":
-		return ClientId
+		return clientId
 	case "m":
-		return Method
+		return method
 	case "q":
-		return Query
+		return puery
 	case "r":
-		return RequestLine
+		return requestLine
 	case "s":
-		return StatusCode
+		return statusCode
 	case "t":
-		return ReceivedTime
+		return receivedTime
 	case "T":
-		return ProcessTime
+		return processTime
 	case "u":
-		return UserId
+		return userId
 	case "U":
-		return Path
+		return path
 	}
 
 }
 
-func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, ctx context.Context) string {
+func (alw *AccessLogWriter) findValueWithVar(element *logLineToken, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, ctx context.Context) string {
 	switch element.placeholderType {
-	case RequestHeader:
+	case requestHeader:
 		return alw.requestHeader(element.variable, req)
 
-	case ReceivedTime:
+	case receivedTime:
 		return received.Format(element.variable)
 
-	case ProcessTime:
+	case processTime:
 
 		switch element.variable {
 		case "s":
@@ -402,63 +426,63 @@ func (alw *AccessLogWriter) findValueWithVar(element *LogLineElement, req *http.
 		}
 
 	default:
-		return unsupported
+		return unsupportedPlaceholder
 
 	}
 }
 
-func (alw *AccessLogWriter) findValue(element *LogLineElement, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, ctx context.Context) string {
+func (alw *AccessLogWriter) findValue(element *logLineToken, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, ctx context.Context) string {
 
 	switch element.placeholderType {
 
-	case PercentSymbol:
+	case percentSymbol:
 		return percent
 
-	case BytesReturnedClf:
+	case bytesReturnedClf:
 		if res.BytesServed == 0 {
 			return hyphen
 		} else {
 			return (strconv.Itoa(res.BytesServed))
 		}
 
-	case BytesReturned:
+	case bytesReturned:
 		return (strconv.Itoa(res.BytesServed))
 
-	case RemoteHost:
+	case remoteHost:
 		return req.RemoteAddr
 
-	case ClientId:
+	case clientId:
 		return hyphen
 
-	case UserId:
+	case userId:
 		return alw.userId(ctx)
 
-	case Method:
+	case method:
 		return req.Method
 
-	case Path:
+	case path:
 		return req.URL.Path
 
-	case Query:
+	case puery:
 		return alw.query(req)
 
-	case RequestLine:
+	case requestLine:
 		return alw.requestLine(req)
 
-	case ReceivedTime:
+	case receivedTime:
 		return received.Format(commonLogDateFormat)
 
-	case StatusCode:
+	case statusCode:
 		return strconv.Itoa(res.Status)
 
-	case ProcessTimeMicro:
+	case processTimeMicro:
 		return alw.processTime(received, finished, time.Microsecond)
 
-	case ProcessTime:
+	case processTime:
 		return alw.processTime(received, finished, time.Second)
 
 	default:
-		return unsupported
+		return unsupportedPlaceholder
 
 	}
 
@@ -504,15 +528,18 @@ func (alw *AccessLogWriter) userId(ctx context.Context) string {
 	return hyphen
 }
 
+// PrepareToStop settings state to 'Stopping'
 func (alw *AccessLogWriter) PrepareToStop() {
 	alw.state = ioc.StoppingState
 
 }
 
+// ReadyToStop always returns true
 func (alw *AccessLogWriter) ReadyToStop() (bool, error) {
 	return true, nil
 }
 
+// Stop closes the log file
 func (alw *AccessLogWriter) Stop() error {
 
 	if alw.logFile != nil {

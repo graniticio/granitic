@@ -3,6 +3,12 @@
     "Port": 8080,
     "AccessLogging": false,
     "TooBusyStatus": 503,
-    "AutoFindHandlers": true
+    "AutoFindHandlers": true,
+    "AccessLog": {
+      "LogPath": "./access.log",
+      "LogLinePreset": "framework",
+      "UtcTimes": true,
+      "LineBufferSize": 10
+    }
   }
 }

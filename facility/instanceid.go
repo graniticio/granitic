@@ -16,9 +16,9 @@ type InstanceIDDecorator struct {
 }
 
 // OfInterest returns true if the supplied component implements instance.InstanceIdentifierReceiver
-func (id *InstanceIDDecorator) OfInterest(component *ioc.Component) bool {
+func (id *InstanceIDDecorator) OfInterest(subject *ioc.Component) bool {
 
-	i := component.Instance
+	i := subject.Instance
 
 	_, found := i.(instance.InstanceIdentifierReceiver)
 
@@ -26,10 +26,10 @@ func (id *InstanceIDDecorator) OfInterest(component *ioc.Component) bool {
 
 }
 
-// DecorateComponent injects the InstanceIdentifier
-func (id *InstanceIDDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+// DecorateComponent injects the InstanceIdentifier in to the subject component.
+func (id *InstanceIDDecorator) DecorateComponent(subject *ioc.Component, container *ioc.ComponentContainer) {
 
-	r := component.Instance.(instance.InstanceIdentifierReceiver)
+	r := subject.Instance.(instance.InstanceIdentifierReceiver)
 
 	r.RegisterInstanceID(id.InstanceID)
 }
