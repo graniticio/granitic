@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/config"
+	ge "github.com/graniticio/granitic/error"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
@@ -20,7 +21,7 @@ type ServiceErrorManagerFacilityBuilder struct {
 
 func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	manager := new(ServiceErrorManager)
+	manager := new(ge.ServiceErrorManager)
 	manager.FrameworkLogger = lm.CreateLogger(serviceErrorManagerComponentName)
 
 	panicOnMissing, err := ca.BoolVal("ServiceErrorManager.PanicOnMissing")

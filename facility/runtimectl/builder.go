@@ -48,8 +48,8 @@ package runtimectl
 import (
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/ctl"
+	ge "github.com/graniticio/granitic/error"
 	"github.com/graniticio/granitic/facility/httpserver"
-	"github.com/graniticio/granitic/facility/serviceerror"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
@@ -155,7 +155,7 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	v.RuleManager = rm
 
 	//Error finder
-	sem := new(serviceerror.ServiceErrorManager)
+	sem := new(ge.ServiceErrorManager)
 	sem.PanicOnMissing = true
 
 	e := new(errorsWrapper)
