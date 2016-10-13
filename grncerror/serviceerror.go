@@ -1,3 +1,16 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
+/*
+	Package grncerror defines error-message management types and error handling functions.
+
+	The primary type in this package is ServiceErrorManager, which allows an application to manage error definitions (messages and categories)
+	in a single location and have them looked up and referred to by error codes throughout the application.
+
+	A ServiceErrorManager is made available to applications by enabling the ServiceErrorManager facility. This facility is
+	documented in detail here: http://granitic.io/1.0/ref/service-errors the package documentation for facility/serviceerror
+	gives a brief example of how to define errors in your application.
+*/
 package grncerror
 
 import (
@@ -10,30 +23,42 @@ import (
 	"strings"
 )
 
-type FrameworkServiceErrorFinder interface {
-	UnmarshallError() *ws.CategorisedError
-}
+// Implemented by components that want to decare that they use error codes, so that all codes they
+// use can be validated to make sure that they have corresponding definitions.
+type ErrorCodeUser interface {
+	// ErrorCodesInUse returns the set of error codes that this component relies on and the component's name
+	ErrorCodesInUse() (codes types.StringSet, component string)
 
-type ErrorCodeSource interface {
-	ErrorCodesInUse() (codes types.StringSet, sourceName string)
+	// ValidateMissing returns false if the component does not want the codes it uses checked.
 	ValidateMissing() bool
 }
+
+// An instance of ServiceErrorManager contains a map between an error code and a ws.CategorisedError.
 type ServiceErrorManager struct {
-	errors           map[string]*ws.CategorisedError
-	FrameworkLogger  logging.Logger
+	errors map[string]*ws.CategorisedError
+
+	// Logger used by Granitic framework components. Automatically injected.
+	FrameworkLogger logging.Logger
+
+	// Determines whether or not a panic should be triggered if a method on this type is called with
+	// an error code that is not stored in the map of codes to errors.
 	PanicOnMissing   bool
-	errorCodeSources []ErrorCodeSource
+	errorCodeSources []ErrorCodeUser
 	componentName    string
 }
 
+// See ioc.ComponentNamer.ComponentName
 func (sem *ServiceErrorManager) ComponentName() string {
 	return sem.componentName
 }
 
+// See ioc.ComponentNamer.SetComponentName
 func (sem *ServiceErrorManager) SetComponentName(name string) {
 	sem.componentName = name
 }
 
+// Find returns the CategorisedError associated with the supplied code. If the code does not exist and PanicOnMissing
+// is false, nil is returned. If PanicOnMissing is true the goroutine panics.
 func (sem *ServiceErrorManager) Find(code string) *ws.CategorisedError {
 	e := sem.errors[code]
 
@@ -54,6 +79,8 @@ func (sem *ServiceErrorManager) Find(code string) *ws.CategorisedError {
 
 }
 
+// LoadErrors parses error definitions from the supplied definitions which will be cast from []interface to [][]string
+// Each element of the sub-array is expected to be a []string with three elements.
 func (sem *ServiceErrorManager) LoadErrors(definitions []interface{}) {
 
 	l := sem.FrameworkLogger
@@ -95,14 +122,20 @@ func (sem *ServiceErrorManager) LoadErrors(definitions []interface{}) {
 	}
 }
 
-func (sem *ServiceErrorManager) RegisterCodeSource(ecs ErrorCodeSource) {
+// RegisterCodeUser accepts a reference to a component ErrorCodeUser so that the set of error codes actually in use
+// can be monitored.
+func (sem *ServiceErrorManager) RegisterCodeUser(ecu ErrorCodeUser) {
 	if sem.errorCodeSources == nil {
-		sem.errorCodeSources = make([]ErrorCodeSource, 0)
+		sem.errorCodeSources = make([]ErrorCodeUser, 0)
 	}
 
-	sem.errorCodeSources = append(sem.errorCodeSources, ecs)
+	sem.errorCodeSources = append(sem.errorCodeSources, ecu)
 }
 
+// AllowAccess is called by the IoC container after all components have been configured and started. At this point
+// all of the error codes that have been declared to be in use can be compared with the available error code definitions.
+//
+// If there are any codes that are in use, but do not have a corresponding error definition an error will be returned.
 func (sem *ServiceErrorManager) AllowAccess() error {
 
 	failed := make(map[string][]string)

@@ -26,7 +26,7 @@ type ErrorCodeSourceDecorator struct {
 }
 
 func (ecs *ErrorCodeSourceDecorator) OfInterest(component *ioc.Component) bool {
-	s, found := component.Instance.(grncerror.ErrorCodeSource)
+	s, found := component.Instance.(grncerror.ErrorCodeUser)
 
 	if found {
 		return s.ValidateMissing()
@@ -36,7 +36,7 @@ func (ecs *ErrorCodeSourceDecorator) OfInterest(component *ioc.Component) bool {
 }
 
 func (ecs *ErrorCodeSourceDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
-	c := component.Instance.(grncerror.ErrorCodeSource)
+	c := component.Instance.(grncerror.ErrorCodeUser)
 
-	ecs.ErrorSource.RegisterCodeSource(c)
+	ecs.ErrorSource.RegisterCodeUser(c)
 }
