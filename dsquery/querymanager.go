@@ -6,11 +6,12 @@ Package dsquery provides mechanisms for managing templated queries to be execute
 
 The types in this package are agnostic to the type of data source being used (e.g. RDBMS, NoSQL, cache). Instead, these types are
 concerned with reading templated queries from files and populating those templates with variables a runtime. The actual
-execution of queries is the responsibilty of clients that understand the type of data source in use (see the rdbms package).
+execution of queries is the responsibility of clients that understand the type of data source in use (see the rdbms package).
 
 Most Granitic applications requiring access to a data source will enable the QueryManager facility which provides access
 to an instance of the TemplatedQueryManager type defined in this package. Instructions on configuring and using the
-QueryManager facility can be found at http://granitic.io/1.0/ref/query-manager.
+QueryManager facility can be found at http://granitic.io/1.0/ref/query-manager also see the package documentation for the
+facility/querymanager package for some basic examples.
 
 */
 package dsquery
