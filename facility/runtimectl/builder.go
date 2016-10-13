@@ -1,3 +1,48 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
+/*
+	Package runtimectl provides the RuntimeCtl facility which allows external runtime control of Granitic applications.
+
+	This facility is described in detail at http://granitic.io/1.0/ref/runtime-ctl. Refer to the ctl package documentation
+	for information on how to implement your own commands.
+
+	Enabling runtime control
+
+	Enabling the RuntimeCtl facility creates an HTTP server that allows instructions to be issued to
+	any component in the IoC container which implements the ctl.Command interface from the grnc-ctl command line tool.
+	See http://granitic.io/1.0/ref/runtime-ctl#builtin for documentation on Granitic's built-in commands.
+
+	The HTTP server that listens for commands is separate to the HTTP server created by the XmlWs and JsonWs facilities and runs on a
+	different port. The listen port defaults to 9099 but can be changed with the following configuration:
+
+		{
+		  "RuntimeCtl": {
+			"Server":{
+			  "Port": 9099,
+			  "Address": "127.0.0.1"
+			}
+		  }
+		}
+
+	Note that by default the server only listens on the IPV4 localhost. To listen on all interfaces, change address to ""
+
+	Disabling individual commands
+
+	You can disable individual commands (either builtin commands or your own application commands) with configuration. For
+	example:
+
+	{
+	  "RuntimeCtl": {
+	    "Manager":{
+	      "Disabled": ["shutdown"]
+	    }
+	  }
+	}
+
+	Disables the shutdown command, preventing your application being stopped remotely.
+
+*/
 package runtimectl
 
 import (
@@ -27,12 +72,12 @@ const (
 	runtimeCtlServiceErrors    = instance.FrameworkPrefix + "CtlServiceErrors"
 	runtimeCtlCommandDecorator = instance.FrameworkPrefix + "CtlCommandDecorator"
 	runtimeCtlCommandManager   = instance.FrameworkPrefix + "CtlCommandManager"
-	shutdownCommand            = instance.FrameworkPrefix + "CommandShutdown"
-	helpCommand                = instance.FrameworkPrefix + "CommandHelp"
-	componentsCommand          = instance.FrameworkPrefix + "CommandComponents"
-	stopCommand                = instance.FrameworkPrefix + "CommandStop"
-	suspendCommand             = instance.FrameworkPrefix + "CommandSuspend"
-	resumeCommand              = instance.FrameworkPrefix + "CommandResume"
+	shutdownCommandComp        = instance.FrameworkPrefix + "CommandShutdown"
+	helpCommandComp            = instance.FrameworkPrefix + "CommandHelp"
+	componentsCommandComp      = instance.FrameworkPrefix + "CommandComponents"
+	stopCommandComp            = instance.FrameworkPrefix + "CommandStop"
+	suspendCommandComp         = instance.FrameworkPrefix + "CommandSuspend"
+	resumeCommandComp          = instance.FrameworkPrefix + "CommandResume"
 	defaultValidationCode      = "INV_CTL_REQUEST"
 )
 
@@ -155,18 +200,18 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 
 func (fb *RuntimeCtlFacilityBuilder) createBuiltinCommands(lm *logging.ComponentLoggerManager, cc *ioc.ComponentContainer, cm *ctl.CommandManager) {
 
-	sd := new(ShutdownCommand)
-	fb.addCommand(cc, shutdownCommand, sd)
+	sd := new(shutdownCommand)
+	fb.addCommand(cc, shutdownCommandComp, sd)
 
-	hc := new(HelpCommand)
+	hc := new(helpCommand)
 	hc.commandManager = cm
-	fb.addCommand(cc, helpCommand, hc)
+	fb.addCommand(cc, helpCommandComp, hc)
 
-	cs := new(ComponentsCommand)
-	fb.addCommand(cc, componentsCommand, cs)
+	cs := new(componentsCommand)
+	fb.addCommand(cc, componentsCommandComp, cs)
 
 	stopc := NewStopCommand()
-	fb.addCommand(cc, stopCommand, stopc)
+	fb.addCommand(cc, stopCommandComp, stopc)
 
 	startc := NewStartCommand()
 	fb.addCommand(cc, startCommandName, startc)

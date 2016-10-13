@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package runtimectl
 
 import (
@@ -16,16 +19,16 @@ const (
 		"The Granitic application will exit once all components have stopped."
 )
 
-type ShutdownCommand struct {
+type shutdownCommand struct {
 	FrameworkLogger logging.Logger
 	container       *ioc.ComponentContainer
 }
 
-func (csd *ShutdownCommand) Container(container *ioc.ComponentContainer) {
+func (csd *shutdownCommand) Container(container *ioc.ComponentContainer) {
 	csd.container = container
 }
 
-func (csd *ShutdownCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (csd *shutdownCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	go csd.startShutdown()
 
@@ -35,25 +38,25 @@ func (csd *ShutdownCommand) ExecuteCommand(qualifiers []string, args map[string]
 	return co, nil
 }
 
-func (csd *ShutdownCommand) startShutdown() {
+func (csd *shutdownCommand) startShutdown() {
 	csd.FrameworkLogger.LogInfof("Shutting down (runtime command)")
 
 	csd.container.Lifecycle.StopAll()
 	instance.ExitNormal()
 }
 
-func (csd *ShutdownCommand) Name() string {
+func (csd *shutdownCommand) Name() string {
 	return shutdownCommandName
 }
 
-func (csd *ShutdownCommand) Summmary() string {
+func (csd *shutdownCommand) Summmary() string {
 	return shutdownSummary
 }
 
-func (csd *ShutdownCommand) Usage() string {
+func (csd *shutdownCommand) Usage() string {
 	return shutdownUsage
 }
 
-func (csd *ShutdownCommand) Help() []string {
+func (csd *shutdownCommand) Help() []string {
 	return []string{shutdownHelp}
 }

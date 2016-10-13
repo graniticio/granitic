@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package runtimectl
 
 import (
@@ -17,16 +20,16 @@ const (
 		"lifecycle interface (ioc.Startable, ioc.Stoppable, ioc.Suspendable) will be displayed"
 )
 
-type ComponentsCommand struct {
+type componentsCommand struct {
 	FrameworkLogger logging.Logger
 	container       *ioc.ComponentContainer
 }
 
-func (c *ComponentsCommand) Container(container *ioc.ComponentContainer) {
+func (c *componentsCommand) Container(container *ioc.ComponentContainer) {
 	c.container = container
 }
 
-func (c *ComponentsCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *componentsCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	var frameworkOnly bool
 	var lcFilter ioc.LifecycleSupport
@@ -58,18 +61,18 @@ func (c *ComponentsCommand) ExecuteCommand(qualifiers []string, args map[string]
 	return co, nil
 }
 
-func (c *ComponentsCommand) Name() string {
+func (c *componentsCommand) Name() string {
 	return compCommandName
 }
 
-func (c *ComponentsCommand) Summmary() string {
+func (c *componentsCommand) Summmary() string {
 	return compSummary
 }
 
-func (c *ComponentsCommand) Usage() string {
+func (c *componentsCommand) Usage() string {
 	return compUsage
 }
 
-func (c *ComponentsCommand) Help() []string {
+func (c *componentsCommand) Help() []string {
 	return []string{compHelp, compHelpTwo, compHelpThree}
 }

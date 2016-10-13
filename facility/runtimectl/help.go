@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package runtimectl
 
 import (
@@ -16,12 +19,12 @@ const (
 	helpListHeader = "Available commands:"
 )
 
-type HelpCommand struct {
+type helpCommand struct {
 	FrameworkLogger logging.Logger
 	commandManager  *ctl.CommandManager
 }
 
-func (c *HelpCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *helpCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	if len(qualifiers) > 0 {
 		cn := qualifiers[0]
@@ -43,7 +46,7 @@ func (c *HelpCommand) ExecuteCommand(qualifiers []string, args map[string]string
 	return c.listing(), nil
 }
 
-func (c *HelpCommand) detail(command ctl.Command) *ctl.CommandOutput {
+func (c *helpCommand) detail(command ctl.Command) *ctl.CommandOutput {
 	co := new(ctl.CommandOutput)
 	co.RenderHint = ctl.Paragraph
 	co.OutputHeader = "Command usage: " + command.Usage()
@@ -52,7 +55,7 @@ func (c *HelpCommand) detail(command ctl.Command) *ctl.CommandOutput {
 	return co
 }
 
-func (c *HelpCommand) listing() *ctl.CommandOutput {
+func (c *helpCommand) listing() *ctl.CommandOutput {
 	co := new(ctl.CommandOutput)
 	co.RenderHint = ctl.Columns
 	co.OutputHeader = helpListHeader
@@ -74,18 +77,18 @@ func (c *HelpCommand) listing() *ctl.CommandOutput {
 
 }
 
-func (c *HelpCommand) Name() string {
+func (c *helpCommand) Name() string {
 	return helpCommandName
 }
 
-func (c *HelpCommand) Summmary() string {
+func (c *helpCommand) Summmary() string {
 	return helpSummary
 }
 
-func (c *HelpCommand) Usage() string {
+func (c *helpCommand) Usage() string {
 	return helpUsage
 }
 
-func (c *HelpCommand) Help() []string {
+func (c *helpCommand) Help() []string {
 	return []string{helpHelp}
 }

@@ -15,9 +15,10 @@ const (
 	stopHelpThree   = "If the '-rc true' AND '-fw true' arguments are supplied, the runtime command control server will also be stopped and no further runtime control of the application will be possible."
 )
 
-func NewStopCommand() *LifecycleCommand {
+// Create a variant of the lifecycleCommand configured as the stop command.
+func NewStopCommand() *lifecycleCommand {
 
-	sc := new(LifecycleCommand)
+	sc := new(lifecycleCommand)
 
 	sc.checkFunc = isStoppable
 	sc.filterFunc = findStoppable

@@ -21,9 +21,10 @@ const (
 	resumeHelpTwo     = "If the '-fw true' argument is supplied when no component name is specified, built-in Granitic framework components will also be resumed."
 )
 
-func NewSuspendCommand() *LifecycleCommand {
+// Create a variant of the lifecycleCommand configured as the suspend command.
+func NewSuspendCommand() *lifecycleCommand {
 
-	sc := new(LifecycleCommand)
+	sc := new(lifecycleCommand)
 
 	sc.checkFunc = isSuspendable
 	sc.filterFunc = findSuspendable
@@ -39,9 +40,10 @@ func NewSuspendCommand() *LifecycleCommand {
 	return sc
 }
 
-func NewResumeCommand() *LifecycleCommand {
+// Create a variant of the lifecycleCommand configured as the resume command.
+func NewResumeCommand() *lifecycleCommand {
 
-	sc := new(LifecycleCommand)
+	sc := new(lifecycleCommand)
 
 	sc.checkFunc = isSuspendable
 	sc.filterFunc = findSuspendable

@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package runtimectl
 
 import (
@@ -14,9 +17,10 @@ const (
 	startHelpTwo     = "If the '-fw true' argument is supplied when no component name is specified, built-in Granitic framework components will also be started."
 )
 
-func NewStartCommand() *LifecycleCommand {
+// Create a variant of the lifecycleCommand configured as the start command.
+func NewStartCommand() *lifecycleCommand {
 
-	sc := new(LifecycleCommand)
+	sc := new(lifecycleCommand)
 
 	sc.checkFunc = isStartable
 	sc.filterFunc = findStartable

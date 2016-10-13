@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package runtimectl
 
 import (
@@ -20,7 +23,7 @@ type invokeOperation func([]*ioc.Component, logging.Logger, *ioc.ComponentContai
 type filterComponents func(*ioc.ComponentContainer, bool, ...string) []*ioc.Component
 type supportsOperation func(interface{}) (bool, error)
 
-type LifecycleCommand struct {
+type lifecycleCommand struct {
 	FrameworkLogger  logging.Logger
 	container        *ioc.ComponentContainer
 	invokeFunc       invokeOperation
@@ -34,11 +37,11 @@ type LifecycleCommand struct {
 	noneFoundMessage string
 }
 
-func (c *LifecycleCommand) Container(container *ioc.ComponentContainer) {
+func (c *lifecycleCommand) Container(container *ioc.ComponentContainer) {
 	c.container = container
 }
 
-func (c *LifecycleCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *lifecycleCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	if len(qualifiers) > 0 {
 		return c.invokeSingle(qualifiers[0])
@@ -48,7 +51,7 @@ func (c *LifecycleCommand) ExecuteCommand(qualifiers []string, args map[string]s
 
 }
 
-func (c *LifecycleCommand) invokeAll(args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *lifecycleCommand) invokeAll(args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	var includeFramework bool
 	var allowStopCtlServer bool
@@ -81,7 +84,7 @@ func (c *LifecycleCommand) invokeAll(args map[string]string) (*ctl.CommandOutput
 	return co, nil
 }
 
-func (c *LifecycleCommand) names(cs []*ioc.Component) [][]string {
+func (c *lifecycleCommand) names(cs []*ioc.Component) [][]string {
 	n := make([][]string, len(cs))
 
 	for i, c := range cs {
@@ -91,7 +94,7 @@ func (c *LifecycleCommand) names(cs []*ioc.Component) [][]string {
 	return n
 }
 
-func (c *LifecycleCommand) invokeSingle(name string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *lifecycleCommand) invokeSingle(name string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	comp := c.container.ComponentByName(name)
 
@@ -116,18 +119,18 @@ func (c *LifecycleCommand) invokeSingle(name string) (*ctl.CommandOutput, []*ws.
 
 }
 
-func (c *LifecycleCommand) Name() string {
+func (c *lifecycleCommand) Name() string {
 	return c.commandName
 }
 
-func (c *LifecycleCommand) Summmary() string {
+func (c *lifecycleCommand) Summmary() string {
 	return c.commandSummary
 }
 
-func (c *LifecycleCommand) Usage() string {
+func (c *lifecycleCommand) Usage() string {
 	return c.commandUsage
 }
 
-func (c *LifecycleCommand) Help() []string {
+func (c *lifecycleCommand) Help() []string {
 	return c.commandHelp
 }
