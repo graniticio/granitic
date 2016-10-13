@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 /*
 Package httpserver provides a configurable HTTP server for processing web-service requests.
 
@@ -112,7 +115,7 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HttpEndpoint
 
 }
 
-// StartComponent Finds and registers any available httpendpoint.HttpEndpointProvider components (normally instances of
+// StartComponent Finds and registers any available components that implement httpendpoint.HttpEndpointProvider (normally instances of
 // handler.WsHandler) unless auto finding of handlers is disabled. The server does not actually start listening for
 // requests until the IoC container calls AllowAccess.
 func (h *HTTPServer) StartComponent() error {
