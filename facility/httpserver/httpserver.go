@@ -2,7 +2,7 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-Package httpserver provides a configurable HTTP server for processing web-service requests.
+Package httpserver provides the HttpServer facility which defines a configurable HTTP server for processing web-service requests.
 
 The HttpServer facility provides a server that will listen for HTTP web-service requests and map them to the web-service
 endpoints defined by your application. A full description of how to configure this facility can be found at http://granitic.io/1.0/ref/http-server

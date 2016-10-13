@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package logger
 
 import (
@@ -10,24 +13,29 @@ import (
 const expectedApplicationLoggerFieldName string = "Log"
 const expectedFrameworkLoggerFieldName string = "FrameworkLogger"
 
+// Injects a Logger into any component with field of type logging.Logger and the name Log.
 type ApplicationLogDecorator struct {
-	LoggerManager   *logging.ComponentLoggerManager
+	// The application ComponentLoggerManager (as opposed to the framework ComponentLoggerManager)
+	LoggerManager *logging.ComponentLoggerManager
+
+	// Logger to allow this decorator to log messages.
 	FrameworkLogger logging.Logger
 }
 
-func (ald *ApplicationLogDecorator) OfInterest(component *ioc.Component) bool {
+// OfInterest returns true if the subject component has a field of type logging.Logger and the name Log.
+func (ald *ApplicationLogDecorator) OfInterest(subject *ioc.Component) bool {
 
 	result := false
-	fieldPresent := reflecttools.HasFieldOfName(component.Instance, expectedApplicationLoggerFieldName)
+	fieldPresent := reflecttools.HasFieldOfName(subject.Instance, expectedApplicationLoggerFieldName)
 
 	frameworkLog := ald.FrameworkLogger
 
 	if fieldPresent {
 
-		targetFieldType := reflecttools.TypeOfField(component.Instance, expectedApplicationLoggerFieldName)
+		targetFieldType := reflecttools.TypeOfField(subject.Instance, expectedApplicationLoggerFieldName)
 		typeOfLogger := reflect.TypeOf(ald.FrameworkLogger)
 
-		v := reflect.ValueOf(component.Instance).Elem().FieldByName(expectedApplicationLoggerFieldName)
+		v := reflect.ValueOf(subject.Instance).Elem().FieldByName(expectedApplicationLoggerFieldName)
 
 		if typeOfLogger.AssignableTo(targetFieldType) && v.IsNil() {
 			result = true
@@ -37,29 +45,35 @@ func (ald *ApplicationLogDecorator) OfInterest(component *ioc.Component) bool {
 
 	if frameworkLog.IsLevelEnabled(logging.Trace) {
 		if result {
-			frameworkLog.LogTracef("%s NEEDS an ApplicationLogger", component.Name)
+			frameworkLog.LogTracef("%s NEEDS an ApplicationLogger", subject.Name)
 
 		} else {
-			frameworkLog.LogTracef("%s does not need an ApplicationLogger (either no field named %s or incompatible type)", component.Name, expectedApplicationLoggerFieldName)
+			frameworkLog.LogTracef("%s does not need an ApplicationLogger (either no field named %s or incompatible type)", subject.Name, expectedApplicationLoggerFieldName)
 		}
 	}
 
 	return result
 }
 
-func (ald *ApplicationLogDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
-	logger := ald.LoggerManager.CreateLogger(component.Name)
+// DecorateComponent injects a newly created Logger into the Log field of the subject component.
+func (ald *ApplicationLogDecorator) DecorateComponent(subject *ioc.Component, container *ioc.ComponentContainer) {
+	logger := ald.LoggerManager.CreateLogger(subject.Name)
 
-	reflectComponent := reflect.ValueOf(component.Instance).Elem()
+	reflectComponent := reflect.ValueOf(subject.Instance).Elem()
 	reflectComponent.FieldByName(expectedApplicationLoggerFieldName).Set(reflect.ValueOf(logger))
 
 }
 
+// Injects a framework logger into Granitic framework components.
 type FrameworkLogDecorator struct {
-	LoggerManager   *logging.ComponentLoggerManager
+	// The framework ComponentLoggerManager (as opposed to the application ComponentLoggerManager)
+	LoggerManager *logging.ComponentLoggerManager
+
+	// Logger to allow this decorator to log messages.
 	FrameworkLogger logging.Logger
 }
 
+// OfInterest returns true if the subject component has a field of type logging.Logger and the name FrameworkLogger.
 func (fld *FrameworkLogDecorator) OfInterest(component *ioc.Component) bool {
 
 	hasField := reflecttools.HasFieldOfName(component.Instance, expectedFrameworkLoggerFieldName)
@@ -82,6 +96,7 @@ func (fld *FrameworkLogDecorator) OfInterest(component *ioc.Component) bool {
 	return result
 }
 
+// DecorateComponent injects a newly created Logger into the FrameworkLogger field of the subject component.
 func (fld *FrameworkLogDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
 	logger := fld.LoggerManager.CreateLogger(component.Name)
 

@@ -13,9 +13,9 @@
   },
 
   "FrameworkLogger":{
-    "DefaultLogLevel": "INFO"
+    "GlobalLogLevel": "INFO"
   },
   "ApplicationLogger":{
-    "DefaultLogLevel": "INFO"
+    "GlobalLogLevel": "INFO"
   }
 }
