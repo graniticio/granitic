@@ -48,8 +48,8 @@ package runtimectl
 import (
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/ctl"
-	ge "github.com/graniticio/granitic/error"
 	"github.com/graniticio/granitic/facility/httpserver"
+	ge "github.com/graniticio/granitic/grncerror"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"

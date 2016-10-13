@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/config"
-	ge "github.com/graniticio/granitic/error"
+	ge "github.com/graniticio/granitic/grncerror"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"

@@ -1,13 +1,13 @@
 package serviceerror
 
 import (
-	"github.com/graniticio/granitic/error"
+	"github.com/graniticio/granitic/grncerror"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/ws"
 )
 
 type ServiceErrorConsumerDecorator struct {
-	ErrorSource *error.ServiceErrorManager
+	ErrorSource *grncerror.ServiceErrorManager
 }
 
 func (secd *ServiceErrorConsumerDecorator) OfInterest(component *ioc.Component) bool {
@@ -22,11 +22,11 @@ func (secd *ServiceErrorConsumerDecorator) DecorateComponent(component *ioc.Comp
 }
 
 type ErrorCodeSourceDecorator struct {
-	ErrorSource *error.ServiceErrorManager
+	ErrorSource *grncerror.ServiceErrorManager
 }
 
 func (ecs *ErrorCodeSourceDecorator) OfInterest(component *ioc.Component) bool {
-	s, found := component.Instance.(error.ErrorCodeSource)
+	s, found := component.Instance.(grncerror.ErrorCodeSource)
 
 	if found {
 		return s.ValidateMissing()
@@ -36,7 +36,7 @@ func (ecs *ErrorCodeSourceDecorator) OfInterest(component *ioc.Component) bool {
 }
 
 func (ecs *ErrorCodeSourceDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
-	c := component.Instance.(error.ErrorCodeSource)
+	c := component.Instance.(grncerror.ErrorCodeSource)
 
 	ecs.ErrorSource.RegisterCodeSource(c)
 }
