@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package rdbms
 
 import (
@@ -7,12 +10,12 @@ import (
 	"reflect"
 )
 
-type ClientManagerDecorator struct {
+type clientManagerDecorator struct {
 	fieldNames []string
 	manager    rdbms.RDBMSClientManager
 }
 
-func (cmd *ClientManagerDecorator) OfInterest(component *ioc.Component) bool {
+func (cmd *clientManagerDecorator) OfInterest(component *ioc.Component) bool {
 
 	result := false
 
@@ -37,7 +40,7 @@ func (cmd *ClientManagerDecorator) OfInterest(component *ioc.Component) bool {
 	return result
 }
 
-func (cmd *ClientManagerDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+func (cmd *clientManagerDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
 
 	for _, f := range cmd.fieldNames {
 
