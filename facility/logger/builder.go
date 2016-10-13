@@ -150,17 +150,17 @@ func (alfb *ApplicationLoggingFacilityBuilder) addRuntimeCommands(ca *config.Con
 		return
 	}
 
-	gll := new(runtimectl.GlobalLogLevelCommand)
+	gll := new(globalLogLevelCommand)
 	gll.ApplicationManager = alm
 	gll.FrameworkManager = flm
 
-	cn.WrapAndAddProto(runtimectl.GLLComponentName, gll)
+	cn.WrapAndAddProto(GLLComponentName, gll)
 
-	llc := new(runtimectl.LogLevelCommand)
+	llc := new(logLevelCommand)
 	llc.ApplicationManager = alm
 	llc.FrameworkManager = flm
 
-	cn.WrapAndAddProto(runtimectl.LLComponentName, llc)
+	cn.WrapAndAddProto(LLComponentName, llc)
 
 }
 

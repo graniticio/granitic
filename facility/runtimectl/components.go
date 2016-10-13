@@ -35,7 +35,7 @@ func (c *componentsCommand) ExecuteCommand(qualifiers []string, args map[string]
 	var lcFilter ioc.LifecycleSupport
 	var err error
 
-	if frameworkOnly, err = operateOnFramework(args); err != nil {
+	if frameworkOnly, err = OperateOnFramework(args); err != nil {
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 	}
 

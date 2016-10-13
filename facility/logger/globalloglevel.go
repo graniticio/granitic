@@ -1,8 +1,12 @@
-package runtimectl
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
+package logger
 
 import (
 	"fmt"
 	"github.com/graniticio/granitic/ctl"
+	"github.com/graniticio/granitic/facility/runtimectl"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
@@ -17,13 +21,13 @@ const (
 	gllHelpTwo       = "If the '-fw true' argument is supplied, the command will display or set the built-in Granitic framework's global log threshold."
 )
 
-type GlobalLogLevelCommand struct {
+type globalLogLevelCommand struct {
 	FrameworkLogger    logging.Logger
 	FrameworkManager   *logging.ComponentLoggerManager
 	ApplicationManager *logging.ComponentLoggerManager
 }
 
-func (c *GlobalLogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *globalLogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	if len(qualifiers) == 0 {
 		return c.showCurrentLevel(args)
@@ -34,12 +38,12 @@ func (c *GlobalLogLevelCommand) ExecuteCommand(qualifiers []string, args map[str
 	return nil, nil
 }
 
-func (c *GlobalLogLevelCommand) setLevel(label string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *globalLogLevelCommand) setLevel(label string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 	var err error
 	var setFramework bool
 	var ll logging.LogLevel
 
-	if setFramework, err = operateOnFramework(args); err != nil {
+	if setFramework, err = runtimectl.OperateOnFramework(args); err != nil {
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 	}
 
@@ -56,13 +60,13 @@ func (c *GlobalLogLevelCommand) setLevel(label string, args map[string]string) (
 	return new(ctl.CommandOutput), nil
 }
 
-func (c *GlobalLogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *globalLogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	var m string
 	var err error
 	var showFrameworkThreshold bool
 
-	if showFrameworkThreshold, err = operateOnFramework(args); err != nil {
+	if showFrameworkThreshold, err = runtimectl.OperateOnFramework(args); err != nil {
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 	}
 
@@ -89,18 +93,18 @@ func (c *GlobalLogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.C
 
 }
 
-func (c *GlobalLogLevelCommand) Name() string {
+func (c *globalLogLevelCommand) Name() string {
 	return gllCommandName
 }
 
-func (c *GlobalLogLevelCommand) Summmary() string {
+func (c *globalLogLevelCommand) Summmary() string {
 	return gllSummary
 }
 
-func (c *GlobalLogLevelCommand) Usage() string {
+func (c *globalLogLevelCommand) Usage() string {
 	return gllUsage
 }
 
-func (c *GlobalLogLevelCommand) Help() []string {
+func (c *globalLogLevelCommand) Help() []string {
 	return []string{gllHelp, gllHelpTwo}
 }

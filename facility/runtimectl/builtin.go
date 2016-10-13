@@ -52,7 +52,7 @@ func includeRuntime(args map[string]string) (bool, error) {
 	return boolArg(args, rcArg)
 }
 
-func operateOnFramework(args map[string]string) (bool, error) {
+func OperateOnFramework(args map[string]string) (bool, error) {
 	return boolArg(args, fwArg)
 }
 

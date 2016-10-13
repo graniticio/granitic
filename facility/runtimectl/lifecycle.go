@@ -58,7 +58,7 @@ func (c *lifecycleCommand) invokeAll(args map[string]string) (*ctl.CommandOutput
 	var err error
 	var sm []*ioc.Component
 
-	if includeFramework, err = operateOnFramework(args); err != nil {
+	if includeFramework, err = OperateOnFramework(args); err != nil {
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 	}
 

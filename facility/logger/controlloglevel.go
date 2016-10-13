@@ -1,8 +1,12 @@
-package runtimectl
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
+package logger
 
 import (
 	"fmt"
 	"github.com/graniticio/granitic/ctl"
+	"github.com/graniticio/granitic/facility/runtimectl"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
@@ -21,13 +25,13 @@ const (
 	llHelpFour  = "If the '-fw true' argument is supplied without qualifiers, a list of built-in framework components and their associated log levels will be shown."
 )
 
-type LogLevelCommand struct {
+type logLevelCommand struct {
 	FrameworkLogger    logging.Logger
 	FrameworkManager   *logging.ComponentLoggerManager
 	ApplicationManager *logging.ComponentLoggerManager
 }
 
-func (c *LogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *logLevelCommand) ExecuteCommand(qualifiers []string, args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	if len(qualifiers) == 0 {
 		return c.showCurrentLevel(args)
@@ -36,7 +40,7 @@ func (c *LogLevelCommand) ExecuteCommand(qualifiers []string, args map[string]st
 	}
 }
 
-func (c *LogLevelCommand) setLevel(qualifiers []string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *logLevelCommand) setLevel(qualifiers []string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	var err error
 	var ll logging.LogLevel
@@ -69,13 +73,13 @@ func (c *LogLevelCommand) setLevel(qualifiers []string) (*ctl.CommandOutput, []*
 
 }
 
-func (c *LogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
+func (c *logLevelCommand) showCurrentLevel(args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
 
 	var comps []*logging.ComponentLevel
 	var err error
 	var frameworkLevels bool
 
-	if frameworkLevels, err = operateOnFramework(args); err != nil {
+	if frameworkLevels, err = runtimectl.OperateOnFramework(args); err != nil {
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 	}
 
@@ -104,18 +108,18 @@ func (c *LogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.Command
 	return co, nil
 }
 
-func (c *LogLevelCommand) Name() string {
+func (c *logLevelCommand) Name() string {
 	return llCommandName
 }
 
-func (c *LogLevelCommand) Summmary() string {
+func (c *logLevelCommand) Summmary() string {
 	return llSummary
 }
 
-func (c *LogLevelCommand) Usage() string {
+func (c *logLevelCommand) Usage() string {
 	return llUsage
 }
 
-func (c *LogLevelCommand) Help() []string {
+func (c *logLevelCommand) Help() []string {
 	return []string{llHelp, llHelpTwo, llHelpThree, llHelpFour}
 }
