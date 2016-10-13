@@ -14,7 +14,7 @@ const expectedApplicationLoggerFieldName string = "Log"
 const expectedFrameworkLoggerFieldName string = "FrameworkLogger"
 
 // Injects a Logger into any component with field of type logging.Logger and the name Log.
-type ApplicationLogDecorator struct {
+type applicationLogDecorator struct {
 	// The application ComponentLoggerManager (as opposed to the framework ComponentLoggerManager)
 	LoggerManager *logging.ComponentLoggerManager
 
@@ -23,7 +23,7 @@ type ApplicationLogDecorator struct {
 }
 
 // OfInterest returns true if the subject component has a field of type logging.Logger and the name Log.
-func (ald *ApplicationLogDecorator) OfInterest(subject *ioc.Component) bool {
+func (ald *applicationLogDecorator) OfInterest(subject *ioc.Component) bool {
 
 	result := false
 	fieldPresent := reflecttools.HasFieldOfName(subject.Instance, expectedApplicationLoggerFieldName)
@@ -56,7 +56,7 @@ func (ald *ApplicationLogDecorator) OfInterest(subject *ioc.Component) bool {
 }
 
 // DecorateComponent injects a newly created Logger into the Log field of the subject component.
-func (ald *ApplicationLogDecorator) DecorateComponent(subject *ioc.Component, container *ioc.ComponentContainer) {
+func (ald *applicationLogDecorator) DecorateComponent(subject *ioc.Component, container *ioc.ComponentContainer) {
 	logger := ald.LoggerManager.CreateLogger(subject.Name)
 
 	reflectComponent := reflect.ValueOf(subject.Instance).Elem()

@@ -133,7 +133,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 	alm := logging.CreateComponentLoggerManager(defaultLogLevel, initialLogLevelsByComponent, writers, formatter)
 	cn.WrapAndAddProto(applicationLoggingManagerName, alm)
 
-	ald := new(ApplicationLogDecorator)
+	ald := new(applicationLogDecorator)
 	ald.LoggerManager = alm
 	ald.FrameworkLogger = lm.CreateLogger(applicationLoggingDecoratorName)
 

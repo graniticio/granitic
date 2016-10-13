@@ -24,7 +24,7 @@ type RejectLogPrim struct {
 
 func TestMatcher(t *testing.T) {
 
-	d := new(ApplicationLogDecorator)
+	d := new(applicationLogDecorator)
 	d.FrameworkLogger = new(logging.ConsoleErrorLogger)
 
 	c := new(ioc.Component)
