@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package ws
 
 import (
@@ -17,12 +20,14 @@ const (
 	marshalMode           = "MARSHAL"
 )
 
+// Creates the components required to support the XmlWs facility and adds them the IoC container.
 type XMLWsFacilityBuilder struct {
 }
 
+// See FacilityBuilder.BuildAndRegister
 func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
 
-	wc := BuildAndRegisterWsCommon(lm, ca, cc)
+	wc := buildAndRegisterWsCommon(lm, ca, cc)
 
 	um := new(xml.StandardXmlUnmarshaller)
 	cc.WrapAndAddProto(xmlUnmarshallerName, um)
@@ -37,16 +42,16 @@ func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 	case marshalMode:
 		rw = fb.createMarshalComponents(ca, cc, wc)
 	default:
-		return errors.New("XmlWs.ResponseMode must be set to either TEMPLATE or MARHSAL")
+		return errors.New("XmlWs.ResponseMode must be set to either TEMPLATE or MARSHAL")
 	}
 
-	BuildRegisterWsDecorator(cc, rw, um, wc, lm)
-	OfferAbnormalStatusWriter(rw.(ws.AbnormalStatusWriter), cc, xmlResponseWriterName)
+	buildRegisterWsDecorator(cc, rw, um, wc, lm)
+	offerAbnormalStatusWriter(rw.(ws.AbnormalStatusWriter), cc, xmlResponseWriterName)
 
 	return nil
 }
 
-func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *WsCommon) ws.WsResponseWriter {
+func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
 
 	rw := new(xml.TemplatedXMLResponseWriter)
 	ca.Populate("XmlWs.ResponseWriter", rw)
@@ -59,7 +64,7 @@ func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccess
 
 }
 
-func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *WsCommon) ws.WsResponseWriter {
+func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
 
 	rw := new(ws.MarshallingResponseWriter)
 	ca.Populate("XmlWs.ResponseWriter", rw)
@@ -88,10 +93,12 @@ func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccesso
 
 }
 
+// See FacilityBuilder.FacilityName
 func (fb *XMLWsFacilityBuilder) FacilityName() string {
 	return "XmlWs"
 }
 
+// See FacilityBuilder.DependsOnFacilities
 func (fb *XMLWsFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

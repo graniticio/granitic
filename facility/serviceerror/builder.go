@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package serviceerror
 
 import (
@@ -16,9 +19,11 @@ const (
 	errorCodeSourceDecoratorComponentName = instance.FrameworkPrefix + "ErrorCodeSourceDecorator"
 )
 
+// Constructs an instance of ServiceErrorManager and registers it as a component.
 type ServiceErrorManagerFacilityBuilder struct {
 }
 
+// See FacilityBuilder.BuildAndRegister
 func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	manager := new(ge.ServiceErrorManager)
@@ -57,10 +62,12 @@ func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.Compo
 	return nil
 }
 
+// See FacilityBuilder.FacilityName
 func (fb *ServiceErrorManagerFacilityBuilder) FacilityName() string {
 	return "ServiceErrorManager"
 }
 
+// See FacilityBuilder.DependsOnFacilities
 func (fb *ServiceErrorManagerFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

@@ -1,6 +1,6 @@
-/*
-Package jsonws builds the components required to support JSON-based web-services.
-*/
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package ws
 
 import (
@@ -15,12 +15,14 @@ import (
 const jsonResponseWriterComponentName = instance.FrameworkPrefix + "JsonResponseWriter"
 const jsonUnmarshallerComponentName = instance.FrameworkPrefix + "JsonUnmarshaller"
 
+// Creates the components required to support the JsonWs facility and adds them the IoC container.
 type JSONWsFacilityBuilder struct {
 }
 
+// See FacilityBuilder.BuildAndRegister
 func (fb *JSONWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	wc := BuildAndRegisterWsCommon(lm, ca, cn)
+	wc := buildAndRegisterWsCommon(lm, ca, cn)
 
 	um := new(json.StandardJSONUnmarshaller)
 	cn.WrapAndAddProto(jsonUnmarshallerComponentName, um)
@@ -32,7 +34,7 @@ func (fb *JSONWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	rw.StatusDeterminer = wc.StatusDeterminer
 	rw.FrameworkErrors = wc.FrameworkErrors
 
-	BuildRegisterWsDecorator(cn, rw, um, wc, lm)
+	buildRegisterWsDecorator(cn, rw, um, wc, lm)
 
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "ErrorFormatter") {
 		rw.ErrorFormatter = new(json.StandardJSONErrorFormatter)
@@ -51,15 +53,17 @@ func (fb *JSONWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 		rw.MarshalingWriter = mw
 	}
 
-	OfferAbnormalStatusWriter(rw, cn, jsonResponseWriterComponentName)
+	offerAbnormalStatusWriter(rw, cn, jsonResponseWriterComponentName)
 
 	return nil
 }
 
+// See FacilityBuilder.FacilityName
 func (fb *JSONWsFacilityBuilder) FacilityName() string {
 	return "JsonWs"
 }
 
+// See FacilityBuilder.DependsOnFacilities
 func (fb *JSONWsFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
