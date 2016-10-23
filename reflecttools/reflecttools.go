@@ -1,5 +1,8 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 /*
-Package reflectools provides utility functions for working with Go's reflect package.
+Package reflecttools provides utility functions for working with Go's reflect package.
 
 These functions are highly specific to Granitic's internal use of reflection and are not recommended for use in user
 applications.

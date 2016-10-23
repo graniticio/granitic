@@ -1,3 +1,42 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
+/*
+	Package handler provides the types used to coordinate the processing of a web service request.
+
+	The core type in this package is WsHandler. A handler (an instance of WsHandler) is created for every logical web service
+	endpoint in your application. The behaviour and configuration of handlers is described in detail at
+	http://granitic.io/1.0/ref/web-service-handlers but a brief description follows.
+
+	Declaring handlers
+
+	A handler is declared in your component definition file like:
+
+		{
+		  "artistHandler": {
+			"type": "handler.WsHandler",
+			"HTTPMethod": "GET",
+			"Logic": "ref:artistLogic",
+			"PathPattern": "^/artist/([\\d]+)[/]?$"
+		  },
+
+		  "artistLogic": {
+			"type": "inventory.ArtistLogic",
+			"DAO": "ref:inventoryDAO"
+		  }
+		}
+
+	Each handler must have the following before it is considered a valid web service endpoint.
+
+	1. A regular expression that will be matched against the path component of incoming HTTP requests.
+
+	2. A single HTTP method that it will be responsible for handling. This is generally GET, POST, PUT or DELETE but any
+	standard or custom HTTP method can be used.
+
+	3. A 'logic' component that implements at least WsRequestProcessor (additional WsXXX interfaces can be implemented
+	to support advanced behaviour).
+
+*/
 package handler
 
 import (
@@ -13,9 +52,11 @@ import (
 	"regexp"
 )
 
-// Indicates that an object is able to continue the processing of a web service request after the automated phases of
-// parsing, binding, authenticating, authorising and auto-validating have been completed.
+// Implementing WsRequestProcessor is the minimum required of a component to be considered a 'logic' component suitable for
+// use by a WsHandler.
 type WsRequestProcessor interface {
+	// Process performs the actual 'work' of a web service request. The reponse parameter will be modified according to
+	// the output or errors that the web service caller should see.
 	Process(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse)
 }
 
@@ -24,68 +65,131 @@ type WsRequestProcessor interface {
 //
 // It is expected that WsPostProcessors may be shared between multiple instances of WsHandler
 type WsPostProcessor interface {
+	//PostProcess may modify the supplied response object if required.
 	PostProcess(ctx context.Context, handlerName string, request *ws.WsRequest, response *ws.WsResponse)
 }
 
 // Indicates that an object is interested in observing/modifying a web service request after it has been unmarshalled and parsed, but before automatic and
-// application-defined validation takes place. If an error is encountered, or if the object decides that processing should be halted, it is expected that
-// the implementing object adds one or more errors to the ws.WsResponse and returns false.
+// application-defined validation takes place.
 type WsPreValidateManipulator interface {
+	// PreValidate returns true if the supplied request is in a suitable state for processing to continue.
 	PreValidate(ctx context.Context, request *ws.WsRequest, errors *ws.ServiceErrors) (proceed bool)
 }
 
+// If implemented by the same object that is used as a handler's WsRequestProcessor, the Validate method will be called
+// to determine whether or not a request should proceed to processing.
 type WsRequestValidator interface {
+	// Validate will add one or more CategorisedServiceError objects to the supplied errors parameter if the request is not suitable for further processing.
 	Validate(ctx context.Context, errors *ws.ServiceErrors, request *ws.WsRequest)
 }
 
+// Implemented by components that are able to create target objects for data from a web service request to be parsed into. For example,
+// a web service that supports POST requests will need an object into which the request body can be stored.
 type WsUnmarshallTarget interface {
+	// UnmarshallTarget returns a pointer to a struct. That struct can be used by the called to parse or map request data (body, query parameters etc) into.
 	UnmarshallTarget() interface{}
 }
 
-// Indicates that an object can determine whether or a handler supports a given version of a request.
+// Indicates that an object can determine whether or not handler supports a given version of a request.
 type WsVersionAssessor interface {
+	// SupportsVersion returns true if the named handle is able to support the requested version.
 	SupportsVersion(handlerName string, version httpendpoint.RequiredVersion) bool
 }
 
 //  WsHandler co-ordinates the processing of a web service request for a particular endpoint.
 // Implements ws.HttpEndpointProvider
 type WsHandler struct {
-	AccessChecker          ws.WsAccessChecker          //
-	AllowDirectHTTPAccess  bool                        // Whether or not the underlying HTTP request and response writer should be made available to request Logic.
-	AutoBindQuery          bool                        // Whether or not query parameters should be automatically injected into the request body.
-	AutoValidator          *validate.RuleValidator     //
-	BindPathParams         []string                    // A list of fields on the request body that should be populated using elements of the request path.
-	CheckAccessAfterParse  bool                        // Check caller's permissions after request has been parsed (true) or before parsing (false).
-	DeferFrameworkErrors   bool                        // If true, do not automatically return an error response if errors are found during the parsing and binding phases of request processing.
-	DeferAutoErrors        bool                        // If true, do not automatically return an error response if errors are found during auto validation.
-	DisableQueryParsing    bool                        // If true, discard the request's query parameters.
-	DisablePathParsing     bool                        // If true, discard any path parameters found by match the request URI against the PathMatchPattern regex.
-	ErrorFinder            ws.ServiceErrorFinder       // An object that provides access to application defined error messages for use during validation.
-	FieldQueryParam        map[string]string           // A map of fields on the request body object and the names of query parameters that should be used to populate them
-	FrameworkErrors        *ws.FrameworkErrorGenerator // An object that provides access to built-in error messages to use when an error is found during the automated phases of request processing.
-	HTTPMethod             string                      // The HTTP method (GET, POST etc) that this handler supports.
-	Log                    logging.Logger              //
-	Logic                  WsRequestProcessor          // The object representing the 'logic' behind this handler.
-	ParamBinder            *ws.ParamBinder             //
-	PathPattern            string                      // A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
-	PostProcessor          WsPostProcessor             //
-	PreValidateManipulator WsPreValidateManipulator    //
-	PreventAutoWiring      bool                        // Stop the framwework automatically adding this handler to an HTTP server
-	ResponseWriter         ws.WsResponseWriter         //
-	RequireAuthentication  bool                        // Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
-	Unmarshaller           ws.WsUnmarshaller           //
-	UserIdentifier         ws.WsIdentifier             //
-	VersionAssessor        WsVersionAssessor           //
-	bindPathParams         bool
-	bindQuery              bool
-	httpMethods            []string
-	componentName          string
-	pathRegex              *regexp.Regexp
-	state                  ioc.ComponentState
-	validationEnabled      bool
-	validator              WsRequestValidator
+
+	// A component able to examine a request and see if the caller is allowed to access this endpoint.
+	AccessChecker ws.WsAccessChecker
+
+	// Whether or not the underlying HTTP request and response writer should be made available to request Logic.
+	AllowDirectHTTPAccess bool
+
+	// Whether or not query parameters should be automatically injected into the request body.
+	AutoBindQuery bool
+
+	// A component able to use a set of user-defined rules to validate a request.
+	AutoValidator *validate.RuleValidator
+
+	// A list of field names on the target object into which path parameters (groups in the request regex) should be bound to.
+	BindPathParams []string
+
+	// Check caller's permissions after request has been parsed (true) or before parsing (false).
+	CheckAccessAfterParse bool
+
+	// If true, do not automatically return an error response if errors are found during the parsing and binding phases of request processing.
+	DeferFrameworkErrors bool
+
+	// If true, do not automatically return an error response if errors are found during auto validation.
+	DeferAutoErrors bool
+
+	// If true, discard the request's query parameters.
+	DisableQueryParsing bool
+
+	// If true, discard any path parameters found by match the request URI against the PathMatchPattern regex.
+	DisablePathParsing bool
+
+	// An object that provides access to application defined error messages for use during validation.
+	ErrorFinder ws.ServiceErrorFinder
+
+	// A map of fields on the request body object and the names of query parameters that should be used to populate them
+	FieldQueryParam map[string]string
+
+	// An object that provides access to built-in error messages to use when an error is found during the automated phases of request processing.
+	FrameworkErrors *ws.FrameworkErrorGenerator
+
+	// The HTTP method (GET, POST etc) that this handler supports.
+	HTTPMethod string
+
+	// A logger injected by the Granitic framework. Note this will be an application logger rather than a framework logger
+	// as instances of WsHandler are considered application components.
+	Log logging.Logger
+
+	// The object representing the 'logic' behind this handler.
+	Logic WsRequestProcessor
+
+	// A component injected by the Granitic framework that can map text representations of query and path parameters to Go
+	// and Granitic types.
+	ParamBinder *ws.ParamBinder
+
+	// A regex that will be matched against inbound request paths to check if this handler should be used to service the request.
+	PathPattern string
+
+	// A component that might want to modify a response after it has been processed by the supplied Logic component.
+	PostProcessor WsPostProcessor
+
+	// A compponent that might want to modify a request after it has been parsed, but before it has been validated.
+	PreValidateManipulator WsPreValidateManipulator
+
+	// Stop the framework automatically adding this handler to an HTTP server.
+	PreventAutoWiring bool
+
+	// A component injected by the Granitic framework that writes the response from this handler to an HTTP response.
+	ResponseWriter ws.WsResponseWriter
+
+	// Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
+	RequireAuthentication bool
+
+	// A component injected by the Granitic framework that can extract the body of the incoming HTTP request into a Go struct.
+	Unmarshaller ws.WsUnmarshaller
+
+	// A component that can examine a request to determine the calling user/service's identity.
+	UserIdentifier ws.WsIdentifier
+
+	// A component that can check if this handler supports the version of functionality required by the caller.
+	VersionAssessor   WsVersionAssessor
+	bindPathParams    bool
+	bindQuery         bool
+	httpMethods       []string
+	componentName     string
+	pathRegex         *regexp.Regexp
+	state             ioc.ComponentState
+	validationEnabled bool
+	validator         WsRequestValidator
 }
 
+// ProvideErrorFinder receives a component that can be used to map error codes to categorised errors.
 func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
 
 	if wh.ErrorFinder == nil {
@@ -93,7 +197,8 @@ func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
 	}
 }
 
-//HttpEndpointProvider
+// ServeHTTP is the entry point called by the HTTP server once it has been determined that this handler instance
+// is the correct one to handle the incoming request.
 func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request) context.Context {
 
 	defer func() {
@@ -344,7 +449,8 @@ func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoin
 
 }
 
-//HttpEndpointProvider
+// SupportedHttpMethods returns the HTTP method that this handler supports. Returns an array in order to
+// implement HttpEndpointProvider, but will always be a single element array.
 func (wh *WsHandler) SupportedHttpMethods() []string {
 	if len(wh.httpMethods) > 0 {
 		return wh.httpMethods
@@ -353,22 +459,25 @@ func (wh *WsHandler) SupportedHttpMethods() []string {
 	}
 }
 
-//HttpEndpointProvider
+// RegexPattern returns the unparsed regex pattern that should be applicaed to the path of incoming requests to
+// see if this handler should handle the request.
 func (wh *WsHandler) RegexPattern() string {
 	return wh.PathPattern
 }
 
-//HttpEndpointProvider
+// VersionAware returns true if this handler can be considered when a user requests a specific version of functionality.
 func (wh *WsHandler) VersionAware() bool {
 	return wh.VersionAssessor != nil
 }
 
-//HttpEndpointProvider
+// SupportsVersion returns true if this handler supports the version of functionality requested by the caller. Defers to the
+// component injected into this handler's VersionAssessor field.
 func (wh *WsHandler) SupportsVersion(version httpendpoint.RequiredVersion) bool {
 	return wh.VersionAssessor.SupportsVersion(wh.ComponentName(), version)
 }
 
-//HttpEndpointProvider
+// AutoWireable returns true if this handler should be automatically registered with any instances of httpserver.HTTPServer
+// that are running in the application.
 func (wh *WsHandler) AutoWireable() bool {
 	return !wh.PreventAutoWiring
 }
@@ -477,6 +586,8 @@ func (wh *WsHandler) writePanicResponse(ctx context.Context, r interface{}, w *h
 
 }
 
+// StartComponent is called by the IoC container. Verifies that the minimum set of fields and components and fields
+// have been set (see top of this GoDoc page) and that the configuration of the handler is valid and consistent.
 func (wh *WsHandler) StartComponent() error {
 
 	if wh.state != ioc.StoppedState {
@@ -527,10 +638,12 @@ func (wh *WsHandler) StartComponent() error {
 
 }
 
+// See ComponentNamer.ComponentName
 func (wh *WsHandler) ComponentName() string {
 	return wh.componentName
 }
 
+// See ComponentNamer.SetComponentName
 func (wh *WsHandler) SetComponentName(name string) {
 	wh.componentName = name
 }
