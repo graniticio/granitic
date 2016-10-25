@@ -73,7 +73,7 @@ func (ef *StandardJSONErrorFormatter) FormatErrors(errors *ws.ServiceErrors) int
 	for _, error := range errors.Errors {
 
 		c := ws.CategoryToCode(error.Category)
-		displayCode := c + "-" + error.Label
+		displayCode := c + "-" + error.Code
 
 		field := error.Field
 

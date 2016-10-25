@@ -82,7 +82,7 @@ type WsRequestValidator interface {
 	Validate(ctx context.Context, errors *ws.ServiceErrors, request *ws.WsRequest)
 }
 
-// Implemented by components that are able to create target objects for data from a web service request to be parsed into. For example,
+// Implemented by logic components that are able to create target objects for data from a web service request to be parsed into. For example,
 // a web service that supports POST requests will need an object into which the request body can be stored.
 type WsUnmarshallTarget interface {
 	// UnmarshallTarget returns a pointer to a struct. That struct can be used by the called to parse or map request data (body, query parameters etc) into.
@@ -93,6 +93,23 @@ type WsUnmarshallTarget interface {
 type WsVersionAssessor interface {
 	// SupportsVersion returns true if the named handle is able to support the requested version.
 	SupportsVersion(handlerName string, version httpendpoint.RequiredVersion) bool
+}
+
+// Implemented by logic components that need to instruct the web services renderer to use a specific template to render
+// a response.
+type Templated interface {
+	// TemplateName returns the unique name of a template to use to render response output.
+	TemplateName() string
+
+	// UseWhenError returns true if the template returned by TemplateName should be used errors are present in the response.
+	UseWhenError() bool
+}
+
+// Implemented by logic components that need to instruct the web services renderer to use a specific template to render when
+// errors are detected in the response.
+type ErrorTemplate interface {
+	//ErrorTemplateName returns the unique name of a template to use to render response output.
+	ErrorTemplateName() string
 }
 
 //  WsHandler co-ordinates the processing of a web service request for a particular endpoint.
@@ -518,7 +535,7 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 	state.Status = wsRes.HttpStatus
 
 	// Template based response writing
-	if tr, found := wh.Logic.(ws.Templated); found {
+	if tr, found := wh.Logic.(Templated); found {
 		wsRes.Template = tr.TemplateName()
 	}
 
@@ -552,7 +569,7 @@ func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceE
 	state.HTTPResponseWriter = w
 
 	// Template based response writing
-	if tr, found := wh.Logic.(ws.Templated); found {
+	if tr, found := wh.Logic.(Templated); found {
 
 		res := new(ws.WsResponse)
 		state.WsResponse = res
@@ -561,7 +578,7 @@ func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceE
 			res.Template = tr.TemplateName()
 		}
 
-		if et, found := wh.Logic.(ws.ErrorTemplate); found {
+		if et, found := wh.Logic.(ErrorTemplate); found {
 			res.Template = et.ErrorTemplateName()
 		}
 

@@ -85,7 +85,7 @@ func (feg *FrameworkErrorGenerator) HttpError(status int, a ...interface{}) *Cat
 	ce := new(CategorisedError)
 
 	ce.Category = HTTP
-	ce.Label = s
+	ce.Code = s
 	ce.Message = m
 
 	return ce

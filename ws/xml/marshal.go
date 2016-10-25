@@ -76,7 +76,7 @@ func (ef *StandardXMLErrorFormatter) FormatErrors(errors *ws.ServiceErrors) inte
 		e.Error = se.Message
 		e.Field = se.Field
 		e.Category = ws.CategoryToName(se.Category)
-		e.Code = se.Label
+		e.Code = se.Code
 
 	}
 

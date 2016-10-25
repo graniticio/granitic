@@ -40,7 +40,7 @@ func (dhscd *DefaultHttpStatusCodeDeterminer) determineCodeFromErrors(errors *Se
 		case Unexpected:
 			return http.StatusInternalServerError
 		case HTTP:
-			i, _ := strconv.Atoi(error.Label)
+			i, _ := strconv.Atoi(error.Code)
 			return i
 		case Security:
 			sCount += 1
