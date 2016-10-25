@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package ws
 
 import (
@@ -10,11 +13,19 @@ import (
 
 type bindError func(string, string, string, *WsParams) *WsFrameworkError
 
+// Takes string parameters extracted from an HTTP request, converts them to Go native or Granitic nilable types and
+// injects them into the RequestBody on a WsRequest.
 type ParamBinder struct {
+	// Injected by Granitic
 	FrameworkLogger logging.Logger
+
+	// Source of service errors for errors encountered while binding.
 	FrameworkErrors *FrameworkErrorGenerator
 }
 
+// BindPathParameters takes strings extracted from an HTTP's request path (using regular expression groups) and
+// injects them into fields on the WsRequest.RequestBody. Any errors encountered are recorded as framework errors in
+// the WsRequest.
 func (pb *ParamBinder) BindPathParameters(wsReq *WsRequest, p *WsParams) {
 
 	t := wsReq.RequestBody
@@ -39,6 +50,9 @@ func (pb *ParamBinder) BindPathParameters(wsReq *WsRequest, p *WsParams) {
 
 }
 
+// BindPathParameters takes the query parameters from an HTTP request and
+// injects them into fields on the WsRequest.RequestBody using the keys of the supplied map as the name of the target fields.
+// Any errors encountered are recorded as framework errors in the WsRequest.
 func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]string) {
 
 	t := wsReq.RequestBody
@@ -69,6 +83,9 @@ func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]
 	}
 }
 
+// BindPathParameters takes the query parameters from an HTTP request and
+// injects them into fields on the WsRequest.RequestBody assuming the parameters have exactly the same name as the target
+// fields. Any errors encountered are recorded as framework errors in the WsRequest.
 func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 
 	t := wsReq.RequestBody
