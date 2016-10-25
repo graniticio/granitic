@@ -35,6 +35,18 @@
 	The serialisation of the data in a WsResponse to an HTTP response is handled by a component implementing WsResponseWriter.
 	A component of this type will be automatically created for you when you enable the JsonWs or XmlWs facility.
 
+	Parameter binding
+
+	Parameter binding refers to the process of automatically capturing request query parameters and injecting them into fields
+	on the WsRequest Body. It also refers to a similar process for extracting information from a request's path using regular expressions.
+	See http://granitic.io/1.0/ref/parameter-binding for more details.
+
+	IAM and versioning
+
+	Granitic does not provide implementations of Identity Access Management or request versioning, but instead provides
+	highly generic types to allow your application's implementations of these concepts to be integrated with Grantic's web
+	service request processing. See the GoDoc for WsIdentifier, WsAccessChecker and handler/WsVersionAssessor and the iam package for more details.
+
 */
 package ws
 

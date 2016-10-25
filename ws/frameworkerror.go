@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package ws
 
 import (
@@ -6,24 +9,46 @@ import (
 	"strconv"
 )
 
+// The phase of the request processing during which an error was encountered.
 type WsFrameworkPhase int
 
 const (
+	// Error encountered while trying to parse an HTTP request body into a struct
 	Unmarshall = iota
+
+	// Error encountered while mapping HTTP query parameters to fields on a struct
 	QueryBind
+
+	// Error encountered while mapping elements of an HTTP request's path to fields on a struct
 	PathBind
 )
 
+// An error encountered in early phases of request processing, before application code is invoked.
 type WsFrameworkError struct {
-	Phase       WsFrameworkPhase
+	// The phase of the request processing during which an error was encountered.
+	Phase WsFrameworkPhase
+
+	// The name of the field or parameter in the HTTP request with a problem
 	ClientField string
+
+	// The name of the field on the response body struct that was being written to
 	TargetField string
-	Message     string
-	Value       string
-	Position    int
-	Code        string
+
+	// A system generated message relating to the error.
+	Message string
+
+	// The value of the field/parameter that caused the error.
+	Value string
+
+	// For array parameters, the position in the array that caused the error.
+	Position int
+
+	// A system generated code for the error.
+	Code string
 }
 
+// NewUnmarshallWsFrameworkError creates a WsFrameworkError with fields set appropriate for an error
+// encountered during parsing of the HTTP request body.
 func NewUnmarshallWsFrameworkError(message, code string) *WsFrameworkError {
 	f := new(WsFrameworkError)
 	f.Phase = Unmarshall
@@ -33,6 +58,8 @@ func NewUnmarshallWsFrameworkError(message, code string) *WsFrameworkError {
 	return f
 }
 
+// NewQueryBindFrameworkError creates a WsFrameworkError with fields set appropriate for an error
+// encountered during mapping of HTTP query parameters to fields on a WsRequest's Body
 func NewQueryBindFrameworkError(message, code, param, target string) *WsFrameworkError {
 	f := new(WsFrameworkError)
 	f.Phase = QueryBind
@@ -44,6 +71,8 @@ func NewQueryBindFrameworkError(message, code, param, target string) *WsFramewor
 	return f
 }
 
+// NewPathBindFrameworkError creates a WsFrameworkError with fields set appropriate for an error
+// encountered during mapping elements of the HTTP request's path to fields on a WsRequest's Body.
 func NewPathBindFrameworkError(message, code, target string) *WsFrameworkError {
 	f := new(WsFrameworkError)
 	f.Phase = PathBind
@@ -54,6 +83,7 @@ func NewPathBindFrameworkError(message, code, target string) *WsFrameworkError {
 	return f
 }
 
+// Uniquely identifies a 'handled' failure during the parsing and binding phases
 type FrameworkErrorEvent string
 
 const (
@@ -64,12 +94,16 @@ const (
 	QueryNoTargetField   = "QueryNoTargetField"
 )
 
+// A FrameworkErrorGenerator can create error messages for errors that occur outside of application code and messages
+// that should be displayed when generic HTTP status codes (404, 500, 503 etc) are set.
 type FrameworkErrorGenerator struct {
 	Messages        map[FrameworkErrorEvent][]string
 	HttpMessages    map[string]string
 	FrameworkLogger logging.Logger
 }
 
+// HttpError generates a message to be displayed to a caller when a generic HTTP status (404 etc) is encountered. If
+// an error message is not defined for the supplied status, the message "HTTP (code)" is returned, e.g. "HTTP 101"
 func (feg *FrameworkErrorGenerator) HttpError(status int, a ...interface{}) *CategorisedError {
 
 	s := strconv.Itoa(status)
@@ -92,6 +126,7 @@ func (feg *FrameworkErrorGenerator) HttpError(status int, a ...interface{}) *Cat
 
 }
 
+// Error creates a service error given a framework error.
 func (feg *FrameworkErrorGenerator) Error(e FrameworkErrorEvent, c ServiceErrorCategory, a ...interface{}) *CategorisedError {
 
 	l := feg.FrameworkLogger
@@ -111,6 +146,7 @@ func (feg *FrameworkErrorGenerator) Error(e FrameworkErrorEvent, c ServiceErrorC
 
 }
 
+// MessageCode returns a message and code for a Framework error event (leaving the caller to create a CategorisedError)
 func (feg *FrameworkErrorGenerator) MessageCode(e FrameworkErrorEvent, a ...interface{}) (message string, code string) {
 
 	l := feg.FrameworkLogger

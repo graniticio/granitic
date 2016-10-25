@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package ws
 
 import (
@@ -8,21 +11,42 @@ import (
 	"net/http"
 )
 
+// Implemented by components that can convert the supplied data into a form suitable for serialisation and
+// write that serialised form to the HTTP output stream.
 type MarshalingWriter interface {
+
+	// MarshalAndWrite converts the data to some serialisable form (JSON, XML etc) and writes it to the HTTP output stream.
 	MarshalAndWrite(data interface{}, w http.ResponseWriter) error
 }
 
+// A response writer that uses automatic marshalling of structs to serialisable forms rather than using templates.
 type MarshallingResponseWriter struct {
-	FrameworkLogger  logging.Logger
+	// Injected automatically
+	FrameworkLogger logging.Logger
+
+	// Component able to calculate the HTTP status code that should be written to the HTTP response.
 	StatusDeterminer HttpStatusCodeDeterminer
-	FrameworkErrors  *FrameworkErrorGenerator
-	DefaultHeaders   map[string]string
-	ResponseWrapper  ResponseWrapper
-	HeaderBuilder    WsCommonResponseHeaderBuilder
-	ErrorFormatter   ErrorFormatter
+
+	// Component able to generate errors if a problem is encountered during marshalling.
+	FrameworkErrors *FrameworkErrorGenerator
+
+	// The common and static set of headers that should be written to all responses.
+	DefaultHeaders map[string]string
+
+	// Component able to wrap response data in a standardised structure.
+	ResponseWrapper ResponseWrapper
+
+	// Component able to dynamically generate additional headers to be written to the response.
+	HeaderBuilder WsCommonResponseHeaderBuilder
+
+	// Component able to format services errors in an application specific manner.
+	ErrorFormatter ErrorFormatter
+
+	// Component able to serialize the data to the HTTP output stream.
 	MarshalingWriter MarshalingWriter
 }
 
+// See WsResponseWriter.Write
 func (rw *MarshallingResponseWriter) Write(ctx context.Context, state *WsProcessState, outcome WsOutcome) error {
 
 	var ch map[string]string
@@ -75,6 +99,7 @@ func (rw *MarshallingResponseWriter) write(ctx context.Context, res *WsResponse,
 	return rw.MarshalingWriter.MarshalAndWrite(wrapper, w)
 }
 
+// See AbnormalStatusWriter.WriteAbnormalStatus
 func (rw *MarshallingResponseWriter) WriteAbnormalStatus(ctx context.Context, state *WsProcessState) error {
 	return rw.Write(ctx, state, Abnormal)
 }
