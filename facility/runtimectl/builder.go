@@ -100,11 +100,11 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	ca.Populate("RuntimeCtl.Marshal", mw)
 	rw.MarshalingWriter = mw
 
-	wr := new(json.StandardJSONResponseWrapper)
+	wr := new(json.GraniticJSONResponseWrapper)
 	ca.Populate("RuntimeCtl.ResponseWrapper", wr)
 	rw.ResponseWrapper = wr
 
-	rw.ErrorFormatter = new(json.StandardJSONErrorFormatter)
+	rw.ErrorFormatter = new(json.GraniticJSONErrorFormatter)
 
 	rw.StatusDeterminer = new(ws.GraniticHttpStatusCodeDeterminer)
 

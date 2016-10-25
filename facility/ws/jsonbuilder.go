@@ -37,11 +37,11 @@ func (fb *JSONWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	buildRegisterWsDecorator(cn, rw, um, wc, lm)
 
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "ErrorFormatter") {
-		rw.ErrorFormatter = new(json.StandardJSONErrorFormatter)
+		rw.ErrorFormatter = new(json.GraniticJSONErrorFormatter)
 	}
 
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "ResponseWrapper") {
-		wrap := new(json.StandardJSONResponseWrapper)
+		wrap := new(json.GraniticJSONResponseWrapper)
 		ca.Populate("JsonWs.ResponseWrapper", wrap)
 		rw.ResponseWrapper = wrap
 	}
