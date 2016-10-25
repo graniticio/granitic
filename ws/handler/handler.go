@@ -4,7 +4,7 @@
 /*
 	Package handler provides the types used to coordinate the processing of a web service request.
 
-	The core type in this package is WsHandler. A handler (an instance of WsHandler) is created for every logical web service
+	The core type in this package is WsHandler. A handler (an instance of WsHandler) must be created for every logical web service
 	endpoint in your application. The behaviour and configuration of handlers is described in detail at
 	http://granitic.io/1.0/ref/web-service-handlers but a brief description follows.
 
@@ -21,8 +21,7 @@
 		  },
 
 		  "artistLogic": {
-			"type": "inventory.ArtistLogic",
-			"DAO": "ref:inventoryDAO"
+			"type": "inventory.ArtistLogic"
 		  }
 		}
 
