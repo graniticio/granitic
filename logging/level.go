@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package logging
 
 import (
@@ -6,6 +9,7 @@ import (
 	"strings"
 )
 
+// Numeric score of the significance of a message, where zero is non-significant and higher values are more significant.
 type LogLevel uint
 
 const (
@@ -28,6 +32,8 @@ const (
 	FatalLabel = "FATAL"
 )
 
+// LogLevelFromLabel takes a string name for a log level (TRACE, DEBUG etc) and finds a numeric threshold associated with
+// that type of message.
 func LogLevelFromLabel(label string) (LogLevel, error) {
 
 	u := strings.ToUpper(label)
@@ -54,6 +60,8 @@ func LogLevelFromLabel(label string) (LogLevel, error) {
 	return All, errors.New(m)
 }
 
+// LabelFromLevel takes a member of the LogLevel enumeration (All, Fatal) and converts it to a string code ('ALL', 'FATAL').
+// If the supplied LogLevel cannot be mapped to a defined level, the word 'CUSTOM' is returned.
 func LabelFromLevel(ll LogLevel) string {
 
 	switch ll {
