@@ -47,6 +47,29 @@
 	highly generic types to allow your application's implementations of these concepts to be integrated with Grantic's web
 	service request processing. See the GoDoc for WsIdentifier, WsAccessChecker and handler/WsVersionAssessor and the iam package for more details.
 
+	HTTP status code determination
+
+	Unless your application defines its own HttpStatusCodeDeterminer, the eventual HTTP status code set on the response
+	to a web service request it determined by examining the state of a WsResponse using the following logic:
+
+	1. If the WsResponse.HttpStatus field is non-zero, use that.
+
+	2. If the WsResponse.Errors.HttpStatus field is non-zero, use that.
+
+	3. If the WsResponse.Errors structure:
+
+	a) Contains one or more 'Unexpected' errors, use HTTP 500.
+
+	b) Contains an 'HTTP' error, convert that error's code to a number and use that.
+
+	c) Contains one or more 'Security' errors, use HTTP 401.
+
+	d) Contains one or more 'Client' errors, use HTTP 400.
+
+	e) Contains one or more 'Logic' errors, use HTTP 409.
+
+	4. Return HTTP 200.
+
 */
 package ws
 

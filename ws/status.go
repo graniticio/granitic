@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package ws
 
 import (
@@ -5,14 +8,22 @@ import (
 	"strconv"
 )
 
+// Implemented by a component able to choose the most appropriate HTTP status code to set given the state of a WsResponse
 type HttpStatusCodeDeterminer interface {
+	// DetermineCode returns the HTTP status code that should be set on the response.
 	DetermineCode(response *WsResponse) int
 }
 
-type DefaultHttpStatusCodeDeterminer struct {
+/*
+	The default HttpStatusCodeDeterminer used by Granitic's XXXWs facilities. See the top of this page for
+	rules on how this code is determined.
+*/
+type GraniticHttpStatusCodeDeterminer struct {
 }
 
-func (dhscd *DefaultHttpStatusCodeDeterminer) DetermineCode(response *WsResponse) int {
+// DetermineCode examines the response and returns an HTTP status code according to the rules defined at the top of this
+// GoDoc page.
+func (dhscd *GraniticHttpStatusCodeDeterminer) DetermineCode(response *WsResponse) int {
 	if response.HttpStatus != 0 {
 		return response.HttpStatus
 
@@ -24,7 +35,7 @@ func (dhscd *DefaultHttpStatusCodeDeterminer) DetermineCode(response *WsResponse
 	}
 }
 
-func (dhscd *DefaultHttpStatusCodeDeterminer) determineCodeFromErrors(errors *ServiceErrors) int {
+func (dhscd *GraniticHttpStatusCodeDeterminer) determineCodeFromErrors(errors *ServiceErrors) int {
 
 	if errors.HttpStatus != 0 {
 		return errors.HttpStatus

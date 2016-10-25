@@ -82,7 +82,7 @@ func offerAbnormalStatusWriter(arw ws.AbnormalStatusWriter, cc *ioc.ComponentCon
 
 func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) *wsCommon {
 
-	scd := new(ws.DefaultHttpStatusCodeDeterminer)
+	scd := new(ws.GraniticHttpStatusCodeDeterminer)
 	cn.WrapAndAddProto(wsHttpStatusDeterminerComponentName, scd)
 
 	pb := new(ws.ParamBinder)
@@ -98,7 +98,7 @@ func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.Con
 
 }
 
-func newWsCommon(pb *ws.ParamBinder, feg *ws.FrameworkErrorGenerator, sd *ws.DefaultHttpStatusCodeDeterminer) *wsCommon {
+func newWsCommon(pb *ws.ParamBinder, feg *ws.FrameworkErrorGenerator, sd *ws.GraniticHttpStatusCodeDeterminer) *wsCommon {
 
 	wc := new(wsCommon)
 	wc.ParamBinder = pb
@@ -112,7 +112,7 @@ func newWsCommon(pb *ws.ParamBinder, feg *ws.FrameworkErrorGenerator, sd *ws.Def
 type wsCommon struct {
 	ParamBinder      *ws.ParamBinder
 	FrameworkErrors  *ws.FrameworkErrorGenerator
-	StatusDeterminer *ws.DefaultHttpStatusCodeDeterminer
+	StatusDeterminer *ws.GraniticHttpStatusCodeDeterminer
 }
 
 func buildRegisterWsDecorator(cc *ioc.ComponentContainer, rw ws.WsResponseWriter, um ws.WsUnmarshaller, wc *wsCommon, lm *logging.ComponentLoggerManager) {

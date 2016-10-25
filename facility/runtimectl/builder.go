@@ -106,7 +106,7 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 
 	rw.ErrorFormatter = new(json.StandardJSONErrorFormatter)
 
-	rw.StatusDeterminer = new(ws.DefaultHttpStatusCodeDeterminer)
+	rw.StatusDeterminer = new(ws.GraniticHttpStatusCodeDeterminer)
 
 	feg := new(ws.FrameworkErrorGenerator)
 	feg.FrameworkLogger = lm.CreateLogger(runtimeCtlFrameworkErrors)
