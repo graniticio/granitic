@@ -133,6 +133,7 @@
 	Global log levels and component log levels can be changed at runtime, if your application has the RuntimeCtl facility
 	enabled. See http://granitic.io/1.0/ref/runtime-ctl for more information
 
+
 */
 package logging
 
@@ -142,37 +143,89 @@ import (
 	"runtime"
 )
 
+/*
+	The interface used by application code to submit a message to potentially be logged to a file or console. Methods
+	are of the form
+
+		Log[Level]f
+		Log[Level]fCtx
+
+	The Ctx versions of methods accept a Context. The Context is made available to the LogWriter implementations that
+	write to files so that information in the Context can be potentially included in log line prefixes.
+
+	The f suffix indicates that the methods accept the same templates and variadic arguments as fmt.Printf
+*/
 type Logger interface {
+	//LogTracefCtx log a message at TRACE level with a Context
 	LogTracefCtx(ctx context.Context, format string, a ...interface{})
+
+	//LogDebugfCtx log a message at DEBUG level with a Context
 	LogDebugfCtx(ctx context.Context, format string, a ...interface{})
+
+	//LogInfofCtx log a message at INFO level with a Context
 	LogInfofCtx(ctx context.Context, format string, a ...interface{})
+
+	//LogWarnfCtx log a message at WARN level with a Context
 	LogWarnfCtx(ctx context.Context, format string, a ...interface{})
+
+	//LogErrorfCtx log a message at ERROR level with a Context
 	LogErrorfCtx(ctx context.Context, format string, a ...interface{})
+
+	//LogErrorfCtxWithTrace log a message at ERROR level with a Context. Message output will be followed by a partial stack trace.
 	LogErrorfCtxWithTrace(ctx context.Context, format string, a ...interface{})
+
+	//LogFatalfCtx log a message at FATAL level with a Context
 	LogFatalfCtx(ctx context.Context, format string, a ...interface{})
+
+	//LogAtLevelfCtx log at the specified level with a Context
 	LogAtLevelfCtx(ctx context.Context, level LogLevel, levelLabel string, format string, a ...interface{})
 
+	//LogTracef log a message at TRACE level
 	LogTracef(format string, a ...interface{})
+
+	//LogDebugf log a message at DEBUG level
 	LogDebugf(format string, a ...interface{})
+
+	//LogInfof log a message at INFO level
 	LogInfof(format string, a ...interface{})
+
+	//LogWarnf log a message at WARN level
 	LogWarnf(format string, a ...interface{})
+
+	//LogErrorf log a message at ERROR level
 	LogErrorf(format string, a ...interface{})
+
+	//LogErrorfWithTrace log a message at ERROR level. Message output will be followed by a partial stack trace.
 	LogErrorfWithTrace(format string, a ...interface{})
+
+	//LogFatalf log a message at FATAL level
 	LogFatalf(format string, a ...interface{})
+
+	//LogAtLevelfCtx log at the specified level
 	LogAtLevelf(level LogLevel, levelLabel string, format string, a ...interface{})
+
+	//IsLevelEnabled returns true if a message at the supplied level would acutally be logged. Useful to check
+	//if the construction of a message would be expensive or slow.
 	IsLevelEnabled(level LogLevel) bool
 }
 
+// Implemented by Loggers able to state what the current global log level is
 type GlobalLevel interface {
+	//GlobalLevel returns this component's current global log level
 	GlobalLevel() LogLevel
 }
 
+// Implemented by loggers that can be modified at runtime
 type RuntimeControllableLog interface {
+	//SetThreshold sets the logger's log level to the specified level
 	SetThreshold(threshold LogLevel)
+
+	//UpdateWritersAndFormatter causes the Logger to discard its current LogWriters and LogMessageFormatter in favour of the ones supplied.
 	UpdateWritersAndFormatter([]LogWriter, *LogMessageFormatter)
 }
 
-type LevelAwareLogger struct {
+// Standard implementation of Logger which respects both a global log level and a specific level for this Logger.
+type GraniticLogger struct {
 	global             GlobalLevel
 	localLogThreshhold LogLevel
 	loggerName         string
@@ -180,17 +233,19 @@ type LevelAwareLogger struct {
 	formatter          *LogMessageFormatter
 }
 
-func (lal *LevelAwareLogger) UpdateWritersAndFormatter(w []LogWriter, f *LogMessageFormatter) {
-	lal.writers = w
-	lal.formatter = f
+// See RuntimeControllableLog.UpdateWritersAndFormatter
+func (grl *GraniticLogger) UpdateWritersAndFormatter(w []LogWriter, f *LogMessageFormatter) {
+	grl.writers = w
+	grl.formatter = f
 }
 
-func (lal *LevelAwareLogger) IsLevelEnabled(level LogLevel) bool {
+// See Logger.IsLevelEnabled
+func (grl *GraniticLogger) IsLevelEnabled(level LogLevel) bool {
 
 	var el LogLevel
 
-	gl := lal.global.GlobalLevel()
-	ll := lal.localLogThreshhold
+	gl := grl.global.GlobalLevel()
+	ll := grl.localLogThreshhold
 
 	if ll == All {
 		el = gl
@@ -201,128 +256,134 @@ func (lal *LevelAwareLogger) IsLevelEnabled(level LogLevel) bool {
 	return level >= el
 }
 
-func (lal *LevelAwareLogger) log(ctx context.Context, levelLabel string, level LogLevel, message string) {
+func (grl *GraniticLogger) log(ctx context.Context, levelLabel string, level LogLevel, message string) {
 
-	if lal.IsLevelEnabled(level) {
-		m := lal.formatter.Format(ctx, levelLabel, lal.loggerName, message)
+	if grl.IsLevelEnabled(level) {
+		m := grl.formatter.Format(ctx, levelLabel, grl.loggerName, message)
 
-		lal.write(m)
+		grl.write(m)
 	}
 
 }
-func (lal *LevelAwareLogger) logf(ctx context.Context, levelLabel string, level LogLevel, format string, a ...interface{}) {
+func (grl *GraniticLogger) logf(ctx context.Context, levelLabel string, level LogLevel, format string, a ...interface{}) {
 
-	if lal.IsLevelEnabled(level) {
+	if grl.IsLevelEnabled(level) {
 		message := fmt.Sprintf(format, a...)
-		m := lal.formatter.Format(ctx, levelLabel, lal.loggerName, message)
+		m := grl.formatter.Format(ctx, levelLabel, grl.loggerName, message)
 
-		lal.write(m)
+		grl.write(m)
 	}
 
 }
 
-func (lal *LevelAwareLogger) write(m string) {
+func (grl *GraniticLogger) write(m string) {
 
-	for _, w := range lal.writers {
+	for _, w := range grl.writers {
 		w.WriteMessage(m)
 	}
 
 }
 
-func (lal *LevelAwareLogger) LogAtLevelCtx(ctx context.Context, level LogLevel, levelLabel string, message string) {
-	lal.log(ctx, levelLabel, level, message)
+func (grl *GraniticLogger) logAtLevelCtx(ctx context.Context, level LogLevel, levelLabel string, message string) {
+	grl.log(ctx, levelLabel, level, message)
 }
 
-func (lal *LevelAwareLogger) LogAtLevelfCtx(ctx context.Context, level LogLevel, levelLabel string, format string, a ...interface{}) {
-	lal.logf(ctx, levelLabel, level, format, a...)
+// See Logger.LogAtLevelfCtx
+func (grl *GraniticLogger) LogAtLevelfCtx(ctx context.Context, level LogLevel, levelLabel string, format string, a ...interface{}) {
+	grl.logf(ctx, levelLabel, level, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogTracefCtx(ctx context.Context, format string, a ...interface{}) {
-	lal.logf(ctx, TraceLabel, Trace, format, a...)
+// See Logger.LogTracefCtx
+func (grl *GraniticLogger) LogTracefCtx(ctx context.Context, format string, a ...interface{}) {
+	grl.logf(ctx, TraceLabel, Trace, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogDebugfCtx(ctx context.Context, format string, a ...interface{}) {
-	lal.logf(ctx, DebugLabel, Debug, format, a...)
+// See Logger.LogDebugfCtx
+func (grl *GraniticLogger) LogDebugfCtx(ctx context.Context, format string, a ...interface{}) {
+	grl.logf(ctx, DebugLabel, Debug, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogInfofCtx(ctx context.Context, format string, a ...interface{}) {
-	lal.logf(ctx, InfoLabel, Info, format, a...)
+// See Logger.LogInfofCtx
+func (grl *GraniticLogger) LogInfofCtx(ctx context.Context, format string, a ...interface{}) {
+	grl.logf(ctx, InfoLabel, Info, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogWarnfCtx(ctx context.Context, format string, a ...interface{}) {
-	lal.logf(ctx, WarnLabel, Warn, format, a...)
+// See Logger.LogWarnfCtx
+func (grl *GraniticLogger) LogWarnfCtx(ctx context.Context, format string, a ...interface{}) {
+	grl.logf(ctx, WarnLabel, Warn, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogErrorfCtx(ctx context.Context, format string, a ...interface{}) {
-	lal.logf(ctx, ErrorLabel, Error, format, a...)
+// See Logger.LogErrorfCtx
+func (grl *GraniticLogger) LogErrorfCtx(ctx context.Context, format string, a ...interface{}) {
+	grl.logf(ctx, ErrorLabel, Error, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogErrorfCtxWithTrace(ctx context.Context, format string, a ...interface{}) {
+// See Logger.LogErrorfCtxWithTrace
+func (grl *GraniticLogger) LogErrorfCtxWithTrace(ctx context.Context, format string, a ...interface{}) {
 	trace := make([]byte, 2048)
 	runtime.Stack(trace, false)
 
 	format = format + "\n%s"
 	a = append(a, trace)
 
-	lal.logf(ctx, ErrorLabel, Error, format, a...)
+	grl.logf(ctx, ErrorLabel, Error, format, a...)
 
 }
 
-func (lal *LevelAwareLogger) LogFatalfCtx(ctx context.Context, format string, a ...interface{}) {
-	lal.logf(ctx, FatalLabel, Fatal, format, a...)
+// See Logger.LogFatalfCtx
+func (grl *GraniticLogger) LogFatalfCtx(ctx context.Context, format string, a ...interface{}) {
+	grl.logf(ctx, FatalLabel, Fatal, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogAtLevel(level LogLevel, levelLabel string, message string) {
-	lal.LogAtLevelCtx(nil, level, levelLabel, message)
+// See Logger.LogAtLevelf
+func (grl *GraniticLogger) LogAtLevelf(level LogLevel, levelLabel string, format string, a ...interface{}) {
+	grl.logf(nil, levelLabel, level, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogAtLevelf(level LogLevel, levelLabel string, format string, a ...interface{}) {
-	lal.logf(nil, levelLabel, level, format, a...)
+// See Logger.LogTracef
+func (grl *GraniticLogger) LogTracef(format string, a ...interface{}) {
+	grl.logf(nil, TraceLabel, Trace, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogTracef(format string, a ...interface{}) {
-	lal.logf(nil, TraceLabel, Trace, format, a...)
+// See Logger.LogDebugf
+func (grl *GraniticLogger) LogDebugf(format string, a ...interface{}) {
+	grl.logf(nil, DebugLabel, Debug, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogDebugf(format string, a ...interface{}) {
-	lal.logf(nil, DebugLabel, Debug, format, a...)
+// See Logger.LogInfof
+func (grl *GraniticLogger) LogInfof(format string, a ...interface{}) {
+	grl.logf(nil, InfoLabel, Info, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogInfof(format string, a ...interface{}) {
-	lal.logf(nil, InfoLabel, Info, format, a...)
+// See Logger.LogWarnf
+func (grl *GraniticLogger) LogWarnf(format string, a ...interface{}) {
+	grl.logf(nil, WarnLabel, Warn, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogWarnf(format string, a ...interface{}) {
-	lal.logf(nil, WarnLabel, Warn, format, a...)
+// See Logger.LogErrorf
+func (grl *GraniticLogger) LogErrorf(format string, a ...interface{}) {
+	grl.logf(nil, ErrorLabel, Error, format, a...)
 }
 
-func (lal *LevelAwareLogger) LogErrorf(format string, a ...interface{}) {
-	lal.logf(nil, ErrorLabel, Error, format, a...)
-}
-
-func (lal *LevelAwareLogger) LogErrorfWithTrace(format string, a ...interface{}) {
-	lal.LogErrorfCtxWithTrace(nil, format, a...)
+// See Logger.LogErrorfWithTrace
+func (grl *GraniticLogger) LogErrorfWithTrace(format string, a ...interface{}) {
+	grl.LogErrorfCtxWithTrace(nil, format, a...)
 
 }
 
-func (lal *LevelAwareLogger) LogFatalf(format string, a ...interface{}) {
-	lal.logf(nil, FatalLabel, Fatal, format, a...)
+// See Logger.LogFatalf
+func (grl *GraniticLogger) LogFatalf(format string, a ...interface{}) {
+	grl.logf(nil, FatalLabel, Fatal, format, a...)
 }
 
-func (lal *LevelAwareLogger) SetLocalThreshold(threshold LogLevel) {
-	lal.localLogThreshhold = threshold
+// Sets the log threshold for this Logger
+func (grl *GraniticLogger) SetLocalThreshold(threshold LogLevel) {
+	grl.localLogThreshhold = threshold
 }
 
-func (lal *LevelAwareLogger) SetThreshold(threshold LogLevel) {
-	lal.SetLocalThreshold(threshold)
-}
-
-func (lal *LevelAwareLogger) SetLoggerName(name string) {
-	lal.loggerName = name
-}
-
+// CreateAnonymousLogger creates a new Logger without attaching it to a LogManager. Useful for tests.
 func CreateAnonymousLogger(componentId string, threshold LogLevel) Logger {
-	logger := new(LevelAwareLogger)
+	logger := new(GraniticLogger)
 
 	gls := new(globalLogSource)
 	gls.level = threshold
@@ -338,6 +399,7 @@ type globalLogSource struct {
 	level LogLevel
 }
 
+// See GlobalLevel.GlobalLevel
 func (ls *globalLogSource) GlobalLevel() LogLevel {
 	return ls.level
 }

@@ -12,7 +12,7 @@ func TestThresholdDetection(t *testing.T) {
 
 	g := new(globalLogSource)
 
-	lal := new(LevelAwareLogger)
+	lal := new(GraniticLogger)
 	lal.global = g
 
 	g.level = All

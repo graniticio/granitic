@@ -1,7 +1,7 @@
 package logging
 
 type ComponentLoggerManager struct {
-	created         map[string]*LevelAwareLogger
+	created         map[string]*GraniticLogger
 	initialLevels   map[string]interface{}
 	globalThreshold LogLevel
 	writers         []LogWriter
@@ -12,7 +12,7 @@ func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLe
 	writers []LogWriter, formatter *LogMessageFormatter) *ComponentLoggerManager {
 
 	clm := new(ComponentLoggerManager)
-	clm.created = make(map[string]*LevelAwareLogger)
+	clm.created = make(map[string]*GraniticLogger)
 	clm.globalThreshold = globalThreshold
 	clm.initialLevels = initalComponentLogLevels
 
@@ -22,7 +22,7 @@ func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLe
 	return clm
 }
 
-func (clm *ComponentLoggerManager) LoggerByName(name string) *LevelAwareLogger {
+func (clm *ComponentLoggerManager) LoggerByName(name string) *GraniticLogger {
 	return clm.created[name]
 }
 
@@ -72,7 +72,7 @@ func (clm *ComponentLoggerManager) SetInitialLogLevels(ll map[string]interface{}
 
 			if level != nil {
 				t, _ := LogLevelFromLabel(level.(string))
-				v.SetThreshold(t)
+				v.SetLocalThreshold(t)
 
 			}
 		}
@@ -103,7 +103,7 @@ func (clm *ComponentLoggerManager) CreateLogger(componentId string) Logger {
 }
 
 func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentId string, threshold LogLevel) Logger {
-	l := new(LevelAwareLogger)
+	l := new(GraniticLogger)
 	l.global = clm
 	l.localLogThreshhold = threshold
 	l.loggerName = componentId
