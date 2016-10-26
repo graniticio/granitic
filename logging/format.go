@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package logging
 
 import (
@@ -10,7 +13,8 @@ import (
 	"time"
 )
 
-const presetFrameworkFormat = "%{02/Jan/2006:15:04:05 Z0700}t %P %c "
+// The default prefix format for log lines
+const PresetFormatFramework = "%{02/Jan/2006:15:04:05 Z0700}t %P %c "
 const FrameworkPresetPrefix = "framework"
 const formatRegex = "\\%[a-zA-Z]|\\%\\%|\\%{[^}]*}[a-zA-Z]"
 const varModifiedRegex = "\\%{([^}]*)}([a-zA-Z])"
@@ -195,7 +199,7 @@ func (lmf *LogMessageFormatter) Init() error {
 	} else {
 
 		if pre == FrameworkPresetPrefix {
-			return lmf.parseFormat(presetFrameworkFormat)
+			return lmf.parseFormat(PresetFormatFramework)
 
 		} else {
 			message := fmt.Sprintf("%s is not a supported preset for log prefixes", pre)
