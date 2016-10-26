@@ -74,11 +74,11 @@ func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccesso
 	rw.FrameworkErrors = wc.FrameworkErrors
 
 	if !cc.ModifierExists(xmlResponseWriterName, "ErrorFormatter") {
-		rw.ErrorFormatter = new(xml.StandardXMLErrorFormatter)
+		rw.ErrorFormatter = new(xml.GraniticXMLErrorFormatter)
 	}
 
 	if !cc.ModifierExists(xmlResponseWriterName, "ResponseWrapper") {
-		wrap := new(xml.StandardXMLResponseWrapper)
+		wrap := new(xml.GraniticXMLResponseWrapper)
 		rw.ResponseWrapper = wrap
 	}
 

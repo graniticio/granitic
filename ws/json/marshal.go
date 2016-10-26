@@ -3,7 +3,8 @@
 
 /*
 	Package json defines types that are specific to handling web service requests and responses as JSON. Components
-	implementing this type will be created when you enable the JsonWs facility.
+	implementing this type will be created when you enable the JsonWs facility. For more information on JSON web services
+	in Granitic, see http://granitic.io/1.0/ref/json.
 
 	Marshalling and unmarshalling
 
@@ -12,13 +13,13 @@
 
 	Response wrapping
 
-	By default, any data serialised to JSON will first be wrapped with a containing data structure by GraniticJSONResponseWrapper. This
+	By default, any data serialised to JSON will first be wrapped with a containing data structure by an instance of GraniticJSONResponseWrapper. This
 	means that all responses share a common top level structure for finding the body of the response or errors if they exist.
 	For more information on this behaviour (and how to override it) see: http://granitic.io/1.0/ref/json#wrapping
 
 	Error formatting
 
-	Any services errors found in the response are formatted by GraniticJSONErrorFormatter before being serialised to JSON.
+	Any service errors found in a response are formatted by GraniticJSONErrorFormatter before being serialised to JSON.
 	For more information on this behaviour (and how to override it) see: http://granitic.io/1.0/ref/json#errors
 
 	Compatibility with existing service APIs
@@ -55,7 +56,7 @@ type JSONMarshalingWriter struct {
 	// The characters (generally tabs or spaces) to indent child elements in pretty-printed JSON.
 	IndentString string
 
-	// A prefix for each line of generated JSON. See
+	// A prefix for each line of generated JSON.
 	PrefixString string
 }
 

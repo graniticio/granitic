@@ -2,12 +2,15 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package ws defines types used by framework and application components involved in web service processing.
+	Package ws defines types used by framework and application components involved in web service processing. For more information
+	on how web services work in Granitic, see http://granitic.io/1.0/ref/web-services
+
+	A brief explanation of the key types and concepts follows.
 
 	Requests and responses
 
 	WsRequest and WsResponse are abstractions of the HTTP request and response associated with a call to a web service
-	endpoint. By default your application logic will not have access to the underlying HTTP objects (this can be
+	endpoint. By default your application logic will not have access to the underlying HTTP objects (this can be overridden
 	on a per-endpoint basis by setting AllowDirectHTTPAccess to true on your handler - see the package documentation for
 	ws/handler for more information).
 
