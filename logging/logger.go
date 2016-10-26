@@ -111,20 +111,20 @@
 	Output of log messages to file and console is controlled by the LogWriting configuration element. The default settings
 	look something like:
 
-	{
-	  "LogWriting": {
-	    "EnableConsoleLogging": true,
-	    "EnableFileLogging": false,
-	    "File": {
-	      "LogPath": "./granitic.log",
-	      "BufferSize": 50
-	    },
-	    "Format": {
-	      "UtcTimes":     true,
-	      "Unset": "-"
-	    }
-	  }
-	}
+		{
+		  "LogWriting": {
+			"EnableConsoleLogging": true,
+			"EnableFileLogging": false,
+			"File": {
+			  "LogPath": "./granitic.log",
+			  "BufferSize": 50
+			},
+			"Format": {
+			  "UtcTimes":     true,
+			  "Unset": "-"
+			}
+		  }
+		}
 
 	For more information on these settings, refer to http://granitic.io/1.0/ref/logging#output
 

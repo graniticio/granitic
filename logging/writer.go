@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package logging
 
 import (
@@ -7,33 +10,51 @@ import (
 	"strings"
 )
 
+// Implemented by components able to write a log message (to a file, console etc)
 type LogWriter interface {
+	// WriteMessage request that the supplied message be written. Depending on implementation, may be asynchronous.
 	WriteMessage(string)
+
+	// Close any resources (file handles etc) that this LogWriter might be holding.
 	Close()
+
+	// Returns true if the LogWriter is currently in the process of writing a log line.
 	Busy() bool
 }
 
+// Implementation of LogWriter that sends messages to the console/stdout using the fmt.Print method
 type ConsoleWriter struct {
 }
 
+// Passes message to fmt.Print
 func (cw *ConsoleWriter) WriteMessage(m string) {
 	fmt.Print(m)
 }
 
+// Does nothing
 func (cw *ConsoleWriter) Close() {
 }
 
+// Always returns false
 func (cw *ConsoleWriter) Busy() bool {
 	return false
 }
 
+// Implementation of LogWriter that appends a message to a file. Messages will be written
+// asynchronously as long as the number of messages queued for writing does not exceed the value of BufferSize
 type AsynchFileWriter struct {
-	messages   chan string
-	logFile    *os.File
+	messages chan string
+	logFile  *os.File
+
+	//The number of messages that can be queued for writing before calls to WriteMessage block.
 	BufferSize int
-	LogPath    string
+
+	//The file (absolute path or relative to application's working directory) that log messages should be appended to.
+	LogPath string
 }
 
+// WriteMessage queues a message for writing and returns immediately, as long as the number of queued messages does not
+// exceed BufferSize.
 func (afw *AsynchFileWriter) WriteMessage(m string) {
 	afw.messages <- m
 }
@@ -51,6 +72,7 @@ func (afw *AsynchFileWriter) watchLineBuffer() {
 	}
 }
 
+// Creates a channel to act as a buffer for queued messages
 func (afw *AsynchFileWriter) Init() error {
 
 	afw.messages = make(chan string, afw.BufferSize)
@@ -80,10 +102,12 @@ func (afw *AsynchFileWriter) openFile() error {
 	return nil
 }
 
+// Closes the log file
 func (afw *AsynchFileWriter) Close() {
 	afw.logFile.Close()
 }
 
+// Returns true if one or more messages are queued for writing.
 func (cw *AsynchFileWriter) Busy() bool {
 
 	return len(cw.messages) > 0
