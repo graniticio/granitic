@@ -25,23 +25,23 @@ const unsupported = "???"
 type prefixFormatPlaceHolder int
 
 const (
-	Unsupported = iota
-	PercentSymbol
-	LogTime
-	LogLevelFull
-	LogLevelInitial
-	LogLevelFullPadded
-	ComponentName
-	ComponentNameTrunc
-	CtxValue
+	unsupportedPH = iota
+	percentSymbolPH
+	logTimePH
+	logLevelFullPH
+	logLevelInitialPH
+	logLevelFullPaddedPH
+	componentNamePH
+	componentNameTruncPH
+	ctxValuePH
 )
 
 type logPrefixElementType int
 
 const (
-	Text = iota
-	Placeholder
-	PlaceholderWithVar
+	textElement = iota
+	placeholderElement
+	placeholderWithVarElement
 )
 
 type prefixElement struct {
@@ -54,7 +54,7 @@ type prefixElement struct {
 func newTextLogLineElement(text string) *prefixElement {
 
 	e := new(prefixElement)
-	e.elementType = Text
+	e.elementType = textElement
 	e.content = text
 
 	return e
@@ -63,7 +63,7 @@ func newTextLogLineElement(text string) *prefixElement {
 func newPlaceholderLineElement(phType prefixFormatPlaceHolder) *prefixElement {
 
 	e := new(prefixElement)
-	e.elementType = Placeholder
+	e.elementType = placeholderElement
 	e.placeholderType = phType
 
 	return e
@@ -72,13 +72,15 @@ func newPlaceholderLineElement(phType prefixFormatPlaceHolder) *prefixElement {
 func newPlaceholderWithVarLineElement(phType prefixFormatPlaceHolder, variable string) *prefixElement {
 
 	e := new(prefixElement)
-	e.elementType = PlaceholderWithVar
+	e.elementType = placeholderWithVarElement
 	e.placeholderType = phType
 	e.variable = variable
 
 	return e
 }
 
+// NewFrameworkLogMessageFormatter creates a new LogMessageFormatter using the default 'framework' pattern for log line
+// prefixes and UTC timestamps.
 func NewFrameworkLogMessageFormatter() *LogMessageFormatter {
 	lmf := new(LogMessageFormatter)
 	lmf.UtcTimes = true
@@ -89,14 +91,25 @@ func NewFrameworkLogMessageFormatter() *LogMessageFormatter {
 	return lmf
 }
 
+// A component able to take a message to be written to a log file and prefix it with a formatted template
+// which can include log times, data from a Context etc.
 type LogMessageFormatter struct {
-	elements     []*prefixElement
+	elements []*prefixElement
+
+	// The pattern to be used as a template when generating prefixes. Mutally exclusive with PrefixPreset
 	PrefixFormat string
+
+	// The name of a pre-defined prefix template (e.g. 'framework'). Mutally exclusive with PrefixFormat
 	PrefixPreset string
-	UtcTimes     bool
-	Unset        string
+
+	// Convert timestamps in prefixes to UTC
+	UtcTimes bool
+
+	// The symbol to use in place of an unset variable in a log line prefix.
+	Unset string
 }
 
+// Format takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset
 func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerName, message string) string {
 	var b bytes.Buffer
 	var t time.Time
@@ -114,11 +127,11 @@ func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerNa
 	for _, e := range lmf.elements {
 
 		switch e.elementType {
-		case Text:
+		case textElement:
 			b.WriteString(e.content)
-		case Placeholder:
+		case placeholderElement:
 			b.WriteString(lmf.findValue(e, levelLabel, loggerName, &t))
-		case PlaceholderWithVar:
+		case placeholderWithVarElement:
 			b.WriteString(lmf.findValueWithVar(ctx, e, levelLabel, loggerName, &t))
 		}
 	}
@@ -131,11 +144,11 @@ func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerNa
 
 func (alw *LogMessageFormatter) findValueWithVar(ctx context.Context, element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
 	switch element.placeholderType {
-	case LogTime:
+	case logTimePH:
 		return loggedAt.Format(element.variable)
-	case ComponentNameTrunc:
+	case componentNameTruncPH:
 		return truncOrPad(loggerName, element.variable)
-	case CtxValue:
+	case ctxValuePH:
 		return alw.ctxValue(ctx, element.variable)
 	default:
 		return unsupported
@@ -161,18 +174,18 @@ func (alw *LogMessageFormatter) findValue(element *prefixElement, levelLabel, lo
 
 	switch element.placeholderType {
 
-	case PercentSymbol:
+	case percentSymbolPH:
 		return percent
 
-	case ComponentName:
+	case componentNamePH:
 		return loggerName
 
-	case LogLevelFull:
+	case logLevelFullPH:
 		return levelLabel
 
-	case LogLevelInitial:
+	case logLevelInitialPH:
 		return string(levelLabel[0])
-	case LogLevelFullPadded:
+	case logLevelFullPaddedPH:
 		return padRightTo(levelLabel, 5)
 	default:
 		return unsupported
@@ -181,6 +194,7 @@ func (alw *LogMessageFormatter) findValue(element *prefixElement, levelLabel, lo
 
 }
 
+// Checks that a valid format has been provided for the log message prefixes.
 func (lmf *LogMessageFormatter) Init() error {
 
 	f := lmf.PrefixFormat
@@ -283,7 +297,7 @@ func (lmf *LogMessageFormatter) addPlaceholder(ph string, re *regexp.Regexp) err
 
 		lfph := lmf.mapPlaceholder(formatTypeCode)
 
-		if lfph == Unsupported {
+		if lfph == unsupportedPH {
 			message := fmt.Sprintf("%s is not a supported field for formatting the prefix to log lines", ph)
 			return errors.New(message)
 		} else {
@@ -299,7 +313,7 @@ func (lmf *LogMessageFormatter) addPlaceholder(ph string, re *regexp.Regexp) err
 
 		lfph := lmf.mapPlaceholder(formatTypeCode)
 
-		if lfph == Unsupported {
+		if lfph == unsupportedPH {
 			message := fmt.Sprintf("%s is not a supported field for formatting the prefix to log lines", ph)
 			return errors.New(message)
 		} else {
@@ -359,23 +373,23 @@ func (alw *LogMessageFormatter) mapPlaceholder(ph string) prefixFormatPlaceHolde
 
 	switch ph {
 	default:
-		return Unsupported
+		return unsupportedPH
 	case "%":
-		return PercentSymbol
+		return percentSymbolPH
 	case "t":
-		return LogTime
+		return logTimePH
 	case "L":
-		return LogLevelFull
+		return logLevelFullPH
 	case "l":
-		return LogLevelInitial
+		return logLevelInitialPH
 	case "P":
-		return LogLevelFullPadded
+		return logLevelFullPaddedPH
 	case "c":
-		return ComponentName
+		return componentNamePH
 	case "C":
-		return ComponentNameTrunc
+		return componentNameTruncPH
 	case "X":
-		return CtxValue
+		return ctxValuePH
 	}
 
 }

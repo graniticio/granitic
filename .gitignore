@@ -6,3 +6,4 @@
 .DS_Store
 cmd/.DS_Store
 cmd/grnc-ctl/grnc-ctl
+/cmd/grnc-bind/grnc-bind

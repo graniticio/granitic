@@ -133,6 +133,11 @@
 	Global log levels and component log levels can be changed at runtime, if your application has the RuntimeCtl facility
 	enabled. See http://granitic.io/1.0/ref/runtime-ctl for more information
 
+	Log message prefixes
+
+	Every message written to a log file or console can be given a customisable prefix containing meta-data like time
+	of logging or information from a Context. See http://granitic.io/1.0/ref/logging#prefix
+
 
 */
 package logging
