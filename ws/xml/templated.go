@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package xml
 
 import (
@@ -14,20 +17,39 @@ import (
 	"text/template"
 )
 
+// Serialises the body of a ws.WsResponse to XML using Go templates. See https://golang.org/pkg/text/template/
 type TemplatedXMLResponseWriter struct {
-	FrameworkLogger  logging.Logger
+	// Injected by the framework to allow this component to write log messages
+	FrameworkLogger logging.Logger
+
+	// A component able to calculate the correct HTTP status code to set for a response.
 	StatusDeterminer ws.HttpStatusCodeDeterminer
-	FrameworkErrors  *ws.FrameworkErrorGenerator
-	DefaultHeaders   map[string]string
-	TemplateDir      string
-	StatusTemplates  map[string]string
-	templates        *template.Template
-	HeaderBuilder    ws.WsCommonResponseHeaderBuilder
+
+	// Component able to generate errors if a problem is encountered during marshalling.
+	FrameworkErrors *ws.FrameworkErrorGenerator
+
+	// The common and static set of headers that should be written to all responses.
+	DefaultHeaders map[string]string
+
+	// The path (absolute or relative to application working directory) where unpopulated template files can be found.
+	TemplateDir string
+
+	// A map from an HTTP status code (e.g. '404') to the name of the template to be used to render that type of response.
+	StatusTemplates map[string]string
+	templates       *template.Template
+
+	// Component able to dynamically generate additional headers to be written to the response.
+	HeaderBuilder ws.WsCommonResponseHeaderBuilder
+
+	//The name of a template to be used if the response has an abnormal (5xx) outcome.
 	AbnormalTemplate string
-	ErrorTemplate    string
-	state            ioc.ComponentState
+
+	//The name of the default template to use if the response an error (400 or 409) outcome.
+	ErrorTemplate string
+	state         ioc.ComponentState
 }
 
+// See WsResponseWriter.Write
 func (rw *TemplatedXMLResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
 	var ch map[string]string
 
@@ -112,6 +134,7 @@ func (rw *TemplatedXMLResponseWriter) writeErrors(ctx context.Context, res *ws.W
 	return rw.write(ctx, res, w, ch, t)
 }
 
+// See AbnormalStatusWriter.WriteAbnormalStatus
 func (rw *TemplatedXMLResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.WsProcessState) error {
 
 	return rw.Write(ctx, state, ws.Abnormal)
@@ -143,6 +166,8 @@ func (rw *TemplatedXMLResponseWriter) writeAbnormalStatus(ctx context.Context, s
 
 }
 
+// Called by the IoC container. Verifies that at minimum the AbnormalTemplate and TemplateDir fields are set.
+// Parses all templates found in the TemplateDir
 func (rw *TemplatedXMLResponseWriter) StartComponent() error {
 
 	if rw.state != ioc.StoppedState {
@@ -163,7 +188,9 @@ func (rw *TemplatedXMLResponseWriter) StartComponent() error {
 		rw.StatusTemplates = make(map[string]string)
 	}
 
-	rw.preLoadTemplates(rw.TemplateDir)
+	if err := rw.preLoadTemplates(rw.TemplateDir); err != nil {
+		return err
+	}
 
 	rw.state = ioc.RunningState
 

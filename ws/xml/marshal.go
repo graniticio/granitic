@@ -31,8 +31,8 @@
 
 	in your application configuration file.
 
-	In MARSHAL, mode the data and errors in your endpoint's WsResponse objects are serialised using Go's built-in XML
-	marshalling techniques. See https://golang.org/pkg/encoding/xml/#Marshal. In TEMPLATE mode, each endpoint is
+	In MARSHAL mode the data and errors in your endpoint's WsResponse objects are serialised using Go's built-in XML
+	marshalling techniques. See https://golang.org/pkg/encoding/xml/#Marshal. In TEMPLATE mode each endpoint is
 	associated with the name of a template file which is populated with the data and errors in your response. See
 	http://granitic.io/1.0/ref/xml#templates for more details.
 
@@ -44,7 +44,7 @@
 
 	Error formatting
 
-	Any service errors found in a response are formatted by GraniticXMLErrorFormatter before being serialised to XML.
+	Any service errors found in a response are formatted by an instance of GraniticXMLErrorFormatter before being serialised to XML.
 	For more information on this behaviour (and how to override it) see: http://granitic.io/1.0/ref/xml#errors
 
 */
