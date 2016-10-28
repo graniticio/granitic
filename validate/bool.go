@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package validate
 
 import (
@@ -10,7 +13,7 @@ import (
 	"strings"
 )
 
-const BoolRuleCode = "BOOL"
+const boolRuleCode = "BOOL"
 
 const (
 	boolOpRequiredCode = commonOpRequired
@@ -22,15 +25,16 @@ const (
 type boolValidationOperation uint
 
 const (
-	BoolOpUnsupported = iota
-	BoolOpRequired
-	BoolOpStopAll
-	BoolOpIs
-	BoolOpMex
+	boolOpUnsupported = iota
+	boolOpRequired
+	boolOpStopAll
+	boolOpIs
+	boolOpMex
 )
 
-func NewBoolValidator(field, defaultErrorCode string) *BoolValidator {
-	bv := new(BoolValidator)
+// NewBoolValidationRule creates a new BoolValidationRule to check the named field and the supplied default error code.
+func NewBoolValidationRule(field, defaultErrorCode string) *BoolValidationRule {
+	bv := new(BoolValidationRule)
 	bv.defaultErrorCode = defaultErrorCode
 	bv.field = field
 	bv.codesInUse = types.NewOrderedStringSet([]string{})
@@ -41,7 +45,9 @@ func NewBoolValidator(field, defaultErrorCode string) *BoolValidator {
 	return bv
 }
 
-type BoolValidator struct {
+// A ValidationRule for checking bool or NilableBool fields on an object. See the method definitions on this type for
+// the supported operations.
+type BoolValidationRule struct {
 	stopAll             bool
 	codesInUse          types.StringSet
 	dependsFields       types.StringSet
@@ -60,7 +66,8 @@ type boolOperation struct {
 	MExFields types.StringSet
 }
 
-func (bv *BoolValidator) IsSet(field string, subject interface{}) (bool, error) {
+// IsSet returns true if the field to be validation is a bool or is a NilableBool which has been explicitly set.
+func (bv *BoolValidationRule) IsSet(field string, subject interface{}) (bool, error) {
 
 	value, err := bv.extractValue(field, subject)
 
@@ -75,7 +82,8 @@ func (bv *BoolValidator) IsSet(field string, subject interface{}) (bool, error) 
 	}
 }
 
-func (bv *BoolValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
+// See ValidationRule.Validate
+func (bv *BoolValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := bv.field
 
@@ -130,14 +138,14 @@ func (bv *BoolValidator) Validate(vc *ValidationContext) (result *ValidationResu
 	return r, err
 }
 
-func (bv *BoolValidator) runOperations(field string, b bool, vc *ValidationContext, r *ValidationResult) error {
+func (bv *BoolValidationRule) runOperations(field string, b bool, vc *ValidationContext, r *ValidationResult) error {
 
 	ec := types.NewEmptyOrderedStringSet()
 
 	for _, op := range bv.operations {
 
 		switch op.OpType {
-		case BoolOpMex:
+		case boolOpMex:
 			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
 		}
 	}
@@ -148,7 +156,7 @@ func (bv *BoolValidator) runOperations(field string, b bool, vc *ValidationConte
 
 }
 
-func (bv *BoolValidator) extractValue(f string, s interface{}) (*types.NilableBool, error) {
+func (bv *BoolValidationRule) extractValue(f string, s interface{}) (*types.NilableBool, error) {
 
 	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
@@ -178,27 +186,32 @@ func (bv *BoolValidator) extractValue(f string, s interface{}) (*types.NilableBo
 
 }
 
-func (bv *BoolValidator) StopAllOnFail() bool {
+func (bv *BoolValidationRule) StopAllOnFail() bool {
 	return bv.stopAll
 }
 
-func (bv *BoolValidator) CodesInUse() types.StringSet {
+// See ValidationRule.CodesInUse
+func (bv *BoolValidationRule) CodesInUse() types.StringSet {
 	return bv.codesInUse
 }
 
-func (bv *BoolValidator) DependsOnFields() types.StringSet {
+// See ValidationRule.DependsOnFields
+func (bv *BoolValidationRule) DependsOnFields() types.StringSet {
 
 	return bv.dependsFields
 }
 
-func (bv *BoolValidator) StopAll() *BoolValidator {
+// StopAll adds a check to halt validation of this rule and all other rules if
+// the previous check failed.
+func (bv *BoolValidationRule) StopAll() *BoolValidationRule {
 
 	bv.stopAll = true
 
 	return bv
 }
 
-func (bv *BoolValidator) Required(code ...string) *BoolValidator {
+// Required adds a check see if the field under validation has been set.
+func (bv *BoolValidationRule) Required(code ...string) *BoolValidationRule {
 
 	bv.required = true
 	bv.missingRequiredCode = bv.chooseErrorCode(code)
@@ -206,7 +219,8 @@ func (bv *BoolValidator) Required(code ...string) *BoolValidator {
 	return bv
 }
 
-func (bv *BoolValidator) Is(v bool, code ...string) *BoolValidator {
+// Is adds a check to see if the field is set to the supplied value.
+func (bv *BoolValidationRule) Is(v bool, code ...string) *BoolValidationRule {
 
 	bv.requiredValue = types.NewNilableBool(v)
 
@@ -215,10 +229,11 @@ func (bv *BoolValidator) Is(v bool, code ...string) *BoolValidator {
 	return bv
 }
 
-func (bv *BoolValidator) MEx(fields types.StringSet, code ...string) *BoolValidator {
+// MEx adds a check to see if any other of the fields with which this field is mutally exclusive have been set.
+func (bv *BoolValidationRule) MEx(fields types.StringSet, code ...string) *BoolValidationRule {
 	op := new(boolOperation)
 	op.ErrCode = bv.chooseErrorCode(code)
-	op.OpType = BoolOpMex
+	op.OpType = boolOpMex
 	op.MExFields = fields
 
 	bv.addOperation(op)
@@ -226,11 +241,11 @@ func (bv *BoolValidator) MEx(fields types.StringSet, code ...string) *BoolValida
 	return bv
 }
 
-func (bv *BoolValidator) addOperation(o *boolOperation) {
+func (bv *BoolValidationRule) addOperation(o *boolOperation) {
 	bv.operations = append(bv.operations, o)
 }
 
-func (bv *BoolValidator) chooseErrorCode(v []string) string {
+func (bv *BoolValidationRule) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
 		bv.codesInUse.Add(v[0])
@@ -241,64 +256,64 @@ func (bv *BoolValidator) chooseErrorCode(v []string) string {
 
 }
 
-func (bv *BoolValidator) Operation(c string) (boolValidationOperation, error) {
+func (bv *BoolValidationRule) operation(c string) (boolValidationOperation, error) {
 	switch c {
 	case boolOpRequiredCode:
-		return BoolOpRequired, nil
+		return boolOpRequired, nil
 	case boolOpStopAllCode:
-		return BoolOpStopAll, nil
+		return boolOpStopAll, nil
 	case boolOpIsCode:
-		return BoolOpIs, nil
+		return boolOpIs, nil
 	case boolOpMexCode:
-		return BoolOpMex, nil
+		return boolOpMex, nil
 	}
 
 	m := fmt.Sprintf("Unsupported bool validation operation %s", c)
-	return BoolOpUnsupported, errors.New(m)
+	return boolOpUnsupported, errors.New(m)
 
 }
 
-func NewBoolValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *BoolValidatorBuilder {
-	bv := new(BoolValidatorBuilder)
+func newBoolValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *boolValidationRuleBuilder {
+	bv := new(boolValidationRuleBuilder)
 	bv.componentFinder = cf
 	bv.defaultErrorCode = ec
 
 	return bv
 }
 
-type BoolValidatorBuilder struct {
+type boolValidationRuleBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 }
 
-func (vb *BoolValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
+func (vb *boolValidationRuleBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := determineDefaultErrorCode(BoolRuleCode, rule, vb.defaultErrorCode)
-	bv := NewBoolValidator(field, defaultErrorcode)
+	defaultErrorcode := determineDefaultErrorCode(boolRuleCode, rule, vb.defaultErrorCode)
+	bv := NewBoolValidationRule(field, defaultErrorcode)
 
 	for _, v := range rule {
 
 		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if isTypeIndicator(BoolRuleCode, opCode) {
+		if isTypeIndicator(boolRuleCode, opCode) {
 			continue
 		}
 
-		op, err := bv.Operation(opCode)
+		op, err := bv.operation(opCode)
 
 		if err != nil {
 			return nil, err
 		}
 
 		switch op {
-		case BoolOpRequired:
+		case boolOpRequired:
 			err = vb.markRequired(field, ops, bv)
-		case BoolOpStopAll:
+		case boolOpStopAll:
 			bv.StopAll()
-		case BoolOpIs:
+		case boolOpIs:
 			err = vb.captureRequiredValue(field, ops, bv)
-		case BoolOpMex:
+		case boolOpMex:
 			err = vb.captureExclusiveFields(field, ops, bv)
 		}
 
@@ -313,7 +328,7 @@ func (vb *BoolValidatorBuilder) parseRule(field string, rule []string) (Validati
 
 }
 
-func (vb *BoolValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *BoolValidator) error {
+func (vb *boolValidationRuleBuilder) captureExclusiveFields(field string, ops []string, bv *BoolValidationRule) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -329,7 +344,7 @@ func (vb *BoolValidatorBuilder) captureExclusiveFields(field string, ops []strin
 
 }
 
-func (vb *BoolValidatorBuilder) captureRequiredValue(field string, ops []string, bv *BoolValidator) error {
+func (vb *boolValidationRuleBuilder) captureRequiredValue(field string, ops []string, bv *BoolValidationRule) error {
 	_, err := paramCount(ops, "Is", field, 2, 3)
 
 	if err != nil {
@@ -348,7 +363,7 @@ func (vb *BoolValidatorBuilder) captureRequiredValue(field string, ops []string,
 	return nil
 }
 
-func (vb *BoolValidatorBuilder) markRequired(field string, ops []string, bv *BoolValidator) error {
+func (vb *boolValidationRuleBuilder) markRequired(field string, ops []string, bv *BoolValidationRule) error {
 
 	_, err := paramCount(ops, "Required", field, 1, 2)
 

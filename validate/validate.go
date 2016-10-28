@@ -321,7 +321,7 @@ type RuleValidator struct {
 	jsonConfig             interface{}
 	stringBuilder          *StringValidatorBuilder
 	objectValidatorBuilder *ObjectValidatorBuilder
-	boolValidatorBuilder   *BoolValidatorBuilder
+	boolValidatorBuilder   *boolValidationRuleBuilder
 	intValidatorBuilder    *IntValidatorBuilder
 	floatValidatorBuilder  *FloatValidatorBuilder
 	sliceValidatorBuilder  *SliceValidatorBuilder
@@ -498,7 +498,7 @@ func (ov *RuleValidator) StartComponent() error {
 	ov.stringBuilder.componentFinder = ov.ComponentFinder
 
 	ov.objectValidatorBuilder = NewObjectValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
-	ov.boolValidatorBuilder = NewBoolValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
+	ov.boolValidatorBuilder = newBoolValidationRuleBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 	ov.validatorChain = make([]*validatorLink, 0)
 
 	ov.intValidatorBuilder = NewIntValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
@@ -652,7 +652,7 @@ func (ov *RuleValidator) extractType(field string, rule []string) (validationRul
 			return stringRuleType, nil
 		case ObjectRuleCode:
 			return objectRuleType, nil
-		case BoolRuleCode:
+		case boolRuleCode:
 			return boolRuleType, nil
 		case IntRuleCode:
 			return intRuleType, nil

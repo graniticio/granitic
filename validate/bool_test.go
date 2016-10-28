@@ -11,7 +11,7 @@ import (
 
 func TestUnsetBoolDetection(t *testing.T) {
 
-	vb := NewBoolValidatorBuilder("DEF", nil)
+	vb := newBoolValidationRuleBuilder("DEF", nil)
 
 	bv, err := vb.parseRule("B", []string{"REQ:MISSING"})
 
@@ -75,7 +75,7 @@ func TestUnsetBoolDetection(t *testing.T) {
 
 func TestSetBoolDetection(t *testing.T) {
 
-	vb := NewBoolValidatorBuilder("DEF", nil)
+	vb := newBoolValidationRuleBuilder("DEF", nil)
 
 	bv, err := vb.parseRule("B", []string{"REQ:MISSING"})
 
@@ -107,7 +107,7 @@ func TestSetBoolDetection(t *testing.T) {
 }
 
 func TestBoolMExFieldDetection(t *testing.T) {
-	vb := NewBoolValidatorBuilder("DEF", nil)
+	vb := newBoolValidationRuleBuilder("DEF", nil)
 
 	field := "B"
 
@@ -159,7 +159,7 @@ func TestBoolMExFieldDetection(t *testing.T) {
 
 func TestRequiredValueDetection(t *testing.T) {
 
-	vb := NewBoolValidatorBuilder("DEF", nil)
+	vb := newBoolValidationRuleBuilder("DEF", nil)
 
 	field := "B"
 
