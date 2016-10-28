@@ -229,7 +229,7 @@ func (bv *BoolValidationRule) Is(v bool, code ...string) *BoolValidationRule {
 	return bv
 }
 
-// MEx adds a check to see if any other of the fields with which this field is mutally exclusive have been set.
+// MEx adds a check to see if any other of the fields with which this field is mutually exclusive have been set.
 func (bv *BoolValidationRule) MEx(fields types.StringSet, code ...string) *BoolValidationRule {
 	op := new(boolOperation)
 	op.ErrCode = bv.chooseErrorCode(code)

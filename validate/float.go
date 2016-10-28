@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package validate
 
 import (
@@ -11,37 +14,40 @@ import (
 	"strings"
 )
 
+// An object able to evaulate the supplied float64 to see if it meets some definition of validity.
 type ExternalFloat64Validator interface {
+	// ValidFloat64 returns true if the object considers the supplied float64 to be valid.
 	ValidFloat64(float64) bool
 }
 
-const FloatRuleCode = "FLOAT"
+const floatRuleCode = "FLOAT"
 
 const (
-	FloatOpIsRequiredCode = commonOpRequired
-	FloatOpIsStopAllCode  = commonOpStopAll
-	FloatOpInCode         = commonOpIn
-	FloatOpBreakCode      = commonOpBreak
-	FloatOpExtCode        = commonOpExt
-	FloatOpRangeCode      = "RANGE"
-	FloatOpMExCode        = commonOpMex
+	floatOpIsRequiredCode = commonOpRequired
+	floatOpIsStopAllCode  = commonOpStopAll
+	floatOpInCode         = commonOpIn
+	floatOpBreakCode      = commonOpBreak
+	floatOpExtCode        = commonOpExt
+	floatOpRangeCode      = "RANGE"
+	floatOpMExCode        = commonOpMex
 )
 
 type floatValidationOperation uint
 
 const (
-	FloatOpUnsupported = iota
-	FloatOpRequired
-	FloatOpStopAll
-	FloatOpIn
-	FloatOpBreak
-	FloatOpExt
-	FloatOpRange
-	FloatOpMex
+	floatOpUnsupported = iota
+	floatOpRequired
+	floatOpStopAll
+	floatOpIn
+	floatOpBreak
+	floatOpExt
+	floatOpRange
+	floatOpMex
 )
 
-func NewFloatValidator(field, defaultErrorCode string) *FloatValidator {
-	fv := new(FloatValidator)
+// NewFloatValidationRule creates a new FloatValidationRule to check the named field and the supplied default error code.
+func NewFloatValidationRule(field, defaultErrorCode string) *FloatValidationRule {
+	fv := new(FloatValidationRule)
 	fv.defaultErrorCode = defaultErrorCode
 	fv.field = field
 	fv.codesInUse = types.NewOrderedStringSet([]string{})
@@ -53,7 +59,9 @@ func NewFloatValidator(field, defaultErrorCode string) *FloatValidator {
 	return fv
 }
 
-type FloatValidator struct {
+// A ValidationRule for checking float32, float64 or NilableFloat64 fields on an object. See the method definitions on this type for
+// the supported operations. Note that float32 are converted to float64s before validation.
+type FloatValidationRule struct {
 	stopAll             bool
 	codesInUse          types.StringSet
 	dependsFields       types.StringSet
@@ -76,7 +84,8 @@ type floatOperation struct {
 	MExFields types.StringSet
 }
 
-func (fv *FloatValidator) IsSet(field string, subject interface{}) (bool, error) {
+// IsSet returns true if the field to be validated is a float32, float64 or a NilableFloat64 whose value has been explicitly set.
+func (fv *FloatValidationRule) IsSet(field string, subject interface{}) (bool, error) {
 
 	nf, err := fv.extractValue(field, subject)
 
@@ -91,7 +100,8 @@ func (fv *FloatValidator) IsSet(field string, subject interface{}) (bool, error)
 	}
 }
 
-func (fv *FloatValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
+// See ValidationRule.Validate
+func (fv *FloatValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := fv.field
 
@@ -139,7 +149,7 @@ func (fv *FloatValidator) Validate(vc *ValidationContext) (result *ValidationRes
 	return r, err
 }
 
-func (fv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableFloat64, error) {
+func (fv *FloatValidationRule) extractValue(f string, s interface{}) (*types.NilableFloat64, error) {
 
 	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
@@ -157,10 +167,10 @@ func (fv *FloatValidator) extractValue(f string, s interface{}) (*types.NilableF
 		return nil, nil
 	}
 
-	return fv.ToFloat64(f, v.Interface())
+	return fv.toFloat64(f, v.Interface())
 }
 
-func (fv *FloatValidator) ToFloat64(f string, i interface{}) (*types.NilableFloat64, error) {
+func (fv *FloatValidationRule) toFloat64(f string, i interface{}) (*types.NilableFloat64, error) {
 	var ex float64
 
 	switch i := i.(type) {
@@ -180,7 +190,7 @@ func (fv *FloatValidator) ToFloat64(f string, i interface{}) (*types.NilableFloa
 	return types.NewNilableFloat64(ex), nil
 }
 
-func (fv *FloatValidator) runOperations(field string, i float64, vc *ValidationContext, r *ValidationResult) error {
+func (fv *FloatValidationRule) runOperations(field string, i float64, vc *ValidationContext, r *ValidationResult) error {
 
 	ec := types.NewEmptyOrderedStringSet()
 
@@ -188,26 +198,26 @@ OpLoop:
 	for _, op := range fv.operations {
 
 		switch op.OpType {
-		case FloatOpIn:
+		case floatOpIn:
 			if !fv.checkIn(i, op) {
 				ec.Add(op.ErrCode)
 			}
 
-		case FloatOpBreak:
+		case floatOpBreak:
 			if ec.Size() > 0 {
 				break OpLoop
 			}
 
-		case FloatOpExt:
+		case floatOpExt:
 			if !op.External.ValidFloat64(i) {
 				ec.Add(op.ErrCode)
 			}
 
-		case FloatOpRange:
+		case floatOpRange:
 			if !fv.inRange(i, op) {
 				ec.Add(op.ErrCode)
 			}
-		case FloatOpMex:
+		case floatOpMex:
 			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
 		}
 
@@ -219,7 +229,7 @@ OpLoop:
 
 }
 
-func (fv *FloatValidator) inRange(i float64, o *floatOperation) bool {
+func (fv *FloatValidationRule) inRange(i float64, o *floatOperation) bool {
 
 	moreThanMin := true
 	lessThanMax := true
@@ -235,14 +245,15 @@ func (fv *FloatValidator) inRange(i float64, o *floatOperation) bool {
 	return moreThanMin && lessThanMax
 }
 
-func (fv *FloatValidator) checkIn(i float64, o *floatOperation) bool {
+func (fv *FloatValidationRule) checkIn(i float64, o *floatOperation) bool {
 	return o.InSet[i]
 }
 
-func (fv *FloatValidator) MEx(fields types.StringSet, code ...string) *FloatValidator {
+// MEx adds a check to see if any other of the fields with which this field is mutually exclusive have been set.
+func (fv *FloatValidationRule) MEx(fields types.StringSet, code ...string) *FloatValidationRule {
 	op := new(floatOperation)
 	op.ErrCode = fv.chooseErrorCode(code)
-	op.OpType = FloatOpMex
+	op.OpType = floatOpMex
 	op.MExFields = fields
 
 	fv.addOperation(op)
@@ -250,10 +261,11 @@ func (fv *FloatValidator) MEx(fields types.StringSet, code ...string) *FloatVali
 	return fv
 }
 
-func (fv *FloatValidator) Break() *FloatValidator {
+// Break adds a check to stop processing this rule if the previous check has failed.
+func (fv *FloatValidationRule) Break() *FloatValidationRule {
 
 	o := new(floatOperation)
-	o.OpType = FloatOpBreak
+	o.OpType = floatOpBreak
 
 	fv.addOperation(o)
 
@@ -261,32 +273,38 @@ func (fv *FloatValidator) Break() *FloatValidator {
 
 }
 
-func (fv *FloatValidator) addOperation(o *floatOperation) {
+func (fv *FloatValidationRule) addOperation(o *floatOperation) {
 	fv.operations = append(fv.operations, o)
 	fv.codesInUse.Add(o.ErrCode)
 }
 
-func (fv *FloatValidator) StopAllOnFail() bool {
+// See ValidationRule.StopAllOnFail
+func (fv *FloatValidationRule) StopAllOnFail() bool {
 	return fv.stopAll
 }
 
-func (fv *FloatValidator) CodesInUse() types.StringSet {
+// See ValidationRule.CodesInUse
+func (fv *FloatValidationRule) CodesInUse() types.StringSet {
 	return fv.codesInUse
 }
 
-func (fv *FloatValidator) DependsOnFields() types.StringSet {
+// See ValidationRule.DependsOnFields
+func (fv *FloatValidationRule) DependsOnFields() types.StringSet {
 
 	return fv.dependsFields
 }
 
-func (fv *FloatValidator) StopAll() *FloatValidator {
+// StopAll adds a check to halt validation of this rule and all other rules if
+// the previous check failed.
+func (fv *FloatValidationRule) StopAll() *FloatValidationRule {
 
 	fv.stopAll = true
 
 	return fv
 }
 
-func (fv *FloatValidator) Required(code ...string) *FloatValidator {
+// Required adds a check to see if the field under validation has been set.
+func (fv *FloatValidationRule) Required(code ...string) *FloatValidationRule {
 
 	fv.required = true
 	fv.missingRequiredCode = fv.chooseErrorCode(code)
@@ -294,7 +312,9 @@ func (fv *FloatValidator) Required(code ...string) *FloatValidator {
 	return fv
 }
 
-func (fv *FloatValidator) Range(checkMin, checkMax bool, min, max float64, code ...string) *FloatValidator {
+// Range adds a check to see if the float under validation is in the supplied range. checkMin/Max are set to false if no
+// minimum or maximum bound is in effect.
+func (fv *FloatValidationRule) Range(checkMin, checkMax bool, min, max float64, code ...string) *FloatValidationRule {
 
 	fv.checkMin = checkMin
 	fv.checkMax = checkMax
@@ -304,7 +324,7 @@ func (fv *FloatValidator) Range(checkMin, checkMax bool, min, max float64, code 
 	ec := fv.chooseErrorCode(code)
 
 	o := new(floatOperation)
-	o.OpType = FloatOpRange
+	o.OpType = floatOpRange
 	o.ErrCode = ec
 
 	fv.addOperation(o)
@@ -312,12 +332,13 @@ func (fv *FloatValidator) Range(checkMin, checkMax bool, min, max float64, code 
 	return fv
 }
 
-func (fv *FloatValidator) In(set []float64, code ...string) *FloatValidator {
+// In adds a check to see if the float under validation is exactly equal to one of the float values specified.
+func (fv *FloatValidationRule) In(set []float64, code ...string) *FloatValidationRule {
 
 	ec := fv.chooseErrorCode(code)
 
 	o := new(floatOperation)
-	o.OpType = FloatOpIn
+	o.OpType = floatOpIn
 	o.ErrCode = ec
 
 	fm := make(map[float64]bool)
@@ -334,11 +355,12 @@ func (fv *FloatValidator) In(set []float64, code ...string) *FloatValidator {
 
 }
 
-func (fv *FloatValidator) ExternalValidation(v ExternalFloat64Validator, code ...string) *FloatValidator {
+// ExternalValidation adds a check to call the supplied object to ask it to check the validity of the float in question.
+func (fv *FloatValidationRule) ExternalValidation(v ExternalFloat64Validator, code ...string) *FloatValidationRule {
 	ec := fv.chooseErrorCode(code)
 
 	o := new(floatOperation)
-	o.OpType = FloatOpExt
+	o.OpType = floatOpExt
 	o.ErrCode = ec
 	o.External = v
 
@@ -347,7 +369,7 @@ func (fv *FloatValidator) ExternalValidation(v ExternalFloat64Validator, code ..
 	return fv
 }
 
-func (fv *FloatValidator) chooseErrorCode(v []string) string {
+func (fv *FloatValidationRule) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
 		fv.codesInUse.Add(v[0])
@@ -358,77 +380,77 @@ func (fv *FloatValidator) chooseErrorCode(v []string) string {
 
 }
 
-func (fv *FloatValidator) Operation(c string) (boolValidationOperation, error) {
+func (fv *FloatValidationRule) operation(c string) (boolValidationOperation, error) {
 	switch c {
-	case FloatOpIsRequiredCode:
-		return FloatOpRequired, nil
-	case FloatOpIsStopAllCode:
-		return FloatOpStopAll, nil
-	case FloatOpInCode:
-		return FloatOpIn, nil
-	case FloatOpBreakCode:
-		return FloatOpBreak, nil
-	case FloatOpExtCode:
-		return FloatOpExt, nil
-	case FloatOpRangeCode:
-		return FloatOpRange, nil
-	case FloatOpMExCode:
-		return FloatOpMex, nil
+	case floatOpIsRequiredCode:
+		return floatOpRequired, nil
+	case floatOpIsStopAllCode:
+		return floatOpStopAll, nil
+	case floatOpInCode:
+		return floatOpIn, nil
+	case floatOpBreakCode:
+		return floatOpBreak, nil
+	case floatOpExtCode:
+		return floatOpExt, nil
+	case floatOpRangeCode:
+		return floatOpRange, nil
+	case floatOpMExCode:
+		return floatOpMex, nil
 	}
 
 	m := fmt.Sprintf("Unsupported int validation operation %s", c)
-	return FloatOpUnsupported, errors.New(m)
+	return floatOpUnsupported, errors.New(m)
 
 }
 
-func NewFloatValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *FloatValidatorBuilder {
-	fv := new(FloatValidatorBuilder)
+func newFloatValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *floatValidationRuleBuilder {
+	fv := new(floatValidationRuleBuilder)
 	fv.componentFinder = cf
 	fv.defaultErrorCode = ec
 	fv.rangeRegex = regexp.MustCompile("^(.*)\\|(.*)$")
 	return fv
 }
 
-type FloatValidatorBuilder struct {
+type floatValidationRuleBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 	rangeRegex       *regexp.Regexp
 }
 
-func (vb *FloatValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
+func (vb *floatValidationRuleBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := determineDefaultErrorCode(FloatRuleCode, rule, vb.defaultErrorCode)
-	bv := NewFloatValidator(field, defaultErrorcode)
+	defaultErrorcode := determineDefaultErrorCode(floatRuleCode, rule, vb.defaultErrorCode)
+	bv := NewFloatValidationRule(field, defaultErrorcode)
 
 	for _, v := range rule {
 
 		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if isTypeIndicator(FloatRuleCode, opCode) {
+		if isTypeIndicator(floatRuleCode, opCode) {
 			continue
 		}
 
-		op, err := bv.Operation(opCode)
+		op, err := bv.operation(opCode)
 
 		if err != nil {
 			return nil, err
 		}
 
 		switch op {
-		case FloatOpRequired:
+		case floatOpRequired:
 			err = vb.markRequired(field, ops, bv)
-		case FloatOpIn:
+		case floatOpIn:
 			err = vb.addFloatInOperation(field, ops, bv)
-		case FloatOpStopAll:
+		case floatOpStopAll:
 			bv.StopAll()
-		case FloatOpBreak:
+		case floatOpBreak:
 			bv.Break()
-		case FloatOpExt:
+		case floatOpExt:
 			err = vb.addFloatExternalOperation(field, ops, bv)
-		case FloatOpRange:
+		case floatOpRange:
 			err = vb.addFloatRangeOperation(field, ops, bv)
-		case FloatOpMex:
+		case floatOpMex:
 			err = vb.captureExclusiveFields(field, ops, bv)
 		}
 
@@ -443,7 +465,7 @@ func (vb *FloatValidatorBuilder) parseRule(field string, rule []string) (Validat
 
 }
 
-func (vb *FloatValidatorBuilder) captureExclusiveFields(field string, ops []string, fv *FloatValidator) error {
+func (vb *floatValidationRuleBuilder) captureExclusiveFields(field string, ops []string, fv *FloatValidationRule) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -459,7 +481,7 @@ func (vb *FloatValidatorBuilder) captureExclusiveFields(field string, ops []stri
 
 }
 
-func (vb *FloatValidatorBuilder) markRequired(field string, ops []string, fv *FloatValidator) error {
+func (vb *floatValidationRuleBuilder) markRequired(field string, ops []string, fv *FloatValidationRule) error {
 
 	pCount, err := paramCount(ops, "Required", field, 1, 2)
 
@@ -476,7 +498,7 @@ func (vb *FloatValidatorBuilder) markRequired(field string, ops []string, fv *Fl
 	return nil
 }
 
-func (vb *FloatValidatorBuilder) addFloatRangeOperation(field string, ops []string, fv *FloatValidator) error {
+func (vb *floatValidationRuleBuilder) addFloatRangeOperation(field string, ops []string, fv *FloatValidationRule) error {
 
 	pCount, err := paramCount(ops, "Range", field, 2, 3)
 
@@ -535,7 +557,7 @@ func (vb *FloatValidatorBuilder) addFloatRangeOperation(field string, ops []stri
 	return nil
 }
 
-func (vb *FloatValidatorBuilder) addFloatExternalOperation(field string, ops []string, fv *FloatValidator) error {
+func (vb *floatValidationRuleBuilder) addFloatExternalOperation(field string, ops []string, fv *FloatValidationRule) error {
 
 	pCount, i, err := validateExternalOperation(vb.componentFinder, field, ops)
 
@@ -560,7 +582,7 @@ func (vb *FloatValidatorBuilder) addFloatExternalOperation(field string, ops []s
 
 }
 
-func (vb *FloatValidatorBuilder) addFloatInOperation(field string, ops []string, sv *FloatValidator) error {
+func (vb *floatValidationRuleBuilder) addFloatInOperation(field string, ops []string, sv *FloatValidationRule) error {
 
 	pCount, err := paramCount(ops, "In Set", field, 2, 3)
 

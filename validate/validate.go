@@ -323,7 +323,7 @@ type RuleValidator struct {
 	objectValidatorBuilder *ObjectValidatorBuilder
 	boolValidatorBuilder   *boolValidationRuleBuilder
 	intValidatorBuilder    *IntValidatorBuilder
-	floatValidatorBuilder  *FloatValidatorBuilder
+	floatValidatorBuilder  *floatValidationRuleBuilder
 	sliceValidatorBuilder  *SliceValidatorBuilder
 	validatorChain         []*validatorLink
 	componentName          string
@@ -502,7 +502,7 @@ func (ov *RuleValidator) StartComponent() error {
 	ov.validatorChain = make([]*validatorLink, 0)
 
 	ov.intValidatorBuilder = NewIntValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
-	ov.floatValidatorBuilder = NewFloatValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
+	ov.floatValidatorBuilder = newFloatValidationRuleBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 
 	ov.sliceValidatorBuilder = NewSliceValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder, ov)
 
@@ -656,7 +656,7 @@ func (ov *RuleValidator) extractType(field string, rule []string) (validationRul
 			return boolRuleType, nil
 		case IntRuleCode:
 			return intRuleType, nil
-		case FloatRuleCode:
+		case floatRuleCode:
 			return floatRuleType, nil
 		case SliceRuleCode:
 			return sliceRuleType, nil

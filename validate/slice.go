@@ -167,8 +167,8 @@ func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value
 			stringElement = true
 		case *IntValidator:
 			vc.Subject, err = tv.ToInt64(fa, e.Interface())
-		case *FloatValidator:
-			vc.Subject, err = tv.ToFloat64(fa, e.Interface())
+		case *FloatValidationRule:
+			vc.Subject, err = tv.toFloat64(fa, e.Interface())
 		case *BoolValidationRule:
 			vc.Subject, err = bv.boolValue(e, fa)
 		}
@@ -464,11 +464,11 @@ func (vb *SliceValidatorBuilder) addElementValidationOperation(field string, ops
 	}
 
 	switch v.(type) {
-	case *StringValidator, *BoolValidationRule, *IntValidator, *FloatValidator:
+	case *StringValidator, *BoolValidationRule, *IntValidator, *FloatValidationRule:
 		break
 	default:
 		m := fmt.Sprintf("Only %s, %s, %s and %s rules may be used to validate slice elements. Field %s is trying to use %s",
-			IntRuleCode, FloatRuleCode, boolRuleCode, StringRuleCode, field, rule[0])
+			IntRuleCode, floatRuleCode, boolRuleCode, StringRuleCode, field, rule[0])
 		return errors.New(m)
 	}
 

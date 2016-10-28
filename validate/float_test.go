@@ -11,7 +11,7 @@ import (
 
 func TestFloatTypeSupportDetection(t *testing.T) {
 
-	fv := NewFloatValidatorBuilder("DEF", nil)
+	fv := newFloatValidationRuleBuilder("DEF", nil)
 
 	sub := new(FloatsTarget)
 
@@ -35,7 +35,7 @@ func TestFloatTypeSupportDetection(t *testing.T) {
 	test.ExpectNotNil(t, err)
 }
 
-func checkFloatTypeSupport(t *testing.T, it string, vc *ValidationContext, fvb *FloatValidatorBuilder) {
+func checkFloatTypeSupport(t *testing.T, it string, vc *ValidationContext, fvb *floatValidationRuleBuilder) {
 	bv, err := fvb.parseRule(it, []string{"REQ:MISSING"})
 	test.ExpectNil(t, err)
 
@@ -50,7 +50,7 @@ func TestFloatInSet(t *testing.T) {
 
 	field := "F64"
 
-	iv := NewFloatValidatorBuilder("DEF", nil)
+	iv := newFloatValidationRuleBuilder("DEF", nil)
 
 	sub := new(FloatsTarget)
 
@@ -86,7 +86,7 @@ func TestFloatBreakOnError(t *testing.T) {
 
 	field := "F64"
 
-	iv := NewFloatValidatorBuilder("DEF", new(CompFinder))
+	iv := newFloatValidationRuleBuilder("DEF", new(CompFinder))
 
 	sub := new(FloatsTarget)
 
@@ -120,7 +120,7 @@ func TestFloatRange(t *testing.T) {
 
 	field := "F32"
 
-	iv := NewFloatValidatorBuilder("DEF", nil)
+	iv := newFloatValidationRuleBuilder("DEF", nil)
 
 	sub := new(FloatsTarget)
 
@@ -233,7 +233,7 @@ func TestFloatRange(t *testing.T) {
 
 func TestFloatRequiredAndSetDetection(t *testing.T) {
 
-	iv := NewFloatValidatorBuilder("DEF", nil)
+	iv := newFloatValidationRuleBuilder("DEF", nil)
 
 	sub := new(FloatsTarget)
 
@@ -295,7 +295,7 @@ func TestFloatRequiredAndSetDetection(t *testing.T) {
 }
 
 func TestFloatExternal(t *testing.T) {
-	fvb := NewFloatValidatorBuilder("DEF", new(CompFinder))
+	fvb := newFloatValidationRuleBuilder("DEF", new(CompFinder))
 
 	field := "F32"
 
@@ -334,7 +334,7 @@ func TestFloatExternal(t *testing.T) {
 }
 
 func TestFloatMExFieldDetection(t *testing.T) {
-	vb := NewFloatValidatorBuilder("DEF", nil)
+	vb := newFloatValidationRuleBuilder("DEF", nil)
 
 	field := "F32"
 
