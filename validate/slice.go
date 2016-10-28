@@ -63,7 +63,7 @@ type sliceOperation struct {
 	OpType        sliceValidationOperation
 	ErrCode       string
 	MExFields     types.StringSet
-	elemValidator Validator
+	elemValidator ValidationRule
 }
 
 func (bv *SliceValidator) IsSet(field string, subject interface{}) (bool, error) {
@@ -141,7 +141,7 @@ func (sv *SliceValidator) runOperations(field string, v reflect.Value, vc *Valid
 
 }
 
-func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value, v Validator, r *ValidationResult, pvc *ValidationContext) error {
+func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value, v ValidationRule, r *ValidationResult, pvc *ValidationContext) error {
 
 	stringElement := false
 	nilable := false
@@ -321,7 +321,7 @@ func (bv *SliceValidator) MEx(fields types.StringSet, code ...string) *SliceVali
 	return bv
 }
 
-func (bv *SliceValidator) Elem(v Validator, code ...string) *SliceValidator {
+func (bv *SliceValidator) Elem(v ValidationRule, code ...string) *SliceValidator {
 	op := new(sliceOperation)
 	op.ErrCode = bv.chooseErrorCode(code)
 	op.OpType = SliceOpElem
@@ -398,7 +398,7 @@ type SliceValidatorBuilder struct {
 	ruleValidator    *RuleValidator
 }
 
-func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
+func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(SliceRuleCode, rule, vb.defaultErrorCode)
 	bv := NewSliceValidator(field, defaultErrorcode)

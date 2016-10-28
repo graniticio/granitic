@@ -1,6 +1,3 @@
-/*
-Package validate provides a declarative, rules-based validation framework for validating user-supplied data.
-*/
 package validate
 
 import (
@@ -274,7 +271,7 @@ type BoolValidatorBuilder struct {
 	componentFinder  ioc.ComponentByNameFinder
 }
 
-func (vb *BoolValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
+func (vb *BoolValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(BoolRuleCode, rule, vb.defaultErrorCode)
 	bv := NewBoolValidator(field, defaultErrorcode)

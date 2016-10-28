@@ -221,7 +221,7 @@ type ObjectValidatorBuilder struct {
 	componentFinder  ioc.ComponentByNameFinder
 }
 
-func (vb *ObjectValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
+func (vb *ObjectValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(ObjectRuleCode, rule, vb.defaultErrorCode)
 	ov := NewObjectValidator(field, defaultErrorcode)

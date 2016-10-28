@@ -1,3 +1,130 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
+/*
+	Package validate provides a declarative, rules-based validation framework for validating user-supplied data.
+
+	The types in this package are designed to be used in conjunction with the handler.WsHandler type which your application
+	will use to represent web service endpoints (see the package documentation for ws, ws/handler and http://granitic.io/1.0/ref/web-service-handlers )
+
+	The purpose of Granitic's validation framework is to automate as much of the 'boiler-plate' validation from validated the data
+	supplied with the a web service call. Simple checks for ensuring a field is present, well-formed and within an allowed range
+	can clutter application code.
+
+	Granitic's validation framework and patterns are covered in detail at http://granitic.io/1.0/ref/validation but a brief overview of
+	the key types and concepts follows.
+
+	RuleValidator
+
+	Each instance of handler.WsHandler in your application has an optional field
+
+			RuleValidator *validate.RuleValidator
+
+	If an AutoValidator is provided, its Validate method will be invoked before your handler's Logic.Process method is called. If errors
+	are detected by the RuleValidator, processing stops and an error response will be served to the web service caller.
+
+	A RuleValidator is declared in your component definition file in manner similar to:
+
+		{
+		  "createRecordHandler": {
+		    "type": "handler.WsHandler",
+		    "HTTPMethod": "POST",
+		    "Logic": "ref:createRecordLogic",
+		    "PathPattern": "^/record$",
+		    "AutoValidator": "ref:createRecordValidator"
+		  },
+
+		  "createRecordValidator": {
+		    "type": "validate.RuleValidator",
+		    "DefaultErrorCode": "CREATE_RECORD",
+		    "Rules": "conf:createRecordRules"
+		  }
+		}
+
+	Each RuleValidator requires a set of rules, which must be defined in your application's configuration file like:
+
+		{
+		  "createRecordRules": [
+		    ["CatalogRef",  "STR",               "REQ:CATALOG_REF_MISSING", "HARDTRIM",        "BREAK",     "REG:^[A-Z]{3}-[\\d]{6}$:CATALOG_REF"],
+		    ["Name",        "STR:RECORD_NAME",   "REQ",                     "HARDTRIM",        "LEN:1-128"],
+		    ["Artist",      "STR:ARTIST_NAME",   "REQ",                     "HARDTRIM",        "LEN:1-64"],
+		    ["Tracks",      "SLICE:TRACK_COUNT", "LEN:1-100",               "ELEM:trackName"]
+		  ]
+		}
+
+	(The spacing in the example above is to illustrate the components of a rule and has no effect on behaviour.)
+
+	Rule structure
+
+	Rules consist of three components: a field name, type and one or more operations.
+
+	The field name is a field in the WsRequest.Body object that is to be validated.
+
+	The type is a shorthand for the the type of the field to be validated (see http://granitic.io/1.0/ref/validation#types)
+
+	The operations are either checks that should be performed against the field (length checks, regexs etc), processing
+	instructions (break processing if the previous check failed) or manipulations of the data to be validated (trim a string, etc). See
+	http://granitic.io/1.0/ref/validation#operations for more detail.
+
+	For checks and processing instructions, the order in which they appear in the rule is significant as checks are made from left to right.
+
+	Error codes
+
+	Error codes determine what error is sent to a web service caller if a check fails. Error codes can be defined in three
+	levels of granularity - on an operation, on a rule or on a RuleValidator. The most specific error available is always used.
+
+	Using the validation framework requires the ServiceErrorManager facility to be enabled (see http://granitic.io/1.0/ref/service-errors)
+
+	Sharing rules
+
+	Sometimes it is useful for a rule to be defined once and re-used by multiple RuleValidators. This is also required
+	to use some advanced techniques for deep validation of the elements of a slice. This technique is described in detail at
+	http://granitic.io/1.0/ref/validation rule manager.
+
+	Decomposing the application of a rule
+
+	The first rule in the example above is:
+
+		["CatalogRef",  "STR",  "REQ:CATALOG_REF_MISSING",  "HARDTRIM", "BREAK", "REG:^[A-Z]{3}-[\\d]{6}$:CATALOG_REF"]
+
+	It is a very typical example of a string validation rule and breaks down as follows.
+
+	1. The field CatalogRef on the web service's WsRequest.Body will be validated.
+
+	2. The field will be treated as a string. Note, no error code is defined with the type so the RuleValidator's DefaultErrorCode will be used.
+
+	3. The field is REQuired. If the field is not set, the error CATALOG_REF_MISSING will be included in the eventual response to the web service call.
+
+	4. The field will be HARDTRIMmed - the actual value of CatalogRef will be permanently modified to remove leading and trailing spaces before
+	further validation checks are applied (an alternative TRIM will mean validation occurs on a trimmed copy of the string, but the underlying data
+	is not permanently modified.
+
+	5. If previous checks, in this case the REQ check, failed, processing will BREAK and the next validation rule will be processed. The alternative
+	STOPALL would terminate all validation and no further rules will be processed.
+
+	6. The value of CatalogRef is compared to the regex ^[A-Z]{3}-[\\d]{6}$ If there is no match, the error CATALOG_REF will be included
+	in the eventual response to the web service call.
+
+	Advanced techniques
+
+	The Granitic validation framework is deep and flexible and you are encouraged to read the reference at http://granitic.io/1.0/ref/validation
+	Advanced techniques include cross field mutual exclusivity, deep validation of slice elements and cross-field dependencies.
+
+	Programmatic creation of rules
+
+	It is possible to define rules in your application code. Each type of rule supports a fluent-style interface to make application code more readable in this case. The rule
+	above could be expressed as
+
+		sv := NewStringValidator("CatalogRef", "CREATE_RECORD").
+			Required("CATALOG_REF_MISSING").
+			HardTrim().
+			Break().
+			Regex("^[A-Z]{3}-[\\d]{6}$", "CATALOG_REF")
+
+
+
+
+*/
 package validate
 
 import (
@@ -12,24 +139,24 @@ import (
 	"strings"
 )
 
-type ValidationRuleType uint
+type validationRuleType uint
 
-type parseAndBuild func(string, []string) (Validator, error)
+type parseAndBuild func(string, []string) (ValidationRule, error)
 
 const (
-	UnknownRuleType = iota
-	StringRule
-	ObjectRule
-	IntRule
-	BoolRule
-	FloatRule
-	SliceRule
+	unknownRuleType = iota
+	stringRuleType
+	objectRuleType
+	intRuleType
+	boolRuleType
+	floatRuleType
+	sliceRuleType
 )
 
 const commandSep = ":"
 const escapedCommandSep = "::"
 const escapedCommandReplace = "||ESC||"
-const RuleRefCode = "RULE"
+const ruleRefCode = "RULE"
 
 const commonOpRequired = "REQ"
 const commonOpStopAll = "STOPALL"
@@ -41,22 +168,40 @@ const commonOpLen = "LEN"
 
 const lengthPattern = "^(\\d*)-(\\d*)$"
 
+// Wrapper for an object (the subject) to be validated
 type SubjectContext struct {
+	//An instance of a object to be validated.
 	Subject interface{}
 }
 
+// Wrapper for, and meta-data about, a field on an object to be validated.
 type ValidationContext struct {
-	Subject        interface{}
+	// The object containing the field to be validated OR (if DirectSubject is true) the value to be validated.
+	Subject interface{}
+
+	// Other fields on the object that are known to have been set (for mutual exclusivity/dependency checking)
 	KnownSetFields types.StringSet
-	OverrideField  string
-	DirectSubject  bool
+
+	// Use this field name, rather than the one associated with the rule that this context will be passed to.
+	OverrideField string
+
+	//Indicate that the Subject in this context IS the value to be validated, rather than the container of a field.
+	DirectSubject bool
 }
 
+// The result of applying a rule to a field on an object.
 type ValidationResult struct {
+	// A map of field names to the errors encountered on this field. In the case of non-slice types, there will
+	// be only one entry in the map. For slices, there will be an entry for every index into the slice where problems
+	// were found.
 	ErrorCodes map[string][]string
-	Unset      bool
+
+	// If the field that was to be validated was 'unset' (definition varies by type)
+	Unset bool
 }
 
+// AddForField captures the name of a field or slice index and the codes of all errors found for that field/index or
+// if the field/index previously had errors records, adds these new errors.
 func (vr *ValidationResult) AddForField(field string, codes []string) {
 
 	if codes == nil || len(codes) == 0 {
@@ -72,6 +217,7 @@ func (vr *ValidationResult) AddForField(field string, codes []string) {
 	}
 }
 
+// The total number of errors recorded in this result (NOT the number of unique error codes encountered).
 func (vr *ValidationResult) ErrorCount() int {
 	c := 0
 
@@ -84,6 +230,7 @@ func (vr *ValidationResult) ErrorCount() int {
 	return c
 }
 
+// NewValidationResult creates an empty ValidationResult ready to record errors.
 func NewValidationResult() *ValidationResult {
 	vr := new(ValidationResult)
 	vr.ErrorCodes = make(map[string][]string)
@@ -91,6 +238,7 @@ func NewValidationResult() *ValidationResult {
 	return vr
 }
 
+// NewPopulatedValidationResult with the supplied errors recorded against the supplied field name
 func NewPopulatedValidationResult(field string, codes []string) *ValidationResult {
 	vr := NewValidationResult()
 	vr.AddForField(field, codes)
@@ -98,32 +246,48 @@ func NewPopulatedValidationResult(field string, codes []string) *ValidationResul
 	return vr
 }
 
-type Validator interface {
+// A validation rule associated with a named field on an object able to be applied in a generic fashion. Implementations exist for each type (bool, string etc)
+// supported by the validation framework.
+type ValidationRule interface {
+	// Check the subject provided in the supplied context and return any found errors.
 	Validate(vc *ValidationContext) (result *ValidationResult, unexpected error)
+
+	// Tell the coordinating object that no other rules should be procesed if errors are found by this rule.
 	StopAllOnFail() bool
+
+	// Summarise all of the unique error codes referenced by checks in this rule.
 	CodesInUse() types.StringSet
+
+	// Declare other fields that must be set in order for this field to be valid.
 	DependsOnFields() types.StringSet
+
+	// Check whether or not the supplied object is 'set' according to this rule's definition of set.
 	IsSet(string, interface{}) (bool, error)
 }
 
 type validatorLink struct {
-	validator Validator
-	field     string
+	validationRule ValidationRule
+	field          string
 }
 
+// A container for rules that are shared between multiple RuleValidator instances. The rules
+// are stored in their raw and unparsed JSON representation.
 type UnparsedRuleManager struct {
+	// A map between a name for a rule and the rule's unparsed definition.
 	Rules map[string][]string
 }
 
+// Exists returns true if a rule with the supplied name exists.
 func (rm *UnparsedRuleManager) Exists(ref string) bool {
 	return rm.Rules[ref] != nil
 }
 
+// Rule returns the unparsed representation of the rule with the supplied name.
 func (rm *UnparsedRuleManager) Rule(ref string) []string {
 	return rm.Rules[ref]
 }
 
-type FieldErrors struct {
+type fieldErrors struct {
 	Field      string
 	ErrorCodes []string
 }
@@ -168,18 +332,18 @@ func (ov *RuleValidator) ErrorCodesInUse() (codes types.StringSet, sourceName st
 	return ov.codesInUse, ov.componentName
 }
 
-func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) ([]*FieldErrors, error) {
+func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) ([]*fieldErrors, error) {
 
 	log := ov.Log
 
-	fieldErrors := make([]*FieldErrors, 0)
+	fes := make([]*fieldErrors, 0)
 	fieldsWithProblems := types.NewOrderedStringSet([]string{})
 	unsetFields := types.NewOrderedStringSet([]string{})
 	setFields := types.NewOrderedStringSet([]string{})
 
 	for _, vl := range ov.validatorChain {
 		f := vl.field
-		v := vl.validator
+		v := vl.validationRule
 		log.LogDebugf("Checking field %s set", f)
 
 		if !ov.parentsOkay(v, fieldsWithProblems, unsetFields) {
@@ -211,14 +375,14 @@ func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) 
 		vc.Subject = subject.Subject
 		vc.KnownSetFields = setFields
 
-		v := vl.validator
+		v := vl.validationRule
 
 		if !ov.parentsOkay(v, fieldsWithProblems, unsetFields) {
 			log.LogDebugf("Skipping field %s as one or more parent objects invalid", f)
 			continue
 		}
 
-		r, err := vl.validator.Validate(vc)
+		r, err := vl.validationRule.Validate(vc)
 
 		if err != nil {
 			return nil, err
@@ -240,13 +404,13 @@ func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) 
 				fieldsWithProblems.Add(k)
 				log.LogDebugf("%s has %d errors", k, l)
 
-				fe := new(FieldErrors)
+				fe := new(fieldErrors)
 				fe.Field = k
 				fe.ErrorCodes = v
 
-				fieldErrors = append(fieldErrors, fe)
+				fes = append(fes, fe)
 
-				if vl.validator.StopAllOnFail() {
+				if vl.validationRule.StopAllOnFail() {
 					log.LogDebugf("Sopping all after problem found with %s", f)
 					break
 				}
@@ -256,11 +420,11 @@ func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) 
 
 	}
 
-	return fieldErrors, nil
+	return fes, nil
 
 }
 
-func (ov *RuleValidator) parentsOkay(v Validator, fieldsWithProblems types.StringSet, unsetFields types.StringSet) bool {
+func (ov *RuleValidator) parentsOkay(v ValidationRule, fieldsWithProblems types.StringSet, unsetFields types.StringSet) bool {
 
 	log := ov.Log
 
@@ -363,11 +527,11 @@ func (ov *RuleValidator) parseRules() error {
 	return err
 }
 
-func (ov *RuleValidator) addValidator(field string, v Validator) {
+func (ov *RuleValidator) addValidator(field string, v ValidationRule) {
 
 	vl := new(validatorLink)
 	vl.field = field
-	vl.validator = v
+	vl.validationRule = v
 
 	ov.validatorChain = append(ov.validatorChain, vl)
 
@@ -383,7 +547,7 @@ func (ov *RuleValidator) isRuleRef(op string) bool {
 
 	s := strings.SplitN(op, commandSep, -1)
 
-	return len(s) == 2 && s[0] == RuleRefCode
+	return len(s) == 2 && s[0] == ruleRefCode
 
 }
 
@@ -407,7 +571,7 @@ func (ov *RuleValidator) findRule(field, op string) ([]string, error) {
 	return rf.Rule(ref), nil
 }
 
-func (ov *RuleValidator) parseRule(field string, rule []string) (Validator, error) {
+func (ov *RuleValidator) parseRule(field string, rule []string) (ValidationRule, error) {
 
 	rt, err := ov.extractType(field, rule)
 
@@ -415,20 +579,20 @@ func (ov *RuleValidator) parseRule(field string, rule []string) (Validator, erro
 		return nil, err
 	}
 
-	var v Validator
+	var v ValidationRule
 
 	switch rt {
-	case StringRule:
+	case stringRuleType:
 		v, err = ov.parse(field, rule, ov.stringBuilder.parseRule)
-	case ObjectRule:
+	case objectRuleType:
 		v, err = ov.parse(field, rule, ov.objectValidatorBuilder.parseRule)
-	case BoolRule:
+	case boolRuleType:
 		v, err = ov.parse(field, rule, ov.boolValidatorBuilder.parseRule)
-	case IntRule:
+	case intRuleType:
 		v, err = ov.parse(field, rule, ov.intValidatorBuilder.parseRule)
-	case FloatRule:
+	case floatRuleType:
 		v, err = ov.parse(field, rule, ov.floatValidatorBuilder.parseRule)
-	case SliceRule:
+	case sliceRuleType:
 		v, err = ov.parse(field, rule, ov.sliceValidatorBuilder.parseRule)
 
 	default:
@@ -440,7 +604,7 @@ func (ov *RuleValidator) parseRule(field string, rule []string) (Validator, erro
 
 }
 
-func (ov *RuleValidator) parse(field string, rule []string, pf parseAndBuild) (Validator, error) {
+func (ov *RuleValidator) parse(field string, rule []string, pf parseAndBuild) (ValidationRule, error) {
 	v, err := pf(field, rule)
 
 	if err != nil {
@@ -450,7 +614,7 @@ func (ov *RuleValidator) parse(field string, rule []string, pf parseAndBuild) (V
 	}
 }
 
-func (ov *RuleValidator) extractType(field string, rule []string) (ValidationRuleType, error) {
+func (ov *RuleValidator) extractType(field string, rule []string) (validationRuleType, error) {
 
 	for _, v := range rule {
 
@@ -458,23 +622,23 @@ func (ov *RuleValidator) extractType(field string, rule []string) (ValidationRul
 
 		switch f[0] {
 		case StringRuleCode:
-			return StringRule, nil
+			return stringRuleType, nil
 		case ObjectRuleCode:
-			return ObjectRule, nil
+			return objectRuleType, nil
 		case BoolRuleCode:
-			return BoolRule, nil
+			return boolRuleType, nil
 		case IntRuleCode:
-			return IntRule, nil
+			return intRuleType, nil
 		case FloatRuleCode:
-			return FloatRule, nil
+			return floatRuleType, nil
 		case SliceRuleCode:
-			return SliceRule, nil
+			return sliceRuleType, nil
 		}
 	}
 
 	m := fmt.Sprintf("Unable to determine the type of rule from the rule definition for field %s: %v", field, rule)
 
-	return UnknownRuleType, errors.New(m)
+	return unknownRuleType, errors.New(m)
 }
 
 func IsTypeIndicator(vType, op string) bool {

@@ -400,7 +400,7 @@ type IntValidatorBuilder struct {
 	rangeRegex       *regexp.Regexp
 }
 
-func (vb *IntValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
+func (vb *IntValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(IntRuleCode, rule, vb.defaultErrorCode)
 	bv := NewIntValidator(field, defaultErrorcode)

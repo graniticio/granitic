@@ -395,7 +395,7 @@ type FloatValidatorBuilder struct {
 	rangeRegex       *regexp.Regexp
 }
 
-func (vb *FloatValidatorBuilder) parseRule(field string, rule []string) (Validator, error) {
+func (vb *FloatValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
 	defaultErrorcode := DetermineDefaultErrorCode(FloatRuleCode, rule, vb.defaultErrorCode)
 	bv := NewFloatValidator(field, defaultErrorcode)
