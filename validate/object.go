@@ -223,15 +223,15 @@ type ObjectValidatorBuilder struct {
 
 func (vb *ObjectValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := DetermineDefaultErrorCode(ObjectRuleCode, rule, vb.defaultErrorCode)
+	defaultErrorcode := determineDefaultErrorCode(ObjectRuleCode, rule, vb.defaultErrorCode)
 	ov := NewObjectValidator(field, defaultErrorcode)
 
 	for _, v := range rule {
 
-		ops := DecomposeOperation(v)
+		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if IsTypeIndicator(ObjectRuleCode, opCode) {
+		if isTypeIndicator(ObjectRuleCode, opCode) {
 			continue
 		}
 

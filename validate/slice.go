@@ -400,15 +400,15 @@ type SliceValidatorBuilder struct {
 
 func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := DetermineDefaultErrorCode(SliceRuleCode, rule, vb.defaultErrorCode)
+	defaultErrorcode := determineDefaultErrorCode(SliceRuleCode, rule, vb.defaultErrorCode)
 	bv := NewSliceValidator(field, defaultErrorcode)
 
 	for _, v := range rule {
 
-		ops := DecomposeOperation(v)
+		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if IsTypeIndicator(SliceRuleCode, opCode) {
+		if isTypeIndicator(SliceRuleCode, opCode) {
 			continue
 		}
 

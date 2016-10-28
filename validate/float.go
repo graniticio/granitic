@@ -397,15 +397,15 @@ type FloatValidatorBuilder struct {
 
 func (vb *FloatValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := DetermineDefaultErrorCode(FloatRuleCode, rule, vb.defaultErrorCode)
+	defaultErrorcode := determineDefaultErrorCode(FloatRuleCode, rule, vb.defaultErrorCode)
 	bv := NewFloatValidator(field, defaultErrorcode)
 
 	for _, v := range rule {
 
-		ops := DecomposeOperation(v)
+		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if IsTypeIndicator(FloatRuleCode, opCode) {
+		if isTypeIndicator(FloatRuleCode, opCode) {
 			continue
 		}
 

@@ -287,56 +287,82 @@ func (rm *UnparsedRuleManager) Rule(ref string) []string {
 	return rm.Rules[ref]
 }
 
-type fieldErrors struct {
-	Field      string
+//Summary of all the errors found while validating an object
+type FieldErrors struct {
+
+	// The name of a field, or field[x] where x is a slice index if the field's type was slice
+	Field string
+
+	// The errors found on that field.
 	ErrorCodes []string
 }
 
+// Coordinates the parsing and application of rules to validate a specific object. Normally
+// an instance of this type is unique to an instance of ws.WsHandler.
 type RuleValidator struct {
+	// A component able to look up ioc components by their name (normally the container itself)
+	ComponentFinder ioc.ComponentByNameFinder
+
+	// The error code used to lookup error definitions if no error code is defined on a rule or rule operation.
+	DefaultErrorCode string
+
+	// Do not check to see if there are error definitions for all of the error codes referenced by the RuleValidator and its rules.
+	DisableCodeValidation bool
+
+	//Inject by the Granitic framework (an application Logger, not a framework Logger).
+	Log logging.Logger
+
+	//A source for rules that are shared across multiple RuleValidators
+	RuleManager *UnparsedRuleManager
+
+	//The text representation of rules in the order in which they should be applied.
+	Rules [][]string
+
 	jsonConfig             interface{}
-	RuleManager            *UnparsedRuleManager
 	stringBuilder          *StringValidatorBuilder
 	objectValidatorBuilder *ObjectValidatorBuilder
 	boolValidatorBuilder   *BoolValidatorBuilder
 	intValidatorBuilder    *IntValidatorBuilder
 	floatValidatorBuilder  *FloatValidatorBuilder
 	sliceValidatorBuilder  *SliceValidatorBuilder
-	DefaultErrorCode       string
-	Rules                  [][]string
-	ComponentFinder        ioc.ComponentByNameFinder
 	validatorChain         []*validatorLink
 	componentName          string
 	codesInUse             types.StringSet
-	Log                    logging.Logger
-	DisableCodeValidation  bool
 	state                  ioc.ComponentState
 }
 
+// ValidateMissing returns true if all error codes reference by this RuleValidator must have corresponding definitions
 func (ov *RuleValidator) ValidateMissing() bool {
 	return !ov.DisableCodeValidation
 }
 
+// Container accepts a reference to the IoC container.
 func (ov *RuleValidator) Container(container *ioc.ComponentContainer) {
 	ov.ComponentFinder = container
 }
 
+// See ComponentNamer.ComponentName
 func (ov *RuleValidator) ComponentName() string {
 	return ov.componentName
 }
 
+// See ComponentNamer.SetComponentName
 func (ov *RuleValidator) SetComponentName(name string) {
 	ov.componentName = name
 }
 
+// ErrorCodesInUse returns all of the unique error codes used by this validator, its rules and their operations.
 func (ov *RuleValidator) ErrorCodesInUse() (codes types.StringSet, sourceName string) {
 	return ov.codesInUse, ov.componentName
 }
 
-func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) ([]*fieldErrors, error) {
+// Validate the object in the supplied  subject according to the rules defined on this RuleValidator. Returns
+// a summary of any problems found.
+func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) ([]*FieldErrors, error) {
 
 	log := ov.Log
 
-	fes := make([]*fieldErrors, 0)
+	fes := make([]*FieldErrors, 0)
 	fieldsWithProblems := types.NewOrderedStringSet([]string{})
 	unsetFields := types.NewOrderedStringSet([]string{})
 	setFields := types.NewOrderedStringSet([]string{})
@@ -404,7 +430,7 @@ func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) 
 				fieldsWithProblems.Add(k)
 				log.LogDebugf("%s has %d errors", k, l)
 
-				fe := new(fieldErrors)
+				fe := new(FieldErrors)
 				fe.Field = k
 				fe.ErrorCodes = v
 
@@ -449,6 +475,7 @@ func (ov *RuleValidator) parentsOkay(v ValidationRule, fieldsWithProblems types.
 	return true
 }
 
+// Called by the IoC container. Parses the rules into ValidationRule objects.
 func (ov *RuleValidator) StartComponent() error {
 
 	if ov.state != ioc.StoppedState {
@@ -618,7 +645,7 @@ func (ov *RuleValidator) extractType(field string, rule []string) (validationRul
 
 	for _, v := range rule {
 
-		f := DecomposeOperation(v)
+		f := decomposeOperation(v)
 
 		switch f[0] {
 		case StringRuleCode:
@@ -641,16 +668,16 @@ func (ov *RuleValidator) extractType(field string, rule []string) (validationRul
 	return unknownRuleType, errors.New(m)
 }
 
-func IsTypeIndicator(vType, op string) bool {
+func isTypeIndicator(vType, op string) bool {
 
-	return DecomposeOperation(op)[0] == vType
+	return decomposeOperation(op)[0] == vType
 
 }
 
-func DetermineDefaultErrorCode(vt string, rule []string, defaultCode string) string {
+func determineDefaultErrorCode(vt string, rule []string, defaultCode string) string {
 	for _, v := range rule {
 
-		f := DecomposeOperation(v)
+		f := decomposeOperation(v)
 
 		if f[0] == vt {
 			if len(f) > 1 {
@@ -664,7 +691,7 @@ func DetermineDefaultErrorCode(vt string, rule []string, defaultCode string) str
 	return defaultCode
 }
 
-func DecomposeOperation(r string) []string {
+func decomposeOperation(r string) []string {
 
 	removeEscaped := strings.Replace(r, escapedCommandSep, escapedCommandReplace, -1)
 	split := strings.SplitN(removeEscaped, commandSep, -1)

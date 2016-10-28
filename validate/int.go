@@ -402,15 +402,15 @@ type IntValidatorBuilder struct {
 
 func (vb *IntValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := DetermineDefaultErrorCode(IntRuleCode, rule, vb.defaultErrorCode)
+	defaultErrorcode := determineDefaultErrorCode(IntRuleCode, rule, vb.defaultErrorCode)
 	bv := NewIntValidator(field, defaultErrorcode)
 
 	for _, v := range rule {
 
-		ops := DecomposeOperation(v)
+		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if IsTypeIndicator(IntRuleCode, opCode) {
+		if isTypeIndicator(IntRuleCode, opCode) {
 			continue
 		}
 

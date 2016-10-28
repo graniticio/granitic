@@ -479,15 +479,15 @@ type StringValidatorBuilder struct {
 
 func (vb *StringValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := DetermineDefaultErrorCode(StringRuleCode, rule, vb.defaultErrorCode)
+	defaultErrorcode := determineDefaultErrorCode(StringRuleCode, rule, vb.defaultErrorCode)
 	sv := NewStringValidator(field, defaultErrorcode)
 
 	for _, v := range rule {
 
-		ops := DecomposeOperation(v)
+		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if IsTypeIndicator(StringRuleCode, opCode) {
+		if isTypeIndicator(StringRuleCode, opCode) {
 			continue
 		}
 

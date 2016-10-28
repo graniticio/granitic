@@ -273,15 +273,15 @@ type BoolValidatorBuilder struct {
 
 func (vb *BoolValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := DetermineDefaultErrorCode(BoolRuleCode, rule, vb.defaultErrorCode)
+	defaultErrorcode := determineDefaultErrorCode(BoolRuleCode, rule, vb.defaultErrorCode)
 	bv := NewBoolValidator(field, defaultErrorcode)
 
 	for _, v := range rule {
 
-		ops := DecomposeOperation(v)
+		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if IsTypeIndicator(BoolRuleCode, opCode) {
+		if isTypeIndicator(BoolRuleCode, opCode) {
 			continue
 		}
 
