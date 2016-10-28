@@ -59,8 +59,8 @@ func NewFloatValidationRule(field, defaultErrorCode string) *FloatValidationRule
 	return fv
 }
 
-// A ValidationRule for checking float32, float64 or NilableFloat64 fields on an object. See the method definitions on this type for
-// the supported operations. Note that float32 are converted to float64s before validation.
+// A ValidationRule for checking a float32, float64 or NilableFloat64 field on an object. See the method definitions on this type for
+// the supported operations. Note that float32 are converted to float64 before validation.
 type FloatValidationRule struct {
 	stopAll             bool
 	codesInUse          types.StringSet

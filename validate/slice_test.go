@@ -129,7 +129,7 @@ func TestSliceElemValidation(t *testing.T) {
 
 	rv.stringBuilder = NewStringValidatorBuilder("DEFSTR")
 	rv.objectValidatorBuilder = NewObjectValidatorBuilder("DEFOBJ", nil)
-	rv.intValidatorBuilder = NewIntValidatorBuilder("DEFINT", nil)
+	rv.intValidatorBuilder = newIntValidationRuleBuilder("DEFINT", nil)
 	rv.floatValidatorBuilder = newFloatValidationRuleBuilder("DEFFLT", nil)
 	rv.boolValidatorBuilder = newBoolValidationRuleBuilder("DEFBOOL", nil)
 

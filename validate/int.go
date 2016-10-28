@@ -1,3 +1,5 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 package validate
 
 import (
@@ -11,37 +13,40 @@ import (
 	"strings"
 )
 
+// An object able to evaulate the supplied int64 to see if it meets some definition of validity.
 type ExternalInt64Validator interface {
+	// ValidInt64 returns true if the implementation considers the supplied int64 to be valid.
 	ValidInt64(int64) bool
 }
 
-const IntRuleCode = "INT"
+const intRuleCode = "INT"
 
 const (
-	IntOpIsRequiredCode = commonOpRequired
-	IntOpIsStopAllCode  = commonOpStopAll
-	IntOpInCode         = commonOpIn
-	IntOpBreakCode      = commonOpBreak
-	IntOpExtCode        = commonOpExt
-	IntOpRangeCode      = "RANGE"
-	IntOpMExCode        = commonOpMex
+	intOpIsRequiredCode = commonOpRequired
+	intOpIsStopAllCode  = commonOpStopAll
+	intOpInCode         = commonOpIn
+	intOpBreakCode      = commonOpBreak
+	intOpExtCode        = commonOpExt
+	intOpRangeCode      = "RANGE"
+	intOpMExCode        = commonOpMex
 )
 
 type intValidationOperation uint
 
 const (
-	IntOpUnsupported = iota
-	IntOpRequired
-	IntOpStopAll
-	IntOpIn
-	IntOpBreak
-	IntOpExt
-	IntOpRange
-	IntOpMEx
+	intOpUnsupported = iota
+	intOpRequired
+	intOpStopAll
+	intOpIn
+	intOpBreak
+	intOpExt
+	intOpRange
+	untOpMEx
 )
 
-func NewIntValidator(field, defaultErrorCode string) *IntValidator {
-	iv := new(IntValidator)
+// NewIntValidationRule creates a new IntValidationRule to check the named field and the supplied default error code.
+func NewIntValidationRule(field, defaultErrorCode string) *IntValidationRule {
+	iv := new(IntValidationRule)
 	iv.defaultErrorCode = defaultErrorCode
 	iv.field = field
 	iv.codesInUse = types.NewOrderedStringSet([]string{})
@@ -53,7 +58,9 @@ func NewIntValidator(field, defaultErrorCode string) *IntValidator {
 	return iv
 }
 
-type IntValidator struct {
+// A ValidationRule for checking a native signed int type or NilableInt64 field on an object. See the method definitions on this type for
+// the supported operations. Note that any native int types are converted to int64 before validation.
+type IntValidationRule struct {
 	stopAll             bool
 	codesInUse          types.StringSet
 	dependsFields       types.StringSet
@@ -76,7 +83,8 @@ type intOperation struct {
 	MExFields types.StringSet
 }
 
-func (iv *IntValidator) IsSet(field string, subject interface{}) (bool, error) {
+// IsSet returns true if the field to be validated is a native intxx type or a NilableInt64 whose value has been explicitly set.
+func (iv *IntValidationRule) IsSet(field string, subject interface{}) (bool, error) {
 	nf, err := iv.extractValue(field, subject)
 
 	if err != nil {
@@ -90,7 +98,8 @@ func (iv *IntValidator) IsSet(field string, subject interface{}) (bool, error) {
 	}
 }
 
-func (iv *IntValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
+// See ValidationRule.Validate
+func (iv *IntValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := iv.field
 
@@ -139,7 +148,7 @@ func (iv *IntValidator) Validate(vc *ValidationContext) (result *ValidationResul
 	return r, err
 }
 
-func (iv *IntValidator) runOperations(field string, i int64, vc *ValidationContext, r *ValidationResult) error {
+func (iv *IntValidationRule) runOperations(field string, i int64, vc *ValidationContext, r *ValidationResult) error {
 
 	ec := types.NewEmptyOrderedStringSet()
 
@@ -147,26 +156,26 @@ OpLoop:
 	for _, op := range iv.operations {
 
 		switch op.OpType {
-		case IntOpIn:
+		case intOpIn:
 			if !iv.checkIn(i, op) {
 				ec.Add(op.ErrCode)
 			}
 
-		case IntOpBreak:
+		case intOpBreak:
 			if ec.Size() > 0 {
 				break OpLoop
 			}
 
-		case IntOpExt:
+		case intOpExt:
 			if !op.External.ValidInt64(i) {
 				ec.Add(op.ErrCode)
 			}
 
-		case IntOpRange:
+		case intOpRange:
 			if !iv.inRange(i, op) {
 				ec.Add(op.ErrCode)
 			}
-		case IntOpMEx:
+		case untOpMEx:
 			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
 		}
 
@@ -178,7 +187,7 @@ OpLoop:
 
 }
 
-func (iv *IntValidator) inRange(i int64, o *intOperation) bool {
+func (iv *IntValidationRule) inRange(i int64, o *intOperation) bool {
 
 	moreThanMin := true
 	lessThanMax := true
@@ -194,16 +203,17 @@ func (iv *IntValidator) inRange(i int64, o *intOperation) bool {
 	return moreThanMin && lessThanMax
 }
 
-func (iv *IntValidator) checkIn(i int64, o *intOperation) bool {
+func (iv *IntValidationRule) checkIn(i int64, o *intOperation) bool {
 	s := strconv.FormatInt(i, 10)
 
 	return o.InSet.Contains(s)
 }
 
-func (iv *IntValidator) MEx(fields types.StringSet, code ...string) *IntValidator {
+// MEx adds a check to see if any other of the fields with which this field is mutually exclusive have been set.
+func (iv *IntValidationRule) MEx(fields types.StringSet, code ...string) *IntValidationRule {
 	op := new(intOperation)
 	op.ErrCode = iv.chooseErrorCode(code)
-	op.OpType = IntOpMEx
+	op.OpType = untOpMEx
 	op.MExFields = fields
 
 	iv.addOperation(op)
@@ -211,10 +221,11 @@ func (iv *IntValidator) MEx(fields types.StringSet, code ...string) *IntValidato
 	return iv
 }
 
-func (iv *IntValidator) Break() *IntValidator {
+// Break adds a check to stop processing this rule if the previous check has failed.
+func (iv *IntValidationRule) Break() *IntValidationRule {
 
 	o := new(intOperation)
-	o.OpType = IntOpBreak
+	o.OpType = intOpBreak
 
 	iv.addOperation(o)
 
@@ -222,12 +233,12 @@ func (iv *IntValidator) Break() *IntValidator {
 
 }
 
-func (iv *IntValidator) addOperation(o *intOperation) {
+func (iv *IntValidationRule) addOperation(o *intOperation) {
 	iv.operations = append(iv.operations, o)
 	iv.codesInUse.Add(o.ErrCode)
 }
 
-func (iv *IntValidator) extractValue(f string, s interface{}) (*types.NilableInt64, error) {
+func (iv *IntValidationRule) extractValue(f string, s interface{}) (*types.NilableInt64, error) {
 
 	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
@@ -245,11 +256,11 @@ func (iv *IntValidator) extractValue(f string, s interface{}) (*types.NilableInt
 		return nil, nil
 	}
 
-	return iv.ToInt64(f, v.Interface())
+	return iv.toInt64(f, v.Interface())
 
 }
 
-func (iv *IntValidator) ToInt64(f string, i interface{}) (*types.NilableInt64, error) {
+func (iv *IntValidationRule) toInt64(f string, i interface{}) (*types.NilableInt64, error) {
 
 	var ex int64
 
@@ -276,27 +287,33 @@ func (iv *IntValidator) ToInt64(f string, i interface{}) (*types.NilableInt64, e
 
 }
 
-func (iv *IntValidator) StopAllOnFail() bool {
+// See ValidationRule.StopAllOnFail
+func (iv *IntValidationRule) StopAllOnFail() bool {
 	return iv.stopAll
 }
 
-func (iv *IntValidator) CodesInUse() types.StringSet {
+// See ValidationRule.CodesInUse
+func (iv *IntValidationRule) CodesInUse() types.StringSet {
 	return iv.codesInUse
 }
 
-func (iv *IntValidator) DependsOnFields() types.StringSet {
+// See ValidationRule.DependsOnFields
+func (iv *IntValidationRule) DependsOnFields() types.StringSet {
 
 	return iv.dependsFields
 }
 
-func (iv *IntValidator) StopAll() *IntValidator {
+// StopAll adds a check to halt validation of this rule and all other rules if
+// the previous check failed.
+func (iv *IntValidationRule) StopAll() *IntValidationRule {
 
 	iv.stopAll = true
 
 	return iv
 }
 
-func (iv *IntValidator) Required(code ...string) *IntValidator {
+// Required adds a check to see if the field under validation has been set.
+func (iv *IntValidationRule) Required(code ...string) *IntValidationRule {
 
 	iv.required = true
 	iv.missingRequiredCode = iv.chooseErrorCode(code)
@@ -304,7 +321,9 @@ func (iv *IntValidator) Required(code ...string) *IntValidator {
 	return iv
 }
 
-func (iv *IntValidator) Range(checkMin, checkMax bool, min, max int64, code ...string) *IntValidator {
+// Range adds a check to see if the float under validation is in the supplied range. checkMin/Max are set to false if no
+// minimum or maximum bound is in effect.
+func (iv *IntValidationRule) Range(checkMin, checkMax bool, min, max int64, code ...string) *IntValidationRule {
 
 	iv.checkMin = checkMin
 	iv.checkMax = checkMax
@@ -314,7 +333,7 @@ func (iv *IntValidator) Range(checkMin, checkMax bool, min, max int64, code ...s
 	ec := iv.chooseErrorCode(code)
 
 	o := new(intOperation)
-	o.OpType = IntOpRange
+	o.OpType = intOpRange
 	o.ErrCode = ec
 
 	iv.addOperation(o)
@@ -322,14 +341,15 @@ func (iv *IntValidator) Range(checkMin, checkMax bool, min, max int64, code ...s
 	return iv
 }
 
-func (iv *IntValidator) In(set []string, code ...string) *IntValidator {
+// In adds a check to see if the float under validation is exactly equal to one of the int values specified.
+func (iv *IntValidationRule) In(set []string, code ...string) *IntValidationRule {
 
 	ss := types.NewUnorderedStringSet(set)
 
 	ec := iv.chooseErrorCode(code)
 
 	o := new(intOperation)
-	o.OpType = IntOpIn
+	o.OpType = intOpIn
 	o.ErrCode = ec
 	o.InSet = ss
 
@@ -339,11 +359,12 @@ func (iv *IntValidator) In(set []string, code ...string) *IntValidator {
 
 }
 
-func (iv *IntValidator) ExternalValidation(v ExternalInt64Validator, code ...string) *IntValidator {
+// ExternalValidation adds a check to call the supplied object to ask it to check the validity of the int in question.
+func (iv *IntValidationRule) ExternalValidation(v ExternalInt64Validator, code ...string) *IntValidationRule {
 	ec := iv.chooseErrorCode(code)
 
 	o := new(intOperation)
-	o.OpType = IntOpExt
+	o.OpType = intOpExt
 	o.ErrCode = ec
 	o.External = v
 
@@ -352,7 +373,7 @@ func (iv *IntValidator) ExternalValidation(v ExternalInt64Validator, code ...str
 	return iv
 }
 
-func (iv *IntValidator) chooseErrorCode(v []string) string {
+func (iv *IntValidationRule) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
 		iv.codesInUse.Add(v[0])
@@ -363,77 +384,77 @@ func (iv *IntValidator) chooseErrorCode(v []string) string {
 
 }
 
-func (iv *IntValidator) Operation(c string) (boolValidationOperation, error) {
+func (iv *IntValidationRule) operation(c string) (boolValidationOperation, error) {
 	switch c {
-	case IntOpIsRequiredCode:
-		return IntOpRequired, nil
-	case IntOpIsStopAllCode:
-		return IntOpStopAll, nil
-	case IntOpInCode:
-		return IntOpIn, nil
-	case IntOpBreakCode:
-		return IntOpBreak, nil
-	case IntOpExtCode:
-		return IntOpExt, nil
-	case IntOpRangeCode:
-		return IntOpRange, nil
-	case IntOpMExCode:
-		return IntOpMEx, nil
+	case intOpIsRequiredCode:
+		return intOpRequired, nil
+	case intOpIsStopAllCode:
+		return intOpStopAll, nil
+	case intOpInCode:
+		return intOpIn, nil
+	case intOpBreakCode:
+		return intOpBreak, nil
+	case intOpExtCode:
+		return intOpExt, nil
+	case intOpRangeCode:
+		return intOpRange, nil
+	case intOpMExCode:
+		return untOpMEx, nil
 	}
 
 	m := fmt.Sprintf("Unsupported int validation operation %s", c)
-	return IntOpUnsupported, errors.New(m)
+	return intOpUnsupported, errors.New(m)
 
 }
 
-func NewIntValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *IntValidatorBuilder {
-	iv := new(IntValidatorBuilder)
+func newIntValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *intValidationRuleBuilder {
+	iv := new(intValidationRuleBuilder)
 	iv.componentFinder = cf
 	iv.defaultErrorCode = ec
 	iv.rangeRegex = regexp.MustCompile("^([-+]{0,1}\\d*)\\|([-+]{0,1}\\d*)$")
 	return iv
 }
 
-type IntValidatorBuilder struct {
+type intValidationRuleBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 	rangeRegex       *regexp.Regexp
 }
 
-func (vb *IntValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
+func (vb *intValidationRuleBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := determineDefaultErrorCode(IntRuleCode, rule, vb.defaultErrorCode)
-	bv := NewIntValidator(field, defaultErrorcode)
+	defaultErrorcode := determineDefaultErrorCode(intRuleCode, rule, vb.defaultErrorCode)
+	bv := NewIntValidationRule(field, defaultErrorcode)
 
 	for _, v := range rule {
 
 		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if isTypeIndicator(IntRuleCode, opCode) {
+		if isTypeIndicator(intRuleCode, opCode) {
 			continue
 		}
 
-		op, err := bv.Operation(opCode)
+		op, err := bv.operation(opCode)
 
 		if err != nil {
 			return nil, err
 		}
 
 		switch op {
-		case IntOpRequired:
+		case intOpRequired:
 			err = vb.markRequired(field, ops, bv)
-		case IntOpIn:
+		case intOpIn:
 			err = vb.addIntInOperation(field, ops, bv)
-		case IntOpStopAll:
+		case intOpStopAll:
 			bv.StopAll()
-		case IntOpBreak:
+		case intOpBreak:
 			bv.Break()
-		case IntOpExt:
+		case intOpExt:
 			err = vb.addIntExternalOperation(field, ops, bv)
-		case IntOpRange:
+		case intOpRange:
 			err = vb.addIntRangeOperation(field, ops, bv)
-		case IntOpMEx:
+		case untOpMEx:
 			err = vb.captureExclusiveFields(field, ops, bv)
 		}
 
@@ -448,7 +469,7 @@ func (vb *IntValidatorBuilder) parseRule(field string, rule []string) (Validatio
 
 }
 
-func (vb *IntValidatorBuilder) captureExclusiveFields(field string, ops []string, iv *IntValidator) error {
+func (vb *intValidationRuleBuilder) captureExclusiveFields(field string, ops []string, iv *IntValidationRule) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -464,7 +485,7 @@ func (vb *IntValidatorBuilder) captureExclusiveFields(field string, ops []string
 
 }
 
-func (vb *IntValidatorBuilder) markRequired(field string, ops []string, iv *IntValidator) error {
+func (vb *intValidationRuleBuilder) markRequired(field string, ops []string, iv *IntValidationRule) error {
 
 	_, err := paramCount(ops, "Required", field, 1, 2)
 
@@ -477,7 +498,7 @@ func (vb *IntValidatorBuilder) markRequired(field string, ops []string, iv *IntV
 	return nil
 }
 
-func (vb *IntValidatorBuilder) addIntRangeOperation(field string, ops []string, iv *IntValidator) error {
+func (vb *intValidationRuleBuilder) addIntRangeOperation(field string, ops []string, iv *IntValidationRule) error {
 
 	pCount, err := paramCount(ops, "Range", field, 2, 3)
 
@@ -524,7 +545,7 @@ func (vb *IntValidatorBuilder) addIntRangeOperation(field string, ops []string, 
 	return nil
 }
 
-func (vb *IntValidatorBuilder) addIntExternalOperation(field string, ops []string, iv *IntValidator) error {
+func (vb *intValidationRuleBuilder) addIntExternalOperation(field string, ops []string, iv *IntValidationRule) error {
 
 	pCount, i, err := validateExternalOperation(vb.componentFinder, field, ops)
 
@@ -549,7 +570,7 @@ func (vb *IntValidatorBuilder) addIntExternalOperation(field string, ops []strin
 
 }
 
-func (vb *IntValidatorBuilder) addIntInOperation(field string, ops []string, sv *IntValidator) error {
+func (vb *intValidationRuleBuilder) addIntInOperation(field string, ops []string, sv *IntValidationRule) error {
 
 	pCount, err := paramCount(ops, "In Set", field, 2, 3)
 

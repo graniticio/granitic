@@ -11,7 +11,7 @@ import (
 
 func TestIntTypeSupportDetection(t *testing.T) {
 
-	iv := NewIntValidatorBuilder("DEF", nil)
+	iv := newIntValidationRuleBuilder("DEF", nil)
 
 	sub := new(IntsTarget)
 
@@ -43,7 +43,7 @@ func TestIntTypeSupportDetection(t *testing.T) {
 
 func TestIntInSet(t *testing.T) {
 
-	iv := NewIntValidatorBuilder("DEF", nil)
+	iv := newIntValidationRuleBuilder("DEF", nil)
 
 	sub := new(IntsTarget)
 
@@ -83,7 +83,7 @@ func TestIntInSet(t *testing.T) {
 
 func TestIntBreakOnError(t *testing.T) {
 
-	iv := NewIntValidatorBuilder("DEF", new(CompFinder))
+	iv := newIntValidationRuleBuilder("DEF", new(CompFinder))
 
 	sub := new(IntsTarget)
 
@@ -118,7 +118,7 @@ func TestIntBreakOnError(t *testing.T) {
 
 func TestIntRange(t *testing.T) {
 
-	iv := NewIntValidatorBuilder("DEF", nil)
+	iv := newIntValidationRuleBuilder("DEF", nil)
 
 	sub := new(IntsTarget)
 
@@ -247,7 +247,7 @@ func TestIntRange(t *testing.T) {
 
 func TestIntRequiredAndSetDetection(t *testing.T) {
 
-	iv := NewIntValidatorBuilder("DEF", nil)
+	iv := newIntValidationRuleBuilder("DEF", nil)
 
 	sub := new(IntsTarget)
 
@@ -309,7 +309,7 @@ func TestIntRequiredAndSetDetection(t *testing.T) {
 }
 
 func TestIntExternal(t *testing.T) {
-	ivb := NewIntValidatorBuilder("DEF", new(CompFinder))
+	ivb := newIntValidationRuleBuilder("DEF", new(CompFinder))
 
 	_, err := ivb.parseRule("I", []string{"EXT:extComp"})
 
@@ -345,7 +345,7 @@ func TestIntExternal(t *testing.T) {
 }
 
 func TestIntMExFieldDetection(t *testing.T) {
-	vb := NewIntValidatorBuilder("DEF", nil)
+	vb := newIntValidationRuleBuilder("DEF", nil)
 
 	bv, err := vb.parseRule("I32", []string{"MEX:setField1,setField2:BAD_MEX"})
 
@@ -393,7 +393,7 @@ func TestIntMExFieldDetection(t *testing.T) {
 
 }
 
-func checkIntTypeSupport(t *testing.T, it string, vc *ValidationContext, iv *IntValidatorBuilder) {
+func checkIntTypeSupport(t *testing.T, it string, vc *ValidationContext, iv *intValidationRuleBuilder) {
 	bv, err := iv.parseRule(it, []string{"REQ:MISSING"})
 	test.ExpectNil(t, err)
 

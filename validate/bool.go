@@ -45,7 +45,7 @@ func NewBoolValidationRule(field, defaultErrorCode string) *BoolValidationRule {
 	return bv
 }
 
-// A ValidationRule for checking bool or NilableBool fields on an object. See the method definitions on this type for
+// A ValidationRule for checking a bool or NilableBool field on an object. See the method definitions on this type for
 // the supported operations.
 type BoolValidationRule struct {
 	stopAll             bool
