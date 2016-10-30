@@ -1,5 +1,6 @@
 // Copyright 2016 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package validate
 
 import (
@@ -155,8 +156,7 @@ func (ov *ObjectValidationRule) DependsOnFields() types.StringSet {
 	return ov.dependsFields
 }
 
-// StopAll adds a check to halt validation of this rule and all other rules if
-// the previous check failed.
+// StopAll indicates that no further rules should be rule if this one fails.
 func (ov *ObjectValidationRule) StopAll() *ObjectValidationRule {
 
 	ov.stopAll = true
@@ -222,20 +222,20 @@ func (ov *ObjectValidationRule) operation(c string) (objectValidationOperation, 
 
 }
 
-func newObjectValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *ObjectValidatorBuilder {
-	ov := new(ObjectValidatorBuilder)
+func newObjectValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *objectValidationRuleBuilder {
+	ov := new(objectValidationRuleBuilder)
 	ov.componentFinder = cf
 	ov.defaultErrorCode = ec
 
 	return ov
 }
 
-type ObjectValidatorBuilder struct {
+type objectValidationRuleBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 }
 
-func (vb *ObjectValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
+func (vb *objectValidationRuleBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
 	defaultErrorcode := determineDefaultErrorCode(objectRuleCode, rule, vb.defaultErrorCode)
 	ov := NewObjectValidationRule(field, defaultErrorcode)
@@ -275,7 +275,7 @@ func (vb *ObjectValidatorBuilder) parseRule(field string, rule []string) (Valida
 
 }
 
-func (vb *ObjectValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *ObjectValidationRule) error {
+func (vb *objectValidationRuleBuilder) captureExclusiveFields(field string, ops []string, bv *ObjectValidationRule) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -291,7 +291,7 @@ func (vb *ObjectValidatorBuilder) captureExclusiveFields(field string, ops []str
 
 }
 
-func (vb *ObjectValidatorBuilder) markRequired(field string, ops []string, ov *ObjectValidationRule) error {
+func (vb *objectValidationRuleBuilder) markRequired(field string, ops []string, ov *ObjectValidationRule) error {
 
 	pCount, err := paramCount(ops, "Required", field, 1, 2)
 

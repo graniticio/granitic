@@ -11,7 +11,7 @@ import (
 
 func TestSliceSet(t *testing.T) {
 
-	vb := NewSliceValidatorBuilder("DEF", nil, nil)
+	vb := newSliceValidationRuleBuilder("DEF", nil, nil)
 
 	sv, err := vb.parseRule("S", []string{"REQ:MISSING"})
 
@@ -33,7 +33,7 @@ func TestSliceSet(t *testing.T) {
 }
 
 func TestSliceLength(t *testing.T) {
-	sb := NewSliceValidatorBuilder("DEF", nil, nil)
+	sb := newSliceValidationRuleBuilder("DEF", nil, nil)
 
 	field := "S"
 
@@ -128,12 +128,12 @@ func TestSliceElemValidation(t *testing.T) {
 	rv.RuleManager = rm
 
 	rv.stringBuilder = NewStringValidatorBuilder("DEFSTR")
-	rv.objectValidatorBuilder = newObjectValidatorBuilder("DEFOBJ", nil)
+	rv.objectValidatorBuilder = newObjectValidationRuleBuilder("DEFOBJ", nil)
 	rv.intValidatorBuilder = newIntValidationRuleBuilder("DEFINT", nil)
 	rv.floatValidatorBuilder = newFloatValidationRuleBuilder("DEFFLT", nil)
 	rv.boolValidatorBuilder = newBoolValidationRuleBuilder("DEFBOOL", nil)
 
-	vb := NewSliceValidatorBuilder("DEF", nil, rv)
+	vb := newSliceValidationRuleBuilder("DEF", nil, rv)
 
 	field := "S"
 
@@ -256,7 +256,7 @@ func TestSliceElemValidation(t *testing.T) {
 }
 
 func TestSliceMExFieldDetection(t *testing.T) {
-	vb := NewSliceValidatorBuilder("DEF", nil, nil)
+	vb := newSliceValidationRuleBuilder("DEF", nil, nil)
 
 	field := "S"
 

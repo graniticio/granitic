@@ -99,8 +99,7 @@
 	further validation checks are applied (an alternative TRIM will mean validation occurs on a trimmed copy of the string, but the underlying data
 	is not permanently modified.
 
-	5. If previous checks, in this case the REQ check, failed, processing will BREAK and the next validation rule will be processed. The alternative
-	STOPALL would terminate all validation and no further rules will be processed.
+	5. If previous checks, in this case the REQ check, failed, processing will BREAK and the next validation rule will be processed.
 
 	6. The value of CatalogRef is compared to the regex ^[A-Z]{3}-[\\d]{6}$ If there is no match, the error CATALOG_REF will be included
 	in the eventual response to the web service call.
@@ -320,11 +319,11 @@ type RuleValidator struct {
 
 	jsonConfig             interface{}
 	stringBuilder          *StringValidatorBuilder
-	objectValidatorBuilder *ObjectValidatorBuilder
+	objectValidatorBuilder *objectValidationRuleBuilder
 	boolValidatorBuilder   *boolValidationRuleBuilder
 	intValidatorBuilder    *intValidationRuleBuilder
 	floatValidatorBuilder  *floatValidationRuleBuilder
-	sliceValidatorBuilder  *SliceValidatorBuilder
+	sliceValidatorBuilder  *sliceValidationRuleBuilder
 	validatorChain         []*validatorLink
 	componentName          string
 	codesInUse             types.StringSet
@@ -497,14 +496,14 @@ func (ov *RuleValidator) StartComponent() error {
 	ov.stringBuilder = NewStringValidatorBuilder(ov.DefaultErrorCode)
 	ov.stringBuilder.componentFinder = ov.ComponentFinder
 
-	ov.objectValidatorBuilder = newObjectValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
+	ov.objectValidatorBuilder = newObjectValidationRuleBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 	ov.boolValidatorBuilder = newBoolValidationRuleBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 	ov.validatorChain = make([]*validatorLink, 0)
 
 	ov.intValidatorBuilder = newIntValidationRuleBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 	ov.floatValidatorBuilder = newFloatValidationRuleBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 
-	ov.sliceValidatorBuilder = NewSliceValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder, ov)
+	ov.sliceValidatorBuilder = newSliceValidationRuleBuilder(ov.DefaultErrorCode, ov.ComponentFinder, ov)
 
 	return ov.parseRules()
 
@@ -658,7 +657,7 @@ func (ov *RuleValidator) extractType(field string, rule []string) (validationRul
 			return intRuleType, nil
 		case floatRuleCode:
 			return floatRuleType, nil
-		case SliceRuleCode:
+		case sliceRuleCode:
 			return sliceRuleType, nil
 		}
 	}

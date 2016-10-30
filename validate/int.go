@@ -1,5 +1,6 @@
 // Copyright 2016 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package validate
 
 import (
@@ -303,8 +304,7 @@ func (iv *IntValidationRule) DependsOnFields() types.StringSet {
 	return iv.dependsFields
 }
 
-// StopAll adds a check to halt validation of this rule and all other rules if
-// the previous check failed.
+// StopAll indicates that no further rules should be rule if this one fails.
 func (iv *IntValidationRule) StopAll() *IntValidationRule {
 
 	iv.stopAll = true

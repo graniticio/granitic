@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package validate
 
 import (
@@ -11,7 +14,7 @@ import (
 	"strings"
 )
 
-const SliceRuleCode = "SLICE"
+const sliceRuleCode = "SLICE"
 
 const (
 	sliceOpRequiredCode = commonOpRequired
@@ -24,16 +27,24 @@ const (
 type sliceValidationOperation uint
 
 const (
-	SliceOpUnsupported = iota
-	SliceOpRequired
-	SliceOpStopAll
-	SliceOpMex
-	SliceOpLen
-	SliceOpElem
+	sliceOpUnsupported = iota
+	sliceOpRequired
+	sliceOpStopAll
+	sliceOpMex
+	sliceOpLen
+	sliceOpElem
 )
 
-func NewSliceValidator(field, defaultErrorCode string) *SliceValidator {
-	bv := new(SliceValidator)
+type sliceOperation struct {
+	OpType        sliceValidationOperation
+	ErrCode       string
+	MExFields     types.StringSet
+	elemValidator ValidationRule
+}
+
+//Create a new NewSliceValidationRule to check the specified field.
+func NewSliceValidationRule(field, defaultErrorCode string) *SliceValidationRule {
+	bv := new(SliceValidationRule)
 	bv.defaultErrorCode = defaultErrorCode
 	bv.field = field
 	bv.codesInUse = types.NewOrderedStringSet([]string{})
@@ -46,7 +57,9 @@ func NewSliceValidator(field, defaultErrorCode string) *SliceValidator {
 	return bv
 }
 
-type SliceValidator struct {
+// A ValidationRule able to validate a slice field and the indiviudal elements of that slice. See the method definitions on this type for
+// the supported operations.
+type SliceValidationRule struct {
 	stopAll             bool
 	codesInUse          types.StringSet
 	dependsFields       types.StringSet
@@ -59,14 +72,8 @@ type SliceValidator struct {
 	maxLen              int
 }
 
-type sliceOperation struct {
-	OpType        sliceValidationOperation
-	ErrCode       string
-	MExFields     types.StringSet
-	elemValidator ValidationRule
-}
-
-func (bv *SliceValidator) IsSet(field string, subject interface{}) (bool, error) {
+// IsSet returns true if the field to be validated is a non-nil slice.
+func (bv *SliceValidationRule) IsSet(field string, subject interface{}) (bool, error) {
 
 	ps, err := bv.extractReflectValue(field, subject)
 
@@ -81,7 +88,8 @@ func (bv *SliceValidator) IsSet(field string, subject interface{}) (bool, error)
 	return true, nil
 }
 
-func (bv *SliceValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
+// See ValidationRule.Validate
+func (bv *SliceValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := bv.field
 
@@ -115,7 +123,7 @@ func (bv *SliceValidator) Validate(vc *ValidationContext) (result *ValidationRes
 	return r, err
 }
 
-func (sv *SliceValidator) runOperations(field string, v reflect.Value, vc *ValidationContext, r *ValidationResult) error {
+func (sv *SliceValidationRule) runOperations(field string, v reflect.Value, vc *ValidationContext, r *ValidationResult) error {
 
 	ec := types.NewEmptyOrderedStringSet()
 
@@ -124,13 +132,13 @@ func (sv *SliceValidator) runOperations(field string, v reflect.Value, vc *Valid
 	for _, op := range sv.operations {
 
 		switch op.OpType {
-		case SliceOpMex:
+		case sliceOpMex:
 			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
-		case SliceOpLen:
+		case sliceOpLen:
 			if !sv.lengthOkay(v) {
 				ec.Add(op.ErrCode)
 			}
-		case SliceOpElem:
+		case sliceOpElem:
 			err = sv.checkElementContents(field, v, op.elemValidator, r, vc)
 		}
 	}
@@ -141,7 +149,7 @@ func (sv *SliceValidator) runOperations(field string, v reflect.Value, vc *Valid
 
 }
 
-func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value, v ValidationRule, r *ValidationResult, pvc *ValidationContext) error {
+func (bv *SliceValidationRule) checkElementContents(field string, slice reflect.Value, v ValidationRule, r *ValidationResult, pvc *ValidationContext) error {
 
 	stringElement := false
 	nilable := false
@@ -197,7 +205,7 @@ func (bv *SliceValidator) checkElementContents(field string, slice reflect.Value
 }
 
 // String validation is unique in that it can modify the value under consideration
-func (bv *SliceValidator) overwriteStringValue(v reflect.Value, ns *types.NilableString, wasNilable bool) {
+func (bv *SliceValidationRule) overwriteStringValue(v reflect.Value, ns *types.NilableString, wasNilable bool) {
 
 	if !wasNilable {
 
@@ -206,7 +214,7 @@ func (bv *SliceValidator) overwriteStringValue(v reflect.Value, ns *types.Nilabl
 
 }
 
-func (bv *SliceValidator) stringValue(v reflect.Value, fa string) (*types.NilableString, error, bool) {
+func (bv *SliceValidationRule) stringValue(v reflect.Value, fa string) (*types.NilableString, error, bool) {
 
 	s := v.Interface()
 
@@ -222,7 +230,7 @@ func (bv *SliceValidator) stringValue(v reflect.Value, fa string) (*types.Nilabl
 
 }
 
-func (bv *SliceValidator) boolValue(v reflect.Value, fa string) (*types.NilableBool, error) {
+func (bv *SliceValidationRule) boolValue(v reflect.Value, fa string) (*types.NilableBool, error) {
 
 	b := v.Interface()
 
@@ -238,7 +246,7 @@ func (bv *SliceValidator) boolValue(v reflect.Value, fa string) (*types.NilableB
 
 }
 
-func (bv *SliceValidator) extractReflectValue(f string, s interface{}) (interface{}, error) {
+func (bv *SliceValidationRule) extractReflectValue(f string, s interface{}) (interface{}, error) {
 
 	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
@@ -265,7 +273,8 @@ func (bv *SliceValidator) extractReflectValue(f string, s interface{}) (interfac
 
 }
 
-func (sv *SliceValidator) Length(min, max int, code ...string) *SliceValidator {
+// Length adds a check to see if the slice under consideration has an element count between the supplied min and max values.
+func (sv *SliceValidationRule) Length(min, max int, code ...string) *SliceValidationRule {
 
 	sv.minLen = min
 	sv.maxLen = max
@@ -273,7 +282,7 @@ func (sv *SliceValidator) Length(min, max int, code ...string) *SliceValidator {
 	ec := sv.chooseErrorCode(code)
 
 	o := new(sliceOperation)
-	o.OpType = SliceOpLen
+	o.OpType = sliceOpLen
 	o.ErrCode = ec
 
 	sv.addOperation(o)
@@ -282,27 +291,32 @@ func (sv *SliceValidator) Length(min, max int, code ...string) *SliceValidator {
 
 }
 
-func (bv *SliceValidator) StopAllOnFail() bool {
+// See ValidationRule.StopAllOnFail
+func (bv *SliceValidationRule) StopAllOnFail() bool {
 	return bv.stopAll
 }
 
-func (bv *SliceValidator) CodesInUse() types.StringSet {
+// See ValidationRule.CodesInUse
+func (bv *SliceValidationRule) CodesInUse() types.StringSet {
 	return bv.codesInUse
 }
 
-func (bv *SliceValidator) DependsOnFields() types.StringSet {
+// See ValidationRule.DependsOnFields
+func (bv *SliceValidationRule) DependsOnFields() types.StringSet {
 
 	return bv.dependsFields
 }
 
-func (bv *SliceValidator) StopAll() *SliceValidator {
+// StopAll indicates that no further rules should be rule if this one fails.
+func (bv *SliceValidationRule) StopAll() *SliceValidationRule {
 
 	bv.stopAll = true
 
 	return bv
 }
 
-func (bv *SliceValidator) Required(code ...string) *SliceValidator {
+// Required adds a check to see if the field under validation has been set.
+func (bv *SliceValidationRule) Required(code ...string) *SliceValidationRule {
 
 	bv.required = true
 	bv.missingRequiredCode = bv.chooseErrorCode(code)
@@ -310,10 +324,11 @@ func (bv *SliceValidator) Required(code ...string) *SliceValidator {
 	return bv
 }
 
-func (bv *SliceValidator) MEx(fields types.StringSet, code ...string) *SliceValidator {
+// MEx adds a check to see if any other of the fields with which this field is mutually exclusive have been set.
+func (bv *SliceValidationRule) MEx(fields types.StringSet, code ...string) *SliceValidationRule {
 	op := new(sliceOperation)
 	op.ErrCode = bv.chooseErrorCode(code)
-	op.OpType = SliceOpMex
+	op.OpType = sliceOpMex
 	op.MExFields = fields
 
 	bv.addOperation(op)
@@ -321,10 +336,11 @@ func (bv *SliceValidator) MEx(fields types.StringSet, code ...string) *SliceVali
 	return bv
 }
 
-func (bv *SliceValidator) Elem(v ValidationRule, code ...string) *SliceValidator {
+// Elem supplies a ValidationRule that can be used to checked the validity of the elements of the slice.
+func (bv *SliceValidationRule) Elem(v ValidationRule, code ...string) *SliceValidationRule {
 	op := new(sliceOperation)
 	op.ErrCode = bv.chooseErrorCode(code)
-	op.OpType = SliceOpElem
+	op.OpType = sliceOpElem
 	op.elemValidator = v
 
 	bv.addOperation(op)
@@ -332,11 +348,11 @@ func (bv *SliceValidator) Elem(v ValidationRule, code ...string) *SliceValidator
 	return bv
 }
 
-func (bv *SliceValidator) addOperation(o *sliceOperation) {
+func (bv *SliceValidationRule) addOperation(o *sliceOperation) {
 	bv.operations = append(bv.operations, o)
 }
 
-func (bv *SliceValidator) chooseErrorCode(v []string) string {
+func (bv *SliceValidationRule) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
 		bv.codesInUse.Add(v[0])
@@ -347,26 +363,26 @@ func (bv *SliceValidator) chooseErrorCode(v []string) string {
 
 }
 
-func (bv *SliceValidator) Operation(c string) (sliceValidationOperation, error) {
+func (bv *SliceValidationRule) operation(c string) (sliceValidationOperation, error) {
 	switch c {
 	case sliceOpRequiredCode:
-		return SliceOpRequired, nil
+		return sliceOpRequired, nil
 	case sliceOpStopAllCode:
-		return SliceOpStopAll, nil
+		return sliceOpStopAll, nil
 	case sliceOpMexCode:
-		return SliceOpMex, nil
+		return sliceOpMex, nil
 	case sliceOpLenCode:
-		return SliceOpLen, nil
+		return sliceOpLen, nil
 	case sliceOpElemCode:
-		return SliceOpElem, nil
+		return sliceOpElem, nil
 	}
 
 	m := fmt.Sprintf("Unsupported slice validation operation %s", c)
-	return SliceOpUnsupported, errors.New(m)
+	return sliceOpUnsupported, errors.New(m)
 
 }
 
-func (sv *SliceValidator) lengthOkay(r reflect.Value) bool {
+func (sv *SliceValidationRule) lengthOkay(r reflect.Value) bool {
 
 	if sv.minLen == NoLimit && sv.maxLen == NoLimit {
 		return true
@@ -381,8 +397,8 @@ func (sv *SliceValidator) lengthOkay(r reflect.Value) bool {
 
 }
 
-func NewSliceValidatorBuilder(ec string, cf ioc.ComponentByNameFinder, rv *RuleValidator) *SliceValidatorBuilder {
-	bv := new(SliceValidatorBuilder)
+func newSliceValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder, rv *RuleValidator) *sliceValidationRuleBuilder {
+	bv := new(sliceValidationRuleBuilder)
 	bv.componentFinder = cf
 	bv.defaultErrorCode = ec
 	bv.sliceLenRegex = regexp.MustCompile(lengthPattern)
@@ -391,43 +407,43 @@ func NewSliceValidatorBuilder(ec string, cf ioc.ComponentByNameFinder, rv *RuleV
 	return bv
 }
 
-type SliceValidatorBuilder struct {
+type sliceValidationRuleBuilder struct {
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 	sliceLenRegex    *regexp.Regexp
 	ruleValidator    *RuleValidator
 }
 
-func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
+func (vb *sliceValidationRuleBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := determineDefaultErrorCode(SliceRuleCode, rule, vb.defaultErrorCode)
-	bv := NewSliceValidator(field, defaultErrorcode)
+	defaultErrorcode := determineDefaultErrorCode(sliceRuleCode, rule, vb.defaultErrorCode)
+	bv := NewSliceValidationRule(field, defaultErrorcode)
 
 	for _, v := range rule {
 
 		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if isTypeIndicator(SliceRuleCode, opCode) {
+		if isTypeIndicator(sliceRuleCode, opCode) {
 			continue
 		}
 
-		op, err := bv.Operation(opCode)
+		op, err := bv.operation(opCode)
 
 		if err != nil {
 			return nil, err
 		}
 
 		switch op {
-		case SliceOpRequired:
+		case sliceOpRequired:
 			err = vb.markRequired(field, ops, bv)
-		case SliceOpStopAll:
+		case sliceOpStopAll:
 			bv.StopAll()
-		case SliceOpMex:
+		case sliceOpMex:
 			err = vb.captureExclusiveFields(field, ops, bv)
-		case SliceOpLen:
+		case sliceOpLen:
 			err = vb.addLengthOperation(field, ops, bv)
-		case SliceOpElem:
+		case sliceOpElem:
 			err = vb.addElementValidationOperation(field, ops, v, bv)
 		}
 
@@ -442,7 +458,7 @@ func (vb *SliceValidatorBuilder) parseRule(field string, rule []string) (Validat
 
 }
 
-func (vb *SliceValidatorBuilder) addElementValidationOperation(field string, ops []string, unparsedRule string, sv *SliceValidator) error {
+func (vb *sliceValidationRuleBuilder) addElementValidationOperation(field string, ops []string, unparsedRule string, sv *SliceValidationRule) error {
 
 	_, err := paramCount(ops, "Elem", field, 2, 3)
 
@@ -477,7 +493,7 @@ func (vb *SliceValidatorBuilder) addElementValidationOperation(field string, ops
 	return nil
 }
 
-func (vb *SliceValidatorBuilder) addLengthOperation(field string, ops []string, sv *SliceValidator) error {
+func (vb *sliceValidationRuleBuilder) addLengthOperation(field string, ops []string, sv *SliceValidationRule) error {
 
 	_, err := paramCount(ops, "Length", field, 2, 3)
 
@@ -497,7 +513,7 @@ func (vb *SliceValidatorBuilder) addLengthOperation(field string, ops []string, 
 
 }
 
-func (vb *SliceValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *SliceValidator) error {
+func (vb *sliceValidationRuleBuilder) captureExclusiveFields(field string, ops []string, bv *SliceValidationRule) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -513,7 +529,7 @@ func (vb *SliceValidatorBuilder) captureExclusiveFields(field string, ops []stri
 
 }
 
-func (vb *SliceValidatorBuilder) markRequired(field string, ops []string, bv *SliceValidator) error {
+func (vb *sliceValidationRuleBuilder) markRequired(field string, ops []string, bv *SliceValidationRule) error {
 
 	_, err := paramCount(ops, "Required", field, 1, 2)
 

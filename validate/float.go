@@ -294,8 +294,7 @@ func (fv *FloatValidationRule) DependsOnFields() types.StringSet {
 	return fv.dependsFields
 }
 
-// StopAll adds a check to halt validation of this rule and all other rules if
-// the previous check failed.
+// StopAll indicates that no further rules should be rule if this one fails.
 func (fv *FloatValidationRule) StopAll() *FloatValidationRule {
 
 	fv.stopAll = true

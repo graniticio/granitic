@@ -186,6 +186,7 @@ func (bv *BoolValidationRule) extractValue(f string, s interface{}) (*types.Nila
 
 }
 
+// See ValidationRule.StopAllOnFail
 func (bv *BoolValidationRule) StopAllOnFail() bool {
 	return bv.stopAll
 }
@@ -201,8 +202,7 @@ func (bv *BoolValidationRule) DependsOnFields() types.StringSet {
 	return bv.dependsFields
 }
 
-// StopAll adds a check to halt validation of this rule and all other rules if
-// the previous check failed.
+// StopAll indicates that no further rules should be rule if this one fails.
 func (bv *BoolValidationRule) StopAll() *BoolValidationRule {
 
 	bv.stopAll = true
