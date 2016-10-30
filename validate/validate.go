@@ -497,7 +497,7 @@ func (ov *RuleValidator) StartComponent() error {
 	ov.stringBuilder = NewStringValidatorBuilder(ov.DefaultErrorCode)
 	ov.stringBuilder.componentFinder = ov.ComponentFinder
 
-	ov.objectValidatorBuilder = NewObjectValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
+	ov.objectValidatorBuilder = newObjectValidatorBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 	ov.boolValidatorBuilder = newBoolValidationRuleBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
 	ov.validatorChain = make([]*validatorLink, 0)
 
@@ -650,7 +650,7 @@ func (ov *RuleValidator) extractType(field string, rule []string) (validationRul
 		switch f[0] {
 		case StringRuleCode:
 			return stringRuleType, nil
-		case ObjectRuleCode:
+		case objectRuleCode:
 			return objectRuleType, nil
 		case boolRuleCode:
 			return boolRuleType, nil

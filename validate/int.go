@@ -44,7 +44,7 @@ const (
 	untOpMEx
 )
 
-// NewIntValidationRule creates a new IntValidationRule to check the named field and the supplied default error code.
+// NewIntValidationRule creates a new IntValidationRule to check the named field with the supplied default error code.
 func NewIntValidationRule(field, defaultErrorCode string) *IntValidationRule {
 	iv := new(IntValidationRule)
 	iv.defaultErrorCode = defaultErrorCode

@@ -1,3 +1,5 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 package validate
 
 import (
@@ -10,7 +12,7 @@ import (
 	"strings"
 )
 
-const ObjectRuleCode = "OBJ"
+const objectRuleCode = "OBJ"
 
 const (
 	objOpRequiredCode = commonOpRequired
@@ -18,17 +20,18 @@ const (
 	objOpMExCode      = commonOpMex
 )
 
-type ObjectValidationOperation uint
+type objectValidationOperation uint
 
 const (
-	ObjOpUnsupported = iota
-	ObjOpRequired
-	ObjOpStopAll
-	ObjOpMEx
+	objOpUnsupported = iota
+	objOpRequired
+	objOpStopAll
+	objOpMEx
 )
 
-func NewObjectValidator(field, defaultErrorCode string) *ObjectValidator {
-	ov := new(ObjectValidator)
+//Create a new ObjectValidationRule to check the specified field.
+func NewObjectValidationRule(field, defaultErrorCode string) *ObjectValidationRule {
+	ov := new(ObjectValidationRule)
 	ov.defaultErrorCode = defaultErrorCode
 	ov.field = field
 	ov.codesInUse = types.NewOrderedStringSet([]string{})
@@ -39,7 +42,9 @@ func NewObjectValidator(field, defaultErrorCode string) *ObjectValidator {
 	return ov
 }
 
-type ObjectValidator struct {
+// A ValidationRule for checking a struct or map field on an object. See the method definitions on this type for
+// the supported operations.
+type ObjectValidationRule struct {
 	stopAll             bool
 	codesInUse          types.StringSet
 	dependsFields       types.StringSet
@@ -51,12 +56,13 @@ type ObjectValidator struct {
 }
 
 type objectOperation struct {
-	OpType    ObjectValidationOperation
+	OpType    objectValidationOperation
 	ErrCode   string
 	MExFields types.StringSet
 }
 
-func (ov *ObjectValidator) IsSet(field string, subject interface{}) (bool, error) {
+// IsSet returns true if the field to be validated is a non-nil struct or map
+func (ov *ObjectValidationRule) IsSet(field string, subject interface{}) (bool, error) {
 	fv, err := rt.FindNestedField(rt.ExtractDotPath(field), subject)
 
 	if err != nil {
@@ -83,7 +89,8 @@ func (ov *ObjectValidator) IsSet(field string, subject interface{}) (bool, error
 	}
 }
 
-func (ov *ObjectValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
+// See ValidationRule.Validate
+func (ov *ObjectValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := ov.field
 
@@ -114,14 +121,14 @@ func (ov *ObjectValidator) Validate(vc *ValidationContext) (result *ValidationRe
 	return r, err
 }
 
-func (ov *ObjectValidator) runOperations(field string, vc *ValidationContext, r *ValidationResult) error {
+func (ov *ObjectValidationRule) runOperations(field string, vc *ValidationContext, r *ValidationResult) error {
 
 	ec := types.NewEmptyOrderedStringSet()
 
 	for _, op := range ov.operations {
 
 		switch op.OpType {
-		case ObjOpMEx:
+		case objOpMEx:
 			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
 		}
 	}
@@ -132,27 +139,33 @@ func (ov *ObjectValidator) runOperations(field string, vc *ValidationContext, r 
 
 }
 
-func (ov *ObjectValidator) StopAllOnFail() bool {
+// See ValidationRule.StopAllOnFail
+func (ov *ObjectValidationRule) StopAllOnFail() bool {
 	return ov.stopAll
 }
 
-func (ov *ObjectValidator) CodesInUse() types.StringSet {
+// See ValidationRule.CodesInUse
+func (ov *ObjectValidationRule) CodesInUse() types.StringSet {
 	return ov.codesInUse
 }
 
-func (ov *ObjectValidator) DependsOnFields() types.StringSet {
+// See ValidationRule.DependsOnFields
+func (ov *ObjectValidationRule) DependsOnFields() types.StringSet {
 
 	return ov.dependsFields
 }
 
-func (ov *ObjectValidator) StopAll() *ObjectValidator {
+// StopAll adds a check to halt validation of this rule and all other rules if
+// the previous check failed.
+func (ov *ObjectValidationRule) StopAll() *ObjectValidationRule {
 
 	ov.stopAll = true
 
 	return ov
 }
 
-func (ov *ObjectValidator) Required(code ...string) *ObjectValidator {
+// Required adds a check to see if the field under validation has been set.
+func (ov *ObjectValidationRule) Required(code ...string) *ObjectValidationRule {
 
 	ov.required = true
 
@@ -167,10 +180,11 @@ func (ov *ObjectValidator) Required(code ...string) *ObjectValidator {
 	return ov
 }
 
-func (ov *ObjectValidator) MEx(fields types.StringSet, code ...string) *ObjectValidator {
+// MEx adds a check to see if any other of the fields with which this field is mutually exclusive have been set.
+func (ov *ObjectValidationRule) MEx(fields types.StringSet, code ...string) *ObjectValidationRule {
 	op := new(objectOperation)
 	op.ErrCode = ov.chooseErrorCode(code)
-	op.OpType = ObjOpMEx
+	op.OpType = objOpMEx
 	op.MExFields = fields
 
 	ov.addOperation(op)
@@ -178,7 +192,7 @@ func (ov *ObjectValidator) MEx(fields types.StringSet, code ...string) *ObjectVa
 	return ov
 }
 
-func (ov *ObjectValidator) chooseErrorCode(v []string) string {
+func (ov *ObjectValidationRule) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
 		ov.codesInUse.Add(v[0])
@@ -189,26 +203,26 @@ func (ov *ObjectValidator) chooseErrorCode(v []string) string {
 
 }
 
-func (ov *ObjectValidator) addOperation(o *objectOperation) {
+func (ov *ObjectValidationRule) addOperation(o *objectOperation) {
 	ov.operations = append(ov.operations, o)
 }
 
-func (ov *ObjectValidator) Operation(c string) (ObjectValidationOperation, error) {
+func (ov *ObjectValidationRule) operation(c string) (objectValidationOperation, error) {
 	switch c {
 	case objOpRequiredCode:
-		return ObjOpRequired, nil
+		return objOpRequired, nil
 	case objOpStopAllCode:
-		return ObjOpStopAll, nil
+		return objOpStopAll, nil
 	case objOpMExCode:
-		return ObjOpMEx, nil
+		return objOpMEx, nil
 	}
 
 	m := fmt.Sprintf("Unsupported object validation operation %s", c)
-	return ObjOpUnsupported, errors.New(m)
+	return objOpUnsupported, errors.New(m)
 
 }
 
-func NewObjectValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *ObjectValidatorBuilder {
+func newObjectValidatorBuilder(ec string, cf ioc.ComponentByNameFinder) *ObjectValidatorBuilder {
 	ov := new(ObjectValidatorBuilder)
 	ov.componentFinder = cf
 	ov.defaultErrorCode = ec
@@ -223,30 +237,30 @@ type ObjectValidatorBuilder struct {
 
 func (vb *ObjectValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := determineDefaultErrorCode(ObjectRuleCode, rule, vb.defaultErrorCode)
-	ov := NewObjectValidator(field, defaultErrorcode)
+	defaultErrorcode := determineDefaultErrorCode(objectRuleCode, rule, vb.defaultErrorCode)
+	ov := NewObjectValidationRule(field, defaultErrorcode)
 
 	for _, v := range rule {
 
 		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if isTypeIndicator(ObjectRuleCode, opCode) {
+		if isTypeIndicator(objectRuleCode, opCode) {
 			continue
 		}
 
-		op, err := ov.Operation(opCode)
+		op, err := ov.operation(opCode)
 
 		if err != nil {
 			return nil, err
 		}
 
 		switch op {
-		case ObjOpRequired:
+		case objOpRequired:
 			err = vb.markRequired(field, ops, ov)
-		case ObjOpStopAll:
+		case objOpStopAll:
 			ov.StopAll()
-		case ObjOpMEx:
+		case objOpMEx:
 			err = vb.captureExclusiveFields(field, ops, ov)
 		}
 
@@ -261,7 +275,7 @@ func (vb *ObjectValidatorBuilder) parseRule(field string, rule []string) (Valida
 
 }
 
-func (vb *ObjectValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *ObjectValidator) error {
+func (vb *ObjectValidatorBuilder) captureExclusiveFields(field string, ops []string, bv *ObjectValidationRule) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -277,7 +291,7 @@ func (vb *ObjectValidatorBuilder) captureExclusiveFields(field string, ops []str
 
 }
 
-func (vb *ObjectValidatorBuilder) markRequired(field string, ops []string, ov *ObjectValidator) error {
+func (vb *ObjectValidatorBuilder) markRequired(field string, ops []string, ov *ObjectValidationRule) error {
 
 	pCount, err := paramCount(ops, "Required", field, 1, 2)
 

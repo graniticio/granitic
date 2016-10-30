@@ -11,7 +11,7 @@ import (
 
 func TestUnsetObjDetection(t *testing.T) {
 
-	ob := NewObjectValidatorBuilder("DEF", nil)
+	ob := newObjectValidatorBuilder("DEF", nil)
 
 	ov, err := ob.parseRule("CP", []string{"REQ:MISSING"})
 
@@ -51,7 +51,7 @@ func TestUnsetObjDetection(t *testing.T) {
 
 func TestSetObjDetection(t *testing.T) {
 
-	ob := NewObjectValidatorBuilder("DEF", nil)
+	ob := newObjectValidatorBuilder("DEF", nil)
 
 	ov, err := ob.parseRule("CP", []string{"REQ:MISSING"})
 
@@ -92,7 +92,7 @@ func TestSetObjDetection(t *testing.T) {
 }
 
 func TestObjectMExFieldDetection(t *testing.T) {
-	vb := NewObjectValidatorBuilder("DEF", nil)
+	vb := newObjectValidatorBuilder("DEF", nil)
 
 	bv, err := vb.parseRule("CP", []string{"MEX:setField1,setField2:BAD_MEX"})
 
@@ -141,7 +141,7 @@ func TestObjectMExFieldDetection(t *testing.T) {
 }
 
 func TestInvalidTypeHandling(t *testing.T) {
-	ob := NewObjectValidatorBuilder("DEF", nil)
+	ob := newObjectValidatorBuilder("DEF", nil)
 
 	ov, err := ob.parseRule("S", []string{"REQ:MISSING"})
 
