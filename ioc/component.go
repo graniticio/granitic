@@ -51,7 +51,7 @@
 	A framework component is exactly the same as any other component - an instance of a struct with a name. Depending on the
 	complexity of the facility, multiple components may be created.
 
-	A very simple namespacing is used to separate the names of framework components from application components -
+	A very simple name-spacing is used to separate the names of framework components from application components -
 	framework components' names all start with the string grnc
 
 	You are strongly encouraged to make sure your application components' names do not start with this string.
@@ -151,7 +151,7 @@
 */
 package ioc
 
-// What state (stopped, running) or state-tranistion a component is currently in.
+// What state (stopped, running) or transition between states (stopping, starting) a component is currently in.
 type ComponentState int
 
 const (
@@ -176,6 +176,7 @@ type ProtoComponents struct {
 	FrameworkDependencies map[string]map[string]string
 }
 
+// Clear removes the reference to the ProtoComponent objects held in this object, encouraging garbage collection.
 func (pc *ProtoComponents) Clear() {
 	pc.Components = nil
 }
@@ -186,6 +187,21 @@ func NewProtoComponents(pc []*ProtoComponent, fd map[string]map[string]string) *
 	p.Components = pc
 	p.FrameworkDependencies = fd
 	return p
+}
+
+// CreateProtoComponent creates a new ProtoComponent.
+func CreateProtoComponent(componentInstance interface{}, componentName string) *ProtoComponent {
+
+	proto := new(ProtoComponent)
+
+	component := new(Component)
+	component.Name = componentName
+	component.Instance = componentInstance
+
+	proto.Component = component
+
+	return proto
+
 }
 
 // A ProtoComponent is a partially configured component that will be hosted in the Granitic IoC container once
@@ -201,6 +217,8 @@ type ProtoComponent struct {
 	ConfigPromises map[string]string
 }
 
+// AddDependency requests that the container injects another component into the specified field during the configure phase of
+// container startup
 func (pc *ProtoComponent) AddDependency(fieldName, componentName string) {
 
 	if pc.Dependencies == nil {
@@ -210,6 +228,8 @@ func (pc *ProtoComponent) AddDependency(fieldName, componentName string) {
 	pc.Dependencies[fieldName] = componentName
 }
 
+// AddDependency requests that the container injects the config value at the specified path into the specified field during the configure phase of
+// container startup.
 func (pc *ProtoComponent) AddConfigPromise(fieldName, configPath string) {
 
 	if pc.ConfigPromises == nil {
@@ -219,25 +239,16 @@ func (pc *ProtoComponent) AddConfigPromise(fieldName, configPath string) {
 	pc.ConfigPromises[fieldName] = configPath
 }
 
-func CreateProtoComponent(componentInstance interface{}, componentName string) *ProtoComponent {
-
-	proto := new(ProtoComponent)
-
-	component := new(Component)
-	component.Name = componentName
-	component.Instance = componentInstance
-
-	proto.Component = component
-
-	return proto
-
-}
-
+// A Component is an instance of a struct with a name that is unique within your application.
 type Component struct {
+	// A pointer to a struct
 	Instance interface{}
-	Name     string
+
+	// A name for this component that is unique within your application
+	Name string
 }
 
+// Type definition for a slice of components to allow sorting.
 type Components []*Component
 
 func (s Components) Len() int      { return len(s) }
@@ -247,11 +258,16 @@ type ByName struct{ Components }
 
 func (s ByName) Less(i, j int) bool { return s.Components[i].Name < s.Components[j].Name }
 
+// Implemented by components where the component's instance needs to be aware of its own component name.
 type ComponentNamer interface {
+	// ComponentName returns the name of the component
 	ComponentName() string
+
+	// SetComponentName injects the component's name
 	SetComponentName(name string)
 }
 
+// NewComponent creates a new Component with the supplied name and instance
 func NewComponent(name string, instance interface{}) *Component {
 	c := new(Component)
 	c.Instance = instance
