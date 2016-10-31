@@ -1,3 +1,140 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
+/*
+	Package ioc provides an Inversion of Control component container and lifecycle hooks.
+
+	This package provides the types that define and support Granitic component container, which allows your application's
+	objects and Granitic's framework facilities to follow the inversion of control (IoC) pattern by having their lifecycle
+	and dependencies managed for them. An in-depth discussion of Granitic IoC can be found at http://granitic.io/1.0/ref/ioc
+	but a description of the core concepts follows.
+
+	Components
+
+	A component is defined by Granitic as an instance of a Go struct with a name that is unique within an application.
+	Each component in your application requires a entry in the components section of your application's component definition file like:
+
+		{
+		  "components": {
+		    "componentName": {
+		  	  "type": "package.structType"
+		    }
+		  }
+		}
+
+	e.g:
+
+		{
+		  "components": {
+		    "createRecordLogic": {
+		  	  "type": "inventory.CreateRecordLogic"
+		    }
+		  }
+		}
+
+	For complete information on defining components, refer to http://granitic.io/1.0/ref/components
+
+	Granitic's documentation will use the term component and component instance interchangeably. For example, 'component field'
+	means 'a field on the instance of the Go struct associated with that component'.
+
+	The container
+
+	When Granitic starts, it will create an instance of ioc.ComponentContainer - a structure that holds references to
+	each of the components in your application. It is responsible for injecting dependencies and configuration into your
+	components (see below) and managing lifecycle events (also see below). The container is also referred to as the component
+	container or IoC container.
+
+	Framework components
+
+	For each Granitic facility that you enable in your application, one or more framework components will be created and added to the container.
+	A framework component is exactly the same as any other component - an instance of a struct with a name. Depending on the
+	complexity of the facility, multiple components may be created.
+
+	A very simple namespacing is used to separate the names of framework components from application components -
+	framework components' names all start with the string grnc
+
+	You are strongly encouraged to make sure your application components' names do not start with this string.
+
+
+	Dependencies and configuration
+
+	As part of its definition, your components can request that other components are injected into its fields. Your definition
+	can also include configuration (actual values to be set when the component is instantiated) or configuration promises
+	(values to be injected once all sources of configuration have been merged together).
+
+
+		{
+		  "components": {
+		    "createRecordLogic": {
+		  	  "type": "inventory.CreateRecordLogic",
+		  	  "MaxTracks": 20,
+		  	  "ArtistMustExist": "conf:record.disableAutoArtist",
+		  	  "DAO": "ref:inventoryDAO"
+		    }
+		  }
+		}
+
+	In the above example, the field CreateRecordLogic.MaxTracks is set to 20 when the struct is instantiated, ArtistMustExist
+	is set to the config element 'record.disableAutoArtist' and DAO is set to a reference to another component's instance.
+
+	Any error such as type mismatches or missing configuration will cause an error that will halt application startup.
+
+	Binding
+
+	Unlike JVM/CLR languages, Go has no runtime 'instance for type name' mechanism for creating instances of a struct. As
+	a result, unlike JVM/CLR IoC containers you may have used, the container does not instantiate the actual instances
+	of the Go structs behind application components. Instead a 'binding' proces is used - refer to the pacakage documentation
+	for the grnc-bind tool for more information.
+
+	Container lifecycle
+
+	The process of starting the container transitions through a number of distinct phase. It is possible for your code
+	to be explicitly invoked during some of these phases by implementing one more lifecycle interfaces.
+
+			Populate    Application and framework components are stored in the container.
+
+			Configure   Configuration and dependencies are resolved and injected into components.
+
+			Decorate    Components implementing the ioc.ComponentDecorator are given access to all other components
+			            to potentially modify.
+
+			Start       Components implementing the ioc.Startable interface are invoked.
+
+			Access	    Components implementing ioc.AccessibilityBlocker and ioc.Accessible are interacted with.
+
+			Ready       Granitic application is running.
+
+	When the container is ready, a log message similar to
+
+			grncInit Ready (startup time 6.289544ms)
+
+	will be logged.
+
+	There are several other possible lifecycle phases after the container is ready:
+
+			Suspend     Components implementing ioc.Suspendable are have their Suspend method invoked.
+
+			Resume      Components implementing ioc.Suspendable are have their Resume method invoked.
+
+			Stop        Components implementing ioc.Stoppable are allowed to stop gracefully before the application exits.
+
+
+	Decorators
+
+	Decorators are special components implementing ioc.ComponentDecorator. Their main purpose is to inject dynamically
+	created objects into other components (such as Loggers). Decorators are destroyed after the Decorate phase of container
+	startup.
+
+	Stopping
+
+	Components that need to perform some shutdown process before an application exits should implement the Stoppable
+	interface. See the GoDoc for ioc.Stoppable below for more detail.
+
+	Gaining access to the container
+
+	If your application component needs direct access to the container it should implement the ioc.ContainerAccessor. A
+	reference to the container will be injected into your component during the decorate phase.
+*/
 package ioc
 
 // What state (stopped, running) or state-tranistion a component is currently in.

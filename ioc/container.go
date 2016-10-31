@@ -1,6 +1,3 @@
-/*
-Package ioc provides an Inversion of Control component container and lifecycle hooks.
-*/
 package ioc
 
 import (
