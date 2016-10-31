@@ -37,6 +37,7 @@
 	Granitic's documentation will use the term component and component instance interchangeably. For example, 'component field'
 	means 'a field on the instance of the Go struct associated with that component'.
 
+
 	The container
 
 	When Granitic starts, it will create an instance of ioc.ComponentContainer - a structure that holds references to
@@ -75,13 +76,20 @@
 		}
 
 	In the above example, the field CreateRecordLogic.MaxTracks is set to 20 when the struct is instantiated, ArtistMustExist
-	is set to the config element 'record.disableAutoArtist' and DAO is set to a reference to another component's instance.
+	is set to the config element 'record.disableAutoArtist' and DAO is set to a reference to another component's instance. Note that c: and r:
+	can be used as shorthand for config: and ref: See http://granitic.io/1.0/ref/components for more information
 
 	Any error such as type mismatches or missing configuration will cause an error that will halt application startup.
 
+	Component templates
+
+	A template mechanism exists to allow multiple components that share a type, dependencies or configuration items to
+	only have those elements defined once. This is especially useful for web service handlers. See
+	http://granitic.io/1.0/ref/components#templates for more details.
+
 	Binding
 
-	Unlike JVM/CLR languages, Go has no runtime 'instance for type name' mechanism for creating instances of a struct. As
+	Unlike JVM/CLR languages, Go has no runtime 'instance-for-type-name' mechanism for creating instances of a struct. As
 	a result, unlike JVM/CLR IoC containers you may have used, the container does not instantiate the actual instances
 	of the Go structs behind application components. Instead a 'binding' proces is used - refer to the pacakage documentation
 	for the grnc-bind tool for more information.
@@ -106,7 +114,7 @@
 
 	When the container is ready, a log message similar to
 
-			grncInit Ready (startup time 6.289544ms)
+			grncInit Ready (startup time 6.28ms)
 
 	will be logged.
 
@@ -134,6 +142,12 @@
 
 	If your application component needs direct access to the container it should implement the ioc.ContainerAccessor. A
 	reference to the container will be injected into your component during the decorate phase.
+
+	External interaction with the container
+
+	If your application enables the RuntimeCtl facility, you can interact with the container and its components by using
+	the grnc-ctl command line utility. See the package documentation for grnc-ctl for more information.
+
 */
 package ioc
 
