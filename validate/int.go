@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// An object able to evaulate the supplied int64 to see if it meets some definition of validity.
+// An object able to evaluate the supplied int64 to see if it meets some definition of validity.
 type ExternalInt64Validator interface {
 	// ValidInt64 returns true if the implementation considers the supplied int64 to be valid.
 	ValidInt64(int64) bool

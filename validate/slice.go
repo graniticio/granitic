@@ -51,13 +51,13 @@ func NewSliceValidationRule(field, defaultErrorCode string) *SliceValidationRule
 	bv.dependsFields = determinePathFields(field)
 	bv.operations = make([]*sliceOperation, 0)
 	bv.codesInUse.Add(bv.defaultErrorCode)
-	bv.minLen = NoLimit
-	bv.maxLen = NoLimit
+	bv.minLen = noBound
+	bv.maxLen = noBound
 
 	return bv
 }
 
-// A ValidationRule able to validate a slice field and the indiviudal elements of that slice. See the method definitions on this type for
+// A ValidationRule able to validate a slice field and the individual elements of that slice. See the method definitions on this type for
 // the supported operations.
 type SliceValidationRule struct {
 	stopAll             bool
@@ -170,7 +170,7 @@ func (bv *SliceValidationRule) checkElementContents(field string, slice reflect.
 		e := slice.Index(i)
 
 		switch tv := v.(type) {
-		case *StringValidator:
+		case *StringValidationRule:
 			vc.Subject, err, nilable = bv.stringValue(e, fa)
 			stringElement = true
 		case *IntValidationRule:
@@ -384,14 +384,14 @@ func (bv *SliceValidationRule) operation(c string) (sliceValidationOperation, er
 
 func (sv *SliceValidationRule) lengthOkay(r reflect.Value) bool {
 
-	if sv.minLen == NoLimit && sv.maxLen == NoLimit {
+	if sv.minLen == noBound && sv.maxLen == noBound {
 		return true
 	}
 
 	sl := r.Len()
 
-	minOkay := sv.minLen == NoLimit || sl >= sv.minLen
-	maxOkay := sv.maxLen == NoLimit || sl <= sv.maxLen
+	minOkay := sv.minLen == noBound || sl >= sv.minLen
+	maxOkay := sv.maxLen == noBound || sl <= sv.maxLen
 
 	return minOkay && maxOkay
 
@@ -480,11 +480,11 @@ func (vb *sliceValidationRuleBuilder) addElementValidationOperation(field string
 	}
 
 	switch v.(type) {
-	case *StringValidator, *BoolValidationRule, *IntValidationRule, *FloatValidationRule:
+	case *StringValidationRule, *BoolValidationRule, *IntValidationRule, *FloatValidationRule:
 		break
 	default:
 		m := fmt.Sprintf("Only %s, %s, %s and %s rules may be used to validate slice elements. Field %s is trying to use %s",
-			intRuleCode, floatRuleCode, boolRuleCode, StringRuleCode, field, rule[0])
+			intRuleCode, floatRuleCode, boolRuleCode, stringRuleCode, field, rule[0])
 		return errors.New(m)
 	}
 

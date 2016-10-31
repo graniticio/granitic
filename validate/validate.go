@@ -318,7 +318,7 @@ type RuleValidator struct {
 	Rules [][]string
 
 	jsonConfig             interface{}
-	stringBuilder          *StringValidatorBuilder
+	stringBuilder          *stringValidationRuleBuilder
 	objectValidatorBuilder *objectValidationRuleBuilder
 	boolValidatorBuilder   *boolValidationRuleBuilder
 	intValidatorBuilder    *intValidationRuleBuilder
@@ -493,7 +493,7 @@ func (ov *RuleValidator) StartComponent() error {
 		ov.codesInUse.Add(ov.DefaultErrorCode)
 	}
 
-	ov.stringBuilder = NewStringValidatorBuilder(ov.DefaultErrorCode)
+	ov.stringBuilder = newStringValidationRuleBuilder(ov.DefaultErrorCode)
 	ov.stringBuilder.componentFinder = ov.ComponentFinder
 
 	ov.objectValidatorBuilder = newObjectValidationRuleBuilder(ov.DefaultErrorCode, ov.ComponentFinder)
@@ -647,7 +647,7 @@ func (ov *RuleValidator) extractType(field string, rule []string) (validationRul
 		f := decomposeOperation(v)
 
 		switch f[0] {
-		case StringRuleCode:
+		case stringRuleCode:
 			return stringRuleType, nil
 		case objectRuleCode:
 			return objectRuleType, nil
@@ -777,8 +777,8 @@ func extractVargs(ops []string, l int) []string {
 
 func extractLengthParams(field string, vals string, pattern *regexp.Regexp) (min, max int, err error) {
 
-	min = NoLimit
-	max = NoLimit
+	min = noBound
+	max = noBound
 
 	if !pattern.MatchString(vals) {
 		m := fmt.Sprintf("Length parameters for field %s are invalid. Values provided: %s", field, vals)

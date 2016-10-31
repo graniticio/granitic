@@ -13,7 +13,7 @@ func TestMissingRequiredStringField(t *testing.T) {
 
 	field := "S"
 
-	sb := NewStringValidatorBuilder("DEF")
+	sb := newStringValidationRuleBuilder("DEF")
 
 	sv, err := sb.parseRule("S", []string{"REQ:MISSING", "LEN:5-10:SHORT"})
 
@@ -44,7 +44,7 @@ func TestMissingRequiredStringField(t *testing.T) {
 }
 
 func TestUnsetButOptional(t *testing.T) {
-	sb := NewStringValidatorBuilder("DEF")
+	sb := newStringValidationRuleBuilder("DEF")
 
 	field := "S"
 
@@ -76,7 +76,7 @@ func TestUnsetButOptional(t *testing.T) {
 }
 
 func TestHardTrim(t *testing.T) {
-	sb := NewStringValidatorBuilder("DEF")
+	sb := newStringValidationRuleBuilder("DEF")
 
 	field := "S"
 
@@ -111,7 +111,7 @@ func TestHardTrim(t *testing.T) {
 }
 
 func TestSoftTrim(t *testing.T) {
-	sb := NewStringValidatorBuilder("DEF")
+	sb := newStringValidationRuleBuilder("DEF")
 
 	field := "S"
 
@@ -146,7 +146,7 @@ func TestSoftTrim(t *testing.T) {
 }
 
 func TestInSet(t *testing.T) {
-	sb := NewStringValidatorBuilder("DEF")
+	sb := newStringValidationRuleBuilder("DEF")
 
 	field := "S"
 
@@ -177,7 +177,7 @@ func TestInSet(t *testing.T) {
 }
 
 func TestBreak(t *testing.T) {
-	sb := NewStringValidatorBuilder("DEF")
+	sb := newStringValidationRuleBuilder("DEF")
 
 	field := "S"
 
@@ -201,7 +201,7 @@ func TestBreak(t *testing.T) {
 }
 
 func TestStopAll(t *testing.T) {
-	sb := NewStringValidatorBuilder("DEF")
+	sb := newStringValidationRuleBuilder("DEF")
 
 	sv, _ := sb.parseRule("S", []string{"REQ:MISSING", "LEN:2-:LENGTH"})
 
@@ -213,7 +213,7 @@ func TestStopAll(t *testing.T) {
 }
 
 func TestRegex(t *testing.T) {
-	sb := NewStringValidatorBuilder("DEF")
+	sb := newStringValidationRuleBuilder("DEF")
 
 	field := "S"
 
@@ -245,7 +245,7 @@ func TestRegex(t *testing.T) {
 }
 
 func TestLength(t *testing.T) {
-	sb := NewStringValidatorBuilder("DEF")
+	sb := newStringValidationRuleBuilder("DEF")
 
 	field := "S"
 
@@ -323,7 +323,7 @@ func TestLength(t *testing.T) {
 }
 
 func TestExternal(t *testing.T) {
-	sb := NewStringValidatorBuilder("DEF")
+	sb := newStringValidationRuleBuilder("DEF")
 
 	_, err := sb.parseRule("S", []string{"EXT:extComp"})
 
@@ -361,7 +361,7 @@ func TestExternal(t *testing.T) {
 }
 
 func TestStringMExFieldDetection(t *testing.T) {
-	vb := NewStringValidatorBuilder("DEF")
+	vb := newStringValidationRuleBuilder("DEF")
 
 	field := "S"
 

@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package validate
 
 import (
@@ -10,9 +13,9 @@ import (
 	"strings"
 )
 
-const NoLimit = -1
+const noBound = -1
 const setMemberSep = ","
-const StringRuleCode = "STR"
+const stringRuleCode = "STR"
 
 const (
 	stringOpTrimCode     = "TRIM"
@@ -27,23 +30,25 @@ const (
 	stringOpMExCode      = commonOpMex
 )
 
-type StringValidationOperation uint
+type stringValidationOperation uint
 
 const (
-	StringOpUnsupported = iota
-	StringOpTrim
-	StringOpHardTrim
-	StringOpLen
-	StringOpIn
-	StringOpExt
-	StringOpRequired
-	StringOpBreak
-	StringOpReg
-	StringOpStopAll
-	StringOpMEx
+	stringOpUnsupported = iota
+	stringOpTrim
+	stringOpHardTrim
+	stringOpLen
+	stringOpIn
+	stringOpExt
+	stringOpRequired
+	stringOpBreak
+	stringOpReg
+	stringOpStopAll
+	stringOpMEx
 )
 
+// An object able to evaluate the supplied string to see if it meets some definition of validity.
 type ExternalStringValidator interface {
+	// ValidString returns true if the implementation considers the supplied string to be valid.
 	ValidString(string) bool
 }
 
@@ -55,7 +60,21 @@ const (
 	hardTrim = 2
 )
 
-type StringValidator struct {
+//Create a new NewStringValidationRule to check the specified field.
+func NewStringValidationRule(field, defaultErrorCode string) *StringValidationRule {
+	sv := new(StringValidationRule)
+	sv.defaultErrorCode = defaultErrorCode
+	sv.field = field
+	sv.codesInUse = types.NewOrderedStringSet([]string{})
+	sv.dependsFields = determinePathFields(field)
+	sv.trim = noTrim
+
+	return sv
+}
+
+// A ValidationRule able to validate a string or NilableString field. See the method definitions on this type for
+// the supported operations.
+type StringValidationRule struct {
 	defaultErrorCode    string
 	missingRequiredCode string
 	field               string
@@ -69,26 +88,18 @@ type StringValidator struct {
 	dependsFields       types.StringSet
 }
 
-func NewStringValidator(field, defaultErrorCode string) *StringValidator {
-	sv := new(StringValidator)
-	sv.defaultErrorCode = defaultErrorCode
-	sv.field = field
-	sv.codesInUse = types.NewOrderedStringSet([]string{})
-	sv.dependsFields = determinePathFields(field)
-	sv.trim = noTrim
-
-	return sv
-}
-
-func (sv *StringValidator) DependsOnFields() types.StringSet {
+// See ValidationRule.DependsOnFields
+func (sv *StringValidationRule) DependsOnFields() types.StringSet {
 	return sv.dependsFields
 }
 
-func (sv *StringValidator) CodesInUse() types.StringSet {
+// See ValidationRule.CodesInUse
+func (sv *StringValidationRule) CodesInUse() types.StringSet {
 	return sv.codesInUse
 }
 
-func (sv *StringValidator) IsSet(field string, subject interface{}) (bool, error) {
+// IsSet returns false if the field is a string or if it is a nil or unset NilableString
+func (sv *StringValidationRule) IsSet(field string, subject interface{}) (bool, error) {
 	ns, err := sv.extractValue(field, subject)
 
 	if err != nil {
@@ -102,7 +113,8 @@ func (sv *StringValidator) IsSet(field string, subject interface{}) (bool, error
 	}
 }
 
-func (sv *StringValidator) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
+// See ValidationRule.Validate
+func (sv *StringValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	var value *types.NilableString
 
@@ -153,7 +165,7 @@ func (sv *StringValidator) Validate(vc *ValidationContext) (result *ValidationRe
 	return r, err
 }
 
-func (sv *StringValidator) applyTrimming(f string, s interface{}, ns *types.NilableString, vc *ValidationContext) string {
+func (sv *StringValidationRule) applyTrimming(f string, s interface{}, ns *types.NilableString, vc *ValidationContext) string {
 
 	if sv.trim == hardTrim || sv.trim == softTrim {
 
@@ -180,7 +192,7 @@ func (sv *StringValidator) applyTrimming(f string, s interface{}, ns *types.Nila
 	return ns.String()
 }
 
-func (sv *StringValidator) extractValue(f string, s interface{}) (*types.NilableString, error) {
+func (sv *StringValidationRule) extractValue(f string, s interface{}) (*types.NilableString, error) {
 
 	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
@@ -209,7 +221,7 @@ func (sv *StringValidator) extractValue(f string, s interface{}) (*types.Nilable
 	}
 }
 
-func (sv *StringValidator) runOperations(field string, s string, vc *ValidationContext, r *ValidationResult) error {
+func (sv *StringValidationRule) runOperations(field string, s string, vc *ValidationContext, r *ValidationResult) error {
 
 	ec := types.NewEmptyOrderedStringSet()
 
@@ -217,33 +229,33 @@ OpLoop:
 	for _, op := range sv.operations {
 
 		switch op.OpType {
-		case StringOpLen:
+		case stringOpLen:
 			if !sv.lengthOkay(s) {
 				ec.Add(op.ErrCode)
 			}
-		case StringOpIn:
+		case stringOpIn:
 			if !op.InSet.Contains(s) {
 				ec.Add(op.ErrCode)
 			}
 
-		case StringOpExt:
+		case stringOpExt:
 			if !op.External.ValidString(s) {
 
 				ec.Add(op.ErrCode)
 			}
 
-		case StringOpBreak:
+		case stringOpBreak:
 
 			if ec.Size() > 0 {
 				break OpLoop
 			}
 
-		case StringOpReg:
+		case stringOpReg:
 			if !op.Regex.MatchString(s) {
 				ec.Add(op.ErrCode)
 			}
 
-		case StringOpMEx:
+		case stringOpMEx:
 			checkMExFields(op.MExFields, vc, ec, op.ErrCode)
 		}
 
@@ -255,22 +267,22 @@ OpLoop:
 
 }
 
-func (sv *StringValidator) lengthOkay(s string) bool {
+func (sv *StringValidationRule) lengthOkay(s string) bool {
 
-	if sv.minLen == NoLimit && sv.maxLen == NoLimit {
+	if sv.minLen == noBound && sv.maxLen == noBound {
 		return true
 	}
 
 	sl := len(s)
 
-	minOkay := sv.minLen == NoLimit || sl >= sv.minLen
-	maxOkay := sv.maxLen == NoLimit || sl <= sv.maxLen
+	minOkay := sv.minLen == noBound || sl >= sv.minLen
+	maxOkay := sv.maxLen == noBound || sl <= sv.maxLen
 
 	return minOkay && maxOkay
 
 }
 
-func (sv *StringValidator) wasStringSet(s string, field string, knownSet types.StringSet) bool {
+func (sv *StringValidationRule) wasStringSet(s string, field string, knownSet types.StringSet) bool {
 
 	l := len(s)
 
@@ -286,14 +298,16 @@ func (sv *StringValidator) wasStringSet(s string, field string, knownSet types.S
 
 }
 
-func (sv *StringValidator) StopAllOnFail() bool {
+// See ValidationRule.StopAllOnFail
+func (sv *StringValidationRule) StopAllOnFail() bool {
 	return sv.stopAll
 }
 
-func (sv *StringValidator) MEx(fields types.StringSet, code ...string) *StringValidator {
+// MEx adds a check to see if any other of the fields with which this field is mutually exclusive have been set.
+func (sv *StringValidationRule) MEx(fields types.StringSet, code ...string) *StringValidationRule {
 	op := new(stringOperation)
 	op.ErrCode = sv.chooseErrorCode(code)
-	op.OpType = StringOpMEx
+	op.OpType = stringOpMEx
 	op.MExFields = fields
 
 	sv.addOperation(op)
@@ -301,10 +315,11 @@ func (sv *StringValidator) MEx(fields types.StringSet, code ...string) *StringVa
 	return sv
 }
 
-func (sv *StringValidator) Break() *StringValidator {
+// Break adds a check to stop processing this rule if the previous check has failed.
+func (sv *StringValidationRule) Break() *StringValidationRule {
 
 	o := new(stringOperation)
-	o.OpType = StringOpBreak
+	o.OpType = stringOpBreak
 
 	sv.addOperation(o)
 
@@ -312,7 +327,8 @@ func (sv *StringValidator) Break() *StringValidator {
 
 }
 
-func (sv *StringValidator) Length(min, max int, code ...string) *StringValidator {
+// Length adds a check to see if the string has a lenght between the supplied min and max values.
+func (sv *StringValidationRule) Length(min, max int, code ...string) *StringValidationRule {
 
 	sv.minLen = min
 	sv.maxLen = max
@@ -320,7 +336,7 @@ func (sv *StringValidator) Length(min, max int, code ...string) *StringValidator
 	ec := sv.chooseErrorCode(code)
 
 	o := new(stringOperation)
-	o.OpType = StringOpLen
+	o.OpType = stringOpLen
 	o.ErrCode = ec
 
 	sv.addOperation(o)
@@ -329,14 +345,15 @@ func (sv *StringValidator) Length(min, max int, code ...string) *StringValidator
 
 }
 
-func (sv *StringValidator) In(set []string, code ...string) *StringValidator {
+// In adds a check to confirm that the string exactly matches one of those in the supplied set.
+func (sv *StringValidationRule) In(set []string, code ...string) *StringValidationRule {
 
 	ss := types.NewUnorderedStringSet(set)
 
 	ec := sv.chooseErrorCode(code)
 
 	o := new(stringOperation)
-	o.OpType = StringOpIn
+	o.OpType = stringOpIn
 	o.ErrCode = ec
 	o.InSet = ss
 
@@ -346,28 +363,35 @@ func (sv *StringValidator) In(set []string, code ...string) *StringValidator {
 
 }
 
-func (sv *StringValidator) HardTrim() *StringValidator {
+// HardTrim specifies that the string to be validated should be trimmed before validation. This affects
+// the underlying value permanently. To have the same functionality without modifying the string, use
+// the Trim method instead.
+func (sv *StringValidationRule) HardTrim() *StringValidationRule {
 
 	sv.trim = hardTrim
 
 	return sv
 }
 
-func (sv *StringValidator) Trim() *StringValidator {
+// Trim specifies that all validation checks should be performed on a copy of the string with leading and
+// trailing whitespace removed.
+func (sv *StringValidationRule) Trim() *StringValidationRule {
 
 	sv.trim = softTrim
 
 	return sv
 }
 
-func (sv *StringValidator) StopAll() *StringValidator {
+// StopAll indicates that no further rules should be rule if this one fails.
+func (sv *StringValidationRule) StopAll() *StringValidationRule {
 
 	sv.stopAll = true
 
 	return sv
 }
 
-func (sv *StringValidator) Required(code ...string) *StringValidator {
+// Required adds a check to see if the field under validation has been set.
+func (sv *StringValidationRule) Required(code ...string) *StringValidationRule {
 
 	sv.required = true
 
@@ -380,11 +404,12 @@ func (sv *StringValidator) Required(code ...string) *StringValidator {
 	return sv
 }
 
-func (sv *StringValidator) ExternalValidation(v ExternalStringValidator, code ...string) *StringValidator {
+// ExternalValidation adds a check to call the supplied object to ask it to check the validity of the string in question.
+func (sv *StringValidationRule) ExternalValidation(v ExternalStringValidator, code ...string) *StringValidationRule {
 	ec := sv.chooseErrorCode(code)
 
 	o := new(stringOperation)
-	o.OpType = StringOpExt
+	o.OpType = stringOpExt
 	o.ErrCode = ec
 	o.External = v
 
@@ -393,11 +418,12 @@ func (sv *StringValidator) ExternalValidation(v ExternalStringValidator, code ..
 	return sv
 }
 
-func (sv *StringValidator) Regex(r *regexp.Regexp, code ...string) *StringValidator {
+// Regex adds a check to confirm that the string being validated matches the supplied regular expression.
+func (sv *StringValidationRule) Regex(r *regexp.Regexp, code ...string) *StringValidationRule {
 	ec := sv.chooseErrorCode(code)
 
 	o := new(stringOperation)
-	o.OpType = StringOpReg
+	o.OpType = stringOpReg
 	o.ErrCode = ec
 	o.Regex = r
 
@@ -406,7 +432,7 @@ func (sv *StringValidator) Regex(r *regexp.Regexp, code ...string) *StringValida
 	return sv
 }
 
-func (sv *StringValidator) addOperation(o *stringOperation) {
+func (sv *StringValidationRule) addOperation(o *stringOperation) {
 	if sv.operations == nil {
 		sv.operations = make([]*stringOperation, 0)
 	}
@@ -422,36 +448,36 @@ func (sv *StringValidator) addOperation(o *stringOperation) {
 	}
 }
 
-func (sv *StringValidator) Operation(c string) (StringValidationOperation, error) {
+func (sv *StringValidationRule) operation(c string) (stringValidationOperation, error) {
 	switch c {
 	case stringOpTrimCode:
-		return StringOpTrim, nil
+		return stringOpTrim, nil
 	case stringOpHardTrimCode:
-		return StringOpHardTrim, nil
+		return stringOpHardTrim, nil
 	case stringOpLenCode:
-		return StringOpLen, nil
+		return stringOpLen, nil
 	case stringOpInCode:
-		return StringOpIn, nil
+		return stringOpIn, nil
 	case stringOpExtCode:
-		return StringOpExt, nil
+		return stringOpExt, nil
 	case stringOpRequiredCode:
-		return StringOpRequired, nil
+		return stringOpRequired, nil
 	case stringOpBreakCode:
-		return StringOpBreak, nil
+		return stringOpBreak, nil
 	case stringOpRegCode:
-		return StringOpReg, nil
+		return stringOpReg, nil
 	case stringOpStopAllCode:
-		return StringOpStopAll, nil
+		return stringOpStopAll, nil
 	case stringOpMExCode:
-		return StringOpMEx, nil
+		return stringOpMEx, nil
 	}
 
 	m := fmt.Sprintf("Unsupported string validation operation %s", c)
-	return StringOpUnsupported, errors.New(m)
+	return stringOpUnsupported, errors.New(m)
 
 }
 
-func (sv *StringValidator) chooseErrorCode(v []string) string {
+func (sv *StringValidationRule) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
 		sv.codesInUse.Add(v[0])
@@ -463,7 +489,7 @@ func (sv *StringValidator) chooseErrorCode(v []string) string {
 }
 
 type stringOperation struct {
-	OpType    StringValidationOperation
+	OpType    stringValidationOperation
 	ErrCode   string
 	InSet     *types.UnorderedStringSet
 	External  ExternalStringValidator
@@ -471,52 +497,60 @@ type stringOperation struct {
 	MExFields types.StringSet
 }
 
-type StringValidatorBuilder struct {
+func newStringValidationRuleBuilder(defaultErrorCode string) *stringValidationRuleBuilder {
+	vb := new(stringValidationRuleBuilder)
+	vb.strLenRegex = regexp.MustCompile(lengthPattern)
+	vb.defaultErrorCode = defaultErrorCode
+
+	return vb
+}
+
+type stringValidationRuleBuilder struct {
 	strLenRegex      *regexp.Regexp
 	defaultErrorCode string
 	componentFinder  ioc.ComponentByNameFinder
 }
 
-func (vb *StringValidatorBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
+func (vb *stringValidationRuleBuilder) parseRule(field string, rule []string) (ValidationRule, error) {
 
-	defaultErrorcode := determineDefaultErrorCode(StringRuleCode, rule, vb.defaultErrorCode)
-	sv := NewStringValidator(field, defaultErrorcode)
+	defaultErrorcode := determineDefaultErrorCode(stringRuleCode, rule, vb.defaultErrorCode)
+	sv := NewStringValidationRule(field, defaultErrorcode)
 
 	for _, v := range rule {
 
 		ops := decomposeOperation(v)
 		opCode := ops[0]
 
-		if isTypeIndicator(StringRuleCode, opCode) {
+		if isTypeIndicator(stringRuleCode, opCode) {
 			continue
 		}
 
-		op, err := sv.Operation(opCode)
+		op, err := sv.operation(opCode)
 
 		if err != nil {
 			return nil, err
 		}
 
 		switch op {
-		case StringOpBreak:
+		case stringOpBreak:
 			sv.Break()
-		case StringOpLen:
+		case stringOpLen:
 			err = vb.addStringLenOperation(field, ops, sv)
-		case StringOpReg:
+		case stringOpReg:
 			err = vb.addStringRegexOperation(field, ops, sv)
-		case StringOpExt:
+		case stringOpExt:
 			err = vb.addStringExternalOperation(field, ops, sv)
-		case StringOpIn:
+		case stringOpIn:
 			err = vb.addStringInOperation(field, ops, sv)
-		case StringOpHardTrim:
+		case stringOpHardTrim:
 			sv.HardTrim()
-		case StringOpTrim:
+		case stringOpTrim:
 			sv.Trim()
-		case StringOpRequired:
+		case stringOpRequired:
 			err = vb.markRequired(field, ops, sv)
-		case StringOpStopAll:
+		case stringOpStopAll:
 			sv.StopAll()
-		case StringOpMEx:
+		case stringOpMEx:
 			err = vb.captureExclusiveFields(field, ops, sv)
 		}
 
@@ -531,7 +565,7 @@ func (vb *StringValidatorBuilder) parseRule(field string, rule []string) (Valida
 
 }
 
-func (vb *StringValidatorBuilder) captureExclusiveFields(field string, ops []string, iv *StringValidator) error {
+func (vb *stringValidationRuleBuilder) captureExclusiveFields(field string, ops []string, iv *StringValidationRule) error {
 	_, err := paramCount(ops, "MEX", field, 2, 3)
 
 	if err != nil {
@@ -547,7 +581,7 @@ func (vb *StringValidatorBuilder) captureExclusiveFields(field string, ops []str
 
 }
 
-func (vb *StringValidatorBuilder) markRequired(field string, ops []string, sv *StringValidator) error {
+func (vb *stringValidationRuleBuilder) markRequired(field string, ops []string, sv *StringValidationRule) error {
 
 	pCount, err := paramCount(ops, "Required", field, 1, 2)
 
@@ -564,7 +598,7 @@ func (vb *StringValidatorBuilder) markRequired(field string, ops []string, sv *S
 	return nil
 }
 
-func (vb *StringValidatorBuilder) addStringInOperation(field string, ops []string, sv *StringValidator) error {
+func (vb *stringValidationRuleBuilder) addStringInOperation(field string, ops []string, sv *StringValidationRule) error {
 
 	pCount, err := paramCount(ops, "In Set", field, 2, 3)
 
@@ -584,7 +618,7 @@ func (vb *StringValidatorBuilder) addStringInOperation(field string, ops []strin
 
 }
 
-func (vb *StringValidatorBuilder) addStringRegexOperation(field string, ops []string, sv *StringValidator) error {
+func (vb *stringValidationRuleBuilder) addStringRegexOperation(field string, ops []string, sv *StringValidationRule) error {
 
 	pCount, err := paramCount(ops, "Regex", field, 2, 3)
 
@@ -611,7 +645,7 @@ func (vb *StringValidatorBuilder) addStringRegexOperation(field string, ops []st
 
 }
 
-func (vb *StringValidatorBuilder) addStringExternalOperation(field string, ops []string, sv *StringValidator) error {
+func (vb *stringValidationRuleBuilder) addStringExternalOperation(field string, ops []string, sv *StringValidationRule) error {
 
 	pCount, i, err := validateExternalOperation(vb.componentFinder, field, ops)
 
@@ -636,7 +670,7 @@ func (vb *StringValidatorBuilder) addStringExternalOperation(field string, ops [
 
 }
 
-func (vb *StringValidatorBuilder) addStringLenOperation(field string, ops []string, sv *StringValidator) error {
+func (vb *stringValidationRuleBuilder) addStringLenOperation(field string, ops []string, sv *StringValidationRule) error {
 
 	_, err := paramCount(ops, "Length", field, 2, 3)
 
@@ -665,12 +699,4 @@ func paramCount(opParams []string, opName, field string, min, max int) (count in
 	}
 
 	return pCount, nil
-}
-
-func NewStringValidatorBuilder(defaultErrorCode string) *StringValidatorBuilder {
-	vb := new(StringValidatorBuilder)
-	vb.strLenRegex = regexp.MustCompile(lengthPattern)
-	vb.defaultErrorCode = defaultErrorCode
-
-	return vb
 }
