@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package rdbms
 
 import (
@@ -8,9 +11,14 @@ import (
 )
 
 const (
+	// The name of a Go tag on struct fields that can be used to map that field to a parameter name
 	DBParamTag = "dbparam"
 )
 
+/*
+ParamsFromTags takes one or more structs whose fields might have the dbparam tag set. Those fields that do have the
+tag set are added to the the returned map, where the tag value is used as the map key and the field value is used as the map value.
+*/
 func ParamsFromTags(sources ...interface{}) (map[string]interface{}, error) {
 
 	p := make(map[string]interface{})
