@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package ioc
 
 import (
@@ -15,10 +18,13 @@ const containerDecoratorComponentName = instance.FrameworkPrefix + "ContainerDec
 const containerComponentName = instance.FrameworkPrefix + "Container"
 const lifecycleComponentName = instance.FrameworkPrefix + "LifecycleManager"
 
+// Implemented by components that need to be able to find other components by name.
 type ComponentByNameFinder interface {
+	// ComponentByName returns the Component with the supplied name, or nil if it does not exist.
 	ComponentByName(string) *Component
 }
 
+// Create a new instance of a Granitic IoC container.
 func NewComponentContainer(logm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, sys *instance.System) *ComponentContainer {
 
 	cc := new(ComponentContainer)
@@ -39,6 +45,11 @@ func NewComponentContainer(logm *logging.ComponentLoggerManager, ca *config.Conf
 
 }
 
+/*
+The Granitic IoC container. See the GoDoc for the ioc package for more information on how to interact with the container.
+
+Most applications should never need to interact with the container programmatically.
+*/
 type ComponentContainer struct {
 	allComponents      map[string]*Component
 	protoComponents    map[string]*ProtoComponent
@@ -50,14 +61,18 @@ type ComponentContainer struct {
 	system             *instance.System
 }
 
+// See ComponentByNameFinder.ComponentByName
 func (cc *ComponentContainer) ComponentByName(name string) *Component {
 	return cc.allComponents[name]
 }
 
+// ByLifecycleSupport returns all components hosted by the container that have specific support for a lifecycle event
+// (i.e. implement the associated lifecycle interface
 func (cc *ComponentContainer) ByLifecycleSupport(ls LifecycleSupport) []*Component {
 	return cc.byLifecycleSupport[ls]
 }
 
+// AllComponents returns all of the components hosted by the container.
 func (cc *ComponentContainer) AllComponents() []*Component {
 
 	ac := make([]*Component, len(cc.allComponents))
@@ -76,6 +91,8 @@ func (cc *ComponentContainer) AllComponents() []*Component {
 	return ac
 }
 
+// AddModifier is used to override a dependency on a component (normally a built-in Granitic component) during the
+// configure phase of container startup.
 func (cc *ComponentContainer) AddModifier(comp string, field string, dep string) {
 
 	m := cc.modifiers
@@ -90,6 +107,8 @@ func (cc *ComponentContainer) AddModifier(comp string, field string, dep string)
 
 }
 
+// AddModifiers is used to override a dependency on set of components (normally built-in Granitic components) during the
+// configure phase of container startup.
 func (cc *ComponentContainer) AddModifiers(mods map[string]map[string]string) {
 
 	for c, cm := range mods {
@@ -102,6 +121,7 @@ func (cc *ComponentContainer) AddModifiers(mods map[string]map[string]string) {
 
 }
 
+// ModifierExists checks to see if a modifier (see AddModifier) has previously been registered for a field on a component.
 func (cc *ComponentContainer) ModifierExists(comp string, field string) bool {
 
 	m := cc.modifiers[comp]
@@ -110,14 +130,17 @@ func (cc *ComponentContainer) ModifierExists(comp string, field string) bool {
 
 }
 
+// ModifiersExist returns true if any modifiers (see AddModifier) have been registered.
 func (cc *ComponentContainer) ModifiersExist(comp string) bool {
 	return cc.modifiers[comp] != nil
 }
 
+// Modifiers returns all registered modifiers (see AddModifier)
 func (cc *ComponentContainer) Modifiers(comp string) map[string]string {
 	return cc.modifiers[comp]
 }
 
+// AddProto registers an instantiated but un-configured proto-component.
 func (cc *ComponentContainer) AddProto(proto *ProtoComponent) {
 
 	cc.FrameworkLogger.LogTracef("Adding proto %s", proto.Component.Name)
@@ -125,17 +148,20 @@ func (cc *ComponentContainer) AddProto(proto *ProtoComponent) {
 	cc.protoComponents[proto.Component.Name] = proto
 }
 
+// WrapAndAddProto registers an instance and name as an un-configured proto-component.
 func (cc *ComponentContainer) WrapAndAddProto(name string, instance interface{}) {
 	p := CreateProtoComponent(instance, name)
 	cc.AddProto(p)
 }
 
+// AddProto regsiters a collection of proto-components (see AddProto)
 func (cc *ComponentContainer) AddProtos(protos []*ProtoComponent) {
 	for _, p := range protos {
 		cc.AddProto(p)
 	}
 }
 
+// Populate converts all registered proto-components into components and populates them with configuration and dependencies.
 func (cc *ComponentContainer) Populate() error {
 
 	defer func() {
