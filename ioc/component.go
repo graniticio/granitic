@@ -138,6 +138,13 @@
 	Components that need to perform some shutdown process before an application exits should implement the Stoppable
 	interface. See the GoDoc for ioc.Stoppable below for more detail.
 
+	Container settings
+
+	The file $GRANITIC_HOME/resource/facility-config/system.json contains configuration, that can be overridden in your
+	application's configuration file, affecting startup, garbage collection and shutdown behaviour of the container.
+
+	More information can be found at http://granitic.io/1.0/ref/system-settings
+
 	Gaining access to the container
 
 	If your application component needs direct access to the container it should implement the ioc.ContainerAccessor. A

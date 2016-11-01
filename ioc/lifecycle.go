@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package ioc
 
 import (
@@ -10,6 +13,7 @@ import (
 	"time"
 )
 
+// Enumeration able used to categorise types by the lifecycle events they can react to.
 type LifecycleSupport int
 
 const (
@@ -21,35 +25,85 @@ const (
 	CanBeAccessed
 )
 
+/*
+Implemented by components that need to perform some initialisation before they are ready to run or use.
+
+Components that provide services outside of the application (like HTTP servers or queue listeners) should consider implementing
+Accessible in addition to Startable.
+*/
 type Startable interface {
+	// StartComponent performs initialisation and may start listeners/servers.
 	StartComponent() error
 }
 
+/*
+Implemented by components that are able to temporarily halt and then resume their activity at some later point in time.
+*/
 type Suspendable interface {
+	// Suspend causes the component to stop performing its primary function until Resume is called.
 	Suspend() error
+
+	// Resume causes the component to resume its primary function.
 	Resume() error
 }
 
+/*
+	Implemented by components that need to be given the opportunity to release resources or perform shutdown activities
+	before an application is halted.
+
+	See http://granitic.io/1.0/ref/system-settings for information about the number of times ReadyToStop is called, and how the
+	interval between these calls, can be adjusted for your application.
+*/
 type Stoppable interface {
+	// PrepareToStop gives notice to the component that the application is about to halt. The implementation of this method
+	// should cause the component to block any new requests for work.
 	PrepareToStop()
+
+	// ReadyToStop is called by the container to query whether or not the component is ready to shutdown. A component might
+	// return false if it is still processing or running a job. If the component returns false, it may optionally return
+	// an error to explain why it is not ready.
 	ReadyToStop() (bool, error)
+
+	// Stop is an instruction by the container to immediately terminate any running processes and release any resources.
+	// If the component is unable to do so, it may return an error, but the application will still stop.
 	Stop() error
 }
 
+/*
+	Implemented by components that MUST be ready before an application can be made accessible. For example, a component connecting
+	to a critical external system might implement AccessibilityBlocker to prevent an HTTP server making an API available until
+	a connection to the critical system is established.
+
+	See http://granitic.io/1.0/ref/system-settings for information about the number of times BlockAccess is called, and how the
+	interval between these calls can be adjusted for your application.
+*/
 type AccessibilityBlocker interface {
+
+	// BlockAccess returns true if the component wants to prevent the application from becoming ready and accessible. An
+	// optional error message can be returned explaining why.
 	BlockAccess() (bool, error)
 }
 
+/*
+	Implemented by components that require a final phase of initialisation to make themselves outside of the application.
+	Typically implemented by HTTP servers and message queue listeners to start listening on TCP ports.
+*/
 type Accessible interface {
+	// AllowAccess is called by the container as the final stage of making an application ready.
 	AllowAccess() error
 }
 
+/*
+	Provides an interface to the components to allow lifecycle methods/events to be applied to all
+	components or a subset of the components.
+*/
 type LifecycleManager struct {
 	container       *ComponentContainer
 	FrameworkLogger logging.Logger
 	system          *instance.System
 }
 
+// StartAll finds all Startable and Accessible components runs the Start/Block/Accessible cycle.
 func (lm *LifecycleManager) StartAll() error {
 
 	defer func() {
@@ -65,6 +119,10 @@ func (lm *LifecycleManager) StartAll() error {
 	return lm.start(startable, accessible)
 }
 
+/*
+	Start starts the supplied components, waits for any access-blocking components to be ready, then makes all
+	components accessible. See GoDoc for Startable, AccessibilityBlocker and Accessible for more details.
+*/
 func (lm *LifecycleManager) Start(startable []*Component) error {
 
 	accessible := make([]*Component, 0)
@@ -143,12 +201,14 @@ func (lm *LifecycleManager) waitForBlockers(retestInterval time.Duration, maxTri
 
 }
 
+// StopAll finds all components implementing Stoppable and passes them to Stop
 func (lm *LifecycleManager) StopAll() error {
 
 	return lm.StopComponents(lm.container.byLifecycleSupport[CanStop])
 
 }
 
+// SuspendComponents invokes Suspend on all of the supplied components that implement Suspendable
 func (lm *LifecycleManager) SuspendComponents(comps []*Component) error {
 
 	for _, c := range comps {
@@ -162,6 +222,7 @@ func (lm *LifecycleManager) SuspendComponents(comps []*Component) error {
 	return nil
 }
 
+// SuspendComponents invokes Resume on all of the supplied components that implement Suspendable
 func (lm *LifecycleManager) ResumeComponents(comps []*Component) error {
 
 	for _, c := range comps {
@@ -175,6 +236,13 @@ func (lm *LifecycleManager) ResumeComponents(comps []*Component) error {
 	return nil
 }
 
+/*
+ StopComponents invokes PrepareToStop on all components then waits for them to be ready to stop by
+ calling ReadyToStop on each component. If one or more components are not ready, they are given x chances to become
+ ready with y milliseconds between each check. See http://granitic.io/1.0/ref/system-settings
+
+ If all components are ready, or if x has been exceeded, Stop is called on all components.
+*/
 func (lm *LifecycleManager) StopComponents(comps []*Component) error {
 
 	for _, s := range comps {
