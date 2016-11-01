@@ -120,9 +120,9 @@
 
 	There are several other possible lifecycle phases after the container is ready:
 
-			Suspend     Components implementing ioc.Suspendable are have their Suspend method invoked.
+			Suspend     Components implementing ioc.Suspendable  have their Suspend method invoked.
 
-			Resume      Components implementing ioc.Suspendable are have their Resume method invoked.
+			Resume      Components implementing ioc.Suspendable have their Resume method invoked.
 
 			Stop        Components implementing ioc.Stoppable are allowed to stop gracefully before the application exits.
 
