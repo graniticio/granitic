@@ -114,7 +114,7 @@
 
 		SQLVerb           Is Select, Delete, Update or Insert
 		BindingType       Is optional and can be Bind or BindSingle
-		ParameterSource   Is optional and can be either Params or Tags
+		ParameterSource   Is optional and can be either Param, Params or Tags
 
 	QID
 
@@ -122,7 +122,7 @@
 
 	Parameter sources
 
-	Parameters to populate template queries can either be supplied via a map[string]interface{} (Params) or a struct whose
+	Parameters to populate template queries can either be supplied via a pair of values (Param), a map[string]interface{} (Params) or a struct whose
 	fields are annotated with the `dbparam` tag (tags)
 
 	Binding

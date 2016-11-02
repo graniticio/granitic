@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package rdbms
 
 import (
@@ -16,6 +19,8 @@ func newRDBMSClient(database *sql.DB, querymanager dsquery.QueryManager, insertF
 	return rc
 }
 
+// The interface application code should use to execute SQL against a database. See the package overview for the rdbms
+// package for usage.
 type RDBMSClient struct {
 	db           *sql.DB
 	queryManager dsquery.QueryManager
@@ -26,10 +31,13 @@ type RDBMSClient struct {
 	binder       *RowBinder
 }
 
+// FindFragment returns a partial query from the underlying QueryManager. Fragments are no
+// different that ordinary template queries, except they are not expected to contain any variable placeholders.
 func (rc *RDBMSClient) FindFragment(qid string) (string, error) {
 	return rc.queryManager.FragmentFromID(qid)
 }
 
+// BuildQueryQIDTags returns a populated SQL query that can be manually executed later.
 func (rc *RDBMSClient) BuildQueryQIDTags(qid string, tagSource interface{}) (string, error) {
 	if p, err := ParamsFromTags(tagSource); err != nil {
 		return "", err
@@ -39,10 +47,12 @@ func (rc *RDBMSClient) BuildQueryQIDTags(qid string, tagSource interface{}) (str
 	}
 }
 
+// BuildQueryQIDParams returns a populated SQL query that can be manually executed later.
 func (rc *RDBMSClient) BuildQueryQIDParams(qid string, p map[string]interface{}) (string, error) {
 	return rc.queryManager.BuildQueryFromID(qid, p)
 }
 
+// DeleteQIDTags executes the supplied query with the expectation that it is a 'DELETE' query.
 func (rc *RDBMSClient) DeleteQIDTags(qid string, tagSource interface{}) (sql.Result, error) {
 
 	if p, err := ParamsFromTags(tagSource); err != nil {
@@ -54,12 +64,14 @@ func (rc *RDBMSClient) DeleteQIDTags(qid string, tagSource interface{}) (sql.Res
 
 }
 
+// DeleteQIDParams executes the supplied query with the expectation that it is a 'DELETE' query.
 func (rc *RDBMSClient) DeleteQIDParams(qid string, params map[string]interface{}) (sql.Result, error) {
 
 	return rc.execQIDParams(qid, params)
 
 }
 
+// DeleteQIDParam executes the supplied query with the expectation that it is a 'DELETE' query.
 func (rc *RDBMSClient) DeleteQIDParam(qid string, name string, value interface{}) (sql.Result, error) {
 
 	p := make(map[string]interface{})
@@ -69,11 +81,13 @@ func (rc *RDBMSClient) DeleteQIDParam(qid string, name string, value interface{}
 
 }
 
+// RegisterTempQuery stores the supplied query in the RDBMSClient so that it can be used with methods that expect a QID.
+// Note that the query is NOT stored in the underlying QueryManager.
 func (rc *RDBMSClient) RegisterTempQuery(qid string, query string) {
 	rc.tempQueries[qid] = query
 }
 
-// Finds the ID of record or if the record does not exist, inserts a new record and retrieves the newly assigned ID
+// ExistingIDOrInsertTags finds the ID of record or if the record does not exist, inserts a new record and retrieves the newly assigned ID
 func (rc *RDBMSClient) ExistingIDOrInsertTags(checkQueryId, insertQueryId string, idTarget *int64, tagSource ...interface{}) error {
 
 	if p, err := ParamsFromTags(tagSource...); err != nil {
@@ -84,6 +98,7 @@ func (rc *RDBMSClient) ExistingIDOrInsertTags(checkQueryId, insertQueryId string
 
 }
 
+// ExistingIDOrInsertParams finds the ID of record or if the record does not exist, inserts a new record and retrieves the newly assigned ID
 func (rc *RDBMSClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId string, idTarget *int64, p map[string]interface{}) error {
 
 	if found, err := rc.SelectBindSingleQIDParams(checkQueryId, p, idTarget); err != nil {
@@ -101,6 +116,7 @@ func (rc *RDBMSClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId stri
 	return nil
 }
 
+// InsertQIDTags executes the supplied query with the expectation that it is an 'INSERT' query.
 func (rc *RDBMSClient) InsertQIDTags(qid string, tagSource interface{}) (sql.Result, error) {
 
 	if p, err := ParamsFromTags(tagSource); err != nil {
@@ -112,12 +128,15 @@ func (rc *RDBMSClient) InsertQIDTags(qid string, tagSource interface{}) (sql.Res
 
 }
 
+// InsertQIDParams executes the supplied query with the expectation that it is an 'INSERT' query.
 func (rc *RDBMSClient) InsertQIDParams(qid string, params map[string]interface{}) (sql.Result, error) {
 
 	return rc.execQIDParams(qid, params)
 
 }
 
+// InsertCaptureQIDTags executes the supplied query with the expectation that it is an 'INSERT' query and captures
+// the new row's server generated ID in the target int64
 func (rc *RDBMSClient) InsertCaptureQIDTags(qid string, tagSource interface{}, target *int64) error {
 	if p, err := ParamsFromTags(tagSource); err != nil {
 		return err
@@ -126,6 +145,8 @@ func (rc *RDBMSClient) InsertCaptureQIDTags(qid string, tagSource interface{}, t
 	}
 }
 
+// InsertCaptureQIDParams executes the supplied query with the expectation that it is an 'INSERT' query and captures
+// the new row's server generated ID in the target int64
 func (rc *RDBMSClient) InsertCaptureQIDParams(qid string, params map[string]interface{}, target *int64) error {
 
 	if query, err := rc.buildQuery(qid, params); err != nil {
@@ -137,10 +158,14 @@ func (rc *RDBMSClient) InsertCaptureQIDParams(qid string, params map[string]inte
 
 }
 
+// SelectBindSingleQID executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
+// Results of the query are bound into the target struct. Returns false if no rows were found.
 func (rc *RDBMSClient) SelectBindSingleQID(qid string, target interface{}) (bool, error) {
 	return rc.SelectBindSingleQIDParams(qid, rc.emptyParams, target)
 }
 
+// SelectBindSingleQIDTags executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
+// Results of the query are bound into the target struct. Returns false if no rows were found.
 func (rc *RDBMSClient) SelectBindSingleQIDTags(qid string, tagSource interface{}, target interface{}) (bool, error) {
 	if p, err := ParamsFromTags(tagSource); err != nil {
 		return false, err
@@ -149,6 +174,8 @@ func (rc *RDBMSClient) SelectBindSingleQIDTags(qid string, tagSource interface{}
 	}
 }
 
+// SelectBindSingleQIDParam executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
+// Results of the query are bound into the target struct. Returns false if no rows were found.
 func (rc *RDBMSClient) SelectBindSingleQIDParam(qid string, name string, value interface{}, target interface{}) (bool, error) {
 	p := make(map[string]interface{})
 	p[name] = value
@@ -156,6 +183,8 @@ func (rc *RDBMSClient) SelectBindSingleQIDParam(qid string, name string, value i
 	return rc.SelectBindSingleQIDParams(qid, p, target)
 }
 
+// SelectBindSingleQIDParams executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
+// Results of the query are bound into the target struct. Returns false if no rows were found.
 func (rc *RDBMSClient) SelectBindSingleQIDParams(qid string, params map[string]interface{}, target interface{}) (bool, error) {
 
 	var r *sql.Rows
@@ -171,10 +200,14 @@ func (rc *RDBMSClient) SelectBindSingleQIDParams(qid string, params map[string]i
 
 }
 
+// SelectBindQID executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
+// are returned in a slice of the same type as the supplied template struct.
 func (rc *RDBMSClient) SelectBindQID(qid string, template interface{}) ([]interface{}, error) {
 	return rc.SelectBindQIDParams(qid, rc.emptyParams, template)
 }
 
+// SelectBindQIDParam executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
+// are returned in a slice of the same type as the supplied template struct.
 func (rc *RDBMSClient) SelectBindQIDParam(qid string, name string, value interface{}, template interface{}) ([]interface{}, error) {
 	p := make(map[string]interface{})
 	p[name] = value
@@ -182,6 +215,8 @@ func (rc *RDBMSClient) SelectBindQIDParam(qid string, name string, value interfa
 	return rc.SelectBindQIDParams(qid, p, template)
 }
 
+// SelectBindQIDParams executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
+// are returned in a slice of the same type as the supplied template struct.
 func (rc *RDBMSClient) SelectBindQIDParams(qid string, params map[string]interface{}, template interface{}) ([]interface{}, error) {
 
 	if r, err := rc.SelectQIDParams(qid, params); err != nil {
@@ -196,6 +231,8 @@ func (rc *RDBMSClient) SelectBindQIDParams(qid string, params map[string]interfa
 
 }
 
+// SelectBindQIDTags executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
+// are returned in a slice of the same type as the supplied template struct.
 func (rc *RDBMSClient) SelectBindQIDTags(qid string, tagSource interface{}, template interface{}) ([]interface{}, error) {
 	if p, err := ParamsFromTags(tagSource); err != nil {
 		return nil, err
@@ -204,10 +241,12 @@ func (rc *RDBMSClient) SelectBindQIDTags(qid string, tagSource interface{}, temp
 	}
 }
 
+// SelectQID executes the supplied query with the expectation that it is a 'SELECT' query.
 func (rc *RDBMSClient) SelectQID(qid string) (*sql.Rows, error) {
 	return rc.SelectQIDParams(qid, rc.emptyParams)
 }
 
+// SelectQIDParam executes the supplied query with the expectation that it is a 'SELECT' query.
 func (rc *RDBMSClient) SelectQIDParam(qid string, name string, value interface{}) (*sql.Rows, error) {
 	p := make(map[string]interface{})
 	p[name] = value
@@ -215,6 +254,7 @@ func (rc *RDBMSClient) SelectQIDParam(qid string, name string, value interface{}
 	return rc.SelectQIDParams(qid, p)
 }
 
+// SelectQIDParams executes the supplied query with the expectation that it is a 'SELECT' query.
 func (rc *RDBMSClient) SelectQIDParams(qid string, params map[string]interface{}) (*sql.Rows, error) {
 	query, err := rc.buildQuery(qid, params)
 
@@ -226,6 +266,7 @@ func (rc *RDBMSClient) SelectQIDParams(qid string, params map[string]interface{}
 
 }
 
+// UpdateQIDTags executes the supplied query with the expectation that it is an 'UPDATE' query.
 func (rc *RDBMSClient) UpdateQIDTags(qid string, tagSource interface{}) (sql.Result, error) {
 
 	if p, err := ParamsFromTags(tagSource); err != nil {
@@ -237,12 +278,14 @@ func (rc *RDBMSClient) UpdateQIDTags(qid string, tagSource interface{}) (sql.Res
 
 }
 
+// UpdateQIDParams executes the supplied query with the expectation that it is an 'UPDATE' query.
 func (rc *RDBMSClient) UpdateQIDParams(qid string, params map[string]interface{}) (sql.Result, error) {
 
 	return rc.execQIDParams(qid, params)
 
 }
 
+// UpdateQIDParam executes the supplied query with the expectation that it is an 'UPDATE' query.
 func (rc *RDBMSClient) UpdateQIDParam(qid string, name string, value interface{}) (sql.Result, error) {
 
 	p := make(map[string]interface{})
@@ -274,6 +317,8 @@ func (rc *RDBMSClient) buildQuery(qid string, p map[string]interface{}) (string,
 
 }
 
+// StartTransaction opens a transaction on the underlying sql.DB object and re-maps all calls to non-transactional
+// methods to their transactional equivalents.
 func (rc *RDBMSClient) StartTransaction() error {
 
 	if rc.tx != nil {
@@ -291,6 +336,7 @@ func (rc *RDBMSClient) StartTransaction() error {
 	}
 }
 
+// Rollback rolls the open transaction back - does nothing if no transaction is open.
 func (rc *RDBMSClient) Rollback() {
 
 	if rc.tx != nil {
@@ -298,6 +344,7 @@ func (rc *RDBMSClient) Rollback() {
 	}
 }
 
+// CommitTransaction commits the open transaction - does nothing if no transaction is open.
 func (rc *RDBMSClient) CommitTransaction() error {
 
 	if rc.tx == nil {
@@ -311,6 +358,7 @@ func (rc *RDBMSClient) CommitTransaction() error {
 	}
 }
 
+// Exec is a pass-through to its sql.DB equivalent (or sql.Tx equivalent is a transaction is open)
 func (rc *RDBMSClient) Exec(query string, args ...interface{}) (sql.Result, error) {
 
 	tx := rc.tx
@@ -323,6 +371,7 @@ func (rc *RDBMSClient) Exec(query string, args ...interface{}) (sql.Result, erro
 
 }
 
+// Query is a pass-through to its sql.DB equivalent (or sql.Tx equivalent is a transaction is open)
 func (rc *RDBMSClient) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	tx := rc.tx
 
@@ -333,6 +382,7 @@ func (rc *RDBMSClient) Query(query string, args ...interface{}) (*sql.Rows, erro
 	}
 }
 
+// QueryRow is a pass-through to its sql.DB equivalent (or sql.Tx equivalent is a transaction is open)
 func (rc *RDBMSClient) QueryRow(query string, args ...interface{}) *sql.Row {
 	tx := rc.tx
 
