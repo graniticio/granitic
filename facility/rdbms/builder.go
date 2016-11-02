@@ -11,45 +11,6 @@
 	components. In turn, the rdbms.RDBMSClientManager will be used by your application to create instances of rdbms.RDBMSClient
 	which provide the interface for executing SQL queries and managing transactions.
 
-	Database providers
-
-	Beacause of the way Go applications are built (statically linked) and to avoid the Granitic framework importing
-	large numbers of third-party libraries, Granitic application developers must create a component that implements
-	rdbms.DatabaseProvider. Refer to the GoDoc for the rdbms package for the significance of these components and
-	example implementations. If this facility is enabled and no component implementing rdbms.DatabaseProvider is present in
-	the IoC container, your application will not start.
-
-	Auto-injection of an RDBMSClientManager
-
-	Any component that needs an RDBMSClient should have a field:
-
-		DBClientManager rdbms.RDBMSClientManager
-
-	The name DBClientManager is a default. You can change the field that Granitic looks for by setting the following in
-	your application configuration.
-
-		{
-		  "RdbmsAccess":{
-		    "InjectFieldNames": ["DBClientManager", "MyAlternateFieldName"]
-		  }
-		}
-
-	Multiple databases
-
-	This iteration of Granitic is optimised for the most common use-case for RDBMS access, where a particular Granitic
-	application will access a single logical database. It is fully acknowledged that there are many situations where an application
-	needs to access mutiple logical databases.
-
-	Facility support for that use-case will be added in later versions of Granitic, but for now you have two options:
-
-	Option 1: use this facility to provide support for your application's 'main' database and manually add components of type rdbms.DefaultRDBMSClientManager to
-	your component definition file to support your other database.
-
-	Option 2: disable this facility and manually add components of type rdbms.DefaultRDBMSClientManager to
-	your component definition file to support all of your databases.
-
-
-
 */
 package rdbms
 

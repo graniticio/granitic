@@ -1,6 +1,189 @@
 // Copyright 2016 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
+/*
+	Package rdms provides types for interacting with relational (SQL) databases.
+
+	A full explanation of Grantic's patterns for relational database access management system (RDBMS) access can be found at http://granitic.io/1.0/ref/rdbms-access A brief
+	explanation follows:
+
+	Principles
+
+	Granitic's RDBMS access types and components adhere to a number of principles:
+
+	1. Application developers should be given the option to keep query definitions separate from application code.
+
+	2. Boilerplate code for generating queries and mapping results should be minimised.
+
+	3. Transactional and non-transactional DB access should not require different coding patterns.
+
+	4. Code that is executing queries against a database should be readable and have obvious intent.
+
+	Facilities
+
+	To use Granitic's RDBMS access, your application will need to enable both the QueryManager and RdbmsAccess facilities.
+	See http://granitic.io/1.0/ref/facilities for more details.
+
+	Components and types
+
+	Enabling these facilities creates the QueryManager and RDBMSClientManager components. Your application must provide
+	a DatabaseProvider (see below)
+
+
+		DatabaseProvider    A component able to provide connections to an RDBMS by creating
+		                    and managing Go sql.DB objects.
+
+		QueryManager        A component that loads files containing template queries from a filesystem
+		                    and can populate than with provided variables to create a complete SQL query.
+
+		RDBMSClient         A type providing methods to execute templated queries against an RDBMS.
+
+		RDBMSClientManager  A component able to create RDBMSClient objects.
+
+		RowBinder           A type able to map SQL query results into Go structs.
+
+
+	DatabaseProvider
+
+	Because of the way Go applications are built (statically linked), drivers for individual RDBMSs cannot be dynamically
+	loaded at runtime. To avoid the Granitic framework importing large numbers of third-party libraries,
+	Granitic application developers must create a component that implements rdbms.DatabaseProvider and imports the driver
+	for the database in use.
+
+	A simple implementation of DatabaseProvider for a MySQL database can be found in the granitic-examples repo on GitHub
+	in the recordstore/database/provider.go file.
+
+	Once you have an implementation, you will need to create a component for it in your application's component definition
+	file similar to:
+
+		{
+		  "dbProvider": {
+		    "type": "database.DBProvider"
+		  }
+		}
+
+	As long as you only have one implementation of DatabaseProvider registered as a component, it will automatically
+	be injected into the RDBMSClientManager component.
+
+	QueryManager
+
+	Refer to the dsquery package for more details on how QueryManagers work.5
+
+	RDBMSClientManager
+
+	Granitic applications are discouraged from directly interacting with sql.DB objects (although of course they are
+	free to do so). Instead, they use instances of RDBMSClient. RDBMSClient objects are not reusable across goroutines,
+	instead your application will need to ask for a new one to be created for each new goroutine (e.g. for each request in
+	a web services application).
+
+	The component that is able to provide these clients is RDBMSClientManager.
+
+	Auto-injection of an RDBMSClientManager
+
+	Any component that needs an RDBMSClient should have a field:
+
+		DBClientManager rdbms.RDBMSClientManager
+
+	The name DBClientManager is a default. You can change the field that Granitic looks for by setting the following in
+	your application configuration.
+
+		{
+		  "RdbmsAccess":{
+		    "InjectFieldNames": ["DBClientManager", "MyAlternateFieldName"]
+		  }
+		}
+
+	Your code then obtains an RDBMSClient in a manner similar to:
+
+		var rc *rdbms.RDBMSClient
+		var err error
+
+		if rc, err = id.DBClientManager.Client(); err != nil {
+		  return err
+		}
+
+	RDBMSClient
+
+	Application code executes SQL (either directly or via a templated query) and interacts with transactions via an
+	instance of RDBMSClient. Refer to the GoDoc for RDBMSClient for information on the methods available, but the general pattern
+	for the methods available on RDBMSClient is:
+
+		SQLVerb[BindingType]QID[ParameterSource]
+
+	Where
+
+		SQLVerb           Is Select, Delete, Update or Insert
+		BindingType       Is optional and can be Bind or BindSingle
+		ParameterSource   Is optional and can be either Params or Tags
+
+	QID
+
+	A QID is the ID of query stored in the QueryManager.
+
+	Parameter sources
+
+	Parameters to populate template queries can either be supplied via a map[string]interface{} (Params) or a struct whose
+	fields are annotated with the `dbparam` tag (tags)
+
+	Binding
+
+	RDBMSClient provides a mechanism for automatically copying result data into structs or slices of structs. If the
+	RDBMSClient method name contains BindSingle, you will pass a pointer to a struct into the method and its fields will be populated:
+
+	ad := new(ArtistDetail)
+
+		if found, err := rc.SelectBindSingleQIDTags("ARTIST_DETAIL", rid, ad); found {
+		  return ad, err
+		} else {
+		  return nil, err
+		}
+
+	If the method contains the word Bind, you will supply an example 'template' instance of a struct and the method will return a slice of that type:
+
+		ar := new(ArtistSearchResult)
+
+		if r, err := rc.SelectBindQIDParams("ARTIST_SEARCH_BASE", make(map[string]interface{}), ar); err != nil {
+		  return nil, err
+		} else {
+		  return id.artistResults(r), nil
+		}
+
+
+	Transactions
+
+	To call start a transaction, invoke the StartTransaction method on the RDBMSCLient like:
+
+		db.StartTransaction()
+		defer db.Rollback()
+
+	and end your method with:
+
+		db.CommitTransaction()
+
+
+	The deferred Rollback call will do nothing if the transaction has previously been commited.
+
+
+	Direct access to Go DB methods
+
+	RDBMSClient provides pass-through access to sql.DB's Exec, Query and QueryRow methods. Note that these methods are compatible
+	with Granitic's transation pattern as described above.
+
+
+	Multiple databases
+
+	This iteration of Granitic is optimised for the most common use-case for RDBMS access, where a particular Granitic
+	application will access a single logical database. It is fully acknowledged that there are many situations where an application
+	needs to access mutiple logical databases.
+
+	Facility support for that use-case will be added in later versions of Granitic, but for now you have two options:
+
+	Option 1: use this facility to provide support for your application's 'main' database and manually add components of type rdbms.DefaultRDBMSClientManager to
+	your component definition file to support your other database.
+
+	Option 2: disable this facility and manually add components of type rdbms.DefaultRDBMSClientManager to
+	your component definition file to support all of your databases.
+*/
 package rdbms
 
 import (
