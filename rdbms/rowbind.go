@@ -73,8 +73,15 @@ func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 
 	If the query results contain zero rows, BindRow returns an empty slice of the target type
 
-	If the query results contain one or more rows, an instance of the target type is
+	If the query results contain one or more rows, an instance of the target type is created for each row. Each column
+	in a row is mapped to a field in the target type by either:
 
+	a) Finding a field whose name exactly matches the column name or alias.
+
+	b) Finding a field with the 'column' struct tag with a value that exactly matches the column name or alias.
+
+	A target field may be a bool, any native int/uint type, any native float type, a string or any of the
+	Granitic nilable types.
 */
 func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error) {
 

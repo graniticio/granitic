@@ -3,7 +3,7 @@
 
 package rdbms
 
-// A function able run an insert statement and return an RDBMS generated ID as an int64.
+// A function able execute an insert statement and return an RDBMS generated ID as an int64.
 type InsertWithReturnedID func(string, *RDBMSClient, *int64) error
 
 // An implementation of InsertWithReturnedID that will work with any Go database driver that implements LastInsertId

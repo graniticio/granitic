@@ -7,7 +7,7 @@
 	The RdbmsAccess facility is described in detail at http://granitic.io/1.0/ref/rdbms-access and the programmatic
 	interface that applications will use for executing SQL is described in the rdbms package documentation.
 
-	The purpose of this facility is to create an rdbms.RDBMSClientManager that be be injected into your application
+	The purpose of this facility is to create an rdbms.RDBMSClientManager that will be injected into your application
 	components. In turn, the rdbms.RDBMSClientManager will be used by your application to create instances of rdbms.RDBMSClient
 	which provide the interface for executing SQL queries and managing transactions.
 
@@ -18,6 +18,21 @@
 	rdbms.DatabaseProvider. Refer to the GoDoc for the rdbms package for the significance of these components and
 	example implementations. If this facility is enabled and no component implementing rdbms.DatabaseProvider is present in
 	the IoC container, your application will not start.
+
+	Auto-injection of an RDBMSClientManager
+
+	Any component that needs an RDBMSClient should have a field:
+
+		DBClientManager rdbms.RDBMSClientManager
+
+	The name DBClientManager is a default. You can change the field that Granitic looks for by setting the following in
+	your application configuration.
+
+		{
+		  "RdbmsAccess":{
+		    "InjectFieldNames": ["DBClientManager", "MyAlternateFieldName"]
+		  }
+		}
 
 	Multiple databases
 
@@ -58,7 +73,7 @@ type RDBMSAccessFacilityBuilder struct {
 // See FacilityBuilder.BuildAndRegister
 func (rafb *RDBMSAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	manager := new(rdbms.DefaultRDBMSClientManager)
+	manager := new(rdbms.GraniticRDBMSClientManager)
 	ca.Populate("RdbmsAccess", manager)
 
 	proto := ioc.CreateProtoComponent(manager, rdbmsClientManagerName)
