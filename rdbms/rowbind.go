@@ -1,3 +1,6 @@
+// Copyright 2016 Granitic. All rights reserved.
+// Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package rdbms
 
 import (
@@ -10,9 +13,19 @@ import (
 	"strconv"
 )
 
+// Used to extract the data from the results of a SQL query and inject the data into a target data structure.
 type RowBinder struct {
 }
 
+/*
+	BindRow takes results from a SQL query that has return zero rows or one row and maps the data into the
+	target interface, which must be a pointer to a struct.
+
+	If the query results contain zero rows, BindRow returns false, nil.
+
+	If the query results contain one row, it is populated. See the GoDoc for BindRows for more detail.
+
+*/
 func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 
 	if !rt.IsPointerToStruct(t) {
@@ -54,6 +67,15 @@ func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 	return true, nil
 }
 
+/*
+	BindRow takes results from a SQL query that has return zero rows or one row and maps the data into the
+	instances of the target interface, which must be a pointer to a struct.
+
+	If the query results contain zero rows, BindRow returns an empty slice of the target type
+
+	If the query results contain one or more rows, an instance of the target type is
+
+*/
 func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error) {
 
 	var err error
