@@ -6,13 +6,13 @@
 
 	Running
 
-		grnc-project project-name
+		grnc-project project-name [package]
 
 	Will create the following files and directories:
 
 		project-name
 		project-name/.gitignore
-		project-name/project-name.go
+		project-name/service.go
 		project-name/resource/components/components.json
 		project-name/resource/config/config.json
 
@@ -30,6 +30,8 @@
 	The line should be changed to a non-relative path that reflects the layout of your Go workspace, which is most often:
 
 		import "github.com/yourGitHubUser/yourPackage/bindings"
+
+	You can specify your project's package as the second argument to the grnc-project tool
 
 	The .gitignore file contains:
 
@@ -55,6 +57,14 @@ func main() {
 		exitError("You must provide a name for your project")
 	}
 
+	projectPackage := "."
+	changePackageComment := "  //Change to a non-relative path if you want to use 'go install'"
+
+	if len(a) > 2 {
+		projectPackage = a[2]
+		changePackageComment = ""
+	}
+
 	name := a[1]
 	resourceDir := name + "/resource"
 	confDir := resourceDir + "/config"
@@ -67,13 +77,13 @@ func main() {
 
 	writeComponentsFile(compDir)
 	writeConfigFile(confDir)
-	writeMainFile(name)
+	writeMainFile(name, projectPackage, changePackageComment)
 	writeGitIgnore(name)
 }
 
-func writeMainFile(name string) {
+func writeMainFile(name string, projectPackage string, changePackageComment string) {
 
-	mainFile := name + "/" + name + ".go"
+	mainFile := name + "/service.go"
 
 	f := openOutputFile(mainFile)
 
@@ -83,7 +93,11 @@ func writeMainFile(name string) {
 
 	w.WriteString("package main\n\n")
 	w.WriteString("import \"github.com/graniticio/granitic\"\n")
-	w.WriteString("import \"./bindings\"  //Change to a non-relative path if you want to use 'go install'\n\n")
+	w.WriteString("import \"")
+	w.WriteString(projectPackage)
+	w.WriteString("/bindings\"")
+	w.WriteString(changePackageComment)
+	w.WriteString("\n\n")
 	w.WriteString("func main() {\n")
 	w.WriteString("\tgranitic.StartGranitic(bindings.Components())\n")
 	w.WriteString("}\n")

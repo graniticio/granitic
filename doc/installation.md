@@ -11,15 +11,21 @@
  
 ## Installing the current version
 
- 1. Open a terminal
- 2. go get github.com/graniticio/granitic
+Open a terminal and run:
+
+<pre>
+go get github.com/graniticio/granitic
+</pre>
  
 ## Build the support tools
 
- 1. Open a terminal
- 2. go install github.com/graniticio/granitic/cmd/grnc-bind
- 3. go install github.com/graniticio/granitic/cmd/grnc-ctl
- 4. go install github.com/graniticio/granitic/cmd/grnc-project
+Open a terminal and run:
+
+<pre>
+go install github.com/graniticio/granitic/cmd/grnc-bind
+go install github.com/graniticio/granitic/cmd/grnc-ctl
+go install github.com/graniticio/granitic/cmd/grnc-project
+</pre>
  
 ## Set the GRANITIC_HOME environment variable
 
@@ -37,18 +43,23 @@ $GOPATH/bin
 The following commands make use of all the environment variables and some of the support tools used when developing 
 Granitic applications.
  
- 1. Open a terminal
- 2. cd $GOPATH/src
- 3. grnc-project install-test
- 4. cd install-test
- 5. grnc-bind
- 6. go build ./install-test.go
- 7. ./install-test
- 
-If your installation has been succesful, you'll see command line output similar to:
+Open a terminal and run:
 
+<pre>
+cd $GOPATH/src
+grnc-project install-test
+cd install-test
+grnc-bind
+go build ./install-test.go
+./install-test
+</pre>
+
+If your installation has been successful, you'll see command line output similar to:
+
+<pre>
 04/Jan/2017:11:14:19 Z INFO  grncInit Starting components
 04/Jan/2017:11:14:19 Z INFO  grncInit Ready (startup time 970.09µs)
+</pre>
 
 You can stop the program with CTRL+C and can safely delete the $GOPATH/src/install-test folder.
 

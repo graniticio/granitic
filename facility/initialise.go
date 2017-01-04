@@ -138,7 +138,7 @@ func (fi *FacilitiesInitialisor) updateFrameworkLogLevel() error {
 
 	flm := fi.FrameworkLoggingManager
 
-	defaultLogLevelLabel, err := fi.ConfigAccessor.StringVal("FrameworkLogger.DefaultLogLevel")
+	defaultLogLevelLabel, err := fi.ConfigAccessor.StringVal("FrameworkLogger.GlobalLogLevel")
 
 	if err != nil {
 		return errors.New(configErrorPrefix + err.Error())
