@@ -32,4 +32,4 @@ then work through [the tutorials](https://github.com/graniticio/granitic/tree/ma
 ## Get in touch
 
  * Twitter: @GraniticIO
- * Email: info@granitic.io
+ * Email: comms@granitic.io
