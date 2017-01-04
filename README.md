@@ -26,15 +26,10 @@ Additionally, Granitic is designed to be 'DevOps friendly' and offers:
 
 ## Getting started
 
-Read and follow the installation instructions at 
-
-https://github.com/graniticio/granitic/doc/installation.md 
-
-then work through the tutorials at:
-
-https://github.com/graniticio/granitic/doc/tutorial
-
+Read and follow the [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md) 
+then work through [the tutorials](https://github.com/graniticio/granitic/tree/master/doc/tutorial)
 
 ## Get in touch
 
 Twitter: @GraniticIO
+Email: info@granitic.io
