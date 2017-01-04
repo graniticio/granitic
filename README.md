@@ -2,7 +2,7 @@
 
 Granitic is a framework and lightweight application server for building and running web and micro services written in Go. 
 
-It features:
+## Features
 
 * A web service aware HTTP server with support for load-management and Identity Access Management (IAM) integration.
 * A fully-featured Inversion of Control (IoC) container.
@@ -10,7 +10,8 @@ It features:
     * Full support for JSON and plain XML web services.
     * Automatic binding of request bodies, query parameters and path parameters.
     * Declarative, rule driven validation.
-    * A comprehensive error management system including full templating of all system and application error messages and HTTP response code mapping.
+    * A comprehensive error management system including full templating of all system and application error messages and 
+    HTTP response code mapping.
 * Component based error logging.
 * Query management for data sources.
 * RDMBS integration with an interface designed to promote more readable code.
@@ -22,5 +23,18 @@ Additionally, Granitic is designed to be 'DevOps friendly' and offers:
 * Low memory footprint and fast startup times (compared to JVM/CLR equivalents).
 * Runtime control of deployed applications (including suspension/resumption).
 * Runtime control of log levels (e.g. temporarily enable debugging without restarts).
+
+## Getting started
+
+Read and follow the installation instructions at 
+
+https://github.com/graniticio/granitic/doc/installation.md 
+
+then work through the tutorials at:
+
+https://github.com/graniticio/granitic/doc/tutorial
+
+
+## Get in touch
 
 Twitter: @GraniticIO
