@@ -65,6 +65,4 @@ You can stop the program with CTRL+C and can safely delete the $GOPATH/src/insta
 
 ## Next steps
 
-For more information on developer Granitic applications, please work through the tutorials at:
-
-https://github.com/graniticio/granitic/doc/tutorial
+For more information on developing Granitic applications, please [work through the tutorials](https://github.com/graniticio/granitic/tree/master/doc/tutorial)
