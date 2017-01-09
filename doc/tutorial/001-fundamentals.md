@@ -224,13 +224,16 @@ for a web service request.
 The minimal configuration in this example specifies the HTTP method that the handler will respond to (GET) 
 and a regex for matching against incoming request paths.
 
-The line <code>"Logic": "ref:quickStartLogic"</code> is an example of a component reference. 
-When <code>quickStartHandler</code> is instantiated by the Granitic container, the previously declared 
-<code>quickStartLogic</code> will be used as value for the <code>Logic</code> field.
+The line 
+
+<pre>"Logic": "ref:artistLogic"</pre> 
+
+is an example of a component reference. When <code>artistHandler</code> is instantiated by the Granitic container, the previously declared 
+<code>artistLogic</code> component will be used as value for the <code>Logic</code> field on the <code>artistHandler</code> component.
 
 ## Binding
 
-Granitic is written in Go because of Go's elegant positioning between C's performance and memory consumption and the 
+Granitic is written in Go because of Go's positioning between C's performance and memory consumption and the 
 relative ease-of-use of JVM and CLR languages (Java, C# etc). One of the compromises we accept in using Go is that it 
 is a statically-linked language with no facility for creating objects from a text name at runtime - if you want to use 
 a type in your application, it must be referenced at compile time.
