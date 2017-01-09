@@ -12,8 +12,7 @@
  2. Read the [before you start](000-before-you-start.md) tutorial
  3. Have access to a text editor or IDE for writing Go and JSON files and a terminal emulator or command prompt 
  (referred to as a terminal from now on)
- 4. Have created the folder <code>$GOPATH/src/grnc-tutorial</code>
- 
+
 ## Introduction
 
 This tutorial will show you how to create a simple Granitic application that exposes a JSON web service over HTTP. It's 
@@ -34,14 +33,14 @@ to create a skeleton project that can be compiled and started.
 Run the following in a terminal:
 
 <pre>
-cd $GOPATH/src/grnc-tutorial
-grnc-project t001 grnc-tutorial/t001
+cd $GOPATH/src
+grnc-project grnc-tutorial grnc-tutorial
 </pre>
 
-This will create the following files under $GOPATH/src/grnc-tutorial:
+This will create the following files under $GOPATH/src:
 
 <pre>
-/t001
+/grnc-tutorial
     service.go
     /resource
         /components
@@ -50,9 +49,10 @@ This will create the following files under $GOPATH/src/grnc-tutorial:
             config.json
 </pre>
 
-The first argument to <code>grnc-project</code> is a name for your project (you'd normally choose something more descriptive than t001). 
+The first argument to <code>grnc-project</code> is a name for your project. 
 The second is the location of your project relative to <code>$GOHOME/src</code> - specifying this allows the tool to generate source files
-that are ready to use with <code>go build</code> and <code>go install</code>
+that are ready to use with <code>go build</code> and <code>go install</code> (normally these two arguments would be different to each other as 
+most Go projects are not created in the root of <code>$GOHOME/src</code>).
 
 ## Starting and stopping your application
 
@@ -62,10 +62,10 @@ do anything interesting.
 Start the application by returning to your terminal and running
 
 <pre>
-cd t001
+cd grnc-tutorial
 grnc-bind
 go build
-./t001
+./grnc-tutorial
 </pre>
 
 You should see output similar to:
@@ -77,7 +77,7 @@ You should see output similar to:
 
 </pre>
 
-This means your application has started and is waiting. You can stop it with CTRL+C and will see output similar to
+This means your application has started and is waiting. You can stop it with <code>CTRL+C</code> and will see output similar to
 
 <pre>
 04/Jan/2017:14:43:11 Z INFO  grncInit Shutting down (system signal)
@@ -107,7 +107,7 @@ by inspecting the file <code>$GRANITIC_HOME/resource/facility-config/facilities.
 
 In order to build a JSON web service, you will need to enable two facilities: <code>HttpServer</code> and <code>JsonWs</code> (JSON Web Services).
 
-To do this, open the file <code>/t001/resource/config/config.json</code> and change it so it looks like:
+To do this, open the file <code>/grnc-tutorial/resource/config/config.json</code> and change it so it looks like:
 
 ```javascript
 {
@@ -124,7 +124,7 @@ If you return to your terminal and run:
 <pre>
 grnc-bind
 go build
-./t001
+./grnc-tutorial
 </pre>
 
 You'll see an additional line of logging on startup similar to:
@@ -133,7 +133,7 @@ You'll see an additional line of logging on startup similar to:
 04/Jan/2017:16:34:27 Z INFO  grncHttpServer Listening on 8080
 </pre>
 
-Which shows that a HTTP server is listening on the default port of 8080
+Which shows that a HTTP server is listening on the default port of 8080. Stop the runnning service with <code>CTRL+C</code>
 
 ## Adding an endpoint
 
@@ -141,12 +141,12 @@ An <code>endpoint</code> is Granitic's preferred name for code that handles a we
 particular HTTP method (GET, POST etc). Most of the mechanics of routing a request to your code and converting between
 JSON and Go is handled by Granitic, you will be concerned mainly with defining your _endpoint logic_.
 
-Endpoint logic is specified in a Go struct implementing the <code>ws.WsRequestProcessor</code> interface.
+Endpoint logic is code in a Go struct implementing the <code>ws.WsRequestProcessor</code> interface.
 
 These tutorials are based on the <code>granitic-examples/recordstore</code> demo application, so let's recreate one of the endpoints
 from that application. 
 
-Create the file <code>t001/endpoint/artist.go</code> and set the contents to:
+Create the file <code>grnc-tutorial/endpoint/artist.go</code> and set the contents to:
 
 ```go
 package endpoint
@@ -186,13 +186,13 @@ be configured These definitions are stored in a JSON component definition file w
 A component is a named instance of a Go object, managed by the IoC container.
 
 
-Open the file <code>t001/resource/components/component.json</code> and set the content to:
+Open the file <code>grnc-tutorial/resource/components/components.json</code> and set the content to:
 
 ```javascript
 {
 	"packages": [
 		"github.com/graniticio/granitic/ws/handler",
-		"grnc-tutorial/t001/endpoint"
+		"grnc-tutorial/endpoint"
 	],
 
 	"components": {
@@ -258,7 +258,7 @@ project. For this tutorial, this file will look like:
 package main
 
 import "github.com/graniticio/granitic"
-import "grnc-tutorial/t001/bindings"
+import "grnc-tutorial/bindings"
 
 func main() {
 	granitic.StartGranitic(bindings.Components())
@@ -272,7 +272,7 @@ Return to your terminal and run:
 
 <pre>
 go build
-./t001
+./grnc-tutorial
 </pre>
 
 Now open a browser and visit:
@@ -299,5 +299,5 @@ and you should see the response:
  
 ## Next
 
-The next tutorial covers [logging](002-logging.md)
+The next tutorial covers [configuration](002-configuration.md) in more depth
  
