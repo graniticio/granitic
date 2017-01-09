@@ -280,7 +280,7 @@ go build
 
 Now open a browser and visit:
 
-[http://localhost:8080/artist] or [http://[::1]:8080/artist]
+[http://localhost:8080/artist](http://localhost:8080/artist) or [http://[::1]:8080/artist](http://[::1]:8080/artist)
 
 and you should see the response:
 
