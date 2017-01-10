@@ -33,14 +33,15 @@ to create a skeleton project that can be compiled and started.
 Run the following in a terminal:
 
 <pre>
-cd $GOPATH/src
-grnc-project grnc-tutorial grnc-tutorial
+mkdir -p $GOPATH/src/grnc-tutorial
+cd $GOPATH/src/grnc-tutorial
+grnc-project recordstore grnc-tutorial/recordstore
 </pre>
 
-This will create the following files under $GOPATH/src:
+This will create the following files under $GOPATH/src/grnc-tutorial:
 
 <pre>
-/grnc-tutorial
+/recordstore
     service.go
     /resource
         /components
@@ -49,10 +50,9 @@ This will create the following files under $GOPATH/src:
             config.json
 </pre>
 
-The first argument to <code>grnc-project</code> is a name for your project. 
+The first argument to <code>grnc-project</code> is a name for your project, in this case <code>recordstore</code> 
 The second is the location of your project relative to <code>$GOHOME/src</code> - specifying this allows the tool to generate source files
-that are ready to use with <code>go build</code> and <code>go install</code> (normally these two arguments would be different to each other as 
-most Go projects are not created in the root of <code>$GOHOME/src</code>).
+that are ready to use with <code>go build</code> and <code>go install</code>.
 
 ## Starting and stopping your application
 
@@ -62,10 +62,10 @@ do anything interesting.
 Start the application by returning to your terminal and running
 
 <pre>
-cd grnc-tutorial
+cd recordstore
 grnc-bind
 go build
-./grnc-tutorial
+./recordstore
 </pre>
 
 You should see output similar to:
@@ -86,7 +86,7 @@ This means your application has started and is waiting. You can stop it with <co
 ## Facilities
 
 A <code>facility</code> is Granitic's name for a high-level feature that your application can enable or disable. By default,
-most of the features are disabled. You can see which features that are available to you and whether or not they're enabled 
+most of the features are disabled. You can see which features that are available to your applications and whether or not they're enabled 
 by inspecting the file <code>$GRANITIC_HOME/resource/facility-config/facilities.json</code>:
 
 ```javascript
@@ -124,7 +124,7 @@ If you return to your terminal and run:
 <pre>
 grnc-bind
 go build
-./grnc-tutorial
+./recordstore
 </pre>
 
 You'll see an additional line of logging on startup similar to:
@@ -146,7 +146,7 @@ Endpoint logic is code in a Go struct implementing the <code>ws.WsRequestProcess
 These tutorials are based on the <code>granitic-examples/recordstore</code> demo application, so let's recreate one of the endpoints
 from that application. 
 
-Create the file <code>grnc-tutorial/endpoint/artist.go</code> and set the contents to:
+Create the file <code>recordstore/endpoint/artist.go</code> and set the contents to:
 
 ```go
 package endpoint
@@ -186,13 +186,13 @@ be configured These definitions are stored in a JSON component definition file w
 A component is a named instance of a Go object, managed by the IoC container.
 
 
-Open the file <code>grnc-tutorial/resource/components/components.json</code> and set the content to:
+Open the file <code>recordstore/resource/components/components.json</code> and set the content to:
 
 ```javascript
 {
 	"packages": [
 		"github.com/graniticio/granitic/ws/handler",
-		"grnc-tutorial/endpoint"
+		"grnc-tutorial/recordstore/endpoint"
 	],
 
 	"components": {
@@ -275,7 +275,7 @@ Return to your terminal and run:
 
 <pre>
 go build
-./grnc-tutorial
+./recordstore
 </pre>
 
 Now open a browser and visit:
