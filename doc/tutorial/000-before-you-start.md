@@ -2,11 +2,29 @@
 
 Make sure you have followed the Granitic [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
 
-These tutorials are designed to be followed in sequence - each tutorial builds upon the last one. If you want to skip
-one or more tutorials, you will find working source code for each tutorial at:
- 
-https://github.com/graniticio/granitic-examples/tutorial
- 
+## Using prepare-tutorial.sh to skip tutorials
+
+These tutorials are designed to be followed in sequence, but if you'd like to skip ahead, a script is supplied in the <code>granitic-examples</code> package which will set up a working project ready for you to follow the tutorial you're interested in.
+
+Make sure you've downloded the <code>granitic-examples</code> package
+
+<pre>
+go get github.com/graniticio/granitic-examples
+</pre>
+
+Then (assuming you'd like to skip to tutorial 2) run:
+
+<pre>
+cd $GOHOME/src/github.com/graniticio/granitic-examples/tutorial
+./prepare-tutorial.sh 2
+</pre>
+
+You'll now find a working Granitic project in <code>$GOHOME/src/granitic-tutorial/recordstore</code> in the correct state for starting tutorial 2
+
+## Using an IDE with the tutorials
+
+It is recommended you create your IDE project in <code>$GOHOME/src/granitic-tutorial</code>
+
 ## Tutorials
 
  1. [Fundamentals](001-fundamentals.md) - Learn more about Granitic and create a simple web service
