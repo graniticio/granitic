@@ -6,7 +6,7 @@ Make sure you have followed the Granitic [installation instructions](https://git
 
 These tutorials are designed to be followed in sequence, but if you'd like to skip ahead, a script is supplied in the <code>granitic-examples</code> package which will set up a working project ready for you to follow the tutorial you're interested in.
 
-Make sure you've downloded the <code>granitic-examples</code> package
+Make sure you've downloaded the <code>granitic-examples</code> package:
 
 <pre>
 go get github.com/graniticio/granitic-examples
@@ -15,7 +15,7 @@ go get github.com/graniticio/granitic-examples
 Then (assuming you'd like to skip to tutorial 2) run:
 
 <pre>
-cd $GOHOME/src/github.com/graniticio/granitic-examples/tutorial
+cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
 ./prepare-tutorial.sh 2
 </pre>
 

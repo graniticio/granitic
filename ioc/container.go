@@ -243,7 +243,9 @@ func (cc *ComponentContainer) resolveDependenciesAndConfig() error {
 		for fieldName, configPath := range targetProto.ConfigPromises {
 			fl.LogTracef("%s needs %s", targetProto.Component.Name, fieldName, configPath)
 
-			cc.configAccessor.SetField(fieldName, configPath, targetProto.Component.Instance)
+			if err := cc.configAccessor.SetField(fieldName, configPath, targetProto.Component.Instance); err != nil {
+				return err
+			}
 
 		}
 
