@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"golang.org/x/net/context"
+	"context"
 	"regexp"
 	"strconv"
 	"time"

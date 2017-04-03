@@ -10,7 +10,7 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
-	"golang.org/x/net/context"
+	"context"
 	"io/ioutil"
 	"os"
 	"strconv"

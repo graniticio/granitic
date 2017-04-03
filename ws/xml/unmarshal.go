@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"github.com/graniticio/granitic/ws"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 )
 

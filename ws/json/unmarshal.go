@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 )
 

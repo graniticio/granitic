@@ -46,7 +46,7 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/validate"
 	"github.com/graniticio/granitic/ws"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 	"regexp"
 )

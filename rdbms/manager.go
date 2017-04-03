@@ -193,7 +193,7 @@ import (
 	"github.com/graniticio/granitic/dsquery"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
-	"golang.org/x/net/context"
+	"context"
 )
 
 /*

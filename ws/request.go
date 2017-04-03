@@ -6,7 +6,7 @@ package ws
 import (
 	"github.com/graniticio/granitic/iam"
 	"github.com/graniticio/granitic/types"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 )
 

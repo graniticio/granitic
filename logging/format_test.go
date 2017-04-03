@@ -6,7 +6,7 @@ package logging
 import (
 	"fmt"
 	"github.com/graniticio/granitic/test"
-	"golang.org/x/net/context"
+	"context"
 	"testing"
 )
 

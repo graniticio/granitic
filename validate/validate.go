@@ -132,7 +132,7 @@ import (
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/types"
-	"golang.org/x/net/context"
+	"context"
 	"regexp"
 	"strconv"
 	"strings"

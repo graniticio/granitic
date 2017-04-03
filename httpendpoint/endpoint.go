@@ -15,7 +15,7 @@ framework will automatically register them with the HttpServer facility.
 package httpendpoint
 
 import (
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 )
 

@@ -7,7 +7,7 @@ import (
 	"errors"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/logging"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 )
 

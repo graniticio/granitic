@@ -153,7 +153,7 @@ package endpoint
 
 import (
 	"github.com/graniticio/granitic/ws"
-	"golang.org/x/net/context"
+	"context"
 )
 
 type ArtistLogic struct {

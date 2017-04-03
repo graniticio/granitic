@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/ioc"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 	"os"
 	"regexp"

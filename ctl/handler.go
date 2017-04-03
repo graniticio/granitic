@@ -8,7 +8,7 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/types"
 	"github.com/graniticio/granitic/ws"
-	"golang.org/x/net/context"
+	"context"
 	"regexp"
 	"strings"
 )

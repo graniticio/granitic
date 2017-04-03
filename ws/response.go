@@ -79,7 +79,7 @@ package ws
 import (
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/iam"
-	"golang.org/x/net/context"
+	"context"
 	"net/http"
 )
 

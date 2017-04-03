@@ -10,7 +10,7 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/test"
 	"github.com/graniticio/granitic/types"
-	"golang.org/x/net/context"
+	"context"
 	"testing"
 )
 

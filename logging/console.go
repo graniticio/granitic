@@ -5,7 +5,7 @@ package logging
 
 import (
 	"fmt"
-	"golang.org/x/net/context"
+	"context"
 	"runtime"
 )
 

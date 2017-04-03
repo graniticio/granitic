@@ -3,7 +3,7 @@
 ## Requirements
 
  * A UNIX type OS (MacOS, Linux, UNIX, BSD etc) - Granitic has not been tested against Windows.
- * Go 1.6 or later
+ * Go 1.7 or later
  * Git
  
  It is highly recommended that you have installed Go according to the standard Go installation instructions 
@@ -50,8 +50,8 @@ cd $GOPATH/src
 grnc-project install-test
 cd install-test
 grnc-bind
-go build ./install-test.go
-./install-test
+go build ./service.go
+./service
 </pre>
 
 If your installation has been successful, you'll see command line output similar to:
