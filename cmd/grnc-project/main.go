@@ -47,6 +47,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 )
 
 func main() {
@@ -66,9 +67,9 @@ func main() {
 	}
 
 	name := a[1]
-	resourceDir := name + "/resource"
-	confDir := resourceDir + "/config"
-	compDir := resourceDir + "/components"
+	resourceDir := filepath.Join(name, "resource")
+	confDir := filepath.Join(resourceDir, "config")
+	compDir := filepath.Join(resourceDir, "components")
 
 	mkDir(name)
 	mkDir(resourceDir)
@@ -83,7 +84,7 @@ func main() {
 
 func writeMainFile(name string, projectPackage string, changePackageComment string) {
 
-	mainFile := name + "/service.go"
+	mainFile := filepath.Join(name, "service.go")
 
 	f := openOutputFile(mainFile)
 
@@ -107,7 +108,7 @@ func writeMainFile(name string, projectPackage string, changePackageComment stri
 
 func writeGitIgnore(name string) {
 
-	ignoreFile := name + "/.gitignore"
+	ignoreFile := filepath.Join(name, ".gitignore")
 
 	f := openOutputFile(ignoreFile)
 
@@ -123,7 +124,7 @@ func writeGitIgnore(name string) {
 
 func writeConfigFile(confDir string) {
 
-	compFile := confDir + "/config.json"
+	compFile := filepath.Join(confDir, "config.json")
 	f := openOutputFile(compFile)
 
 	defer f.Close()
@@ -139,7 +140,7 @@ func writeConfigFile(confDir string) {
 
 func writeComponentsFile(compDir string) {
 
-	compFile := compDir + "/components.json"
+	compFile := filepath.Join(compDir, "components.json")
 	f := openOutputFile(compFile)
 
 	defer f.Close()
