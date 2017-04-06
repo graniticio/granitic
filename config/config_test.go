@@ -9,6 +9,7 @@ import (
 	"github.com/graniticio/granitic/test"
 	"io/ioutil"
 	"testing"
+	"path/filepath"
 )
 
 type SimpleConfig struct {
@@ -24,7 +25,9 @@ type SimpleConfig struct {
 
 func LoadConfigFromFile(f string) *ConfigAccessor {
 
-	p := test.TestFilePath("config/" + f)
+	osp := filepath.Join("config", f)
+
+	p := test.TestFilePath(osp)
 	l := logging.CreateAnonymousLogger("config_test", 0)
 
 	var d interface{}

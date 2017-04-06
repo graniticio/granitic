@@ -17,11 +17,12 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"path/filepath"
 )
 
 // TestFilePath finds the absolute path of a file that is provided relative to the resource/test directory.
 func TestFilePath(file string) string {
-	return os.Getenv("GRANITIC_HOME") + "/resource/test/" + file
+	return filepath.Join(os.Getenv("GRANITIC_HOME"), "resource", "test", file)
 }
 
 // ExpectString stops a test and logs an error if the string to be checked does not have the expected value.

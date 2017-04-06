@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"path/filepath"
 )
 
 // FindConfigFilesInDir finds all files with a .json extension in the supplied directory path, recursively checking
@@ -29,15 +30,20 @@ func FindConfigFilesInDir(dirPath string) ([]string, error) {
 
 		if info.Mode().IsDir() {
 
-			if sub, err := FindConfigFilesInDir(dirPath + "/" + fileName); err != nil {
+			dp := filepath.Join(dirPath, fileName)
+
+
+			if sub, err := FindConfigFilesInDir(dp); err != nil {
 				return nil, err
 			} else {
 				files = append(files, sub...)
 			}
 
-		} else if strings.HasSuffix(fileName, ".json") {
+		} else if filepath.Ext(fileName) == "json" {
 
-			files = append(files, dirPath+"/"+fileName)
+			f := filepath.Join(dirPath, fileName)
+
+			files = append(files, f)
 		}
 
 	}
@@ -79,7 +85,7 @@ func FileListFromPath(path string) ([]string, error) {
 		for _, info := range contents {
 			fileName := info.Name()
 
-			p := path + "/" + fileName
+			p := filepath.Join(path, fileName)
 
 			if info.IsDir() {
 

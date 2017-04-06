@@ -15,6 +15,7 @@ import (
 	"os"
 	"strconv"
 	"text/template"
+	"path/filepath"
 )
 
 // Serialises the body of a ws.WsResponse to XML using Go templates. See https://golang.org/pkg/text/template/
@@ -226,7 +227,7 @@ func (rw *TemplatedXMLResponseWriter) templatePaths(baseDir string) ([]string, e
 
 	for _, f := range di {
 
-		n := baseDir + "/" + f.Name()
+		n := filepath.Join(baseDir, f.Name())
 
 		if f.IsDir() {
 			if a, err := rw.templatePaths(n); err == nil {
