@@ -12,6 +12,7 @@ import (
 	"github.com/graniticio/granitic/types"
 	"context"
 	"testing"
+	"path/filepath"
 )
 
 func TestPathParsing(t *testing.T) {
@@ -35,7 +36,9 @@ func TestPathParsing(t *testing.T) {
 
 func LoadTestConfig() *config.ConfigAccessor {
 
-	cFile := test.TestFilePath("validate/validation.json")
+	cfp := filepath.Join("validate", "validation.json")
+
+	cFile := test.TestFilePath(cfp)
 	jsonMerger := new(config.JSONMerger)
 	jsonMerger.Logger = new(logging.ConsoleErrorLogger)
 

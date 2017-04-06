@@ -11,10 +11,11 @@ import (
 	"os"
 	"strings"
 	"time"
+	"path/filepath"
 )
 
 const (
-	builtInConfigPath  = "/resource/facility-config"
+
 	graniticHomeEnvVar = "GRANITIC_HOME"
 )
 
@@ -144,6 +145,9 @@ func isURL(u string) bool {
 // BuiltInConfigFiles provides a list of file paths, each of which points to one of the default configuration files
 // for Granitic's built-in facilities. This is useful when programmatically building an InitialSettings object.
 func BuiltInConfigFiles() []string {
+
+	builtInConfigPath  := filepath.Join("resource", "facility-config")
+
 
 	d := GraniticHome() + builtInConfigPath
 

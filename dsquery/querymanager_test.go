@@ -10,11 +10,14 @@ import (
 	"io/ioutil"
 	"strings"
 	"testing"
+	"path/filepath"
 )
 
 func TestSingleSingleQueryNoVars(t *testing.T) {
 
-	queryFiles := []string{test.TestFilePath("querymanager/single-query-no-vars")}
+
+	f := filepath.Join("querymanager", "single-query-no-vars")
+	queryFiles := []string{test.TestFilePath(f)}
 	qm := buildQueryManager()
 
 	tt := qm.parseQueryFiles(queryFiles)
@@ -29,7 +32,8 @@ func TestSingleSingleQueryNoVars(t *testing.T) {
 
 func TestSingleQueryIndexVars(t *testing.T) {
 
-	queryFiles := []string{test.TestFilePath("querymanager/single-query-index-vars")}
+	f := filepath.Join("querymanager", "single-query-index-vars")
+	queryFiles := []string{test.TestFilePath(f)}
 	qm := buildQueryManager()
 
 	tt := qm.parseQueryFiles(queryFiles)
@@ -59,7 +63,8 @@ func TestSingleQueryIndexVars(t *testing.T) {
 
 func TestMultiQueryNameVars(t *testing.T) {
 
-	queryFiles := []string{test.TestFilePath("querymanager/multi-query-name-vars")}
+	f := filepath.Join("querymanager", "multi-query-name-vars")
+	queryFiles := []string{test.TestFilePath(f)}
 	qm := buildQueryManager()
 
 	tt := qm.parseQueryFiles(queryFiles)

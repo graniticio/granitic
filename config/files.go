@@ -7,7 +7,6 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
-	"strings"
 	"path/filepath"
 )
 

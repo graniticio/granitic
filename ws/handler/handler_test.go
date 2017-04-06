@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"testing"
+	"path/filepath"
 )
 
 func TestMinimal(t *testing.T) {
@@ -63,7 +64,9 @@ func TestAllOptionalPhases(t *testing.T) {
 
 func GetHandler(t *testing.T) (*WsHandler, *http.Request) {
 
-	getFilePath := test.TestFilePath("ws/get")
+	gf := filepath.Join("ws", "get")
+
+	getFilePath := test.TestFilePath(gf)
 	fr, err := os.Open(getFilePath)
 	test.ExpectNil(t, err)
 
