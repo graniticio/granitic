@@ -46,6 +46,7 @@ func TestFindConfigFiles(t *testing.T) {
 
 	p := test.TestFilePath("folders")
 
+
 	r, err := FindConfigFilesInDir(p)
 
 	test.ExpectNil(t, err)

@@ -146,16 +146,14 @@ func isURL(u string) bool {
 // for Granitic's built-in facilities. This is useful when programmatically building an InitialSettings object.
 func BuiltInConfigFiles() []string {
 
-	builtInConfigPath  := filepath.Join("resource", "facility-config")
+	builtInConfigPath  := filepath.Join(GraniticHome(), "resource", "facility-config")
 
 
-	d := GraniticHome() + builtInConfigPath
-
-	files, err := FindConfigFilesInDir(d)
+	files, err := FindConfigFilesInDir(builtInConfigPath)
 
 	if err != nil {
 
-		fmt.Printf("Problem loading Grantic's built-in configuration from %s:\n", d)
+		fmt.Printf("Problem loading Grantic's built-in configuration from %s:\n", builtInConfigPath)
 		fmt.Println(err.Error())
 		instance.ExitError()
 
