@@ -19,10 +19,13 @@ cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
 ./prepare-tutorial.sh 2
 </pre>
 
+## Related GoDoc
+
+https://godoc.org/github.com/graniticio/granitic/config
+
 ## Configuration
 
-Configuration is data that changes the behaviour or output of code. Granitic applications use JSON files to store configuration
-which is loaded when the application starts. Any valid JSON file is a valid configuration file:
+Granitic applications use JSON files to store configuration which is loaded when the application starts. Any valid JSON file is a valid configuration file:
 
 
 ```javascript
@@ -150,7 +153,7 @@ running on a single server.
 
 Create two new files:
 
-<code>resource/config/production.json</code>
+<code>resource/env/production.json</code>
 
 ```javascript
 {
@@ -161,7 +164,7 @@ Create two new files:
 ```
 
 
-<code>resource/config/development.json</code>
+<code>resource/env/development.json</code>
 
 ```javascript
 {
@@ -174,13 +177,13 @@ Create two new files:
 As you've only changed configuration files, you don't need to rebuild. You can just run:
 
 <pre>
-./recordstore -c resource/config/config.json,resource/config/production.json
+./recordstore -c resource/config,resource/env/production.json
 </pre>
 
 or
  
 <pre>
-./recordstore -c resource/config/config.json,resource/config/development.json
+./recordstore -c resource/config,resource/env/development.json
 </pre>
 
 And visit [http://localhost:8080/artist](http://localhost:8080/artist) to see a different result depending on which config file you're using.
@@ -188,9 +191,13 @@ And visit [http://localhost:8080/artist](http://localhost:8080/artist) to see a 
 
 ## Overriding configuration
 
-Running multiple instance of a web service on a single host means each instance must have a different HTTP port assigned to it. Create two new files:
+To maximise use of resources, you may want to run multiple instances of a web service on a single host. This means each instance must have a different HTTP port assigned to it. 
 
-<code>resource/config/recordstore-1.json</code>
+This is an example of how you can override previously defined configuration items with new values.
+
+Create two new files:
+
+<code>resource/instance/instance-1.json</code>
 
 ```javascript
 {
@@ -200,7 +207,7 @@ Running multiple instance of a web service on a single host means each instance 
 }
 ```
 
-<code>resource/config/recordstore-2.json</code>
+<code>resource/instance/instance-2.json</code>
 
 ```javascript
 {
@@ -213,14 +220,14 @@ Running multiple instance of a web service on a single host means each instance 
 You can now run:
 
 <pre>
-./recordstore -c resource/config/config.json,resource/config/development.json,resource/config/recordstore-1.json
+./recordstore -c resource/config,resource/env/development.json,resource/instance/instance-1.json
 </pre>
 
 and in a separate terminal run:
 
 <pre>
-cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
-./recordstore -c resource/config/config.json,resource/config/development.json,resource/config/recordstore-2.json
+cd $GOPATH/src/granitic-tutorial/recordstore
+./recordstore -c resource/config,resource/env/development.json,resource/instance/instance-2.json
 </pre>
 
 And you now have two separate instances of your recordstore application running and listening on different ports.
@@ -230,8 +237,8 @@ And you now have two separate instances of your recordstore application running 
 
 In previous examples, you will have noticed that the default HTTP port for Granitic applications is 8080. This is not
 hard-coded, it is defined in another configuration file that is included with Granitic itself called a 
-<code>facility configuration file</code>. This is why you need to set the <code>GRANITIC_HOME</code> to point to an installation
-of Granitic.
+<code>facility configuration file</code>. Making sure your applications can read these built-in configuration files is why you 
+need to set the <code>GRANITIC_HOME</code> environment variable to point to an installation of Granitic.
 
 During startup, Granitic builds up a single view of configuration by merging together all of your configuration files with all of the 
 built-in configuration files that can be found under <code>$GRANITIC_HOME/resource/facility-config</code>.
@@ -243,7 +250,7 @@ with the value in your <code>recordstore-1.json</code> or <code>recordstore-2.js
 
 ### Merging rules
 
-The rules by which configuration two files are merged together are specified in the Granitic reference manual, but the following example 
+The rules by which configuration two files are merged together are specified in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic/config), but the following example 
 illustrates the key rules (note the configuration items are an illustration and do not relate to any specific Granitic features)
 
 <code>a.json</code>
