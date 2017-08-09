@@ -12,6 +12,10 @@
  2. Read the [before you start](000-before-you-start.md) tutorial
  3. Have access to a text editor or IDE for writing Go and JSON files and a terminal emulator or command prompt 
  (referred to as a terminal from now on)
+ 
+#### Note for Windows users
+
+Refer to the Windows notes in the [before you start](000-before-you-start.md) tutorial 
 
 ## Introduction
 
