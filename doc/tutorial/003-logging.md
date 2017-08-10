@@ -2,8 +2,9 @@
 
 ## What you'll learn
 
- 1. How Granitic handles logging from your code and from Grantic's built-in components
- 2. How to adjust the amount of logging shown
+ 1. How Granitic handles logging from your code.
+ 2. How to adjust which messages are logged.
+ 3. How to change logging behaviour at runtime.
  
 ## Prerequisites
 
@@ -17,25 +18,21 @@ cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
 ./prepare-tutorial.sh 3
 </pre>
 
-## Related GoDoc
-
-https://godoc.org/github.com/graniticio/granitic/logging
-
 ## Logging
 
 Logging in Grantic is designed to allow developers to have fine-grained control over which components output logging information. There are two main
 concepts to be aware of:
 
- * Loggers - the components that format log messages and choose whether or not to display them based on the severity assigned to the message.
- * Severity - the seriousness of a message to be log.
+ * Loggers - the components that format log messages and choose whether or not to write them to a console or file them based on the severity assigned to the message.
+ * Severity - the seriousness of a message to be logged.
  
 Severities are (in ascending order)  <code>TRACE, DEBUG, INFO, WARN, ERROR, FATAL</code>. See the [GoDoc for more detail](https://godoc.org/github.com/graniticio/granitic/logging)
 
-In order for your code to log messages, it will need to have access to a Logger. Granitic has two built-in Loggers - the <code>ApplicationLogger</code> and the <code>FrameworkLogger</code>. 
+In order for your code to log messages, it will need to have access to a <code>Logger</code>. Granitic has two built-in Loggers - the <code>ApplicationLogger</code> and the <code>FrameworkLogger</code>. 
 As the names suggest, the <code>FrameworkLogger</code> is intended for internal Granitic components and the <code>ApplicationLogger</code> is for your application's code.
 
 As almost all every component you build will probably need the <code>ApplicationLogger</code>, Granitic has a built-in [ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/ioc#ComponentDecorator) that automatically
-injects a reference to the <code>ApplicationLogger</code> or any component with a member variable:
+injects a reference to the <code>ApplicationLogger</code> or any component with a member variable that is exactly:
 
 ```go
     Log logging.Logger
@@ -96,6 +93,11 @@ This line shows:
 * The name of the component issuing the message (artistLogic)
 * The message itself
 
+### Unit tests
+
+You may find the function <code>logging.CreateAnonymousLogger</code> useful when writing unit tests for code that relies
+on having access to a <code>Logger</code>
+
 ##Global log level
 
 You may have noticed that the <code>INFO</code> level message is shown but the <code>TRACE</code> message is not.This is because the global log level for the <code>ApplicationLogger</code> 
@@ -125,7 +127,7 @@ is also set to INFO in the facility configuration file <pre>$GRANITIC_HOME/resou
 }
 ```
 
-The global log level means that any message with a severity equal to or greater than the specified
+The global log level means that only messages with a severity equal to or greater than the global log level with be logged.
 
 You can override the global log level for you own application. Open <pre>resource/config/config.json</pre> and edit it
 so it looks like:
@@ -148,6 +150,12 @@ you'll see that the INFO message is no longer displayed.
 
 Notice that you are still seeing other INFO messages from components whose names start <code>grnc</code>. These components
 are built-in Granitic components so use the <code>FrameworkLogger</code> which has its own <code>GlobalLogLevel</code>
+
+###File logging
+
+By default Granitic only logs messages to the console. Look at <pre>$GRANITIC_HOME/resource/facility/config/logging.json</pre> to
+see how you can enable logging to a file.
+
 
 ##Component specific log levels
 
@@ -173,5 +181,66 @@ you'll see an additional message displayed:
 </pre>
 
 Try setting the <code>artistLogic</code> log level to <code>FATAL</code> to see what happens.
+
+###Runtime control of logging
+
+When investigating problems with production code it can be very helpful to enable lower-priority messages without having
+to restart or re-deploy an application. Granitic supports this through the <code>RuntimeCtl</code> facility.
+
+Stop your instance of <code>recordstore</code> and change <pre>resource/config/config.json</pre> so that the <code>Facilities</code>
+section looks like:
+
+```json
+"Facilities": {
+    "HttpServer": true,
+    "JsonWs": true,
+    "RuntimeCtl": true
+}
+```
+
+Restart <code>recordstore</code> and you will see a new line in the startup logs:
+
+<pre>10/Aug/2017:06:55:28 Z INFO  grncCtlServer Listening on 9099</pre>
+
+You can now use the [grnc-ctrl command line tool](https://godoc.org/github.com/graniticio/granitic/cmd/grnc-ctl) to issue
+commands to <code>recordstore</code> while it is running.
+
+Open a terminal and run:
+
+<pre>grnc-ctl help</pre>
+
+To get a list of the high level actions you can perform with this tool and then:
+
+<pre>
+grnc-ctl help global-level
+grnc-ctl help log-level
+</pre> 
+
+For more information on the commands related to logging. Try:
+
+<pre>grnc-ctl log-level artistLogic FATAL</pre> 
+
+to raise the logging threshold for the <code>artistLogic</code> to <code>FATAL</code>
+
+Any changes you make with the <code>grnc-ctl</code> tool are non-permanent and will be reset the next time you start
+your application.
+
+## Recap
+
+ * Granitic can inject a <code>Logger</code> into your application code.
+ * You can log at different levels of severity.
+ * You can set the global severity level at which messages will be logged in configuration.
+ * You can override this global level for individual components.
+ * You can change both the global and component-specific levels at runtime using <code>grnc-ctl</code>
+ 
+## Further reading
+
+ * [Logging GoDoc](https://godoc.org/github.com/graniticio/granitic/logging)
+ * [grnc-ctrl usage](https://godoc.org/github.com/graniticio/granitic/cmd/grnc-ctl)
+ 
+ 
+## Next
+
+The next tutorial covers the [capture of data from web-service calls](004-data-capture.md)  
 
 
