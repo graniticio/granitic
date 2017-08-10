@@ -141,6 +141,10 @@ so it looks like:
     
     "ApplicationLogger":{
             "GlobalLogLevel": "ERROR"
+    },
+    
+    "environment": {
+            "label": "UNSET"
     }
 }
 ```

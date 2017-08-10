@@ -155,7 +155,7 @@ Create two new files:
 
 <code>resource/env/production.json</code>
 
-```javascript
+```json
 {
   "environment": {
     "label": "PROD"
@@ -166,7 +166,7 @@ Create two new files:
 
 <code>resource/env/development.json</code>
 
-```javascript
+```json
 {
   "environment": {
     "label": "DEV"
@@ -187,6 +187,25 @@ or
 </pre>
 
 And visit [http://localhost:8080/artist](http://localhost:8080/artist) to see a different result depending on which config file you're using.
+
+
+### Tidying up
+
+In later tutorials, we'll want the option of running <code>recordstore</code> without specifiying a list of config files, so change
+your <pre>resource/config/config.json</pre> file so that it looks like:
+
+```json
+{
+    "Facilities": {
+        "HttpServer": true,
+        "JsonWs": true
+    },
+    "environment": {
+        "label": "UNSET"
+    }
+}
+
+```
 
 
 ## Overriding configuration
