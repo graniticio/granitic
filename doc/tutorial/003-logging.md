@@ -98,7 +98,7 @@ This line shows:
 You may find the function <code>logging.CreateAnonymousLogger</code> useful when writing unit tests for code that relies
 on having access to a <code>Logger</code>
 
-##Global log level
+## Global log level
 
 You may have noticed that the <code>INFO</code> level message is shown but the <code>TRACE</code> message is not.This is because the global log level for the <code>ApplicationLogger</code> 
 is also set to INFO in the facility configuration file <pre>$GRANITIC_HOME/resource/facility/config/logging.json</pre> which looks something like:
@@ -155,13 +155,13 @@ you'll see that the INFO message is no longer displayed.
 Notice that you are still seeing other INFO messages from components whose names start <code>grnc</code>. These components
 are built-in Granitic components so use the <code>FrameworkLogger</code> which has its own <code>GlobalLogLevel</code>
 
-###File logging
+### File logging
 
 By default Granitic only logs messages to the console. Look at <pre>$GRANITIC_HOME/resource/facility/config/logging.json</pre> to
 see how you can enable logging to a file.
 
 
-##Component specific log levels
+## Component specific log levels
 
 Sometimes you want to allow a single component to log messages that are below the global log level (to aid debugging) or to
 squelch a component that is too noisy. This can be achieved by setting a log level for a specific component. Modify your
@@ -186,7 +186,7 @@ you'll see an additional message displayed:
 
 Try setting the <code>artistLogic</code> log level to <code>FATAL</code> to see what happens.
 
-###Runtime control of logging
+### Runtime control of logging
 
 When investigating problems with production code it can be very helpful to enable lower-priority messages without having
 to restart or re-deploy an application. Granitic supports this through the <code>RuntimeCtl</code> facility.
