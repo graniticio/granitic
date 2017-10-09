@@ -37,5 +37,4 @@ go. Remember:
 
 ## Tutorials
 
- 1. [Fundamentals](001-fundamentals.md) - Learn more about Granitic and create a simple web service
- 2. [Configuration](002-configuration.md) - How Granitic applications are configured
+The [first tutorial](001-fundamentals.md) will show you how to build a simple web-service using Granitic and Go

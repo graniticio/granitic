@@ -2,11 +2,10 @@
 
 ## Requirements
 
- * Go 1.7 or later
+ * Go 1.8 or later
  * Git
  
- It is highly recommended that you have installed Go according to the standard Go installation instructions 
- (https://golang.org/doc/install) and have set your GOPATH environment variable correctly.
+ It is highly recommended that you have installed Go according to the [standard Go installation instructions](https://golang.org/doc/install) and have set your GOPATH environment variable correctly.
  
 #### Note for Windows users
  
@@ -97,23 +96,3 @@ You can stop the program with CTRL+C and can safely delete the $GOPATH/src/insta
 ## Next steps
 
 For more information on developing Granitic applications, please [work through the tutorials](https://github.com/graniticio/granitic/tree/master/doc/tutorial)
-
-
-
-### Installing the current version of Granitic
-
-Open a Command Prompt and run:
-
-<pre>
-go get github.com/graniticio/granitic
-</pre>
-
-### Build the support tools
-
-In your Command Prompt run:
-
-<pre>
-go install github.com/graniticio/granitic/cmd/grnc-bind
-go install github.com/graniticio/granitic/cmd/grnc-ctl
-go install github.com/graniticio/granitic/cmd/grnc-project
-</pre>

@@ -20,19 +20,19 @@ cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
 
 ## Logging
 
-Logging in Grantic is designed to allow developers to have fine-grained control over which components output logging information. There are two main
-concepts to be aware of:
+Logging in Granitic gives developers fine-grained control over which components output logging information. There are two main
+concepts for you to become familiar with:
 
  * Loggers - the components that format log messages and choose whether or not to write them to a console or file them based on the severity assigned to the message.
- * Severity - the seriousness of a message to be logged.
+ * Severity - the importance of a message to be logged.
  
-Severities are (in ascending order)  <code>TRACE, DEBUG, INFO, WARN, ERROR, FATAL</code>. See the [GoDoc for more detail](https://godoc.org/github.com/graniticio/granitic/logging)
+Severities are (in ascending order of importance)  <code>TRACE, DEBUG, INFO, WARN, ERROR, FATAL</code>. See the [GoDoc for more detail](https://godoc.org/github.com/graniticio/granitic/logging)
 
-In order for your code to log messages, it will need to have access to a <code>Logger</code>. Granitic has two built-in Loggers - the <code>ApplicationLogger</code> and the <code>FrameworkLogger</code>. 
-As the names suggest, the <code>FrameworkLogger</code> is intended for internal Granitic components and the <code>ApplicationLogger</code> is for your application's code.
+Your code will dispatch log messages through a Granitic component called a <code>Logger</code>. Granitic has two built-in Loggers - the <code>ApplicationLogger</code> and the <code>FrameworkLogger</code>. 
+As the names suggest, the <code>FrameworkLogger</code> is used by internal Granitic components and the <code>ApplicationLogger</code> is for your application's code.
 
-As almost all every component you build will probably need the <code>ApplicationLogger</code>, Granitic has a built-in [ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/ioc#ComponentDecorator) that automatically
-injects a reference to the <code>ApplicationLogger</code> or any component with a member variable that is exactly:
+As the majority of components that you build will need access to the <code>ApplicationLogger</code>, Granitic has a built-in [ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/ioc#ComponentDecorator) that automatically
+injects a reference to the <code>ApplicationLogger</code> into any of your components with a member variable that is exactly:
 
 ```go
     Log logging.Logger
@@ -75,7 +75,7 @@ type ArtistDetail struct {
 and run
 
 <pre>
-cd $GOPATH/grnc-tutorial/recordstore
+cd $GOPATH/src/granitic-tutorial/recordstore
 grnc-bind
 go build
 ./recordstore -c resource/config,resource/env/production.json
@@ -88,10 +88,11 @@ Keep the terminal window visible and visit [http://localhost:8080/artist](http:/
 </pre>
 
 This line shows:
-* The timestamp of when the message was logged
-* The severity of the message (INFO)
-* The name of the component issuing the message (artistLogic)
-* The message itself
+
+ * The timestamp of when the message was logged
+ * The severity of the message (INFO)
+ * The name of the component issuing the message (artistLogic)
+ * The message itself
 
 ### Unit tests
 
@@ -220,11 +221,13 @@ grnc-ctl help global-level
 grnc-ctl help log-level
 </pre> 
 
-For more information on the commands related to logging. Try:
+for more information on the commands related to logging. 
+
+Try running:
 
 <pre>grnc-ctl log-level artistLogic FATAL</pre> 
 
-to raise the logging threshold for the <code>artistLogic</code> to <code>FATAL</code>
+to raise the logging threshold for the <code>artistLogic</code> component to <code>FATAL</code>
 
 Any changes you make with the <code>grnc-ctl</code> tool are non-permanent and will be reset the next time you start
 your application.

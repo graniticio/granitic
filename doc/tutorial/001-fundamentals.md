@@ -90,10 +90,10 @@ This means your application has started and is waiting. You can stop it with <co
 ## Facilities
 
 A <code>facility</code> is Granitic's name for a high-level feature that your application can enable or disable. By default,
-most of the features are disabled. You can see which features that are available to your applications and whether or not they're enabled 
+most of the features are disabled. You can see which features are available to your applications and whether or not they're enabled 
 by inspecting the file <code>$GRANITIC_HOME/resource/facility-config/facilities.json</code>:
 
-```javascript
+```json
 {
   "Facilities": {
     "HttpServer": false,
@@ -111,14 +111,15 @@ by inspecting the file <code>$GRANITIC_HOME/resource/facility-config/facilities.
 
 In order to build a JSON web service, you will need to enable two facilities: <code>HttpServer</code> and <code>JsonWs</code> (JSON Web Services).
 
-To do this, open the file <code>/grnc-tutorial/resource/config/config.json</code> and change it so it looks like:
+We do this by <i>overriding</i> the default setting for each facility. To do this, open the JSON <code>/grnc-tutorial/resource/config/config.json</code> 
+that was generated for you and change it so it looks like:
 
-```javascript
+```json
 {
-	"Facilities": {
-		"HttpServer": true,
-    	"JsonWs": true
-	}
+  "Facilities": {
+    "HttpServer": true,
+    "JsonWs": true
+  }
 }
 ```
 (from now on this file will be referred to as your application's config file)
@@ -143,7 +144,7 @@ Which shows that a HTTP server is listening on the default port of 8080. Stop th
 
 An <code>endpoint</code> is Granitic's preferred name for code that handles a web service request to a particular URI pattern for a 
 particular HTTP method (GET, POST etc). Most of the mechanics of routing a request to your code and converting between
-JSON and Go is handled by Granitic, you will be concerned mainly with defining your _endpoint logic_.
+JSON and your custom Go code is handled by Granitic, you will be concerned mainly with defining your _endpoint logic_.
 
 Endpoint logic is code in a Go struct implementing the <code>ws.WsRequestProcessor</code> interface.
 
@@ -192,25 +193,25 @@ A component is a named instance of a Go object, managed by the IoC container.
 
 Open the file <code>recordstore/resource/components/components.json</code> and set the content to:
 
-```javascript
+```json
 {
-	"packages": [
-		"github.com/graniticio/granitic/ws/handler",
-		"grnc-tutorial/recordstore/endpoint"
-	],
+  "packages": [
+    "github.com/graniticio/granitic/ws/handler",
+    "grnc-tutorial/recordstore/endpoint"
+  ],
 
-	"components": {
-		"artistLogic": {
-			"type": "endpoint.ArtistLogic"
-		},
+  "components": {
+    "artistLogic": {
+      "type": "endpoint.ArtistLogic"
+    },
 
-		"artistHandler": {
-			"type": "handler.WsHandler",
-			"HTTPMethod": "GET",
-			"Logic": "ref:artistLogic",
-			"PathPattern": "^/artist"
-		}
-	}
+    "artistHandler": {
+      "type": "handler.WsHandler",
+      "HTTPMethod": "GET",
+      "Logic": "ref:artistLogic",
+      "PathPattern": "^/artist"
+    }
+  }
 }
 ```
 
@@ -268,7 +269,7 @@ import "github.com/graniticio/granitic"
 import "grnc-tutorial/bindings"
 
 func main() {
-	granitic.StartGranitic(bindings.Components())
+  granitic.StartGranitic(bindings.Components())
 }
 ```
 
@@ -288,11 +289,11 @@ Now open a browser and visit:
 
 and you should see the response:
 
-```javascript
+```json
 {
-    "Response":{
-        "Name": "Hello, World!"
-    }
+  "Response":{
+    "Name": "Hello, World!"
+  }
 }
 ```
 
