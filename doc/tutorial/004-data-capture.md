@@ -28,14 +28,12 @@ Web services that are provided as HTTP endpoints generally allow callers to supp
 2. The [path](https://tools.ietf.org/html/rfc2616#section-3.2.2) component of the URL
 3. The [query](https://tools.ietf.org/html/rfc2616#section-3.2.2) component of the URL
 
-or some combination of the above. 
-
-Granitic provides support for automating the binding 
+or some combination of the above. Granitic automates the process of extracting these three types of data from the request and mapping the data to fields on your application's data structures.
 
 
 ### Web service design patterns
 
-Granitic is agnostic as to which design pattern (REST, RPC) your application follows. The majority of the examples in these tutorials are 'REST-like',
+Granitic is agnostic as to which web service design pattern (REST, RPC etc) your application follows. The majority of the examples in these tutorials are 'REST-like',
 but that is not to suggest that Granitic favours REST over other patterns.
 
 ### Meta-data
@@ -57,7 +55,7 @@ go build
 
 and visit [http://localhost:8080/artist](http://localhost:8080/artist) to see what happens when you execute a GET request.
 
-We'll want to allow a called to specify _which_ artist they'd like details for. Open <code>endpoint/artist.go</code> and
+We want to allow the caller of this endpoint to specify _which_ artist they'd like details for. Open <code>endpoint/artist.go</code> and
 add the following struct to the end of the file.
 
 ```go
@@ -82,7 +80,7 @@ or was an automatic zero value.
 
 ## Configuring path binding
 
-A common REST-like technique is to allow a caller to specify the ID of the required resource, in this case a recording artist,
+A common REST-like technique is to allow a caller to specify the ID of the required resource (in this case a recording artist)
 into the _path_ of the request. E.g. <code>/artist/1234</code>. We will configure Granitic to extract that ID and inject it
 into the Id field of the <code>ArtistRequest</code> struct you defined above.
 
@@ -101,9 +99,7 @@ If you open the file <code>resource/components/components.json</code> you will s
 ```
 
 The component <code>artistHandler</code> is an instance of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) and we
-can define how path binding will work through configuration.
-
-Change the definition of your <code>artistHandler</code> component so it looks like:
+can define how path binding will work through configuration. Change the definition of your <code>artistHandler</code> component so it looks like:
 
 
 ```json
@@ -122,17 +118,20 @@ We've altered the regular expression that this endpoint expects to
 
 so that in order to match an incoming request, the request path _must_ include a number and an optional trailing slash. We've
 also defined a [regular expression group](https://www.regular-expressions.info/refcapture.html) around the part of the path that
-will be considered as required ID.
+will be considered as representing the requested ID.
 
 We've also added a new field <code>BindPathParams</code> and set it to an array of strings. The number of strings in this
-array should match the number of groups in the <code>PathPattern</code> regex. Here we are saying that the first group
+array should match the number of groups in the <code>PathPattern</code> regex. Here we are saying that the value of the first regex group
 should be injected into a field called 'Id'.
 
 The last step is to tell Grantic that the <code>Id</code> field we're refering to is the one on our <code>ArtistRequest</code>
 struct. This is done in code by making your <code>ArtistLogic</code> struct implement [handler.WsUnmarshallTarget](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsUnmarshallTarget)
 
-The method <code>UnmarshallTarget() interface{}</code> required by this interface allows each endpoint to create a 'target'
-object that any data from a request will be decanted into. 
+The method 
+
+<code>UnmarshallTarget() interface{}</code> 
+
+required by this interface allows each endpoint to create a 'target' object that any data from a request will be decanted into. 
 
 Change your <code>ArtistLogic</code> struct to look like:
 
@@ -167,7 +166,7 @@ Stop, rebuild and restart your application:
 grnc-bind && go build && ./recordstore -c resource/config,resource/env/production.json
 </pre>
 
-Visiting [http://localhost:8080/artist]() will now result in a 404 Not Found error, but visiting [http://localhost:8080/artist/1234]() should
+Visiting [http://localhost:8080/artist](http://localhost:8080/artist) will now result in a 404 Not Found error, but visiting [http://localhost:8080/artist/1234](http://localhost:8080/artist/1234) should
 result in a response and a log line similar to:
 
 <pre>
@@ -179,8 +178,7 @@ result in a response and a log line similar to:
 
 To work flexibly with any custom code you might create, the various methods and interfaces in Granitic's [handler]([handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler))
 package tend to work with <code>interface{}</code> types. One of the side effects of this is that the code
-in your endpoint's <code>Process</code> method will need to perform a type assertion when
-accessing the content's of a request's body. In this case the line
+in your endpoint's <code>Process</code> method will need to perform a type assertion when accessing the contents of a request's body. In this case the line
 
 ```go
 ar := req.RequestBody.(*ArtistRequest)
@@ -208,12 +206,12 @@ and add the following Go to the end your <code>ArtistLogic.Process</code> method
   }
 ```
 
-Rebuild and restart your application. Visiting [http://localhost:8080/artist/1234?normalise=true]() will now
+Rebuild and restart your application. Visiting [http://localhost:8080/artist/1234?normalise=true](http://localhost:8080/artist/1234?normalise=true) will now
 cause the returned artist's name to be capitalised.
  
-##Extracting data from the request body
+## Extracting data from the request body
 
-Path parameters and query parameters are only useful for submitting limited amounts of semi-structured data to a web-service. More common is to use a POST or PUT request to include more complex data in the body of an HTTP request. Granitic has built-in support for accepting data in an HTTP request
+Path parameters and query parameters are only useful for submitting limited amounts of semi-structured data to a web service. More common is to use a POST or PUT request to include more complex data in the body of an HTTP request. Granitic has built-in support for accepting data in an HTTP request
 body as JSON or XML. The following examples all use JSON, refer to the [facility/ws](https://godoc.org/github.com/graniticio/granitic/facility/ws) and
 [ws/xml](https://godoc.org/github.com/graniticio/granitic/facility/ws) GoDoc to discover how to use XML instead.
 
@@ -224,7 +222,7 @@ type SubmitArtistLogic struct {
   Log      logging.Logger
 }
 
-func (sal *SubmiArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
+func (sal *SubmitArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
 
   sar := req.RequestBody.(*SubmittedArtistRequest)
 
@@ -277,7 +275,7 @@ grnc-bind && go build && ./recordstore -c resource/config,resource/env/productio
 
 ### Testing POST services
 
-Testing POST and PUT services is more complex than GET requests as browsers don't generally have built-in mechanisms for 
+Testing POST and PUT services is more complex than GET services as browsers don't generally have built-in mechanisms for 
 setting the body of a request. There are several browser extensions available that facilitate this sort of testing. The following
 instructions are based on [Advanced Rest Client (ARC) for Chrome](https://chrome.google.com/webstore/detail/advanced-rest-client/hgmloofddffdnphfgcellkdfbfbjeloo)
 
