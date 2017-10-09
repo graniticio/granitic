@@ -211,6 +211,110 @@ and add the following Go to the end your <code>ArtistLogic.Process</code> method
 Rebuild and restart your application. Visiting [http://localhost:8080/artist/1234?normalise=true]() will now
 cause the returned artist's name to be capitalised.
  
+##Extracting data from the request body
 
-  
+Path parameters and query parameters are only useful for submitting limited amounts of semi-structured data to a web-service. More common is to use a POST or PUT request to include more complex data in the body of an HTTP request. Granitic has built-in support for accepting data in an HTTP request
+body as JSON or XML. The following examples all use JSON, refer to the [facility/ws](https://godoc.org/github.com/graniticio/granitic/facility/ws) and
+[ws/xml](https://godoc.org/github.com/graniticio/granitic/facility/ws) GoDoc to discover how to use XML instead.
+
+We will create a new endpoint to accept details of a new artist as POSTed JSON. Add the following to your <code>artist.go</code> file:
+
+```go
+type SubmitArtistLogic struct {
+  Log      logging.Logger
+}
+
+func (sal *SubmiArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
+
+  sar := req.RequestBody.(*SubmittedArtistRequest)
+
+  sal.Log.LogInfof("New artist %s", sar.Name)
+
+  //Hardcoded 'ID' of newly created artist - just a placeholder
+  res.Body = struct {
+   Id int
+  }{0} 
+
+}
+
+func (sal *SubmitArtistLogic) UnmarshallTarget() interface{} {
+  return new(SubmittedArtistRequest)
+}
+
+
+type SubmittedArtistRequest struct {
+  Name string
+  Age *types.NilableInt64
+}
+```
+
+This defines new endpoint logic that will expect a populated <code>SubmittedArtistRequest</code> to be supplied
+as the [ws.WsRequest](https://godoc.org/github.com/graniticio/granitic/ws#WsRequest).RequestBody. 
+
+In order to have this code invoked, we will need to add the following to the <code>components</code> map in our <code>components.json</code> file:
+
+```json
+"submitArtistLogic": {
+  "type": "endpoint.SubmitArtistLogic"
+},
+
+"submitArtistHandler": {
+  "type": "handler.WsHandler",
+  "HTTPMethod": "POST",
+  "Logic": "ref:submitArtistLogic",
+  "PathPattern": "^/artist[/]?$"
+}
+```
+
+Check your <code>config.json</code> file and make sure the <code>GlobalLogLevel</code> is set to <code>INFO</code>
+
+<pre>
+grnc-bind && go build && ./recordstore -c resource/config,resource/env/production.json
+</pre>
+
+
+
+
+### Testing POST services
+
+Testing POST and PUT services is more complex than GET requests as browsers don't generally have built-in mechanisms for 
+setting the body of a request. There are several browser extensions available that facilitate this sort of testing. The following
+instructions are based on [Advanced Rest Client (ARC) for Chrome](https://chrome.google.com/webstore/detail/advanced-rest-client/hgmloofddffdnphfgcellkdfbfbjeloo)
+
+## POST a new  artist
+
+
+1. Open ARC
+1. Set 'Request URL' to  <code>http://localhost:8080/artist</code>
+1. Select the 'POST' radio button
+1. From the 'Custom content type' picklist choose <code>application/json</code>
+1. Enter the 'test JSON' below into the large text area at the bottom of the page
+1. Press <code>SEND</code>
+1. You should receive a JSON formatted response with an Id of 0 and see a log line similar to: <code>09/Oct/2017:14:11:15 Z INFO  submitArtistLogic New artist Another Artist</code>
+
+
+### Test JSON
+
+```json
+{
+  "Name": "Another Artist",
+  "Age": 24
+}
+```
+
+## Recap
+
+ * Granitic can extract data from the path, query and body of an HTTP request and bind it to your custom Go structs.
+ * All this behaviour is configurable by changing the configuration of your handler components
+ * Handler components are instances of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+ 
+## Further reading
+
+ * [Granitic web service processing GoDoc](https://godoc.org/github.com/graniticio/granitic/ws)
+ * [Granitic web service facility GoDoc](https://godoc.org/github.com/graniticio/granitic/facility/ws)
+ 
+ 
+## Next
+
+The next tutorial covers the [validation of data submitted to web services](005-validation.md)
 
