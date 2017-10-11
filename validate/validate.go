@@ -390,6 +390,7 @@ func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) 
 
 	}
 
+	Rules:
 	for _, vl := range ov.validatorChain {
 
 		f := vl.field
@@ -436,8 +437,8 @@ func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) 
 				fes = append(fes, fe)
 
 				if vl.validationRule.StopAllOnFail() {
-					log.LogDebugf("Sopping all after problem found with %s", f)
-					break
+					log.LogDebugf("Stopping all after problem found with %s", f)
+					break Rules
 				}
 			}
 
