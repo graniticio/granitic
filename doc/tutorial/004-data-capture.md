@@ -242,7 +242,7 @@ func (sal *SubmitArtistLogic) UnmarshallTarget() interface{} {
 
 type SubmittedArtistRequest struct {
   Name string
-  Age *types.NilableInt64
+  FirstYearActive *types.NilableInt64
 }
 ```
 
@@ -296,7 +296,7 @@ instructions are based on [Advanced Rest Client (ARC) for Chrome](https://chrome
 ```json
 {
   "Name": "Another Artist",
-  "Age": 24
+  "FirstYearActive": 2010
 }
 ```
 
