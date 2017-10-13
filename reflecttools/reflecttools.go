@@ -62,6 +62,33 @@ func SetPtrToStruct(target interface{}, field string, valuePointer interface{}) 
 	return nil
 }
 
+
+func SetFieldPtrToStruct(tfv reflect.Value , valuePointer interface{}) error {
+
+	vp := reflect.ValueOf(valuePointer)
+
+	if !tfv.CanSet() {
+		m := fmt.Sprintf("Field cannot be set")
+		return errors.New(m)
+	}
+
+	if tfv.Kind() == reflect.Interface {
+		if vp.Type().Implements(tfv.Type()) {
+			tfv.Set(vp)
+		} else {
+			m := fmt.Sprintf("Supplied value (type %s) does not implement the interface (%s) required by the target field", vp.Elem().Type().Name(), tfv.Type().Name())
+			return errors.New(m)
+		}
+
+	}
+
+	if vp.Type().AssignableTo(tfv.Type()) {
+		tfv.Set(vp)
+	}
+
+	return nil
+}
+
 // NilPointer returns true if the supplied reflect value is a pointer that does not point a valid value.
 func NilPointer(v reflect.Value) bool {
 

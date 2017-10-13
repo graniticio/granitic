@@ -81,6 +81,8 @@ func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]
 			wsReq.AddFrameworkError(NewQueryBindFrameworkError(m, c, param, field))
 		}
 	}
+
+	pb.initialiseUnsetNilables(t)
 }
 
 // BindPathParameters takes the query parameters from an HTTP request and
@@ -106,7 +108,53 @@ func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
 		}
 
 	}
+
+	pb.initialiseUnsetNilables(t)
 }
+
+func (pb *ParamBinder) initialiseUnsetNilables(t interface{}) {
+
+	vt := reflect.ValueOf(t).Elem()
+
+	FieldLoop:
+	for i := 0; i < vt.NumField(); i++ {
+
+		f := vt.Field(i)
+
+
+		if !rt.NilPointer(f) {
+			//Not nil
+			continue FieldLoop
+		}
+
+		var nv interface{}
+
+
+		switch f.Interface().(type) {
+
+		case *types.NilableString:
+			nv = new(types.NilableString)
+		case *types.NilableBool:
+			nv = new(types.NilableBool)
+		case *types.NilableInt64:
+			nv = new(types.NilableInt64)
+		case *types.NilableFloat64:
+			nv = new(types.NilableFloat64)
+		default:
+			continue FieldLoop
+		}
+
+		if err := rt.SetFieldPtrToStruct(f, nv); err != nil {
+			pb.FrameworkLogger.LogErrorf("Problem initialising a nilable field %s", err.Error())
+		}
+
+
+
+	}
+
+
+}
+
 
 func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeName string, p *WsParams) *WsFrameworkError {
 

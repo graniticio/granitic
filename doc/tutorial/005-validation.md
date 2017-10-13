@@ -1,4 +1,4 @@
-# Tutorial - Validating client submitted data
+# Tutorial - Validating data submitted by a client
 
 ## What you'll learn
 
