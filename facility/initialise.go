@@ -126,7 +126,7 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.ConfigAccessor) error {
 	fi.addFacility(new(ws.JSONWsFacilityBuilder))
 	fi.addFacility(new(ws.XMLWsFacilityBuilder))
 	fi.addFacility(new(serviceerror.ServiceErrorManagerFacilityBuilder))
-	fi.addFacility(new(rdbms.RDBMSAccessFacilityBuilder))
+	fi.addFacility(new(rdbms.RdbmsAccessFacilityBuilder))
 	fi.addFacility(new(runtimectl.RuntimeCtlFacilityBuilder))
 
 	err = fi.buildEnabledFacilities()

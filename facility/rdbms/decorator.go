@@ -12,7 +12,7 @@ import (
 
 type clientManagerDecorator struct {
 	fieldNames []string
-	manager    rdbms.RDBMSClientManager
+	manager    rdbms.RdbmsClientManager
 }
 
 func (cmd *clientManagerDecorator) OfInterest(component *ioc.Component) bool {

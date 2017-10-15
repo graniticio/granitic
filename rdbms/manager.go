@@ -26,7 +26,7 @@
 
 	Components and types
 
-	Enabling these facilities creates the QueryManager and RDBMSClientManager components. Your application must provide
+	Enabling these facilities creates the QueryManager and RdbmsClientManager components. Your application must provide
 	a DatabaseProvider (see below)
 
 
@@ -38,7 +38,7 @@
 
 		RdbmsClient         A type providing methods to execute templated queries against an RDBMS.
 
-		RDBMSClientManager  A component able to create RdbmsClient objects.
+		RdbmsClientManager  A component able to create RdbmsClient objects.
 
 		RowBinder           A type able to map SQL query results into Go structs.
 
@@ -63,26 +63,26 @@
 		}
 
 	As long as you only have one implementation of DatabaseProvider registered as a component, it will automatically
-	be injected into the RDBMSClientManager component.
+	be injected into the RdbmsClientManager component.
 
 	QueryManager
 
 	Refer to the dsquery package for more details on how QueryManagers work.5
 
-	RDBMSClientManager
+	RdbmsClientManager
 
 	Granitic applications are discouraged from directly interacting with sql.DB objects (although of course they are
 	free to do so). Instead, they use instances of RdbmsClient. RdbmsClient objects are not reusable across goroutines,
 	instead your application will need to ask for a new one to be created for each new goroutine (e.g. for each request in
 	a web services application).
 
-	The component that is able to provide these clients is RDBMSClientManager.
+	The component that is able to provide these clients is RdbmsClientManager.
 
-	Auto-injection of an RDBMSClientManager
+	Auto-injection of an RdbmsClientManager
 
 	Any component that needs an RdbmsClient should have a field:
 
-		DBClientManager rdbms.RDBMSClientManager
+		DBClientManager rdbms.RdbmsClientManager
 
 	The name DBClientManager is a default. You can change the field that Granitic looks for by setting the following in
 	your application configuration.
@@ -211,7 +211,7 @@ type DatabaseProvider interface {
 /*
 Implemented by a component that can create RdbmsClient objects that application code will use to execute SQL statements.
 */
-type RDBMSClientManager interface {
+type RdbmsClientManager interface {
 	// Client returns an RdbmsClient that is ready to use.
 	Client() (*RdbmsClient, error)
 
@@ -227,16 +227,16 @@ type ProviderComponentReceiver interface {
 }
 
 /*
-	Granitic's default implementation of RDBMSClientManager. An instance of this will be created when you enable the
+	Granitic's default implementation of RdbmsClientManager. An instance of this will be created when you enable the
 
 	RdbmsAccess access facility and will be injected into any component that needs database access - see the package
 	documentation for facilty/rdbms for more details.
 */
-type GraniticRDBMSClientManager struct {
-	// Set to true if you are creating an instance of GraniticRDBMSClientManager manually
+type GraniticRdbmsClientManager struct {
+	// Set to true if you are creating an instance of GraniticRdbmsClientManager manually
 	DisableAutoInjection bool
 
-	// The names of fields on a component (of type rdbms.RDBMSClientManager) that should have a reference to this component
+	// The names of fields on a component (of type rdbms.RdbmsClientManager) that should have a reference to this component
 	// automatically injected into them.
 	InjectFieldNames []string
 
@@ -261,7 +261,7 @@ type GraniticRDBMSClientManager struct {
 
 // BlockAccess returns true if BlockUntilConnected is set to true and a connection to the underlying RDBMS
 // has not yet been established.
-func (cm *GraniticRDBMSClientManager) BlockAccess() (bool, error) {
+func (cm *GraniticRdbmsClientManager) BlockAccess() (bool, error) {
 
 	if !cm.BlockUntilConnected {
 		return false, nil
@@ -282,7 +282,7 @@ func (cm *GraniticRDBMSClientManager) BlockAccess() (bool, error) {
 }
 
 // See ProviderComponentReceiver.RegisterProvider
-func (cm *GraniticRDBMSClientManager) RegisterProvider(p *ioc.Component) {
+func (cm *GraniticRdbmsClientManager) RegisterProvider(p *ioc.Component) {
 
 	if cm.candidateProviders == nil {
 		cm.candidateProviders = []*ioc.Component{p}
@@ -291,8 +291,8 @@ func (cm *GraniticRDBMSClientManager) RegisterProvider(p *ioc.Component) {
 	}
 }
 
-// See RDBMSClientManager.Client
-func (cm *GraniticRDBMSClientManager) Client() (*RdbmsClient, error) {
+// See RdbmsClientManager.Client
+func (cm *GraniticRdbmsClientManager) Client() (*RdbmsClient, error) {
 
 	if cm.state != ioc.RunningState {
 		return nil, errors.New("No Client will be created because ClientManager is not running. Application shutting down?")
@@ -308,8 +308,8 @@ func (cm *GraniticRDBMSClientManager) Client() (*RdbmsClient, error) {
 	return newRdbmsClient(db, cm.QueryManager, cm.Provider.InsertIDFunc()), nil
 }
 
-// See RDBMSClientManager.ClientFromContext
-func (cm *GraniticRDBMSClientManager) ClientFromContext(ctx context.Context) (*RdbmsClient, error) {
+// See RdbmsClientManager.ClientFromContext
+func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*RdbmsClient, error) {
 
 	if cm.state != ioc.RunningState {
 		return nil, errors.New("No Client will be created because ClientManager is not running. Application shutting down?")
@@ -326,7 +326,7 @@ func (cm *GraniticRDBMSClientManager) ClientFromContext(ctx context.Context) (*R
 }
 
 // StartComponent selects a DatabaseProvider to use
-func (cm *GraniticRDBMSClientManager) StartComponent() error {
+func (cm *GraniticRdbmsClientManager) StartComponent() error {
 
 	if cm.state != ioc.StoppedState {
 		return nil
@@ -343,7 +343,7 @@ func (cm *GraniticRDBMSClientManager) StartComponent() error {
 	return nil
 }
 
-func (cm *GraniticRDBMSClientManager) selectProvider() error {
+func (cm *GraniticRdbmsClientManager) selectProvider() error {
 
 	if cm.Provider != nil {
 		return nil
@@ -378,7 +378,7 @@ func (cm *GraniticRDBMSClientManager) selectProvider() error {
 
 }
 
-func (cm *GraniticRDBMSClientManager) findProviderByName() DatabaseProvider {
+func (cm *GraniticRdbmsClientManager) findProviderByName() DatabaseProvider {
 
 	for _, c := range cm.candidateProviders {
 
@@ -392,16 +392,16 @@ func (cm *GraniticRDBMSClientManager) findProviderByName() DatabaseProvider {
 }
 
 // PrepareToStop transitions component to stopping state, prevent new Client objects from being created.
-func (cm *GraniticRDBMSClientManager) PrepareToStop() {
+func (cm *GraniticRdbmsClientManager) PrepareToStop() {
 	cm.state = ioc.StoppingState
 }
 
 // ReadyToStop always returns true, nil
-func (cm *GraniticRDBMSClientManager) ReadyToStop() (bool, error) {
+func (cm *GraniticRdbmsClientManager) ReadyToStop() (bool, error) {
 	return true, nil
 }
 
 // Stop always returns nil
-func (cm *GraniticRDBMSClientManager) Stop() error {
+func (cm *GraniticRdbmsClientManager) Stop() error {
 	return nil
 }

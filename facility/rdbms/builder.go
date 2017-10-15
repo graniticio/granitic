@@ -7,8 +7,8 @@
 	The RdbmsAccess facility is described in detail at http://granitic.io/1.0/ref/rdbms-access and the programmatic
 	interface that applications will use for executing SQL is described in the rdbms package documentation.
 
-	The purpose of this facility is to create an rdbms.RDBMSClientManager that will be injected into your application
-	components. In turn, the rdbms.RDBMSClientManager will be used by your application to create instances of rdbms.RDBMSClient
+	The purpose of this facility is to create an rdbms.RdbmsClientManager that will be injected into your application
+	components. In turn, the rdbms.RdbmsClientManager will be used by your application to create instances of rdbms.RDBMSClient
 	which provide the interface for executing SQL queries and managing transactions.
 
 */
@@ -28,13 +28,13 @@ const providerDecorator = instance.FrameworkPrefix + "DbProviderDecorator"
 const managerDecorator = instance.FrameworkPrefix + "DbClientManagerDecorator"
 
 // Creates an instance of rdbms.RDBMSClientManager that can be injected into your application components.
-type RDBMSAccessFacilityBuilder struct {
+type RdbmsAccessFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (rafb *RDBMSAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	manager := new(rdbms.GraniticRDBMSClientManager)
+	manager := new(rdbms.GraniticRdbmsClientManager)
 	ca.Populate("RdbmsAccess", manager)
 
 	proto := ioc.CreateProtoComponent(manager, rdbmsClientManagerName)
@@ -63,13 +63,13 @@ func (rafb *RDBMSAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLo
 }
 
 // See FacilityBuilder.FacilityName
-func (rafb *RDBMSAccessFacilityBuilder) FacilityName() string {
+func (rafb *RdbmsAccessFacilityBuilder) FacilityName() string {
 	return "RdbmsAccess"
 }
 
 // DependsOnFacilities returns the other faclities that must be enabled in order to use the RdbmsAccess facility. You must
 // enable the QueryManager facility.
-func (rafb *RDBMSAccessFacilityBuilder) DependsOnFacilities() []string {
+func (rafb *RdbmsAccessFacilityBuilder) DependsOnFacilities() []string {
 	return []string{querymanager.QueryManagerFacilityName}
 }
 
