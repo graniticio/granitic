@@ -204,10 +204,6 @@ type DatabaseProvider interface {
 	// Database returns a Go sql.DB object
 	Database() (*sql.DB, error)
 
-	// DatabaseFromContext returns a Go sql.DB object. Information in the context may affect the returned object
-	// (e.g. a context might provide an alternative DB user or DB name).
-	DatabaseFromContext(ctx context.Context) (*sql.DB, error)
-
 	// InsertIDFunc returns an implementation of the InsertWithReturnedID function appropriate for the underlying RDBMS.
 	InsertIDFunc() InsertWithReturnedID
 }
@@ -322,7 +318,7 @@ func (cm *GraniticRDBMSClientManager) ClientFromContext(ctx context.Context) (*R
 	var db *sql.DB
 	var err error
 
-	if db, err = cm.Provider.DatabaseFromContext(ctx); err != nil {
+	if db, err = cm.Provider.Database(); err != nil {
 		return nil, err
 	}
 

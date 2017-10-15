@@ -175,75 +175,32 @@ to the packages section at the start of <code>components.json</code> file.
 
 Directly storing the database connection parameters in the <code>components.json</code> file is bad practise and is only used here
 to keep the length of this tutorial down. Instead refer back to [the configuration tutorial](002-configuration.md) to see how
-you could use config promises and a seperate configuration file to store this type of environment-specific configuration.
+you could use config promises and a separate configuration file to store this type of environment-specific configuration.
 
 
-## New endpoint
+## Artist GET
 
-We're going to build a basic 'search' endpoint to illustrate how deal with building queries and binding the results to
-an arbitrary number of result objects. Create a new file <code>recordstore/endpoint/artistseach.go</code> and set the contents to:
+We are going to connect our existing <code>/artist GET</code> endpoint to the database. Modify the <code>endpoint/artist.go</code> 
+file so that the <code>ArtistLogic</code> type looks like:
 
 ```go
-package endpoint
 
-import (
-	"github.com/graniticio/granitic/types"
-	"github.com/graniticio/granitic/logging"
-	"context"
-	"github.com/graniticio/granitic/ws"
-)
-
-type ArtistSearchQuery struct {
-	Name *types.NilableString
-	Id *types.NilableInt64
-}
-
-type ArtistSearchResult struct {
-	Name string
-	Id int
-}
-
-type ArtistSearchLogic struct {
-	Log      logging.Logger
-}
-
-func (sl *ArtistSearchLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
-
-	ar := req.RequestBody.(*ArtistSearchQuery)
-
-	sl.Log.LogDebugf("Parameters - Name[%v] Id[%v]", ar.Name.IsSet(), ar.Id.IsSet())
+```  
 
 
-	r := make([]*ArtistSearchResult, 0)
 
-	res.Body = struct {
-		Results []*ArtistSearchResult
-	}{r}
 
-}
 
-func (sl *ArtistSearchLogic) UnmarshallTarget() interface{} {
-	return new(ArtistSearchQuery)
-}
-```
 
-and add a new handler and logic component to <code>components.json</code>:
 
-```json
-"artistSearchLogic": {
-  "type": "endpoint.ArtistSearchLogic"},
+## Building a query template
 
-"artistSearchHandler": {
-  "type": "handler.WsHandler",
-  "HTTPMethod": "GET",
-  "Logic": "ref:artistSearchLogic",
-  "PathPattern": "^/artist-search[/]?$",
-  "AutoBindQuery": true
-}
-```
+An optional (but recommended) facility offered by Granitic is the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager).
+This facility allows you to define your database queries in text files outside of your Go code and have variables injected into
+the template at runtime to create a working query.
 
-Notice that we've enabled automatic query binding on this handler - refer back to [the data capture tutorial](004-data-capture.md) 
-if you'd like to know how this works.
+The [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) 
+uses <code>resource/queries</code> as the default location for templates, so create a new file <code>recordstore/resource/queries/search</code> 
 
 ## Start and test
 

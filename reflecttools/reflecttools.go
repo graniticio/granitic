@@ -238,3 +238,8 @@ func FindNestedField(path []string, v interface{}) (reflect.Value, error) {
 	}
 
 }
+
+// IsZero returns true if i is set to the zero value of i's type
+func IsZero(i interface{}) bool {
+	return i == reflect.Zero(reflect.TypeOf(i)).Interface()
+}

@@ -2,7 +2,7 @@
   "RdbmsAccess":{
     "DatabaseProviderComponentName": "databaseProvider",
     "DisableAutoInjection": false,
-    "InjectFieldNames": ["DBClientManager"],
+    "InjectFieldNames": ["DBClientManager","DbClientManager"],
     "BlockUntilConnected": false
   }
 }

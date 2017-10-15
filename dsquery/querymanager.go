@@ -161,7 +161,7 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 	q := b.String()
 
 	if qm.FrameworkLogger.IsLevelEnabled(logging.Debug) {
-		qm.FrameworkLogger.LogDebugf(q)
+		qm.FrameworkLogger.LogDebugf("\n" + q)
 	}
 
 	return q, nil
@@ -380,7 +380,7 @@ func (qt *queryTemplate) AddFragmentContent(fragment string) {
 func (qt *queryTemplate) closeFragmentToken() {
 
 	t := qt.currentToken
-	if t.Type == fragmentToken {
+	if t != nil && t.Type == fragmentToken {
 		t.Content = qt.fragmentBuffer.String()
 		qt.fragmentBuffer.Reset()
 	}

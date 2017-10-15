@@ -59,3 +59,80 @@ func ParamsFromTags(sources ...interface{}) (map[string]interface{}, error) {
 	return p, nil
 
 }
+
+/*
+	ParamsFromFieldsOrTags takes one or more objects (that must be a map[string]interface{} or a pointer to a struct) and
+	returns a single map[string]interface{}. Keys and values are copied from supplied map[string]interface{}s as-is. For
+	pointers to structs, the object will have its fields added to the map  using field names as keys (unless the dbparam tag is set)
+	and the field value as the map value.
+
+	An error is returned if one of the arguments is not a map[string]interface{} pointer to a struct.
+*/
+func ParamsFromFieldsOrTags(sources ...interface{}) (map[string]interface{}, error) {
+
+	p := make(map[string]interface{})
+
+	ArgLoop:
+	for _, arg := range sources {
+
+		if asMap,  found := arg.(map[string]interface{}); found {
+			//Argument is a map
+			mergeMapInto(asMap, p)
+			continue ArgLoop
+
+		}
+
+
+		argType := reflect.TypeOf(arg)
+		argVal := reflect.ValueOf(arg)
+
+		argKind := argType.Kind()
+
+		if argKind != reflect.Struct && !reflecttools.IsPointerToStruct(arg) {
+
+			m := fmt.Sprintf("Argument argType ParamsFromFieldsOrTags must be a struct or pointer argType a struct is %v", argKind)
+
+			return nil, errors.New(m)
+		}
+
+		if argType.Kind() == reflect.Ptr {
+			//Arg is a pointer to struct - deference it before proceeding
+			argType = argType.Elem()
+			argVal = argVal.Elem()
+		}
+
+		FieldLoop:
+		for fieldIndex := 0; fieldIndex < argType.NumField(); fieldIndex++ {
+			//Loop over the fields on the struct and store any fields with a non-zero value in the param map
+			field := argType.Field(fieldIndex)
+			tagVal := field.Tag.Get(DBParamTag)
+			fieldValInterface := argVal.FieldByName(field.Name).Interface()
+
+			if reflecttools.IsZero(fieldValInterface){
+				continue FieldLoop
+			}
+
+			if tagVal != "" {
+				//Use tag value as key
+				p[tagVal] = fieldValInterface
+
+			} else {
+				//Use field name as key
+				fn := argVal.Type().Field(fieldIndex).Name
+				p[fn] = fieldValInterface
+			}
+
+		}
+
+	}
+
+	return p, nil
+}
+
+func mergeMapInto(source, target map[string]interface{}) {
+
+	for k, v := range source {
+		target[k] = v
+	}
+
+}
