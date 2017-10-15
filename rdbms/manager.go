@@ -36,9 +36,9 @@
 		QueryManager        A component that loads files containing template queries from a filesystem
 		                    and can populate than with provided variables to create a complete SQL query.
 
-		RDBMSClient         A type providing methods to execute templated queries against an RDBMS.
+		RdbmsClient         A type providing methods to execute templated queries against an RDBMS.
 
-		RDBMSClientManager  A component able to create RDBMSClient objects.
+		RDBMSClientManager  A component able to create RdbmsClient objects.
 
 		RowBinder           A type able to map SQL query results into Go structs.
 
@@ -72,7 +72,7 @@
 	RDBMSClientManager
 
 	Granitic applications are discouraged from directly interacting with sql.DB objects (although of course they are
-	free to do so). Instead, they use instances of RDBMSClient. RDBMSClient objects are not reusable across goroutines,
+	free to do so). Instead, they use instances of RdbmsClient. RdbmsClient objects are not reusable across goroutines,
 	instead your application will need to ask for a new one to be created for each new goroutine (e.g. for each request in
 	a web services application).
 
@@ -80,7 +80,7 @@
 
 	Auto-injection of an RDBMSClientManager
 
-	Any component that needs an RDBMSClient should have a field:
+	Any component that needs an RdbmsClient should have a field:
 
 		DBClientManager rdbms.RDBMSClientManager
 
@@ -93,20 +93,20 @@
 		  }
 		}
 
-	Your code then obtains an RDBMSClient in a manner similar to:
+	Your code then obtains an RdbmsClient in a manner similar to:
 
-		var rc *rdbms.RDBMSClient
+		var rc *rdbms.RdbmsClient
 		var err error
 
 		if rc, err = id.DBClientManager.Client(); err != nil {
 		  return err
 		}
 
-	RDBMSClient
+	RdbmsClient
 
 	Application code executes SQL (either directly or via a templated query) and interacts with transactions via an
-	instance of RDBMSClient. Refer to the GoDoc for RDBMSClient for information on the methods available, but the general pattern
-	for the methods available on RDBMSClient is:
+	instance of RdbmsClient. Refer to the GoDoc for RdbmsClient for information on the methods available, but the general pattern
+	for the methods available on RdbmsClient is:
 
 		SQLVerb[BindingType]QID[ParameterSource]
 
@@ -127,8 +127,8 @@
 
 	Binding
 
-	RDBMSClient provides a mechanism for automatically copying result data into structs or slices of structs. If the
-	RDBMSClient method name contains BindSingle, you will pass a pointer to a struct into the method and its fields will be populated:
+	RdbmsClient provides a mechanism for automatically copying result data into structs or slices of structs. If the
+	RdbmsClient method name contains BindSingle, you will pass a pointer to a struct into the method and its fields will be populated:
 
 	ad := new(ArtistDetail)
 
@@ -166,7 +166,7 @@
 
 	Direct access to Go DB methods
 
-	RDBMSClient provides pass-through access to sql.DB's Exec, Query and QueryRow methods. Note that these methods are compatible
+	RdbmsClient provides pass-through access to sql.DB's Exec, Query and QueryRow methods. Note that these methods are compatible
 	with Granitic's transation pattern as described above.
 
 
@@ -209,15 +209,15 @@ type DatabaseProvider interface {
 }
 
 /*
-Implemented by a component that can create RDBMSClient objects that application code will use to execute SQL statements.
+Implemented by a component that can create RdbmsClient objects that application code will use to execute SQL statements.
 */
 type RDBMSClientManager interface {
-	// Client returns an RDBMSClient that is ready to use.
-	Client() (*RDBMSClient, error)
+	// Client returns an RdbmsClient that is ready to use.
+	Client() (*RdbmsClient, error)
 
-	// ClientFromContext returns an RDBMSClient that is ready to use. Providing a context allows the underlying DatabaseProvider
+	// ClientFromContext returns an RdbmsClient that is ready to use. Providing a context allows the underlying DatabaseProvider
 	// to modify the connection to the RDBMS.
-	ClientFromContext(ctx context.Context) (*RDBMSClient, error)
+	ClientFromContext(ctx context.Context) (*RdbmsClient, error)
 }
 
 // Implemented by components that are interested in having visibility of all DatabaseProvider implementations available
@@ -292,7 +292,7 @@ func (cm *GraniticRDBMSClientManager) RegisterProvider(p *ioc.Component) {
 }
 
 // See RDBMSClientManager.Client
-func (cm *GraniticRDBMSClientManager) Client() (*RDBMSClient, error) {
+func (cm *GraniticRDBMSClientManager) Client() (*RdbmsClient, error) {
 
 	if cm.state != ioc.RunningState {
 		return nil, errors.New("No Client will be created because ClientManager is not running. Application shutting down?")
@@ -305,11 +305,11 @@ func (cm *GraniticRDBMSClientManager) Client() (*RDBMSClient, error) {
 		return nil, err
 	}
 
-	return newRDBMSClient(db, cm.QueryManager, cm.Provider.InsertIDFunc()), nil
+	return newRdbmsClient(db, cm.QueryManager, cm.Provider.InsertIDFunc()), nil
 }
 
 // See RDBMSClientManager.ClientFromContext
-func (cm *GraniticRDBMSClientManager) ClientFromContext(ctx context.Context) (*RDBMSClient, error) {
+func (cm *GraniticRDBMSClientManager) ClientFromContext(ctx context.Context) (*RdbmsClient, error) {
 
 	if cm.state != ioc.RunningState {
 		return nil, errors.New("No Client will be created because ClientManager is not running. Application shutting down?")
@@ -322,7 +322,7 @@ func (cm *GraniticRDBMSClientManager) ClientFromContext(ctx context.Context) (*R
 		return nil, err
 	}
 
-	return newRDBMSClient(db, cm.QueryManager, cm.Provider.InsertIDFunc()), nil
+	return newRdbmsClient(db, cm.QueryManager, cm.Provider.InsertIDFunc()), nil
 }
 
 // StartComponent selects a DatabaseProvider to use

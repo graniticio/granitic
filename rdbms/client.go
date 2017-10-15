@@ -9,8 +9,8 @@ import (
 	"github.com/graniticio/granitic/dsquery"
 )
 
-func newRDBMSClient(database *sql.DB, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedID) *RDBMSClient {
-	rc := new(RDBMSClient)
+func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedID) *RdbmsClient {
+	rc := new(RdbmsClient)
 	rc.db = database
 	rc.queryManager = querymanager
 	rc.lastID = insertFunc
@@ -21,7 +21,7 @@ func newRDBMSClient(database *sql.DB, querymanager dsquery.QueryManager, insertF
 
 // The interface application code should use to execute SQL against a database. See the package overview for the rdbms
 // package for usage.
-type RDBMSClient struct {
+type RdbmsClient struct {
 	db           *sql.DB
 	queryManager dsquery.QueryManager
 	tx           *sql.Tx
@@ -33,12 +33,12 @@ type RDBMSClient struct {
 
 // FindFragment returns a partial query from the underlying QueryManager. Fragments are no
 // different that ordinary template queries, except they are not expected to contain any variable placeholders.
-func (rc *RDBMSClient) FindFragment(qid string) (string, error) {
+func (rc *RdbmsClient) FindFragment(qid string) (string, error) {
 	return rc.queryManager.FragmentFromID(qid)
 }
 
 // BuildQueryQIDParams returns a populated SQL query that can be manually executed later.
-func (rc *RDBMSClient) BuildQueryQIDParams(qid string, p ...interface{}) (string, error) {
+func (rc *RdbmsClient) BuildQueryQIDParams(qid string, p ...interface{}) (string, error) {
 
 	if pm, err := ParamsFromFieldsOrTags(p); err != nil {
 		return "", err
@@ -48,14 +48,14 @@ func (rc *RDBMSClient) BuildQueryQIDParams(qid string, p ...interface{}) (string
 }
 
 // DeleteQIDParams executes the supplied query with the expectation that it is a 'DELETE' query.
-func (rc *RDBMSClient) DeleteQIDParams(qid string, params ...interface{}) (sql.Result, error) {
+func (rc *RdbmsClient) DeleteQIDParams(qid string, params ...interface{}) (sql.Result, error) {
 
 	return rc.execQIDParams(qid, params)
 
 }
 
 // DeleteQIDParam executes the supplied query with the expectation that it is a 'DELETE' query.
-func (rc *RDBMSClient) DeleteQIDParam(qid string, name string, value interface{}) (sql.Result, error) {
+func (rc *RdbmsClient) DeleteQIDParam(qid string, name string, value interface{}) (sql.Result, error) {
 
 	p := make(map[string]interface{})
 	p[name] = value
@@ -64,14 +64,14 @@ func (rc *RDBMSClient) DeleteQIDParam(qid string, name string, value interface{}
 
 }
 
-// RegisterTempQuery stores the supplied query in the RDBMSClient so that it can be used with methods that expect a QID.
+// RegisterTempQuery stores the supplied query in the RdbmsClient so that it can be used with methods that expect a QID.
 // Note that the query is NOT stored in the underlying QueryManager.
-func (rc *RDBMSClient) RegisterTempQuery(qid string, query string) {
+func (rc *RdbmsClient) RegisterTempQuery(qid string, query string) {
 	rc.tempQueries[qid] = query
 }
 
 // ExistingIDOrInsertParams finds the ID of record or if the record does not exist, inserts a new record and retrieves the newly assigned ID
-func (rc *RDBMSClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId string, idTarget *int64, p ...interface{}) error {
+func (rc *RdbmsClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId string, idTarget *int64, p ...interface{}) error {
 
 	if found, err := rc.SelectBindSingleQIDParams(checkQueryId, p, idTarget); err != nil {
 		return err
@@ -89,7 +89,7 @@ func (rc *RDBMSClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId stri
 }
 
 // InsertQIDParams executes the supplied query with the expectation that it is an 'INSERT' query.
-func (rc *RDBMSClient) InsertQIDParams(qid string, params ...interface{}) (sql.Result, error) {
+func (rc *RdbmsClient) InsertQIDParams(qid string, params ...interface{}) (sql.Result, error) {
 
 	return rc.execQIDParams(qid, params)
 
@@ -97,7 +97,7 @@ func (rc *RDBMSClient) InsertQIDParams(qid string, params ...interface{}) (sql.R
 
 // InsertCaptureQIDParams executes the supplied query with the expectation that it is an 'INSERT' query and captures
 // the new row's server generated ID in the target int64
-func (rc *RDBMSClient) InsertCaptureQIDParams(qid string, target *int64, params ...interface{}, ) error {
+func (rc *RdbmsClient) InsertCaptureQIDParams(qid string, target *int64, params ...interface{}, ) error {
 
 	if query, err := rc.buildQuery(qid, params); err != nil {
 		return err
@@ -110,13 +110,13 @@ func (rc *RDBMSClient) InsertCaptureQIDParams(qid string, target *int64, params 
 
 // SelectBindSingleQID executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
 // Results of the query are bound into the target struct. Returns false if no rows were found.
-func (rc *RDBMSClient) SelectBindSingleQID(qid string, target interface{}) (bool, error) {
+func (rc *RdbmsClient) SelectBindSingleQID(qid string, target interface{}) (bool, error) {
 	return rc.SelectBindSingleQIDParams(qid, rc.emptyParams, target)
 }
 
 // SelectBindSingleQIDParam executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
 // Results of the query are bound into the target struct. Returns false if no rows were found.
-func (rc *RDBMSClient) SelectBindSingleQIDParam(qid string, name string, value interface{}, target interface{}) (bool, error) {
+func (rc *RdbmsClient) SelectBindSingleQIDParam(qid string, name string, value interface{}, target interface{}) (bool, error) {
 	p := make(map[string]interface{})
 	p[name] = value
 
@@ -125,7 +125,7 @@ func (rc *RDBMSClient) SelectBindSingleQIDParam(qid string, name string, value i
 
 // SelectBindSingleQIDParams executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
 // Results of the query are bound into the target struct. Returns false if no rows were found.
-func (rc *RDBMSClient) SelectBindSingleQIDParams(qid string, target interface{}, params ...interface{}) (bool, error) {
+func (rc *RdbmsClient) SelectBindSingleQIDParams(qid string, target interface{}, params ...interface{}) (bool, error) {
 
 	var r *sql.Rows
 	var err error
@@ -142,13 +142,13 @@ func (rc *RDBMSClient) SelectBindSingleQIDParams(qid string, target interface{},
 
 // SelectBindQID executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
 // are returned in a slice of the same type as the supplied template struct.
-func (rc *RDBMSClient) SelectBindQID(qid string, template interface{}) ([]interface{}, error) {
+func (rc *RdbmsClient) SelectBindQID(qid string, template interface{}) ([]interface{}, error) {
 	return rc.SelectBindQIDParams(qid, rc.emptyParams, template)
 }
 
 // SelectBindQIDParam executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
 // are returned in a slice of the same type as the supplied template struct.
-func (rc *RDBMSClient) SelectBindQIDParam(qid string, name string, value interface{}, template interface{}) ([]interface{}, error) {
+func (rc *RdbmsClient) SelectBindQIDParam(qid string, name string, value interface{}, template interface{}) ([]interface{}, error) {
 	p := make(map[string]interface{})
 	p[name] = value
 
@@ -157,7 +157,7 @@ func (rc *RDBMSClient) SelectBindQIDParam(qid string, name string, value interfa
 
 // SelectBindQIDParams executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
 // are returned in a slice of the same type as the supplied template struct.
-func (rc *RDBMSClient) SelectBindQIDParams(qid string, template interface{}, params ...interface{}) ([]interface{}, error) {
+func (rc *RdbmsClient) SelectBindQIDParams(qid string, template interface{}, params ...interface{}) ([]interface{}, error) {
 
 	if r, err := rc.SelectQIDParams(qid, params); err != nil {
 		return nil, err
@@ -172,12 +172,12 @@ func (rc *RDBMSClient) SelectBindQIDParams(qid string, template interface{}, par
 }
 
 // SelectQID executes the supplied query with the expectation that it is a 'SELECT' query.
-func (rc *RDBMSClient) SelectQID(qid string) (*sql.Rows, error) {
+func (rc *RdbmsClient) SelectQID(qid string) (*sql.Rows, error) {
 	return rc.SelectQIDParams(qid, rc.emptyParams)
 }
 
 // SelectQIDParam executes the supplied query with the expectation that it is a 'SELECT' query.
-func (rc *RDBMSClient) SelectQIDParam(qid string, name string, value interface{}) (*sql.Rows, error) {
+func (rc *RdbmsClient) SelectQIDParam(qid string, name string, value interface{}) (*sql.Rows, error) {
 	p := make(map[string]interface{})
 	p[name] = value
 
@@ -185,7 +185,7 @@ func (rc *RDBMSClient) SelectQIDParam(qid string, name string, value interface{}
 }
 
 // SelectQIDParams executes the supplied query with the expectation that it is a 'SELECT' query.
-func (rc *RDBMSClient) SelectQIDParams(qid string, params ...interface{}) (*sql.Rows, error) {
+func (rc *RdbmsClient) SelectQIDParams(qid string, params ...interface{}) (*sql.Rows, error) {
 	query, err := rc.buildQuery(qid, params)
 
 	if err != nil {
@@ -197,14 +197,14 @@ func (rc *RDBMSClient) SelectQIDParams(qid string, params ...interface{}) (*sql.
 }
 
 // UpdateQIDParams executes the supplied query with the expectation that it is an 'UPDATE' query.
-func (rc *RDBMSClient) UpdateQIDParams(qid string, params ...interface{}) (sql.Result, error) {
+func (rc *RdbmsClient) UpdateQIDParams(qid string, params ...interface{}) (sql.Result, error) {
 
 	return rc.execQIDParams(qid, params)
 
 }
 
 // UpdateQIDParam executes the supplied query with the expectation that it is an 'UPDATE' query.
-func (rc *RDBMSClient) UpdateQIDParam(qid string, name string, value interface{}) (sql.Result, error) {
+func (rc *RdbmsClient) UpdateQIDParam(qid string, name string, value interface{}) (sql.Result, error) {
 
 	p := make(map[string]interface{})
 	p[name] = value
@@ -213,7 +213,7 @@ func (rc *RDBMSClient) UpdateQIDParam(qid string, name string, value interface{}
 
 }
 
-func (rc *RDBMSClient) execQIDParams(qid string, params ...interface{}) (sql.Result, error) {
+func (rc *RdbmsClient) execQIDParams(qid string, params ...interface{}) (sql.Result, error) {
 
 	if query, err := rc.buildQuery(qid, params); err != nil {
 		return nil, err
@@ -223,7 +223,7 @@ func (rc *RDBMSClient) execQIDParams(qid string, params ...interface{}) (sql.Res
 
 }
 
-func (rc *RDBMSClient) buildQuery(qid string, p ...interface{}) (string, error) {
+func (rc *RdbmsClient) buildQuery(qid string, p ...interface{}) (string, error) {
 
 	tq := rc.tempQueries[qid]
 
@@ -242,7 +242,7 @@ func (rc *RDBMSClient) buildQuery(qid string, p ...interface{}) (string, error) 
 
 // StartTransaction opens a transaction on the underlying sql.DB object and re-maps all calls to non-transactional
 // methods to their transactional equivalents.
-func (rc *RDBMSClient) StartTransaction() error {
+func (rc *RdbmsClient) StartTransaction() error {
 
 	if rc.tx != nil {
 		return errors.New("Transaction already open")
@@ -260,7 +260,7 @@ func (rc *RDBMSClient) StartTransaction() error {
 }
 
 // Rollback rolls the open transaction back - does nothing if no transaction is open.
-func (rc *RDBMSClient) Rollback() {
+func (rc *RdbmsClient) Rollback() {
 
 	if rc.tx != nil {
 		rc.tx.Rollback()
@@ -268,7 +268,7 @@ func (rc *RDBMSClient) Rollback() {
 }
 
 // CommitTransaction commits the open transaction - does nothing if no transaction is open.
-func (rc *RDBMSClient) CommitTransaction() error {
+func (rc *RdbmsClient) CommitTransaction() error {
 
 	if rc.tx == nil {
 		return errors.New("No open transaction to commit")
@@ -282,7 +282,7 @@ func (rc *RDBMSClient) CommitTransaction() error {
 }
 
 // Exec is a pass-through to its sql.DB equivalent (or sql.Tx equivalent is a transaction is open)
-func (rc *RDBMSClient) Exec(query string, args ...interface{}) (sql.Result, error) {
+func (rc *RdbmsClient) Exec(query string, args ...interface{}) (sql.Result, error) {
 
 	tx := rc.tx
 
@@ -295,7 +295,7 @@ func (rc *RDBMSClient) Exec(query string, args ...interface{}) (sql.Result, erro
 }
 
 // Query is a pass-through to its sql.DB equivalent (or sql.Tx equivalent is a transaction is open)
-func (rc *RDBMSClient) Query(query string, args ...interface{}) (*sql.Rows, error) {
+func (rc *RdbmsClient) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	tx := rc.tx
 
 	if tx != nil {
@@ -306,7 +306,7 @@ func (rc *RDBMSClient) Query(query string, args ...interface{}) (*sql.Rows, erro
 }
 
 // QueryRow is a pass-through to its sql.DB equivalent (or sql.Tx equivalent is a transaction is open)
-func (rc *RDBMSClient) QueryRow(query string, args ...interface{}) *sql.Row {
+func (rc *RdbmsClient) QueryRow(query string, args ...interface{}) *sql.Row {
 	tx := rc.tx
 
 	if tx != nil {
