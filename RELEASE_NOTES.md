@@ -2,7 +2,8 @@
 
 RDBMS:
 
- * Streamlined RDBMSClient methods (xxxTagxxx methods removed, xxxParamxxx methods more flexible with the type of arguments they accept.)
+ * Renamed RDBMSClient to RdbmsClient to meet Go naming conventions
+ * Streamlined RdbmsClient methods (xxxTagxxx methods removed, xxxParamxxx methods more flexible with the type of arguments they accept.)
  * DatabaseProvider interface no longer requires DatabaseFromContext
  
 Fixes:

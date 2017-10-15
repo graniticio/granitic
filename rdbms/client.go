@@ -40,7 +40,7 @@ func (rc *RdbmsClient) FindFragment(qid string) (string, error) {
 // BuildQueryQIDParams returns a populated SQL query that can be manually executed later.
 func (rc *RdbmsClient) BuildQueryQIDParams(qid string, p ...interface{}) (string, error) {
 
-	if pm, err := ParamsFromFieldsOrTags(p); err != nil {
+	if pm, err := ParamsFromFieldsOrTags(p...); err != nil {
 		return "", err
 	} else {
 		return rc.queryManager.BuildQueryFromID(qid, pm)
@@ -50,7 +50,7 @@ func (rc *RdbmsClient) BuildQueryQIDParams(qid string, p ...interface{}) (string
 // DeleteQIDParams executes the supplied query with the expectation that it is a 'DELETE' query.
 func (rc *RdbmsClient) DeleteQIDParams(qid string, params ...interface{}) (sql.Result, error) {
 
-	return rc.execQIDParams(qid, params)
+	return rc.execQIDParams(qid, params...)
 
 }
 
@@ -73,13 +73,13 @@ func (rc *RdbmsClient) RegisterTempQuery(qid string, query string) {
 // ExistingIDOrInsertParams finds the ID of record or if the record does not exist, inserts a new record and retrieves the newly assigned ID
 func (rc *RdbmsClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId string, idTarget *int64, p ...interface{}) error {
 
-	if found, err := rc.SelectBindSingleQIDParams(checkQueryId, p, idTarget); err != nil {
+	if found, err := rc.SelectBindSingleQIDParams(checkQueryId, idTarget, p...); err != nil {
 		return err
 	} else if found {
 		return nil
 	} else {
 
-		if err = rc.InsertCaptureQIDParams(insertQueryId, idTarget, p); err != nil {
+		if err = rc.InsertCaptureQIDParams(insertQueryId, idTarget, p...); err != nil {
 			return err
 		}
 
@@ -91,7 +91,7 @@ func (rc *RdbmsClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId stri
 // InsertQIDParams executes the supplied query with the expectation that it is an 'INSERT' query.
 func (rc *RdbmsClient) InsertQIDParams(qid string, params ...interface{}) (sql.Result, error) {
 
-	return rc.execQIDParams(qid, params)
+	return rc.execQIDParams(qid, params...)
 
 }
 
@@ -99,7 +99,7 @@ func (rc *RdbmsClient) InsertQIDParams(qid string, params ...interface{}) (sql.R
 // the new row's server generated ID in the target int64
 func (rc *RdbmsClient) InsertCaptureQIDParams(qid string, target *int64, params ...interface{}, ) error {
 
-	if query, err := rc.buildQuery(qid, params); err != nil {
+	if query, err := rc.buildQuery(qid, params...); err != nil {
 		return err
 	} else {
 
@@ -130,7 +130,7 @@ func (rc *RdbmsClient) SelectBindSingleQIDParams(qid string, target interface{},
 	var r *sql.Rows
 	var err error
 
-	if r, err = rc.SelectQIDParams(qid, params); err != nil {
+	if r, err = rc.SelectQIDParams(qid, params...); err != nil {
 		return false, err
 	}
 
@@ -159,7 +159,7 @@ func (rc *RdbmsClient) SelectBindQIDParam(qid string, name string, value interfa
 // are returned in a slice of the same type as the supplied template struct.
 func (rc *RdbmsClient) SelectBindQIDParams(qid string, template interface{}, params ...interface{}) ([]interface{}, error) {
 
-	if r, err := rc.SelectQIDParams(qid, params); err != nil {
+	if r, err := rc.SelectQIDParams(qid, params...); err != nil {
 		return nil, err
 	} else {
 
@@ -186,7 +186,8 @@ func (rc *RdbmsClient) SelectQIDParam(qid string, name string, value interface{}
 
 // SelectQIDParams executes the supplied query with the expectation that it is a 'SELECT' query.
 func (rc *RdbmsClient) SelectQIDParams(qid string, params ...interface{}) (*sql.Rows, error) {
-	query, err := rc.buildQuery(qid, params)
+
+	query, err := rc.buildQuery(qid, params...)
 
 	if err != nil {
 		return nil, err
@@ -199,7 +200,7 @@ func (rc *RdbmsClient) SelectQIDParams(qid string, params ...interface{}) (*sql.
 // UpdateQIDParams executes the supplied query with the expectation that it is an 'UPDATE' query.
 func (rc *RdbmsClient) UpdateQIDParams(qid string, params ...interface{}) (sql.Result, error) {
 
-	return rc.execQIDParams(qid, params)
+	return rc.execQIDParams(qid, params...)
 
 }
 
@@ -215,7 +216,7 @@ func (rc *RdbmsClient) UpdateQIDParam(qid string, name string, value interface{}
 
 func (rc *RdbmsClient) execQIDParams(qid string, params ...interface{}) (sql.Result, error) {
 
-	if query, err := rc.buildQuery(qid, params); err != nil {
+	if query, err := rc.buildQuery(qid, params...); err != nil {
 		return nil, err
 	} else {
 		return rc.Exec(query)
@@ -231,7 +232,7 @@ func (rc *RdbmsClient) buildQuery(qid string, p ...interface{}) (string, error) 
 		return tq, nil
 	} else {
 
-		if pm, err := ParamsFromFieldsOrTags(p); err != nil {
+		if pm, err := ParamsFromFieldsOrTags(p...); err != nil {
 			return "", err
 		} else {
 			return rc.queryManager.BuildQueryFromID(qid, pm)
