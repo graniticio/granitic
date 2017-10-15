@@ -82,23 +82,20 @@
 
 	Any component that needs an RdbmsClient should have a field:
 
-		DBClientManager rdbms.RdbmsClientManager
+		DbClientManager rdbms.RdbmsClientManager
 
-	The name DBClientManager is a default. You can change the field that Granitic looks for by setting the following in
+	The name DbClientManager is a default. You can change the field that Granitic looks for by setting the following in
 	your application configuration.
 
 		{
 		  "RdbmsAccess":{
-		    "InjectFieldNames": ["DBClientManager", "MyAlternateFieldName"]
+		    "InjectFieldNames": ["DbClientManager", "MyAlternateFieldName"]
 		  }
 		}
 
 	Your code then obtains an RdbmsClient in a manner similar to:
 
-		var rc *rdbms.RdbmsClient
-		var err error
-
-		if rc, err = id.DBClientManager.Client(); err != nil {
+		if rc, err := id.DBClientManager.Client(); err != nil {
 		  return err
 		}
 
@@ -114,7 +111,7 @@
 
 		SQLVerb           Is Select, Delete, Update or Insert
 		BindingType       Is optional and can be Bind or BindSingle
-		ParameterSource   Is optional and can be either Param, Params or Tags
+		ParameterSource   Is optional and can be either Param or Params
 
 	QID
 
@@ -123,7 +120,7 @@
 	Parameter sources
 
 	Parameters to populate template queries can either be supplied via a pair of values (Param), a map[string]interface{} (Params) or a struct whose
-	fields are annotated with the `dbparam` tag (tags)
+	fields are optionally annotated with the `dbparam` tag. If the dbparam tag is not present on a field, the field's name is used a the parameter key.
 
 	Binding
 
@@ -132,13 +129,13 @@
 
 	ad := new(ArtistDetail)
 
-		if found, err := rc.SelectBindSingleQIDTags("ARTIST_DETAIL", rid, ad); found {
+		if found, err := rc.SelectBindSingleQIDParams("ARTIST_DETAIL", rid, ad); found {
 		  return ad, err
 		} else {
 		  return nil, err
 		}
 
-	If the method contains the word Bind, you will supply an example 'template' instance of a struct and the method will return a slice of that type:
+	If the method contains the word Bind (not BindSingle), you will supply an example 'template' instance of a struct and the method will return a slice of that type:
 
 		ar := new(ArtistSearchResult)
 
@@ -167,7 +164,7 @@
 	Direct access to Go DB methods
 
 	RdbmsClient provides pass-through access to sql.DB's Exec, Query and QueryRow methods. Note that these methods are compatible
-	with Granitic's transation pattern as described above.
+	with Granitic's transaction pattern as described above.
 
 
 	Multiple databases
