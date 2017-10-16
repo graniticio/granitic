@@ -12,7 +12,8 @@
  3. Either have completed [tutorial 4](004-data-capture.md) or open a terminal and run
 
 <pre>
-go get github.com/graniticio/granitic-examples
+cd $GOPATH/src/github.com/graniticio
+git clone https://github.com/graniticio/granitic-examples.git
 cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
 ./prepare-tutorial.sh 5
 </pre>

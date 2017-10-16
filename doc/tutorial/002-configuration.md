@@ -14,7 +14,8 @@
  3. Either have completed [tutorial 1](001-fundamentals.md) or open a terminal and run
 
 <pre>
-go get github.com/graniticio/granitic-examples
+cd $GOPATH/src/github.com/graniticio
+git clone https://github.com/graniticio/granitic-examples.git
 cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
 ./prepare-tutorial.sh 2
 </pre>

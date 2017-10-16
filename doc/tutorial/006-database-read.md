@@ -4,7 +4,7 @@
 
 1. How to use MySQL and Docker to support this tutorial
 1. How to connect Granitic to an RDBMS
-1. How to template queries using Granitic's Query Manager facility
+1. How to template queries using Granitic's QueryManager facility
 1. How to read data from an RDBMS into Go structs
 
 ## Prerequisites
@@ -14,7 +14,8 @@
  1. Either have completed [tutorial 5](005-validation.md) or open a terminal and run:
  
 <pre>
-go get github.com/graniticio/granitic-examples
+cd $GOPATH/src/github.com/graniticio
+git clone https://github.com/graniticio/granitic-examples.git
 cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
 ./prepare-tutorial.sh 6
 </pre>
@@ -26,10 +27,10 @@ GitHub repository in the <code>recordstore/graniticrs/db/schema-with-test-data.s
 
 If you haven't already cloned the [Granitic Examples](https://github.com/graniticio/granitic-examples) repo, you can do it with:
 
-```
+<pre>
 cd $GOPATH/src/github.com/graniticio
 git clone https://github.com/graniticio/granitic-examples.git
-```
+</pre>
 
 ### Using an existing MySQL server
 
@@ -41,23 +42,23 @@ Note that the script creates a user <code>grnc</code> and allows it to connect f
 
 [Install Docker](https://docs.docker.com/engine/installation/) then open a terminal and run:
 
-```
+<pre>
 cd $GOPATH/src/github.com/graniticio/granitic-examples/recordstore/graniticrs
 docker-compose up --build -d
-```
+</pre>
 
 This will build and start a new docker image with the name <code>graniticrs_recordstore-db_1</code> and bind that image's port 3306 to your host machine's port 3306. 
 If you want to stop the image you can run:
 
-```json
+<pre>
 docker stop graniticrs_recordstore-db_1
-```
+</pre>
 
 and destroy it permanently with
 
-```json
+<pre>
 docker rm graniticrs_recordstore-db_1
-```
+</pre>
 
 ### MySQL workbench
 
@@ -76,7 +77,7 @@ Schema:   recordstore
 ## Creating a DatabaseProvider
 
 Go's SQL abstraction and 'driver management' models are much looser than some other language's RDBMS access layers. In
-order to design Granitic's components and facilities so they are agnostic of the underlying RDBMS, an additional layer of abstraction
+order to allow Granitic's components and facilities to be agnostic of the underlying RDBMS, an additional layer of abstraction
 has been defined - the [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider).
 
 The [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider) has two functions - to 
@@ -95,39 +96,38 @@ to download the most widely used MySQL driver for Go then create a new file in y
 package db
 
 import (
-	"database/sql"
-    "github.com/go-sql-driver/mysql"
-	"context"
-	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/rdbms"
+  "database/sql"
+  "github.com/go-sql-driver/mysql"
+  "github.com/graniticio/granitic/logging"
+  "github.com/graniticio/granitic/rdbms"
 )
 
 type MySqlProvider struct {
-	Config *mysql.Config
-	Log logging.Logger
+  Config *mysql.Config
+  Log logging.Logger
 }
 
 func (p *MySqlProvider) Database() (*sql.DB, error) {
-	dsn := p.Config.FormatDSN()
-
-	if db, err := sql.Open("mysql", dsn); err == nil {
-		return db, nil
-	} else {
-		p.Log.LogErrorf("Unable to open connection to MySQL database: %v", err)
-
-		return nil, err
-	}
+  dsn := p.Config.FormatDSN()
+  
+  if db, err := sql.Open("mysql", dsn); err == nil {
+    return db, nil
+  } else {
+    p.Log.LogErrorf("Unable to open connection to MySQL database: %v", err)
+    
+    return nil, err
+  }
 }
 
 func (p *MySqlProvider) InsertIDFunc() rdbms.InsertWithReturnedID {
-	return rdbms.DefaultInsertWithReturnedID
+  return rdbms.DefaultInsertWithReturnedID
 }
 ```
 
 ### New facilities and components
 
 You'll need to enable two new facilities ([QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) 
-and [RdbmsAccess](https://godoc.org/github.com/graniticio/granitic/facility/rdbms)) in your <code>resource/components/components.json</code> file:
+and [RdbmsAccess](https://godoc.org/github.com/graniticio/granitic/facility/rdbms)) in your <code>resource/config/config.json</code> file:
 
 ```json
 "Facilities": {
@@ -140,12 +140,13 @@ and [RdbmsAccess](https://godoc.org/github.com/graniticio/granitic/facility/rdbm
 }
 ```
 
-In the same file, you'll need to declare a component for your [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider) 
+In the <code>resource/components/components.json</code> file:, you'll need to declare a component for your [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider) 
 and a component to store your connection parameters:
 
 ```json
 "dbProvider": {
-  "type": "db.MySqlProvider"
+  "type": "db.MySqlProvider",
+  "Config": "ref:dbConnection"
 },
 
 "dbConnection": {
@@ -162,15 +163,15 @@ You've added components that rely on two new packages, so make sure you add:
 ```go
 "github.com/go-sql-driver/mysql",
 "granitic-tutorial/recordstore/db"
-````
+```
 
-to the packages section at the start of <code>components.json</code> file.
+to the packages section at the start of <code>components.json</code>
 
 
 ### Configuration in components.json
 
 Directly storing the database connection parameters in the <code>components.json</code> file is bad practise and is only used here
-to keep the length of this tutorial down. Instead refer back to [the configuration tutorial](002-configuration.md) to see how
+to keep the length of this tutorial down. Refer back to [the configuration tutorial](002-configuration.md) to see how
 you could use config promises and a separate configuration file to store this type of environment-specific configuration.
 
 
@@ -181,38 +182,52 @@ file so that the <code>ArtistLogic</code> type looks like:
 
 ```go
 type ArtistLogic struct {
-	EnvLabel string
-	Log      logging.Logger
-	DbClientManager rdbms.RdbmsClientManager
+  EnvLabel string
+  Log      logging.Logger
+  DbClientManager rdbms.RdbmsClientManager
 }
 
 func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
 
-	ar := req.RequestBody.(*ArtistRequest)
+  ar := req.RequestBody.(*ArtistRequest)
 
-	l := al.Log
-	l.LogTracef("Request for artist with ID %d", ar.Id)
+  l := al.Log
+  l.LogTracef("Request for artist with ID %d", ar.Id)
 
-	result := new(ArtistDetail)
+  result := new(ArtistDetail)
 
-	dbc, _ := al.DbClientManager.Client()
+  dbc, _ := al.DbClientManager.Client()
 
-	if found, err := dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, ar); found {
-		res.Body = result
+  if found, err := dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, ar); found {
+    res.Body = result
+  
+  } else if err != nil{
+    l.LogErrorf(err.Error())
+    res.HttpStatus = http.StatusInternalServerError
 
-	} else if err != nil{
-		l.LogErrorf(err.Error())
-		res.HttpStatus = http.StatusInternalServerError
-
-	} else {
-		res.HttpStatus = http.StatusNotFound
-	}
+  } else {
+    res.HttpStatus = http.StatusNotFound
+  }
 }
 
 func (al *ArtistLogic) UnmarshallTarget() interface{} {
-	return new(ArtistRequest)
+  return new(ArtistRequest)
 }
 ```  
+
+The imports section of this file should now be:
+
+```go
+import (
+  "context"
+  "github.com/graniticio/granitic/logging"
+  "github.com/graniticio/granitic/types"
+  "github.com/graniticio/granitic/ws"
+  "github.com/graniticio/granitic/rdbms"
+  "net/http"
+)
+```
+
 
 The call that asks Granitic to execute a database query is:
 
@@ -249,19 +264,20 @@ SELECT
 FROM
   artist
 WHERE
-  id = ${Id}
+  id = &#36;{Id}
+  
 ```  
 
 Each file can contain any number of queries. The line starting <code>ID:</code> delimits the queries and assigns an ID to
-the following query (in this case <code>ARTIST_BY_ID</code>). Variables are surrounded by <code>${}</code> and names are case sensitive.
+the following query (in this case <code>ARTIST_BY_ID</code>). Variables are surrounded by <code>&#36;{}</code> and names are case sensitive.
 
-In this case, the <code>${Id}</code> parameter will be populated when we call:
+In this case, the <code>&#36;{Id}</code> parameter will be populated when we call:
 
 ```go
   dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, ar)
 ```
 
-because the <code>ArtistRequest</code> object we are passing has a field named ID. If you want to use a different parameter name in 
+because the <code>ArtistRequest</code> object we are passing has a field named Id. If you want to use a different parameter name in 
 your query, you can use the <code>dbparam</code> struct tag like:
 
 ```go
