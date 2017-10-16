@@ -25,9 +25,9 @@ func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertF
 //
 // RdbmsClient is stateful and MUST NOT be shared across goroutines
 type RdbmsClient struct {
-	db           *sql.DB
+	db           dbProxy
 	queryManager dsquery.QueryManager
-	tx           *sql.Tx
+	tx           txProxy
 	lastID       InsertWithReturnedID
 	tempQueries  map[string]string
 	emptyParams  map[string]interface{}
