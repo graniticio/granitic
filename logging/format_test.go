@@ -4,9 +4,9 @@
 package logging
 
 import (
+	"context"
 	"fmt"
 	"github.com/graniticio/granitic/test"
-	"context"
 	"testing"
 )
 

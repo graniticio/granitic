@@ -184,13 +184,13 @@
 package rdbms
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/dsquery"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
-	"context"
 )
 
 /*
@@ -207,7 +207,7 @@ type DatabaseProvider interface {
 
 /*
  Implemented by DatabaseProvider implementations that need to be given a context when establishing a database connection
- */
+*/
 type ContextAwareDatabaseProvider interface {
 	DatabaseFromContext(context.Context) (*sql.DB, error)
 }
@@ -334,9 +334,10 @@ func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*R
 		}
 	}
 
+	rc := newRdbmsClient(db, cm.QueryManager, cm.Provider.InsertIDFunc())
+	rc.ctx = ctx
 
-
-	return newRdbmsClient(db, cm.QueryManager, cm.Provider.InsertIDFunc()), nil
+	return rc, nil
 }
 
 // StartComponent selects a DatabaseProvider to use

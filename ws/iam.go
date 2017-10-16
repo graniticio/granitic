@@ -4,8 +4,8 @@
 package ws
 
 import (
-	"github.com/graniticio/granitic/iam"
 	"context"
+	"github.com/graniticio/granitic/iam"
 	"net/http"
 )
 

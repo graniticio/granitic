@@ -5,10 +5,10 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"fmt"
 )
 
 // FindConfigFilesInDir finds all files with a .json extension in the supplied directory path, recursively checking

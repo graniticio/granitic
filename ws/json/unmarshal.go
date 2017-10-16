@@ -4,10 +4,10 @@
 package json
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
-	"context"
 	"net/http"
 )
 

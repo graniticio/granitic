@@ -14,10 +14,10 @@ package test
 
 import (
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
-	"path/filepath"
 )
 
 // TestFilePath finds the absolute path of a file that is provided relative to the resource/test directory.

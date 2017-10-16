@@ -5,9 +5,9 @@ package logging
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
-	"context"
 	"regexp"
 	"strconv"
 	"time"

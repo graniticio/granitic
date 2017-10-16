@@ -127,12 +127,12 @@
 package validate
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/types"
-	"context"
 	"regexp"
 	"strconv"
 	"strings"
@@ -390,7 +390,7 @@ func (ov *RuleValidator) Validate(ctx context.Context, subject *SubjectContext) 
 
 	}
 
-	Rules:
+Rules:
 	for _, vl := range ov.validatorChain {
 
 		f := vl.field

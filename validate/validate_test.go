@@ -4,15 +4,15 @@
 package validate
 
 import (
+	"context"
 	"fmt"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/test"
 	"github.com/graniticio/granitic/types"
-	"context"
-	"testing"
 	"path/filepath"
+	"testing"
 )
 
 func TestPathParsing(t *testing.T) {

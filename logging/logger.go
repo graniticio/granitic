@@ -143,8 +143,8 @@
 package logging
 
 import (
-	"fmt"
 	"context"
+	"fmt"
 	"runtime"
 )
 

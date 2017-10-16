@@ -62,8 +62,7 @@ func SetPtrToStruct(target interface{}, field string, valuePointer interface{}) 
 	return nil
 }
 
-
-func SetFieldPtrToStruct(tfv reflect.Value , valuePointer interface{}) error {
+func SetFieldPtrToStruct(tfv reflect.Value, valuePointer interface{}) error {
 
 	vp := reflect.ValueOf(valuePointer)
 

@@ -5,9 +5,9 @@ package xml
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"github.com/graniticio/granitic/ws"
-	"context"
 	"net/http"
 )
 

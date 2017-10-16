@@ -8,8 +8,8 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/test"
 	"io/ioutil"
-	"testing"
 	"path/filepath"
+	"testing"
 )
 
 type SimpleConfig struct {
@@ -45,7 +45,6 @@ func LoadConfigFromFile(f string) *ConfigAccessor {
 func TestFindConfigFiles(t *testing.T) {
 
 	p := test.TestFilePath("folders")
-
 
 	r, err := FindConfigFilesInDir(p)
 

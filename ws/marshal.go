@@ -4,10 +4,10 @@
 package ws
 
 import (
+	"context"
 	"errors"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/logging"
-	"context"
 	"net/http"
 )
 

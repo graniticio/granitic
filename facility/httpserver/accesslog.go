@@ -5,11 +5,11 @@ package httpserver
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/ioc"
-	"context"
 	"net/http"
 	"os"
 	"regexp"

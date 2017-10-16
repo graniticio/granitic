@@ -77,9 +77,9 @@
 package ws
 
 import (
+	"context"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/iam"
-	"context"
 	"net/http"
 )
 

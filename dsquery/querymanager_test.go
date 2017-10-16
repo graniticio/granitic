@@ -8,13 +8,12 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/test"
 	"io/ioutil"
+	"path/filepath"
 	"strings"
 	"testing"
-	"path/filepath"
 )
 
 func TestSingleSingleQueryNoVars(t *testing.T) {
-
 
 	f := filepath.Join("querymanager", "single-query-no-vars")
 	queryFiles := []string{test.TestFilePath(f)}

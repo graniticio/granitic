@@ -9,13 +9,12 @@ import (
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
-	"path/filepath"
 )
 
 const (
-
 	graniticHomeEnvVar = "GRANITIC_HOME"
 )
 
@@ -146,8 +145,7 @@ func isURL(u string) bool {
 // for Granitic's built-in facilities. This is useful when programmatically building an InitialSettings object.
 func BuiltInConfigFiles() []string {
 
-	builtInConfigPath  := filepath.Join(GraniticHome(), "resource", "facility-config")
-
+	builtInConfigPath := filepath.Join(GraniticHome(), "resource", "facility-config")
 
 	files, err := FindConfigFilesInDir(builtInConfigPath)
 

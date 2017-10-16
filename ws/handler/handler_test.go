@@ -6,14 +6,14 @@ package handler
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/test"
 	"github.com/graniticio/granitic/ws"
-	"context"
 	"net/http"
 	"os"
-	"testing"
 	"path/filepath"
+	"testing"
 )
 
 func TestMinimal(t *testing.T) {

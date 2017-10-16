@@ -39,6 +39,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/iam"
@@ -46,7 +47,6 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/validate"
 	"github.com/graniticio/granitic/ws"
-	"context"
 	"net/http"
 	"regexp"
 )

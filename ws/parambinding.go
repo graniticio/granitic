@@ -116,11 +116,10 @@ func (pb *ParamBinder) initialiseUnsetNilables(t interface{}) {
 
 	vt := reflect.ValueOf(t).Elem()
 
-	FieldLoop:
+FieldLoop:
 	for i := 0; i < vt.NumField(); i++ {
 
 		f := vt.Field(i)
-
 
 		if !rt.NilPointer(f) {
 			//Not nil
@@ -128,7 +127,6 @@ func (pb *ParamBinder) initialiseUnsetNilables(t interface{}) {
 		}
 
 		var nv interface{}
-
 
 		switch f.Interface().(type) {
 
@@ -148,13 +146,9 @@ func (pb *ParamBinder) initialiseUnsetNilables(t interface{}) {
 			pb.FrameworkLogger.LogErrorf("Problem initialising a nilable field %s", err.Error())
 		}
 
-
-
 	}
 
-
 }
-
 
 func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeName string, p *WsParams) *WsFrameworkError {
 

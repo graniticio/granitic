@@ -6,8 +6,8 @@ package rdbms
 import (
 	"fmt"
 	"github.com/graniticio/granitic/test"
-	"testing"
 	"github.com/graniticio/granitic/types"
+	"testing"
 )
 
 func TestTagReading(t *testing.T) {
@@ -51,7 +51,6 @@ func TestSingleMapToParams(t *testing.T) {
 
 }
 
-
 func TestIllegalArgsToParams(t *testing.T) {
 
 	m := make(map[string]interface{})
@@ -90,11 +89,9 @@ func TestMixTypes(t *testing.T) {
 	m2.A = types.NewNilableString("A2")
 	m2.C = types.NewNilableString("C2")
 
-
 	m3 := make(map[string]interface{})
 
 	m3["B"] = types.NewNilableString("B3")
-
 
 	m4 := new(mixArgTypesTest)
 	m4.D = types.NewNilableString("C4")
@@ -102,9 +99,7 @@ func TestMixTypes(t *testing.T) {
 	p, err := ParamsFromFieldsOrTags(m, m2, m3, m4)
 	test.ExpectNil(t, err)
 
-
 	test.ExpectInt(t, len(p), 3)
-
 
 	test.ExpectString(t, p["A"].(*types.NilableString).String(), "A2")
 	test.ExpectString(t, p["B"].(*types.NilableString).String(), "B3")
@@ -112,6 +107,4 @@ func TestMixTypes(t *testing.T) {
 	test.ExpectNil(t, p["D"])
 	test.ExpectNil(t, p["E"])
 
-
 }
-

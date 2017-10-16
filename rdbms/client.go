@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/graniticio/granitic/dsquery"
+	"context"
 )
 
 func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedID) *RdbmsClient {
@@ -21,6 +22,8 @@ func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertF
 
 // The interface application code should use to execute SQL against a database. See the package overview for the rdbms
 // package for usage.
+//
+// RdbmsClient is stateful and MUST NOT be shared across goroutines
 type RdbmsClient struct {
 	db           *sql.DB
 	queryManager dsquery.QueryManager
@@ -29,6 +32,7 @@ type RdbmsClient struct {
 	tempQueries  map[string]string
 	emptyParams  map[string]interface{}
 	binder       *RowBinder
+	ctx context.Context
 }
 
 // FindFragment returns a partial query from the underlying QueryManager. Fragments are no
@@ -97,7 +101,7 @@ func (rc *RdbmsClient) InsertQIDParams(qid string, params ...interface{}) (sql.R
 
 // InsertCaptureQIDParams executes the supplied query with the expectation that it is an 'INSERT' query and captures
 // the new row's server generated ID in the target int64
-func (rc *RdbmsClient) InsertCaptureQIDParams(qid string, target *int64, params ...interface{}, ) error {
+func (rc *RdbmsClient) InsertCaptureQIDParams(qid string, target *int64, params ...interface{}) error {
 
 	if query, err := rc.buildQuery(qid, params...); err != nil {
 		return err
@@ -219,6 +223,9 @@ func (rc *RdbmsClient) execQIDParams(qid string, params ...interface{}) (sql.Res
 	if query, err := rc.buildQuery(qid, params...); err != nil {
 		return nil, err
 	} else {
+
+
+
 		return rc.Exec(query)
 	}
 
@@ -260,6 +267,33 @@ func (rc *RdbmsClient) StartTransaction() error {
 	}
 }
 
+// StartTransactionWithOptions opens a transaction on the underlying sql.DB object and re-maps all calls to non-transactional
+// methods to their transactional equivalents.
+func (rc *RdbmsClient) StartTransactionWithOptions(opts *sql.TxOptions) error {
+
+	if rc.tx != nil {
+		return errors.New("Transaction already open")
+	} else {
+
+		var ctx context.Context
+
+		if rc.contextAware() {
+			ctx = rc.ctx
+		} else {
+			ctx = context.Background()
+		}
+
+		tx, err := rc.db.BeginTx(ctx, opts)
+
+		if err != nil {
+			return err
+		} else {
+			rc.tx = tx
+			return nil
+		}
+	}
+}
+
 // Rollback rolls the open transaction back - does nothing if no transaction is open.
 func (rc *RdbmsClient) Rollback() {
 
@@ -287,10 +321,18 @@ func (rc *RdbmsClient) Exec(query string, args ...interface{}) (sql.Result, erro
 
 	tx := rc.tx
 
-	if tx != nil {
-		return tx.Exec(query, args...)
+	if rc.contextAware() {
+		if tx != nil {
+			return tx.ExecContext(rc.ctx, query, args...)
+		} else {
+			return rc.db.ExecContext(rc.ctx, query, args...)
+		}
 	} else {
-		return rc.db.Exec(query, args...)
+		if tx != nil {
+			return tx.Exec(query, args...)
+		} else {
+			return rc.db.Exec(query, args...)
+		}
 	}
 
 }
@@ -299,10 +341,18 @@ func (rc *RdbmsClient) Exec(query string, args ...interface{}) (sql.Result, erro
 func (rc *RdbmsClient) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	tx := rc.tx
 
-	if tx != nil {
-		return tx.Query(query, args...)
+	if rc.contextAware() {
+		if tx != nil {
+			return tx.QueryContext(rc.ctx, query, args...)
+		} else {
+			return rc.db.QueryContext(rc.ctx, query, args...)
+		}
 	} else {
-		return rc.db.Query(query, args...)
+		if tx != nil {
+			return tx.Query(query, args...)
+		} else {
+			return rc.db.Query(query, args...)
+		}
 	}
 }
 
@@ -310,9 +360,24 @@ func (rc *RdbmsClient) Query(query string, args ...interface{}) (*sql.Rows, erro
 func (rc *RdbmsClient) QueryRow(query string, args ...interface{}) *sql.Row {
 	tx := rc.tx
 
-	if tx != nil {
-		return tx.QueryRow(query, args...)
+	if rc.contextAware() {
+		if tx != nil {
+			return tx.QueryRowContext(rc.ctx, query, args...)
+		} else {
+			return rc.db.QueryRowContext(rc.ctx, query, args...)
+		}
 	} else {
-		return rc.db.QueryRow(query, args...)
+		if tx != nil {
+			return tx.QueryRow(query, args...)
+		} else {
+			return rc.db.QueryRow(query, args...)
+		}
 	}
+
+
+
+}
+
+func (rc *RdbmsClient) contextAware() bool {
+	return rc.ctx != nil
 }

@@ -4,9 +4,9 @@
 package ws
 
 import (
+	"context"
 	"github.com/graniticio/granitic/iam"
 	"github.com/graniticio/granitic/types"
-	"context"
 	"net/http"
 )
 

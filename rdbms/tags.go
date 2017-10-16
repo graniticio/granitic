@@ -72,16 +72,15 @@ func ParamsFromFieldsOrTags(sources ...interface{}) (map[string]interface{}, err
 
 	p := make(map[string]interface{})
 
-	ArgLoop:
+ArgLoop:
 	for _, arg := range sources {
 
-		if asMap,  found := arg.(map[string]interface{}); found {
+		if asMap, found := arg.(map[string]interface{}); found {
 			//Argument is a map
 			mergeMapInto(asMap, p)
 			continue ArgLoop
 
 		}
-
 
 		argType := reflect.TypeOf(arg)
 		argVal := reflect.ValueOf(arg)
@@ -101,14 +100,14 @@ func ParamsFromFieldsOrTags(sources ...interface{}) (map[string]interface{}, err
 			argVal = argVal.Elem()
 		}
 
-		FieldLoop:
+	FieldLoop:
 		for fieldIndex := 0; fieldIndex < argType.NumField(); fieldIndex++ {
 			//Loop over the fields on the struct and store any fields with a non-zero value in the param map
 			field := argType.Field(fieldIndex)
 			tagVal := field.Tag.Get(DBParamTag)
 			fieldValInterface := argVal.FieldByName(field.Name).Interface()
 
-			if reflecttools.IsZero(fieldValInterface){
+			if reflecttools.IsZero(fieldValInterface) {
 				continue FieldLoop
 			}
 

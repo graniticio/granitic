@@ -4,11 +4,11 @@
 package ctl
 
 import (
+	"context"
 	"fmt"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/types"
 	"github.com/graniticio/granitic/ws"
-	"context"
 	"regexp"
 	"strings"
 )

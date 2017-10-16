@@ -17,13 +17,13 @@ component definition files. See handler.WsHandler for more details.
 package httpserver
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
-	"context"
 	"net"
 	"net/http"
 	"regexp"
@@ -79,6 +79,7 @@ type HTTPServer struct {
 	// A component able to examine an incoming request and determine which version of functionality is being requested.
 	VersionExtractor httpendpoint.RequestedVersionExtractor
 	state            ioc.ComponentState
+	server           *http.Server
 }
 
 // Implements ioc.ContainerAccessor
@@ -208,6 +209,8 @@ func (h *HTTPServer) AllowAccess() error {
 
 	go sv.ListenAndServe()
 
+	h.server = sv
+
 	h.FrameworkLogger.LogInfof("Listening on %d", h.Port)
 
 	h.state = ioc.RunningState
@@ -223,7 +226,7 @@ func (h *HTTPServer) SetProvidersManually(p map[string]httpendpoint.HttpEndpoint
 func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	wrw := httpendpoint.NewHTTPResponseWriter(res)
-	ctx, cancelFunc := context.WithCancel(context.Background())
+	ctx, cancelFunc := context.WithCancel(req.Context())
 	defer cancelFunc()
 
 	if h.state != ioc.RunningState {
@@ -297,6 +300,9 @@ func (h *HTTPServer) versionMatch(r *http.Request, p httpendpoint.HttpEndpointPr
 // PrepareToStop sets state to Stopping. Any subsequent requests will receive a 'too busy response'
 func (h *HTTPServer) PrepareToStop() {
 	h.state = ioc.StoppingState
+
+	h.server.Shutdown(context.Background())
+
 }
 
 // ReadyToStop returns false is the server is currently handling any requests.
@@ -319,6 +325,8 @@ func (h *HTTPServer) ReadyToStop() (bool, error) {
 func (h *HTTPServer) Stop() error {
 
 	h.state = ioc.StoppedState
+
+	h.server.Close()
 
 	return nil
 }

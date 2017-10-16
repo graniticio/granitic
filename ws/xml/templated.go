@@ -4,18 +4,18 @@
 package xml
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
-	"context"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strconv"
 	"text/template"
-	"path/filepath"
 )
 
 // Serialises the body of a ws.WsResponse to XML using Go templates. See https://golang.org/pkg/text/template/
