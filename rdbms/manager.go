@@ -206,6 +206,13 @@ type DatabaseProvider interface {
 }
 
 /*
+ Implemented by DatabaseProvider implementations that need to be given a context when establishing a database connection
+ */
+type ContextAwareDatabaseProvider interface {
+	DatabaseFromContext(context.Context) (*sql.DB, error)
+}
+
+/*
 Implemented by a component that can create RdbmsClient objects that application code will use to execute SQL statements.
 */
 type RdbmsClientManager interface {
@@ -315,9 +322,19 @@ func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*R
 	var db *sql.DB
 	var err error
 
-	if db, err = cm.Provider.Database(); err != nil {
-		return nil, err
+	if cdp, found := cm.Provider.(ContextAwareDatabaseProvider); found {
+
+		if db, err = cdp.DatabaseFromContext(ctx); err != nil {
+			return nil, err
+		}
+
+	} else {
+		if db, err = cm.Provider.Database(); err != nil {
+			return nil, err
+		}
 	}
+
+
 
 	return newRdbmsClient(db, cm.QueryManager, cm.Provider.InsertIDFunc()), nil
 }
