@@ -16,19 +16,19 @@ import (
 
 const jsonMergerComponentName string = instance.FrameworkPrefix + "JsonMerger"
 
-// NewJSONMerger creates a JSONMerger with a Logger
-func NewJSONMerger(flm *logging.ComponentLoggerManager) *JSONMerger {
-	jm := new(JSONMerger)
+// NewJsonMerger creates a JsonMerger with a Logger
+func NewJsonMerger(flm *logging.ComponentLoggerManager) *JsonMerger {
+	jm := new(JsonMerger)
 
 	jm.Logger = flm.CreateLogger(jsonMergerComponentName)
 
 	return jm
 }
 
-// A JSONMerger can merge a sequence of JSON configuration files (from a filesystem or HTTP URL) into a single
+// A JsonMerger can merge a sequence of JSON configuration files (from a filesystem or HTTP URL) into a single
 // view of configuration that will be used to configure Grantic's facilities and the user's IoC components. See the top
 // of this page for a brief explanation of how merging works.
-type JSONMerger struct {
+type JsonMerger struct {
 	// Logger used by Granitic framework components. Automatically injected.
 	Logger logging.Logger
 
@@ -39,7 +39,7 @@ type JSONMerger struct {
 // LoadAndMergeConfig takes a list of file paths or URIs to JSON files and merges them into a single in-memory object representation.
 // See the top of this page for a brief explanation of how merging works. Returns an error if a remote URI returned a 4xx or 5xx response code,
 // a file or folder could not be accessed or if two files could not be merged dued to JSON parsing errors.
-func (jm *JSONMerger) LoadAndMergeConfig(files []string) (map[string]interface{}, error) {
+func (jm *JsonMerger) LoadAndMergeConfig(files []string) (map[string]interface{}, error) {
 
 	var mergedConfig map[string]interface{}
 	var jsonData []byte
@@ -84,7 +84,7 @@ func (jm *JSONMerger) LoadAndMergeConfig(files []string) (map[string]interface{}
 	return mergedConfig, nil
 }
 
-func (jm *JSONMerger) loadFromURL(url string) ([]byte, error) {
+func (jm *JsonMerger) loadFromURL(url string) ([]byte, error) {
 
 	r, err := http.Get(url)
 
@@ -105,7 +105,7 @@ func (jm *JSONMerger) loadFromURL(url string) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]interface{} {
+func (jm *JsonMerger) merge(base, additional map[string]interface{}) map[string]interface{} {
 
 	for key, value := range additional {
 
@@ -132,6 +132,6 @@ func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]
 	return base
 }
 
-func (jm *JSONMerger) mergeArrays(a []interface{}, b []interface{}) []interface{} {
+func (jm *JsonMerger) mergeArrays(a []interface{}, b []interface{}) []interface{} {
 	return append(a, b...)
 }

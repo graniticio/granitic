@@ -96,7 +96,7 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	rw.FrameworkLogger = lm.CreateLogger(runtimeCtlResponseWriter)
 	sv.AbnormalStatusWriter = rw
 
-	mw := new(json.JSONMarshalingWriter)
+	mw := new(json.JsonMarshalingWriter)
 	ca.Populate("RuntimeCtl.Marshal", mw)
 	rw.MarshalingWriter = mw
 

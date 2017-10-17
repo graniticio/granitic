@@ -39,7 +39,7 @@ func LoadTestConfig() *config.ConfigAccessor {
 	cfp := filepath.Join("validate", "validation.json")
 
 	cFile := test.TestFilePath(cfp)
-	jsonMerger := new(config.JSONMerger)
+	jsonMerger := new(config.JsonMerger)
 	jsonMerger.Logger = new(logging.ConsoleErrorLogger)
 
 	mergedJson, _ := jsonMerger.LoadAndMergeConfig([]string{cFile})

@@ -663,7 +663,7 @@ func loadConfig(l string) *config.ConfigAccessor {
 		exitError(m)
 	}
 
-	jm := new(config.JSONMerger)
+	jm := new(config.JsonMerger)
 	jm.MergeArrays = true
 	jm.Logger = new(logging.ConsoleErrorLogger)
 

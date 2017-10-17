@@ -218,7 +218,7 @@ func (i *initiator) createConfigAccessor(configPaths []string, flm *logging.Comp
 
 	fl := flm.CreateLogger(configAccessorComponentName)
 
-	jm := config.NewJSONMerger(flm)
+	jm := config.NewJsonMerger(flm)
 
 	mergedJson, err := jm.LoadAndMergeConfig(configPaths)
 
