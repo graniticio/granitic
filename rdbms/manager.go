@@ -200,10 +200,14 @@ implementation is expected to manage connection pooling and failover as required
 type DatabaseProvider interface {
 	// Database returns a Go sql.DB object
 	Database() (*sql.DB, error)
+}
 
-	// InsertIDFunc returns an implementation of the InsertWithReturnedID function appropriate for the underlying RDBMS.
+// Optional interface for DatabaseProvider implementations when the prepared statement->exec->insert pattern does not yield
+// the last inserted ID as part of its result.
+type NonStandardInsertProvider interface {
 	InsertIDFunc() InsertWithReturnedID
 }
+
 
 /*
  Implemented by DatabaseProvider implementations that need to be given a context when establishing a database connection
@@ -309,7 +313,7 @@ func (cm *GraniticRdbmsClientManager) Client() (*RdbmsClient, error) {
 		return nil, err
 	}
 
-	return newRdbmsClient(db, cm.QueryManager, cm.Provider.InsertIDFunc()), nil
+	return newRdbmsClient(db, cm.QueryManager, cm.chooseInsertFunction()), nil
 }
 
 // See RdbmsClientManager.ClientFromContext
@@ -334,10 +338,20 @@ func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*R
 		}
 	}
 
-	rc := newRdbmsClient(db, cm.QueryManager, cm.Provider.InsertIDFunc())
+	rc := newRdbmsClient(db, cm.QueryManager, cm.chooseInsertFunction())
 	rc.ctx = ctx
 
 	return rc, nil
+}
+
+func (cm *GraniticRdbmsClientManager) chooseInsertFunction() InsertWithReturnedID{
+
+	if iwi, found := cm.Provider.(NonStandardInsertProvider); found{
+		return iwi.InsertIDFunc()
+	} else {
+		return DefaultInsertWithReturnedID
+	}
+
 }
 
 // StartComponent selects a DatabaseProvider to use

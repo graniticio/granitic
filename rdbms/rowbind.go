@@ -28,6 +28,10 @@ type RowBinder struct {
 */
 func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 
+	if r == nil{
+		return false, errors.New("Nil sql.Rows supplied to BindRow")
+	}
+
 	if !rt.IsPointerToStruct(t) {
 
 		if r.Next() {
@@ -88,6 +92,11 @@ func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error)
 	var err error
 	var columnNames []string
 	var targetScanners map[string]*scanner
+
+	if r == nil {
+		return nil, errors.New("Nil *sql.Rows supplied")
+	}
+
 
 	if !rt.IsPointerToStruct(t) {
 		return nil, errors.New("Template must be a pointer to a struct.")

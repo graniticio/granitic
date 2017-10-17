@@ -78,11 +78,11 @@ Schema:   recordstore
 
 Go's SQL abstraction and 'driver management' models are much looser than some other language's RDBMS access layers. In
 order to allow Granitic's components and facilities to be agnostic of the underlying RDBMS, an additional layer of abstraction
-has been defined - the [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider).
+has been defined - the [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider). 
 
-The [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider) has two functions - to 
-create instances of [sql.DB](https://golang.org/pkg/database/sql/#DB) (Go's connection/driver abstraction) and to define
-a function that can recover the ID assigned to an inserted row (because not all DB drivers implement this in the same way).
+The [DatabaseProvider's](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider) 
+role is to create instances of [sql.DB](https://golang.org/pkg/database/sql/#DB) (Go's connection/driver abstraction) and 
+implement any connection pooling and load balancing your application requires.
 
 Open a terminal and run
 
@@ -99,7 +99,6 @@ import (
   "database/sql"
   "github.com/go-sql-driver/mysql"
   "github.com/graniticio/granitic/logging"
-  "github.com/graniticio/granitic/rdbms"
 )
 
 type MySqlProvider struct {
@@ -119,9 +118,6 @@ func (p *MySqlProvider) Database() (*sql.DB, error) {
   }
 }
 
-func (p *MySqlProvider) InsertIDFunc() rdbms.InsertWithReturnedID {
-  return rdbms.DefaultInsertWithReturnedID
-}
 ```
 
 ### New facilities and components

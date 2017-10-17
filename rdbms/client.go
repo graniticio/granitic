@@ -10,7 +10,7 @@ import (
 	"context"
 )
 
-func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedID) *RdbmsClient {
+func newRdbmsClient(database dbProxy, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedID) *RdbmsClient {
 	rc := new(RdbmsClient)
 	rc.db = database
 	rc.queryManager = querymanager
@@ -223,8 +223,6 @@ func (rc *RdbmsClient) execQIDParams(qid string, params ...interface{}) (sql.Res
 	if query, err := rc.buildQuery(qid, params...); err != nil {
 		return nil, err
 	} else {
-
-
 
 		return rc.Exec(query)
 	}
