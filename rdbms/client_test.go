@@ -14,7 +14,7 @@ func TestNonTxSelectMethods(t *testing.T) {
 	db := new(testDbProxy)
 	p1, p2 := testStandardParams()
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
 
 	bt := new(testTargetSingle)
 

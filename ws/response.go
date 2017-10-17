@@ -109,7 +109,7 @@ type WsProcessState struct {
 	WsResponse *WsResponse
 
 	// The HTTP output stream.
-	HTTPResponseWriter *httpendpoint.HTTPResponseWriter
+	HttpResponseWriter *httpendpoint.HttpResponseWriter
 
 	// Errors detected while processing the web service request. If set, supersedes the errors present in WsResponse field.
 	ServiceErrors *ServiceErrors
@@ -122,10 +122,10 @@ type WsProcessState struct {
 }
 
 // NewAbnormalState creates a new WsProcessState for a request that has resulted in an abnormal (HTTP 5xx) outcome).
-func NewAbnormalState(status int, w *httpendpoint.HTTPResponseWriter) *WsProcessState {
+func NewAbnormalState(status int, w *httpendpoint.HttpResponseWriter) *WsProcessState {
 	state := new(WsProcessState)
 	state.Status = status
-	state.HTTPResponseWriter = w
+	state.HttpResponseWriter = w
 
 	return state
 }

@@ -207,7 +207,7 @@ Open the file <code>recordstore/resource/components/components.json</code> and s
 
     "artistHandler": {
       "type": "handler.WsHandler",
-      "HTTPMethod": "GET",
+      "HttpMethod": "GET",
       "Logic": "ref:artistLogic",
       "PathPattern": "^/artist"
     }

@@ -10,7 +10,7 @@ import (
 	"context"
 )
 
-func newRdbmsClient(database dbProxy, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedID) *RdbmsClient {
+func newRdbmsClient(database dbProxy, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedId) *RdbmsClient {
 	rc := new(RdbmsClient)
 	rc.db = database
 	rc.queryManager = querymanager
@@ -28,11 +28,11 @@ type RdbmsClient struct {
 	db           dbProxy
 	queryManager dsquery.QueryManager
 	tx           txProxy
-	lastID       InsertWithReturnedID
+	lastID       InsertWithReturnedId
 	tempQueries  map[string]string
 	emptyParams  map[string]interface{}
 	binder       *RowBinder
-	ctx context.Context
+	ctx          context.Context
 }
 
 // FindFragment returns a partial query from the underlying QueryManager. Fragments are no

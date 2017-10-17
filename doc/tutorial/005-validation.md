@@ -99,7 +99,7 @@ Validation is triggered by the handler component associated with your endpoint. 
 ```json
 "submitArtistHandler": {
   "type": "handler.WsHandler",
-  "HTTPMethod": "POST",
+  "HttpMethod": "POST",
   "Logic": "ref:submitArtistLogic",
   "PathPattern": "^/artist[/]?$",
   "AutoValidator": "ref:submitArtistValidator"

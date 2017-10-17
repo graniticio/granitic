@@ -37,9 +37,9 @@ type HttpEndpointProvider interface {
 	// to potentially match the request to this endpoint.
 	RegexPattern() string
 
-	// ServeHTTP handles an HTTP request, including writing normal and abnormal responses. Returns a context that may have
+	// ServeHttp handles an HTTP request, including writing normal and abnormal responses. Returns a context that may have
 	// been modified.
-	ServeHTTP(ctx context.Context, w *HTTPResponseWriter, req *http.Request) context.Context
+	ServeHttp(ctx context.Context, w *HttpResponseWriter, req *http.Request) context.Context
 
 	// VersionAware returns true if this endpoint supports request version matching.
 	VersionAware() bool

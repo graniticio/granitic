@@ -178,14 +178,14 @@ func (i *initiator) createInstanceIdentifier(is *config.InitialSettings, cc *ioc
 
 	if id != "" {
 		ii := new(instance.InstanceIdentifier)
-		ii.ID = id
+		ii.Id = id
 		cc.WrapAndAddProto(instance.InstanceIDComponent, ii)
 
 		iidd := new(facility.InstanceIDDecorator)
 		iidd.InstanceID = ii
 		cc.WrapAndAddProto(instanceIDDecoratorName, iidd)
 
-		i.logger.LogInfof("Instance ID: %s", id)
+		i.logger.LogInfof("Instance Id: %s", id)
 	}
 
 }

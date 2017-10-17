@@ -10,10 +10,10 @@ import (
 	"github.com/graniticio/granitic/logging"
 )
 
-// The name of the HTTPServer component as stored in the IoC framework.
+// The name of the HttpServer component as stored in the IoC framework.
 const HttpServerComponentName = instance.FrameworkPrefix + "HttpServer"
 
-// The field on the HTTPServer component into which a ws.AbnormalStatusWriter can be injected. Most applications will use either
+// The field on the HttpServer component into which a ws.AbnormalStatusWriter can be injected. Most applications will use either
 // the JsonWs or XmlWs facility, in which case a AbnormalStatusWriter that will respond to requests with an abnormal result
 // (404, 503 etc) by sending a JSON or XML response respectively.
 //
@@ -29,7 +29,7 @@ type HttpServerFacilityBuilder struct {
 // See FacilityBuilder.BuildAndRegister
 func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	httpServer := new(HTTPServer)
+	httpServer := new(HttpServer)
 	ca.Populate("HttpServer", httpServer)
 
 	cn.WrapAndAddProto(HttpServerComponentName, httpServer)

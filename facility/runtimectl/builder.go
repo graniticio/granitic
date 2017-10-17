@@ -86,7 +86,7 @@ type RuntimeCtlFacilityBuilder struct {
 
 func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
 
-	sv := new(httpserver.HTTPServer)
+	sv := new(httpserver.HttpServer)
 	ca.Populate("RuntimeCtl.Server", sv)
 
 	cc.WrapAndAddProto(RuntimeCtlServer, sv)

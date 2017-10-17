@@ -4,6 +4,7 @@
 
 ### General
  * Various internal changes to make use of updated libraries in Go 1.8
+ * Various changes of all-caps abbreviations (e.g. ID, HTTP) to Go naming standard (Id, Http) 
 
 ### RDBMS
 

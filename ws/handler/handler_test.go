@@ -28,9 +28,9 @@ func TestMinimal(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	uw := NewStringBufferResponseWriter()
-	w := httpendpoint.NewHTTPResponseWriter(uw)
+	w := httpendpoint.NewHttpResponseWriter(uw)
 
-	h.ServeHTTP(context.Background(), w, req)
+	h.ServeHttp(context.Background(), w, req)
 
 	test.ExpectBool(t, l.Called, true)
 
@@ -48,11 +48,11 @@ func TestAllOptionalPhases(t *testing.T) {
 	test.ExpectNil(t, err)
 
 	uw := NewStringBufferResponseWriter()
-	w := httpendpoint.NewHTTPResponseWriter(uw)
+	w := httpendpoint.NewHttpResponseWriter(uw)
 	h.PreValidateManipulator = l
 	h.PostProcessor = l
 
-	h.ServeHTTP(context.Background(), w, req)
+	h.ServeHttp(context.Background(), w, req)
 
 	test.ExpectBool(t, l.ProcessCalled, true)
 	test.ExpectBool(t, l.UnmarshallTargetCalled, true)
@@ -75,7 +75,7 @@ func GetHandler(t *testing.T) (*WsHandler, *http.Request) {
 	test.ExpectNil(t, err)
 	h := new(WsHandler)
 	h.PathPattern = "/test$"
-	h.HTTPMethod = "GET"
+	h.HttpMethod = "GET"
 	h.ResponseWriter = new(NilResponseWriter)
 	h.componentName = "testHandler"
 

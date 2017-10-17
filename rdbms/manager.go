@@ -205,7 +205,7 @@ type DatabaseProvider interface {
 // Optional interface for DatabaseProvider implementations when the prepared statement->exec->insert pattern does not yield
 // the last inserted ID as part of its result.
 type NonStandardInsertProvider interface {
-	InsertIDFunc() InsertWithReturnedID
+	InsertIDFunc() InsertWithReturnedId
 }
 
 
@@ -344,12 +344,12 @@ func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*R
 	return rc, nil
 }
 
-func (cm *GraniticRdbmsClientManager) chooseInsertFunction() InsertWithReturnedID{
+func (cm *GraniticRdbmsClientManager) chooseInsertFunction() InsertWithReturnedId {
 
 	if iwi, found := cm.Provider.(NonStandardInsertProvider); found{
 		return iwi.InsertIDFunc()
 	} else {
-		return DefaultInsertWithReturnedID
+		return DefaultInsertWithReturnedId
 	}
 
 }

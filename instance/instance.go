@@ -8,8 +8,8 @@ It is anticipated that most Granitic applications will be deployed as part of a 
 service discovery mechanism. In these circumstances, it is important that each individual instance can be named. So other
 services can identify it.
 
-This package defines a type for storing an instance ID and an interface to be implemented
-by any component that needs to be aware of the ID of the current instance. An instance ID is specified when starting
+This package defines a type for storing an instance Id and an interface to be implemented
+by any component that needs to be aware of the Id of the current instance. An instance Id is specified when starting
 Granitic via a command line argument or an InitialSettings struct. See the documentation for the granitic pacakge for
 more detail.
 
@@ -68,18 +68,18 @@ type System struct {
 	StopTriesBeforeWarn int
 }
 
-// The name of the component in the IoC container holding an instance ID.
+// The name of the component in the IoC container holding an instance Id.
 const InstanceIDComponent = FrameworkPrefix + "InstanceIdentifier"
 
-// A structure used to store the ID of a particular instance of a Granitic application. See the granitic package
-// documentation for instructions on how to define the ID at application start time.
+// A structure used to store the Id of a particular instance of a Granitic application. See the granitic package
+// documentation for instructions on how to define the Id at application start time.
 type InstanceIdentifier struct {
 	// A identifier for this instance application.
-	ID string
+	Id string
 }
 
-// Implemented by any component that needs to be aware of the ID of the current application instance.
+// Implemented by any component that needs to be aware of the Id of the current application instance.
 type InstanceIdentifierReceiver interface {
-	// RegisterInstanceID is automatically called by the IoC container to inject the instance ID.
+	// RegisterInstanceID is automatically called by the IoC container to inject the instance Id.
 	RegisterInstanceID(*InstanceIdentifier)
 }

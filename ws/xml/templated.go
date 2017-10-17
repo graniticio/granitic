@@ -60,17 +60,17 @@ func (rw *TemplatedXMLResponseWriter) Write(ctx context.Context, state *ws.WsPro
 
 	switch outcome {
 	case ws.Normal:
-		return rw.writeNormal(ctx, state.WsResponse, state.HTTPResponseWriter, ch)
+		return rw.writeNormal(ctx, state.WsResponse, state.HttpResponseWriter, ch)
 	case ws.Error:
-		return rw.writeErrors(ctx, state.WsResponse, state.ServiceErrors, state.HTTPResponseWriter, ch)
+		return rw.writeErrors(ctx, state.WsResponse, state.ServiceErrors, state.HttpResponseWriter, ch)
 	case ws.Abnormal:
-		return rw.writeAbnormalStatus(ctx, state.Status, state.HTTPResponseWriter, ch)
+		return rw.writeAbnormalStatus(ctx, state.Status, state.HttpResponseWriter, ch)
 	}
 
 	return errors.New("Unsuported ws.WsOutcome value")
 }
 
-func (rw *TemplatedXMLResponseWriter) writeNormal(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXMLResponseWriter) writeNormal(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string
@@ -86,7 +86,7 @@ func (rw *TemplatedXMLResponseWriter) writeNormal(ctx context.Context, res *ws.W
 	return rw.write(ctx, res, w, ch, t)
 }
 
-func (rw *TemplatedXMLResponseWriter) write(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string, t *template.Template) error {
+func (rw *TemplatedXMLResponseWriter) write(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HttpResponseWriter, ch map[string]string, t *template.Template) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -113,7 +113,7 @@ func (rw *TemplatedXMLResponseWriter) write(ctx context.Context, res *ws.WsRespo
 
 }
 
-func (rw *TemplatedXMLResponseWriter) writeErrors(ctx context.Context, res *ws.WsResponse, se *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXMLResponseWriter) writeErrors(ctx context.Context, res *ws.WsResponse, se *ws.ServiceErrors, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string
@@ -141,7 +141,7 @@ func (rw *TemplatedXMLResponseWriter) WriteAbnormalStatus(ctx context.Context, s
 	return rw.Write(ctx, state, ws.Abnormal)
 }
 
-func (rw *TemplatedXMLResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXMLResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string

@@ -57,17 +57,17 @@ func (rw *MarshallingResponseWriter) Write(ctx context.Context, state *WsProcess
 
 	switch outcome {
 	case Normal:
-		return rw.write(ctx, state.WsResponse, state.HTTPResponseWriter, ch)
+		return rw.write(ctx, state.WsResponse, state.HttpResponseWriter, ch)
 	case Error:
-		return rw.writeErrors(ctx, state.ServiceErrors, state.HTTPResponseWriter, ch)
+		return rw.writeErrors(ctx, state.ServiceErrors, state.HttpResponseWriter, ch)
 	case Abnormal:
-		return rw.writeAbnormalStatus(ctx, state.Status, state.HTTPResponseWriter, ch)
+		return rw.writeAbnormalStatus(ctx, state.Status, state.HttpResponseWriter, ch)
 	}
 
 	return errors.New("Unsuported WsOutcome value")
 }
 
-func (rw *MarshallingResponseWriter) write(ctx context.Context, res *WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *MarshallingResponseWriter) write(ctx context.Context, res *WsResponse, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -104,7 +104,7 @@ func (rw *MarshallingResponseWriter) WriteAbnormalStatus(ctx context.Context, st
 	return rw.Write(ctx, state, Abnormal)
 }
 
-func (rw *MarshallingResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *MarshallingResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
 
 	res := new(WsResponse)
 	res.HttpStatus = status
@@ -119,7 +119,7 @@ func (rw *MarshallingResponseWriter) writeAbnormalStatus(ctx context.Context, st
 
 }
 
-func (rw *MarshallingResponseWriter) writeErrors(ctx context.Context, errors *ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *MarshallingResponseWriter) writeErrors(ctx context.Context, errors *ServiceErrors, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
 
 	res := new(WsResponse)
 	res.Errors = errors
