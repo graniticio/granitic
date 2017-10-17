@@ -14,7 +14,7 @@ func newRdbmsClient(database dbProxy, querymanager dsquery.QueryManager, insertF
 	rc := new(RdbmsClient)
 	rc.db = database
 	rc.queryManager = querymanager
-	rc.lastID = insertFunc
+	rc.lastId = insertFunc
 	rc.emptyParams = make(map[string]interface{})
 	rc.binder = new(RowBinder)
 	return rc
@@ -28,7 +28,7 @@ type RdbmsClient struct {
 	db           dbProxy
 	queryManager dsquery.QueryManager
 	tx           txProxy
-	lastID       InsertWithReturnedId
+	lastId       InsertWithReturnedId
 	tempQueries  map[string]string
 	emptyParams  map[string]interface{}
 	binder       *RowBinder
@@ -38,33 +38,33 @@ type RdbmsClient struct {
 // FindFragment returns a partial query from the underlying QueryManager. Fragments are no
 // different that ordinary template queries, except they are not expected to contain any variable placeholders.
 func (rc *RdbmsClient) FindFragment(qid string) (string, error) {
-	return rc.queryManager.FragmentFromID(qid)
+	return rc.queryManager.FragmentFromId(qid)
 }
 
-// BuildQueryQIDParams returns a populated SQL query that can be manually executed later.
-func (rc *RdbmsClient) BuildQueryQIDParams(qid string, p ...interface{}) (string, error) {
+// BuildQueryQIdParams returns a populated SQL query that can be manually executed later.
+func (rc *RdbmsClient) BuildQueryQIdParams(qid string, p ...interface{}) (string, error) {
 
 	if pm, err := ParamsFromFieldsOrTags(p...); err != nil {
 		return "", err
 	} else {
-		return rc.queryManager.BuildQueryFromID(qid, pm)
+		return rc.queryManager.BuildQueryFromId(qid, pm)
 	}
 }
 
-// DeleteQIDParams executes the supplied query with the expectation that it is a 'DELETE' query.
-func (rc *RdbmsClient) DeleteQIDParams(qid string, params ...interface{}) (sql.Result, error) {
+// DeleteQIdParams executes the supplied query with the expectation that it is a 'DELETE' query.
+func (rc *RdbmsClient) DeleteQIdParams(qid string, params ...interface{}) (sql.Result, error) {
 
-	return rc.execQIDParams(qid, params...)
+	return rc.execQIdParams(qid, params...)
 
 }
 
-// DeleteQIDParam executes the supplied query with the expectation that it is a 'DELETE' query.
-func (rc *RdbmsClient) DeleteQIDParam(qid string, name string, value interface{}) (sql.Result, error) {
+// DeleteQIdParam executes the supplied query with the expectation that it is a 'DELETE' query.
+func (rc *RdbmsClient) DeleteQIdParam(qid string, name string, value interface{}) (sql.Result, error) {
 
 	p := make(map[string]interface{})
 	p[name] = value
 
-	return rc.execQIDParams(qid, p)
+	return rc.execQIdParams(qid, p)
 
 }
 
@@ -74,16 +74,16 @@ func (rc *RdbmsClient) RegisterTempQuery(qid string, query string) {
 	rc.tempQueries[qid] = query
 }
 
-// ExistingIDOrInsertParams finds the ID of record or if the record does not exist, inserts a new record and retrieves the newly assigned ID
-func (rc *RdbmsClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId string, idTarget *int64, p ...interface{}) error {
+// ExistingIdOrInsertParams finds the ID of record or if the record does not exist, inserts a new record and retrieves the newly assigned ID
+func (rc *RdbmsClient) ExistingIdOrInsertParams(checkQueryId, insertQueryId string, idTarget *int64, p ...interface{}) error {
 
-	if found, err := rc.SelectBindSingleQIDParams(checkQueryId, idTarget, p...); err != nil {
+	if found, err := rc.SelectBindSingleQIdParams(checkQueryId, idTarget, p...); err != nil {
 		return err
 	} else if found {
 		return nil
 	} else {
 
-		if err = rc.InsertCaptureQIDParams(insertQueryId, idTarget, p...); err != nil {
+		if err = rc.InsertCaptureQIdParams(insertQueryId, idTarget, p...); err != nil {
 			return err
 		}
 
@@ -92,49 +92,49 @@ func (rc *RdbmsClient) ExistingIDOrInsertParams(checkQueryId, insertQueryId stri
 	return nil
 }
 
-// InsertQIDParams executes the supplied query with the expectation that it is an 'INSERT' query.
-func (rc *RdbmsClient) InsertQIDParams(qid string, params ...interface{}) (sql.Result, error) {
+// InsertQIdParams executes the supplied query with the expectation that it is an 'INSERT' query.
+func (rc *RdbmsClient) InsertQIdParams(qid string, params ...interface{}) (sql.Result, error) {
 
-	return rc.execQIDParams(qid, params...)
+	return rc.execQIdParams(qid, params...)
 
 }
 
-// InsertCaptureQIDParams executes the supplied query with the expectation that it is an 'INSERT' query and captures
+// InsertCaptureQIdParams executes the supplied query with the expectation that it is an 'INSERT' query and captures
 // the new row's server generated ID in the target int64
-func (rc *RdbmsClient) InsertCaptureQIDParams(qid string, target *int64, params ...interface{}) error {
+func (rc *RdbmsClient) InsertCaptureQIdParams(qid string, target *int64, params ...interface{}) error {
 
 	if query, err := rc.buildQuery(qid, params...); err != nil {
 		return err
 	} else {
 
-		return rc.lastID(query, rc, target)
+		return rc.lastId(query, rc, target)
 	}
 
 }
 
-// SelectBindSingleQID executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
+// SelectBindSingleQId executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
 // Results of the query are bound into the target struct. Returns false if no rows were found.
-func (rc *RdbmsClient) SelectBindSingleQID(qid string, target interface{}) (bool, error) {
-	return rc.SelectBindSingleQIDParams(qid, rc.emptyParams, target)
+func (rc *RdbmsClient) SelectBindSingleQId(qid string, target interface{}) (bool, error) {
+	return rc.SelectBindSingleQIdParams(qid, rc.emptyParams, target)
 }
 
-// SelectBindSingleQIDParam executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
+// SelectBindSingleQIdParam executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
 // Results of the query are bound into the target struct. Returns false if no rows were found.
-func (rc *RdbmsClient) SelectBindSingleQIDParam(qid string, name string, value interface{}, target interface{}) (bool, error) {
+func (rc *RdbmsClient) SelectBindSingleQIdParam(qid string, name string, value interface{}, target interface{}) (bool, error) {
 	p := make(map[string]interface{})
 	p[name] = value
 
-	return rc.SelectBindSingleQIDParams(qid, p, target)
+	return rc.SelectBindSingleQIdParams(qid, p, target)
 }
 
-// SelectBindSingleQIDParams executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
+// SelectBindSingleQIdParams executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
 // Results of the query are bound into the target struct. Returns false if no rows were found.
-func (rc *RdbmsClient) SelectBindSingleQIDParams(qid string, target interface{}, params ...interface{}) (bool, error) {
+func (rc *RdbmsClient) SelectBindSingleQIdParams(qid string, target interface{}, params ...interface{}) (bool, error) {
 
 	var r *sql.Rows
 	var err error
 
-	if r, err = rc.SelectQIDParams(qid, params...); err != nil {
+	if r, err = rc.SelectQIdParams(qid, params...); err != nil {
 		return false, err
 	}
 
@@ -144,26 +144,26 @@ func (rc *RdbmsClient) SelectBindSingleQIDParams(qid string, target interface{},
 
 }
 
-// SelectBindQID executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
+// SelectBindQId executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
 // are returned in a slice of the same type as the supplied template struct.
-func (rc *RdbmsClient) SelectBindQID(qid string, template interface{}) ([]interface{}, error) {
-	return rc.SelectBindQIDParams(qid, rc.emptyParams, template)
+func (rc *RdbmsClient) SelectBindQId(qid string, template interface{}) ([]interface{}, error) {
+	return rc.SelectBindQIdParams(qid, rc.emptyParams, template)
 }
 
-// SelectBindQIDParam executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
+// SelectBindQIdParam executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
 // are returned in a slice of the same type as the supplied template struct.
-func (rc *RdbmsClient) SelectBindQIDParam(qid string, name string, value interface{}, template interface{}) ([]interface{}, error) {
+func (rc *RdbmsClient) SelectBindQIdParam(qid string, name string, value interface{}, template interface{}) ([]interface{}, error) {
 	p := make(map[string]interface{})
 	p[name] = value
 
-	return rc.SelectBindQIDParams(qid, p, template)
+	return rc.SelectBindQIdParams(qid, p, template)
 }
 
-// SelectBindQIDParams executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
+// SelectBindQIdParams executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
 // are returned in a slice of the same type as the supplied template struct.
-func (rc *RdbmsClient) SelectBindQIDParams(qid string, template interface{}, params ...interface{}) ([]interface{}, error) {
+func (rc *RdbmsClient) SelectBindQIdParams(qid string, template interface{}, params ...interface{}) ([]interface{}, error) {
 
-	if r, err := rc.SelectQIDParams(qid, params...); err != nil {
+	if r, err := rc.SelectQIdParams(qid, params...); err != nil {
 		return nil, err
 	} else {
 
@@ -175,21 +175,21 @@ func (rc *RdbmsClient) SelectBindQIDParams(qid string, template interface{}, par
 
 }
 
-// SelectQID executes the supplied query with the expectation that it is a 'SELECT' query.
-func (rc *RdbmsClient) SelectQID(qid string) (*sql.Rows, error) {
-	return rc.SelectQIDParams(qid, rc.emptyParams)
+// SelectQId executes the supplied query with the expectation that it is a 'SELECT' query.
+func (rc *RdbmsClient) SelectQId(qid string) (*sql.Rows, error) {
+	return rc.SelectQIdParams(qid, rc.emptyParams)
 }
 
-// SelectQIDParam executes the supplied query with the expectation that it is a 'SELECT' query.
-func (rc *RdbmsClient) SelectQIDParam(qid string, name string, value interface{}) (*sql.Rows, error) {
+// SelectQIdParam executes the supplied query with the expectation that it is a 'SELECT' query.
+func (rc *RdbmsClient) SelectQIdParam(qid string, name string, value interface{}) (*sql.Rows, error) {
 	p := make(map[string]interface{})
 	p[name] = value
 
-	return rc.SelectQIDParams(qid, p)
+	return rc.SelectQIdParams(qid, p)
 }
 
-// SelectQIDParams executes the supplied query with the expectation that it is a 'SELECT' query.
-func (rc *RdbmsClient) SelectQIDParams(qid string, params ...interface{}) (*sql.Rows, error) {
+// SelectQIdParams executes the supplied query with the expectation that it is a 'SELECT' query.
+func (rc *RdbmsClient) SelectQIdParams(qid string, params ...interface{}) (*sql.Rows, error) {
 
 	query, err := rc.buildQuery(qid, params...)
 
@@ -201,24 +201,24 @@ func (rc *RdbmsClient) SelectQIDParams(qid string, params ...interface{}) (*sql.
 
 }
 
-// UpdateQIDParams executes the supplied query with the expectation that it is an 'UPDATE' query.
-func (rc *RdbmsClient) UpdateQIDParams(qid string, params ...interface{}) (sql.Result, error) {
+// UpdateQIdParams executes the supplied query with the expectation that it is an 'UPDATE' query.
+func (rc *RdbmsClient) UpdateQIdParams(qid string, params ...interface{}) (sql.Result, error) {
 
-	return rc.execQIDParams(qid, params...)
+	return rc.execQIdParams(qid, params...)
 
 }
 
-// UpdateQIDParam executes the supplied query with the expectation that it is an 'UPDATE' query.
-func (rc *RdbmsClient) UpdateQIDParam(qid string, name string, value interface{}) (sql.Result, error) {
+// UpdateQIdParam executes the supplied query with the expectation that it is an 'UPDATE' query.
+func (rc *RdbmsClient) UpdateQIdParam(qid string, name string, value interface{}) (sql.Result, error) {
 
 	p := make(map[string]interface{})
 	p[name] = value
 
-	return rc.execQIDParams(qid, p)
+	return rc.execQIdParams(qid, p)
 
 }
 
-func (rc *RdbmsClient) execQIDParams(qid string, params ...interface{}) (sql.Result, error) {
+func (rc *RdbmsClient) execQIdParams(qid string, params ...interface{}) (sql.Result, error) {
 
 	if query, err := rc.buildQuery(qid, params...); err != nil {
 		return nil, err
@@ -240,7 +240,7 @@ func (rc *RdbmsClient) buildQuery(qid string, p ...interface{}) (string, error) 
 		if pm, err := ParamsFromFieldsOrTags(p...); err != nil {
 			return "", err
 		} else {
-			return rc.queryManager.BuildQueryFromID(qid, pm)
+			return rc.queryManager.BuildQueryFromId(qid, pm)
 		}
 	}
 

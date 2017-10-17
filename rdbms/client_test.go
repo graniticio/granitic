@@ -18,7 +18,7 @@ func TestNonTxSelectMethods(t *testing.T) {
 
 	bt := new(testTargetSingle)
 
-	_, err := c.SelectBindSingleQIDParams("SBSQP", bt, p1, p2)
+	_, err := c.SelectBindSingleQIdParams("SBSQP", bt, p1, p2)
 
 	fmt.Println(err)
 	fmt.Println(db.lastMethod)

@@ -62,7 +62,7 @@ type InitialSettings struct {
 	StartTime time.Time
 
 	// An (optional) unique identifier for this instance of a Granitic application.
-	InstanceID string
+	InstanceId string
 }
 
 // InitialSettingsFromEnvironment builds an InitialSettings and populates it with defaults or the values of command line
@@ -86,7 +86,7 @@ func InitialSettingsFromEnvironment() *InitialSettings {
 func processCommandLineArgs(is *InitialSettings) {
 	configFilePtr := flag.String("c", "resource/config", "Path to container configuration files")
 	startupLogLevel := flag.String("l", "INFO", "Logging threshold for messages from components during bootstrap")
-	instanceID := flag.String("i", "", "A unique identifier for this instance of the application")
+	instanceId := flag.String("i", "", "A unique identifier for this instance of the application")
 	flag.Parse()
 
 	ll, err := logging.LogLevelFromLabel(*startupLogLevel)
@@ -106,7 +106,7 @@ func processCommandLineArgs(is *InitialSettings) {
 
 	is.Configuration = append(is.Configuration, userConfig...)
 	is.FrameworkLogLevel = ll
-	is.InstanceID = *instanceID
+	is.InstanceId = *instanceId
 
 }
 

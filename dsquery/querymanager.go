@@ -34,15 +34,15 @@ import (
 // A QueryManager is a type that is able to populate a pre-defined template query given a set of named parameters
 // and return a complete query ready for execution against some data source.
 type QueryManager interface {
-	// BuildQueryFromID finds a template with the supplied query ID and uses the supplied named parameters to populate
+	// BuildQueryFromId finds a template with the supplied query ID and uses the supplied named parameters to populate
 	// that template. Returns the populated query or an error if the template could not be found or there was a problem
 	// populating the query.
-	BuildQueryFromID(qid string, params map[string]interface{}) (string, error)
+	BuildQueryFromId(qid string, params map[string]interface{}) (string, error)
 
-	// FragmentFromID is used to recover a template which does not have any parameters to populate (a fragment). This is most commonly
+	// FragmentFromId is used to recover a template which does not have any parameters to populate (a fragment). This is most commonly
 	// used when code needs to dynamically construct a query from several fragments and templates. Returns the fragment
 	// or an error if the fragment could not be found.
-	FragmentFromID(qid string) (string, error)
+	FragmentFromId(qid string) (string, error)
 }
 
 // NewTemplatedQueryManager creates a new, empty TemplatedQueryManager.
@@ -87,8 +87,8 @@ type TemplatedQueryManager struct {
 	state              ioc.ComponentState
 }
 
-// See QueryManager.FragmentFromID
-func (qm *TemplatedQueryManager) FragmentFromID(qid string) (string, error) {
+// See QueryManager.FragmentFromId
+func (qm *TemplatedQueryManager) FragmentFromId(qid string) (string, error) {
 
 	f := qm.fragments[qid]
 
@@ -98,7 +98,7 @@ func (qm *TemplatedQueryManager) FragmentFromID(qid string) (string, error) {
 
 	p := make(map[string]interface{})
 
-	f, err := qm.BuildQueryFromID(qid, p)
+	f, err := qm.BuildQueryFromId(qid, p)
 
 	if err != nil {
 		qm.fragments[qid] = f
@@ -108,8 +108,8 @@ func (qm *TemplatedQueryManager) FragmentFromID(qid string) (string, error) {
 
 }
 
-// See QueryManager.BuildQueryFromID
-func (qm *TemplatedQueryManager) BuildQueryFromID(qid string, params map[string]interface{}) (string, error) {
+// See QueryManager.BuildQueryFromId
+func (qm *TemplatedQueryManager) BuildQueryFromId(qid string, params map[string]interface{}) (string, error) {
 	template := qm.tokenisedTemplates[qid]
 
 	if template == nil {

@@ -129,7 +129,7 @@
 
 	ad := new(ArtistDetail)
 
-		if found, err := rc.SelectBindSingleQIDParams("ARTIST_DETAIL", rid, ad); found {
+		if found, err := rc.SelectBindSingleQIdParams("ARTIST_DETAIL", rid, ad); found {
 		  return ad, err
 		} else {
 		  return nil, err
@@ -139,7 +139,7 @@
 
 		ar := new(ArtistSearchResult)
 
-		if r, err := rc.SelectBindQIDParams("ARTIST_SEARCH_BASE", make(map[string]interface{}), ar); err != nil {
+		if r, err := rc.SelectBindQIdParams("ARTIST_SEARCH_BASE", make(map[string]interface{}), ar); err != nil {
 		  return nil, err
 		} else {
 		  return id.artistResults(r), nil

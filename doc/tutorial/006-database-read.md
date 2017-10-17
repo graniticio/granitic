@@ -194,7 +194,7 @@ func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.W
 
   dbc, _ := al.DbClientManager.Client()
 
-  if found, err := dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, ar); found {
+  if found, err := dbc.SelectBindSingleQIdParams("ARTIST_BY_ID", result, ar); found {
     res.Body = result
   
   } else if err != nil{
