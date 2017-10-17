@@ -19,7 +19,7 @@ import (
 )
 
 // Serialises the body of a ws.WsResponse to XML using Go templates. See https://golang.org/pkg/text/template/
-type TemplatedXMLResponseWriter struct {
+type TemplatedXmlResponseWriter struct {
 	// Injected by the framework to allow this component to write log messages
 	FrameworkLogger logging.Logger
 
@@ -51,7 +51,7 @@ type TemplatedXMLResponseWriter struct {
 }
 
 // See WsResponseWriter.Write
-func (rw *TemplatedXMLResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
+func (rw *TemplatedXmlResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
 	var ch map[string]string
 
 	if rw.HeaderBuilder != nil {
@@ -70,7 +70,7 @@ func (rw *TemplatedXMLResponseWriter) Write(ctx context.Context, state *ws.WsPro
 	return errors.New("Unsuported ws.WsOutcome value")
 }
 
-func (rw *TemplatedXMLResponseWriter) writeNormal(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXmlResponseWriter) writeNormal(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string
@@ -86,7 +86,7 @@ func (rw *TemplatedXMLResponseWriter) writeNormal(ctx context.Context, res *ws.W
 	return rw.write(ctx, res, w, ch, t)
 }
 
-func (rw *TemplatedXMLResponseWriter) write(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HttpResponseWriter, ch map[string]string, t *template.Template) error {
+func (rw *TemplatedXmlResponseWriter) write(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HttpResponseWriter, ch map[string]string, t *template.Template) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -113,7 +113,7 @@ func (rw *TemplatedXMLResponseWriter) write(ctx context.Context, res *ws.WsRespo
 
 }
 
-func (rw *TemplatedXMLResponseWriter) writeErrors(ctx context.Context, res *ws.WsResponse, se *ws.ServiceErrors, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXmlResponseWriter) writeErrors(ctx context.Context, res *ws.WsResponse, se *ws.ServiceErrors, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string
@@ -136,12 +136,12 @@ func (rw *TemplatedXMLResponseWriter) writeErrors(ctx context.Context, res *ws.W
 }
 
 // See AbnormalStatusWriter.WriteAbnormalStatus
-func (rw *TemplatedXMLResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.WsProcessState) error {
+func (rw *TemplatedXmlResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.WsProcessState) error {
 
 	return rw.Write(ctx, state, ws.Abnormal)
 }
 
-func (rw *TemplatedXMLResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXmlResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string
@@ -169,7 +169,7 @@ func (rw *TemplatedXMLResponseWriter) writeAbnormalStatus(ctx context.Context, s
 
 // Called by the IoC container. Verifies that at minimum the AbnormalTemplate and TemplateDir fields are set.
 // Parses all templates found in the TemplateDir
-func (rw *TemplatedXMLResponseWriter) StartComponent() error {
+func (rw *TemplatedXmlResponseWriter) StartComponent() error {
 
 	if rw.state != ioc.StoppedState {
 		return nil
@@ -198,7 +198,7 @@ func (rw *TemplatedXMLResponseWriter) StartComponent() error {
 	return nil
 }
 
-func (rw *TemplatedXMLResponseWriter) preLoadTemplates(baseDir string) error {
+func (rw *TemplatedXmlResponseWriter) preLoadTemplates(baseDir string) error {
 	if tp, err := rw.templatePaths(rw.TemplateDir); err != nil {
 		m := fmt.Sprintf("Problem converting template directory into a list of file paths %s: %s", baseDir, err)
 		return errors.New(m)
@@ -214,7 +214,7 @@ func (rw *TemplatedXMLResponseWriter) preLoadTemplates(baseDir string) error {
 	return nil
 }
 
-func (rw *TemplatedXMLResponseWriter) templatePaths(baseDir string) ([]string, error) {
+func (rw *TemplatedXmlResponseWriter) templatePaths(baseDir string) ([]string, error) {
 	var di []os.FileInfo
 	var err error
 

@@ -21,11 +21,11 @@ const (
 )
 
 // Creates the components required to support the XmlWs facility and adds them the IoC container.
-type XMLWsFacilityBuilder struct {
+type XmlWsFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
+func (fb *XmlWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
 
 	wc := buildAndRegisterWsCommon(lm, ca, cc)
 
@@ -51,9 +51,9 @@ func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 	return nil
 }
 
-func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
+func (fb *XmlWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
 
-	rw := new(xml.TemplatedXMLResponseWriter)
+	rw := new(xml.TemplatedXmlResponseWriter)
 	ca.Populate("XmlWs.ResponseWriter", rw)
 	cc.WrapAndAddProto(xmlResponseWriterName, rw)
 
@@ -64,7 +64,7 @@ func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccess
 
 }
 
-func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
+func (fb *XmlWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
 
 	rw := new(ws.MarshallingResponseWriter)
 	ca.Populate("XmlWs.ResponseWriter", rw)
@@ -74,17 +74,17 @@ func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccesso
 	rw.FrameworkErrors = wc.FrameworkErrors
 
 	if !cc.ModifierExists(xmlResponseWriterName, "ErrorFormatter") {
-		rw.ErrorFormatter = new(xml.GraniticXMLErrorFormatter)
+		rw.ErrorFormatter = new(xml.GraniticXmlErrorFormatter)
 	}
 
 	if !cc.ModifierExists(xmlResponseWriterName, "ResponseWrapper") {
-		wrap := new(xml.GraniticXMLResponseWrapper)
+		wrap := new(xml.GraniticXmlResponseWrapper)
 		rw.ResponseWrapper = wrap
 	}
 
 	if !cc.ModifierExists(xmlResponseWriterName, "MarshalingWriter") {
 
-		mw := new(xml.XMLMarshalingWriter)
+		mw := new(xml.XmlMarshalingWriter)
 		ca.Populate("XmlWs.Marshal", mw)
 		rw.MarshalingWriter = mw
 	}
@@ -94,11 +94,11 @@ func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccesso
 }
 
 // See FacilityBuilder.FacilityName
-func (fb *XMLWsFacilityBuilder) FacilityName() string {
+func (fb *XmlWsFacilityBuilder) FacilityName() string {
 	return "XmlWs"
 }
 
 // See FacilityBuilder.DependsOnFacilities
-func (fb *XMLWsFacilityBuilder) DependsOnFacilities() []string {
+func (fb *XmlWsFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
