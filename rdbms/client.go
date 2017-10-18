@@ -147,7 +147,7 @@ func (rc *RdbmsClient) SelectBindSingleQIdParams(qid string, target interface{},
 // SelectBindQId executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
 // are returned in a slice of the same type as the supplied template struct.
 func (rc *RdbmsClient) SelectBindQId(qid string, template interface{}) ([]interface{}, error) {
-	return rc.SelectBindQIdParams(qid, rc.emptyParams, template)
+	return rc.SelectBindQIdParams(qid, template, rc.emptyParams )
 }
 
 // SelectBindQIdParam executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
