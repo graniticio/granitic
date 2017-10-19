@@ -17,6 +17,7 @@ func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertF
 	rc.lastId = insertFunc
 	rc.emptyParams = make(map[string]interface{})
 	rc.binder = new(RowBinder)
+	rc.tempQueries = make(map[string]string)
 	return rc
 }
 

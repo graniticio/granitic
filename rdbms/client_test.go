@@ -39,6 +39,101 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func TestPassthroughs(t *testing.T) {
+
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+
+	passthroughChecks(t, c)
+
+	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c.StartTransaction()
+
+	passthroughChecks(t, c)
+
+	c.CommitTransaction()
+
+	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c.ctx = context.Background()
+
+	passthroughChecks(t, c)
+
+	c.StartTransaction()
+
+	passthroughChecks(t, c)
+
+	c.Rollback()
+
+
+}
+
+func TestTempQueries(t *testing.T) {
+
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c.RegisterTempQuery("QT","123")
+
+
+	qm.reset()
+	_, err := c.DeleteQIdParams("QT")
+
+	test.ExpectNil(t, err)
+
+	test.ExpectString(t, qm.lastQueryReturned, "")
+
+	q, err := c.BuildQueryFromQIdParams("NQ")
+	test.ExpectNil(t, err)
+
+	test.ExpectString(t, q, "NQ")
+
+}
+
+func TestFindOrCreate(t *testing.T) {
+
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+
+	p1, p2 := testStandardParams()
+
+	var id int64
+
+	err := c.ExistingIdOrInsertParams("CQ","IQ", &id, p1, p2)
+
+	if !paramMergedCorrectly(qm.lastParams) {
+		t.FailNow()
+	}
+
+	test.ExpectNil(t,err)
+
+	test.ExpectInt(t, int(id), 1)
+
+	drv.colNames = []string{"Int64Result"}
+	drv.rowData = [][]driver.Value{{int64(8)}}
+
+	err = c.ExistingIdOrInsertParams("CQ","IQ", &id, p1, p2)
+
+	test.ExpectNil(t,err)
+
+	test.ExpectInt(t, int(id), 8)
+}
+
+func passthroughChecks(t *testing.T, c *RdbmsClient) {
+	drv.consumed()
+	r, err := c.Query("TEST")
+
+	test.ExpectNil(t,err)
+	test.ExpectNotNil(t,r)
+
+	test.ExpectBool(t, r.Next(),false)
+
+	drv.colNames = []string{"Float64Result"}
+	drv.rowData = [][]driver.Value{{float64(123.1)}}
+
+	w := c.QueryRow("TEST", "A")
+	test.ExpectNotNil(t,w)
+
+	res, err := c.Exec("TEST")
+	test.ExpectNil(t,err)
+	test.ExpectNotNil(t,res)
+}
+
 func TestNonTxSelectMethodsWithCtx(t *testing.T) {
 
 	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
@@ -103,6 +198,49 @@ func TestTxDeleteMethods(t *testing.T) {
 	c.CommitTransaction()
 
 }
+
+
+
+
+func TestNonTxUpdateMethods(t *testing.T) {
+
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+
+	testUpdateMethods(t, c)
+
+}
+
+func TestNonTxUpdateMethodsWithCtx(t *testing.T) {
+
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c.ctx = context.Background()
+
+	testUpdateMethods(t, c)
+
+}
+
+func TestTxUpdateMethods(t *testing.T) {
+
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c.StartTransaction()
+	testUpdateMethods(t, c)
+	c.CommitTransaction()
+
+}
+
+func TestTxUpdateMethodsWithCtx(t *testing.T) {
+
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c.ctx = context.Background()
+	c.StartTransaction()
+	testUpdateMethods(t, c)
+	c.Rollback()
+
+}
+
+
+
+
 
 
 func TestTxInsertMethodsWithCtx(t *testing.T) {
@@ -327,6 +465,41 @@ func testDeleteMethods(t *testing.T, c *RdbmsClient) {
 
 	drv.forceError = true
 	r, err = c.DeleteQIdParams("DQPs", p1, p2)
+	test.ExpectNotNil(t, err)
+	test.ExpectNil(t,r)
+
+
+}
+
+func testUpdateMethods(t *testing.T, c *RdbmsClient) {
+
+	p1, p2 := testStandardParams()
+
+	r, err := c.UpdateQIdParam("DQP", "p1", "v1")
+	test.ExpectNil(t, err)
+
+	ra, _ := r.RowsAffected()
+
+	test.ExpectInt(t, int(ra), 1)
+
+	drv.forceError = true
+	r, err = c.UpdateQIdParam("DQP", "p1", "v1")
+	test.ExpectNotNil(t, err)
+	test.ExpectNil(t,r)
+
+	r, err = c.UpdateQIdParams("DQPs", p1, p2)
+	test.ExpectNil(t, err)
+	ra, _ = r.RowsAffected()
+
+	test.ExpectInt(t, int(ra), 1)
+
+	if !paramMergedCorrectly(qm.lastParams) {
+		t.FailNow()
+	}
+
+
+	drv.forceError = true
+	r, err = c.UpdateQIdParams("DQPs", p1, p2)
 	test.ExpectNotNil(t, err)
 	test.ExpectNil(t,r)
 
@@ -577,24 +750,32 @@ type testParam struct {
 
 type testQueryManagerProxy struct {
 	lastParams map[string]interface{}
+	lastQueryReturned string
 }
 
 func (tqm *testQueryManagerProxy) reset() {
 	tqm.lastParams = nil
+	tqm.lastQueryReturned = ""
 }
 
 func (tqm *testQueryManagerProxy) BuildQueryFromId(qid string, params map[string]interface{}) (string, error) {
 	tqm.lastParams = params
 
 	if qid == "ERROR"{
+		tqm.lastQueryReturned = ""
 		return "", errors.New("Forced error")
 	}
+
+	tqm.lastQueryReturned = qid
 
 	return qid, nil
 
 }
 
 func (tqm *testQueryManagerProxy) FragmentFromId(qid string) (string, error) {
+
+	tqm.lastQueryReturned = qid
+
 	return qid, nil
 }
 
@@ -681,6 +862,8 @@ func (s* mockStmt) Exec(args []driver.Value) (driver.Result, error) {
 	mr := new(mockResult)
 	mr.ra = 1
 	mr.lid = 1
+
+	drv.consumed()
 
 	return mr, nil
 }
