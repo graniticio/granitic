@@ -10,17 +10,20 @@ import (
 	"io"
 	"github.com/graniticio/granitic/test"
 	"time"
+	"github.com/graniticio/granitic/reflecttools"
 )
 
 
 var db *sql.DB
 var drv *mockDriver
+var qm *testQueryManagerProxy
 
 func TestMain(m *testing.M) {
 
 	var err error
 
 	drv = new(mockDriver)
+	qm = new(testQueryManagerProxy)
 
 	sql.Register("grnc-mock", drv)
 
@@ -36,38 +39,32 @@ func TestMain(m *testing.M) {
 
 func TestNonTxSelectMethods(t *testing.T) {
 
-	qm := new(testQueryManagerProxy)
-	p1, p2 := testStandardParams()
-
 	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
 
-	drv.colNames = []string{"StrResult"}
-	drv.rowData = [][]driver.Value{{"okay"}}
+	testSelectMethods(t, c)
+
+}
+
+func TestTxSelectMethods(t *testing.T) {
+
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c.StartTransaction()
+	testSelectMethods(t, c)
+	c.CommitTransaction()
+
+}
+
+func testSelectMethods(t *testing.T, c *RdbmsClient) {
+
+	p1, p2 := testStandardParams()
 
 
-	bt := new(testTarget)
 
-	found, err := c.SelectBindSingleQIdParams("SBSQP", bt, p1, p2)
-
-	test.ExpectNil(t, err)
-	test.ExpectBool(t, found, true)
-	test.ExpectString(t, bt.StrResult, "okay")
-
-	if !paramMergedCorrectly(qm.lastParams) {
-		t.FailNow()
-	}
-
-	//Expect no results
-	found, err = c.SelectBindSingleQIdParams("SBSQP", bt, p1, p2)
-
-	test.ExpectNil(t, err)
-	test.ExpectBool(t, found, false)
-
-
+	//SelectBindQId
 	drv.colNames = []string{"Int64Result"}
 	drv.rowData = [][]driver.Value{{int64(45)},{int64(32)}}
 
-	bt = new(testTarget)
+	bt := new(testTarget)
 	results, err := c.SelectBindQId("SBQ", bt)
 
 	test.ExpectNil(t, err)
@@ -81,7 +78,140 @@ func TestNonTxSelectMethods(t *testing.T) {
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(results), 0)
 
+
+	//SelectBindQIdParam
+	drv.colNames = []string{"Float64Result"}
+	drv.rowData = [][]driver.Value{{float64(123.1)}}
+
+	results, err = c.SelectBindQIdParam("SBQP", "p1", "v1", bt)
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(results), 1)
+
+	test.ExpectFloat(t, results[0].(*testTarget).Float64Result, float64(123.1))
+
+	test.ExpectInt(t, len(qm.lastParams), 1)
+	test.ExpectString(t, qm.lastParams["p1"].(string), "v1")
+
+	results, err = c.SelectBindQIdParam("SBQP", "p1", "v1", bt)
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(results), 0)
+
+
+	//SelectBindQIdParams
+	drv.colNames = []string{"BoolResult"}
+	drv.rowData = [][]driver.Value{{true},{false},{true}}
+
+	results, err = c.SelectBindQIdParams("SBQPs", bt, p1, p2)
+
+	test.ExpectNil(t, err)
+	test.ExpectInt(t, len(results), 3)
+
+	test.ExpectBool(t, results[2].(*testTarget).BoolResult, true)
+
+	if !paramMergedCorrectly(qm.lastParams) {
+		t.FailNow()
+	}
+
+
+	//SelectBindSingleQId
+	drv.colNames = []string{"TimeResult"}
+
+
+	drv.rowData = [][]driver.Value{{time.Now()}}
+
+	bt = new(testTarget)
+
+	found, err := c.SelectBindSingleQId("SBSQ", bt)
+
+	test.ExpectNil(t, err)
+	test.ExpectBool(t, found, true)
+	test.ExpectBool(t, reflecttools.IsZero(bt.TimeResult), false)
+
+	bt = new(testTarget)
+
+	found, err = c.SelectBindSingleQId("SBSQ", bt)
+	test.ExpectNil(t, err)
+	test.ExpectBool(t, found, false)
+	test.ExpectBool(t, reflecttools.IsZero(bt.TimeResult), true)
+
+
+	//SelectBindSingleQIdParam
+	drv.colNames = []string{"StrResult", "Int64Result"}
+	drv.rowData = [][]driver.Value{{"okay", int64(1)},{"not",int64(2)}}
+
+	bt = new(testTarget)
+
+	found, err = c.SelectBindSingleQIdParam("SBSQ", "p1", "v1", bt)
+	test.ExpectNotNil(t, err)
+	test.ExpectInt(t, len(qm.lastParams), 1)
+	test.ExpectString(t, qm.lastParams["p1"].(string), "v1")
+
+	drv.colNames = []string{"StrResult", "Int64Result"}
+	drv.rowData = [][]driver.Value{{"okay", int64(1)}}
+
+	found, err = c.SelectBindSingleQIdParam("SBSQ", "p1", "v1", bt)
+
+	test.ExpectNil(t, err)
+	test.ExpectBool(t, found, true)
+
+
+	test.ExpectInt(t, int(bt.Int64Result), 1)
+	test.ExpectString(t, bt.StrResult, "okay")
+
+
+	//SelectBindSingleQIdParams
+	drv.colNames = []string{"StrResult"}
+	drv.rowData = [][]driver.Value{{"okay"}}
+
+
+	bt = new(testTarget)
+	found, err = c.SelectBindSingleQIdParams("SBSQP", bt, p1, p2)
+
+	test.ExpectNil(t, err)
+	test.ExpectBool(t, found, true)
+	test.ExpectString(t, bt.StrResult, "okay")
+
+	if !paramMergedCorrectly(qm.lastParams) {
+		t.FailNow()
+	}
+
+	found, err = c.SelectBindSingleQIdParams("SBSQP", bt, p1, p2)
+
+	test.ExpectNil(t, err)
+	test.ExpectBool(t, found, false)
+
+
+	//SelectQId
+	drv.colNames = []string{"StrResult"}
+	drv.rowData = [][]driver.Value{{"okay"}}
+
+	r, err := c.SelectQId("SQ")
+
+	test.ExpectNil(t, err)
+	test.ExpectBool(t, r.Next(), true)
+
+
+	//SelectQIdParam
+	drv.colNames = []string{"StrResult"}
+	drv.rowData = [][]driver.Value{{"okay","not"}}
+	r, err = c.SelectQIdParam("SQP", "p1", "v1")
+	test.ExpectNil(t, err)
+	test.ExpectBool(t, r.Next(), true)
+	test.ExpectBool(t, r.Next(), true)
+
+
+	//SelectQIdParams
+	drv.colNames = []string{"StrResult"}
+	drv.rowData = [][]driver.Value{{"okay","not"}}
+
+
+	r, err = c.SelectQIdParams("SQPs", p1, p2)
+	test.ExpectNil(t, err)
+	test.ExpectBool(t, r.Next(), true)
+	test.ExpectBool(t, r.Next(), true)
 }
+
 
 func testStandardParams() (interface{}, interface{}){
 
@@ -195,7 +325,7 @@ func (c *mockConn) Close() error {
 }
 
 func (c *mockConn) Begin() (driver.Tx, error) {
-	return nil, nil
+	return new(mockTx), nil
 }
 
 
@@ -269,5 +399,17 @@ func (r *mockRows) Next(dest []driver.Value) error {
 
 	r.served += 1
 
+	return nil
+}
+
+type mockTx struct {
+
+}
+
+func (t *mockTx) Commit() error {
+	return nil
+}
+
+func (t *mockTx) Rollback() error {
 	return nil
 }

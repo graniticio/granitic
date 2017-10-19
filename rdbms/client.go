@@ -10,7 +10,7 @@ import (
 	"context"
 )
 
-func newRdbmsClient(database dbProxy, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedId) *RdbmsClient {
+func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedId) *RdbmsClient {
 	rc := new(RdbmsClient)
 	rc.db = database
 	rc.queryManager = querymanager
@@ -25,9 +25,9 @@ func newRdbmsClient(database dbProxy, querymanager dsquery.QueryManager, insertF
 //
 // RdbmsClient is stateful and MUST NOT be shared across goroutines
 type RdbmsClient struct {
-	db           dbProxy
+	db           *sql.DB
 	queryManager dsquery.QueryManager
-	tx           txProxy
+	tx           *sql.Tx
 	lastId       InsertWithReturnedId
 	tempQueries  map[string]string
 	emptyParams  map[string]interface{}
@@ -115,7 +115,7 @@ func (rc *RdbmsClient) InsertCaptureQIdParams(qid string, target *int64, params 
 // SelectBindSingleQId executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
 // Results of the query are bound into the target struct. Returns false if no rows were found.
 func (rc *RdbmsClient) SelectBindSingleQId(qid string, target interface{}) (bool, error) {
-	return rc.SelectBindSingleQIdParams(qid, rc.emptyParams, target)
+	return rc.SelectBindSingleQIdParams(qid, target, rc.emptyParams)
 }
 
 // SelectBindSingleQIdParam executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
@@ -156,7 +156,7 @@ func (rc *RdbmsClient) SelectBindQIdParam(qid string, name string, value interfa
 	p := make(map[string]interface{})
 	p[name] = value
 
-	return rc.SelectBindQIdParams(qid, p, template)
+	return rc.SelectBindQIdParams(qid, template, p)
 }
 
 // SelectBindQIdParams executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
