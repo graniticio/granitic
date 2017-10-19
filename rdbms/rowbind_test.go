@@ -6,6 +6,7 @@ import (
 	"github.com/graniticio/granitic/test"
 	"fmt"
 	"github.com/graniticio/granitic/types"
+	"database/sql/driver"
 )
 
 func TestScan(t *testing.T) {
@@ -159,5 +160,125 @@ func TestNilable(t *testing.T) {
 	test.ExpectBool(t, f, true)
 	test.ExpectBool(t, f, nb.IsSet())
 	test.ExpectString(t, ns.String(), "XX")
+
+}
+
+func TestBindRowBasicErrors (t *testing.T) {
+
+	rb := new(RowBinder)
+
+	tar := new(testTarget)
+
+	f, err := rb.BindRow(nil, tar)
+
+	test.ExpectBool(t, f, false)
+	test.ExpectNotNil(t, err)
+
+	drv.colNames = []string{"StrResult"}
+	drv.rowData = [][]driver.Value{{"okay"}}
+
+	r, err := db.Query("")
+	test.ExpectNotNil(t, r)
+
+	f, err = rb.BindRow(r, "")
+	test.ExpectBool(t, f, false)
+	test.ExpectNotNil(t, err)
+
+
+	drv.colNames = []string{"StrResult"}
+	drv.rowData = [][]driver.Value{{"okay"},{"not"}}
+
+	r, err = db.Query("")
+	test.ExpectNotNil(t, r)
+
+	f, err = rb.BindRow(r, tar)
+	test.ExpectBool(t, f, false)
+	test.ExpectNotNil(t, err)
+
+}
+
+func TestScanIntoNative (t *testing.T) {
+
+	rb := new(RowBinder)
+
+	drv.colNames = []string{"StrResult"}
+	drv.rowData = [][]driver.Value{{"okay"}}
+
+	r, err := db.Query("")
+	test.ExpectNil(t, err)
+	test.ExpectNotNil(t, r)
+
+	var tar string
+
+	f, err := rb.BindRow(r, &tar)
+	test.ExpectBool(t, f, true)
+	test.ExpectNil(t, err)
+	test.ExpectString(t, tar, "okay")
+
+
+}
+
+func TestBindRowsBasicErrors (t *testing.T) {
+
+	rb := new(RowBinder)
+
+	tar := new(testTarget)
+
+	//Nil results
+	drv.colNames = []string{"StrResult"}
+	drv.rowData = [][]driver.Value{{"okay"}}
+
+	res, err := rb.BindRows(nil, tar)
+
+	test.ExpectBool(t, len(res) == 0, true)
+	test.ExpectNotNil(t, err)
+
+	//Non ptr-struct target
+	drv.colNames = []string{"StrResult"}
+	drv.rowData = [][]driver.Value{{"okay"}}
+
+	r, err := db.Query("")
+	test.ExpectNotNil(t, r)
+
+	res, err = rb.BindRows(r, *tar)
+	test.ExpectNotNil(t, err)
+
+
+	//Closed results
+	drv.colNames = []string{"StrResult"}
+	drv.rowData = [][]driver.Value{{"okay"}}
+
+	r, err = db.Query("")
+	r.Close()
+	test.ExpectNotNil(t, r)
+
+	res, err = rb.BindRows(r, tar)
+	test.ExpectNotNil(t, err)
+
+
+	//No matching target
+	drv.colNames = []string{"XXXResult"}
+	drv.rowData = [][]driver.Value{{"okay"}}
+
+	r, err = db.Query("")
+	test.ExpectNotNil(t, r)
+
+	res, err = rb.BindRows(r, tar)
+	test.ExpectNotNil(t, err)
+
+
+
+	//Unsupported target
+
+	drv.colNames = []string{"StructResult"}
+	drv.rowData = [][]driver.Value{{[]byte{byte('a')}}}
+
+	r, err = db.Query("")
+	test.ExpectNotNil(t, r)
+
+	res, err = rb.BindRows(r, tar)
+	test.ExpectNotNil(t, err)
+
+	fmt.Println(err)
 
 }

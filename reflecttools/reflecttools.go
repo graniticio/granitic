@@ -122,6 +122,13 @@ func IsPointerToStruct(p interface{}) bool {
 	return true
 }
 
+func IsPointer(p interface{}) bool {
+	pv := reflect.ValueOf(p)
+	pvk := pv.Kind()
+
+	return pvk == reflect.Ptr
+}
+
 // HasFieldOfName assumes the supplied interface is a pointer to a struct and checks to see if the underlying struct
 // has a field of the supplied name. It does not check to see if the field is writable.
 func HasFieldOfName(i interface{}, fieldName string) bool {

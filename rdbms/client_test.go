@@ -737,6 +737,8 @@ type testTarget struct {
 	BoolResult bool
 	ByteArrayResult []byte
 	TimeResult time.Time
+	Aliased string "column: ColumnAlias"
+	StructResult testParam
 }
 
 type testParam struct {

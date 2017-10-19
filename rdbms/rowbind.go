@@ -34,12 +34,16 @@ func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 
 	if !rt.IsPointerToStruct(t) {
 
-		if r.Next() {
-			return true, r.Scan(t)
+		if rt.IsPointer(t) {
+			if r.Next() {
+				return true, r.Scan(t)
+			}
+
+			return false, nil
+		} else {
+			m := fmt.Sprintf("Target must be a pointer to a struct or pointer. Is %T", t)
+			return false, errors.New(m)
 		}
-
-		return false, nil
-
 	}
 
 	if results, err := rb.BindRows(r, t); err != nil {
@@ -109,9 +113,8 @@ func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error)
 
 	colCount := len(columnNames)
 
-	if targetScanners, err = rb.generateTargets(t); err != nil {
-		return nil, err
-	}
+	targetScanners = rb.generateTargets(t)
+
 
 	scanners := make([]interface{}, colCount)
 
@@ -188,13 +191,14 @@ func (rb *RowBinder) buildAndPopulate(t interface{}, scanners []interface{}) (r 
 
 }
 
-func (rb *RowBinder) generateTargets(t interface{}) (map[string]*scanner, error) {
+func (rb *RowBinder) generateTargets(t interface{}) (map[string]*scanner) {
 
 	targets := make(map[string]*scanner)
 
 	rv := reflect.ValueOf(t).Elem()
 	rt := reflect.TypeOf(t).Elem()
 
+	FieldLoop:
 	for i := 0; i < rt.NumField(); i++ {
 		f := rt.Field(i)
 		alias := f.Tag.Get("column")
@@ -211,7 +215,7 @@ func (rb *RowBinder) generateTargets(t interface{}) (map[string]*scanner, error)
 
 				i := fv.Interface()
 
-				switch t := i.(type) {
+				switch i.(type) {
 
 				case *types.NilableBool:
 					s.nilable = NilBool
@@ -222,9 +226,8 @@ func (rb *RowBinder) generateTargets(t interface{}) (map[string]*scanner, error)
 				case *types.NilableInt64:
 					s.nilable = NilInt
 				default:
-					m := fmt.Sprintf("Unsupported type %T on target objects.", t)
-					return nil, errors.New(m)
-
+					//Ignore other fields
+					continue FieldLoop
 				}
 
 			}
@@ -239,7 +242,7 @@ func (rb *RowBinder) generateTargets(t interface{}) (map[string]*scanner, error)
 		}
 	}
 
-	return targets, nil
+	return targets
 }
 
 type nilableType int
