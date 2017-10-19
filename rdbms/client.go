@@ -41,8 +41,8 @@ func (rc *RdbmsClient) FindFragment(qid string) (string, error) {
 	return rc.queryManager.FragmentFromId(qid)
 }
 
-// BuildQueryQIdParams returns a populated SQL query that can be manually executed later.
-func (rc *RdbmsClient) BuildQueryQIdParams(qid string, p ...interface{}) (string, error) {
+// BuildQueryFromQIdParams returns a populated SQL query that can be manually executed later.
+func (rc *RdbmsClient) BuildQueryFromQIdParams(qid string, p ...interface{}) (string, error) {
 
 	if pm, err := ParamsFromFieldsOrTags(p...); err != nil {
 		return "", err
@@ -124,7 +124,7 @@ func (rc *RdbmsClient) SelectBindSingleQIdParam(qid string, name string, value i
 	p := make(map[string]interface{})
 	p[name] = value
 
-	return rc.SelectBindSingleQIdParams(qid, p, target)
+	return rc.SelectBindSingleQIdParams(qid, target, p)
 }
 
 // SelectBindSingleQIdParams executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.

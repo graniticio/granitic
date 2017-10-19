@@ -58,6 +58,7 @@ func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 		}
 
 		tr := reflect.ValueOf(t).Elem()
+
 		rr := reflect.ValueOf(results[0]).Elem()
 
 		for i := 0; i < tr.NumField(); i++ {
@@ -144,16 +145,20 @@ func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error)
 			return nil, err
 		}
 
-		results = append(results, rb.buildAndPopulate(t, scanners))
+		if built, err := rb.buildAndPopulate(t, scanners);err != nil {
+			return nil, err
+		} else {
+			results = append(results, built)
+		}
 
 	}
 
 	return results, nil
 }
 
-func (rb *RowBinder) buildAndPopulate(t interface{}, scanners []interface{}) interface{} {
+func (rb *RowBinder) buildAndPopulate(t interface{}, scanners []interface{}) (r interface{}, err error) {
 
-	r := reflect.New(reflect.TypeOf(t).Elem()).Interface()
+	r = reflect.New(reflect.TypeOf(t).Elem()).Interface()
 
 	rv := reflect.ValueOf(r).Elem()
 
@@ -164,12 +169,22 @@ func (rb *RowBinder) buildAndPopulate(t interface{}, scanners []interface{}) int
 		f := rv.FieldByName(v.field)
 
 		if v.val != nil {
-			f.Set(reflect.ValueOf(v.val))
+
+			pv := reflect.ValueOf(v.val)
+
+			defer func() {
+				if r := recover(); r != nil {
+					err = errors.New(fmt.Sprintf("Unable to set field %s with value of type %T\n", v.field, pv.Interface()))
+				}
+			}()
+
+
+			f.Set(pv)
 		}
 
 	}
 
-	return r
+	return r, err
 
 }
 
