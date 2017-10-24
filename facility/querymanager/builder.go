@@ -66,6 +66,11 @@
 	above, query Id RECORD_INSERT defines three parameters catRef, recordName, artistID. The query manager can be supplied with a map
 	containing keys that match those parameter names and will populate the template with the values associated with those keys.
 
+	Required parameters
+
+	If you put a ! character before a parameter name in your template (e.g. ${!artistID}), an error will be returned if that parameter is
+	not available when a query is built.
+
 	Parameter Values
 
 	Parameter values are injected into the query using a component called a ParamValueProcessor. Granitic includes two
