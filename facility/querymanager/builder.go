@@ -65,6 +65,16 @@
 	A query template may optionally include parameters. Any string inside a ${} structure is considered a parameter name. In the example
 	above, query Id RECORD_INSERT defines three parameters catRef, recordName, artistID. The query manager can be supplied with a map
 	containing keys that match those parameter names and will populate the template with the values associated with those keys.
+
+	Parameter Values
+
+	Parameter values are injected into the query using a component called a ParamValueProcessor. Granitic includes two
+	built-in implementations - ConfigurableProcessor and SqlProcessor. These components a) decide how to handle missing parameter
+	values and b) perform any escaping/subsititution/conversion of values before they are injected into the query.
+
+	To enable one of the default processors, set QueryManager.ProcessorName to configurable or sql (the default is configurable). If
+	you want to implement your own processer, set QueryManager.CreateDefaultValueProcessor to false and define a component that
+	implements ParamValueProcessor
 */
 package querymanager
 
@@ -83,6 +93,9 @@ const QueryManagerComponentName = instance.FrameworkPrefix + "QueryManager"
 // The name of the facility
 const QueryManagerFacilityName = "QueryManager"
 
+
+const processorDecorator = instance.FrameworkPrefix + "ParamValueProcessorDecorator"
+
 // Creates an instance of dsquery.QueryManager and stores it in the IoC container.
 type QueryManagerFacilityBuilder struct {
 }
@@ -97,6 +110,12 @@ func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentL
 
 	if build, _ := ca.BoolVal("QueryManager.CreateDefaultValueProcessor"); build == false {
 		//Construction of stock value processor has been disabled
+
+		vpd := new(valueProcessorDecorator)
+		vpd.QueryManager = queryManager
+		cn.WrapAndAddProto(processorDecorator, vpd)
+
+
 		return nil
 	}
 
@@ -138,4 +157,25 @@ func (qmfb *QueryManagerFacilityBuilder) FacilityName() string {
 // See FacilityBuilder.DependsOnFacilities
 func (qmfb *QueryManagerFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
+}
+
+
+// Finds ValueProccessor implementations and injects them into the QueryManager
+type valueProcessorDecorator struct {
+	QueryManager *dsquery.TemplatedQueryManager
+}
+
+func (vpd *valueProcessorDecorator) OfInterest(component *ioc.Component) bool {
+
+	ci := component.Instance
+
+	_, found := ci.(dsquery.ParamValueProcessor)
+
+	return found
+
+
+}
+
+func (vpd *valueProcessorDecorator)DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+	vpd.QueryManager.ValueProcessor , _ = component.Instance.(dsquery.ParamValueProcessor)
 }

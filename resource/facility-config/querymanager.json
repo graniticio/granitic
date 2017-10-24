@@ -11,6 +11,10 @@
       "configurable": {
         "WrapStrings": true,
         "StringWrapWith": "'"
+      },
+      "sql": {
+        "BoolFalse": 0,
+        "BoolTrue": 1
       }
     }
   }

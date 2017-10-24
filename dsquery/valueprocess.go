@@ -79,12 +79,44 @@ func (cp *ConfigurableProcessor) SubstituteUnset(v *ParamValueContext) error {
 	return nil
 }
 
-
+// SqlProcessor replaces missing values with the word null, wraps strings with single quotes and
+// replaces bool values with the value the BoolTrue and BoolFalse members
 type SqlProcessor struct {
-
+	BoolTrue interface{}
+	BoolFalse interface{}
 }
 
 func (sp *SqlProcessor) EscapeParamValue(v *ParamValueContext) {
+	switch t := v.Value.(type) {
+	case string:
+		sp.escapeString(v, t)
+	case types.NilableString:
+		sp.escapeString(v, t.String())
+	case *types.NilableString:
+		sp.escapeString(v, t.String())
+	case bool:
+		sp.replaceBool(v, t)
+	case types.NilableBool:
+		sp.replaceBool(v, t.Bool())
+	case *types.NilableBool:
+		sp.replaceBool(v, t.Bool())
+	}
+}
+
+func (sp *SqlProcessor) escapeString(v *ParamValueContext, o string) {
+
+	if !v.Escaped {
+		v.Value = fmt.Sprintf("'%s'", o)
+	}
+}
+
+func (sp *SqlProcessor) replaceBool(v *ParamValueContext, o bool) {
+
+	if o {
+		v.Value = sp.BoolTrue
+	} else {
+		v.Value = sp.BoolFalse
+	}
 
 }
 

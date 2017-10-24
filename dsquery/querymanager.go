@@ -31,6 +31,9 @@ import (
 	"strings"
 )
 
+const requiredPrefix = "!"
+
+
 // A QueryManager is a type that is able to populate a pre-defined template query given a set of named parameters
 // and return a complete query ready for execution against some data source.
 type QueryManager interface {
@@ -140,11 +143,19 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 				log.LogTracef("Processing parameter %s", key)
 			}
 
-			paramValue := params[token.Content]
+
+
+			required := strings.HasPrefix(key, requiredPrefix)
+
+			if required {
+				key = strings.Replace(key, requiredPrefix, "", 1)
+			}
+
+			paramValue := params[key]
 
 			vc := ParamValueContext{
 				Value: paramValue,
-				Key: token.Content,
+				Key: key,
 				QueryId: qid,
 			}
 
@@ -152,6 +163,10 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 
 				if trace {
 					log.LogTracef("Parameter %s is unset", key)
+				}
+
+				if required {
+					return "", errors.New(fmt.Sprintf("Parameter %s is required for query %s but has not been set", key, qid))
 				}
 
 				if err := vp.SubstituteUnset(&vc); err != nil {
@@ -167,7 +182,7 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 
 			switch t := vc.Value.(type) {
 			default:
-				return "", errors.New(fmt.Sprintf("TemplatedQueryManager: Value for parameter %s is not a supported type. (type is %T)", token.Content, t))
+				return "", errors.New(fmt.Sprintf("TemplatedQueryManager: Value for parameter %s is not a supported type. (type is %T)", key, t))
 			case string:
 				b.WriteString(t)
 			case *types.NilableString:
