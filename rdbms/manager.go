@@ -263,6 +263,9 @@ type GraniticRdbmsClientManager struct {
 
 	// Injected by Granitic.
 	FrameworkLogger    logging.Logger
+
+	SharedLog logging.Logger
+
 	state              ioc.ComponentState
 	candidateProviders []*ioc.Component
 }
@@ -313,7 +316,7 @@ func (cm *GraniticRdbmsClientManager) Client() (*RdbmsClient, error) {
 		return nil, err
 	}
 
-	return newRdbmsClient(db, cm.QueryManager, cm.chooseInsertFunction()), nil
+	return newRdbmsClient(db, cm.QueryManager, cm.chooseInsertFunction(), cm.SharedLog), nil
 }
 
 // See RdbmsClientManager.ClientFromContext
@@ -338,7 +341,7 @@ func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*R
 		}
 	}
 
-	rc := newRdbmsClient(db, cm.QueryManager, cm.chooseInsertFunction())
+	rc := newRdbmsClient(db, cm.QueryManager, cm.chooseInsertFunction(), cm.SharedLog)
 	rc.ctx = ctx
 
 	return rc, nil

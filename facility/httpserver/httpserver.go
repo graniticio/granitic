@@ -301,7 +301,9 @@ func (h *HttpServer) versionMatch(r *http.Request, p httpendpoint.HttpEndpointPr
 func (h *HttpServer) PrepareToStop() {
 	h.state = ioc.StoppingState
 
-	h.server.Shutdown(context.Background())
+	if h.server != nil {
+		h.server.Shutdown(context.Background())
+	}
 
 }
 
@@ -326,7 +328,9 @@ func (h *HttpServer) Stop() error {
 
 	h.state = ioc.StoppedState
 
-	h.server.Close()
+	if h.server != nil {
+		h.server.Close()
+	}
 
 	return nil
 }

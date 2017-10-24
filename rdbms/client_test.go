@@ -13,6 +13,7 @@ import (
 	"github.com/graniticio/granitic/reflecttools"
 	"context"
 	"github.com/pkg/errors"
+	"github.com/graniticio/granitic/logging"
 )
 
 
@@ -41,18 +42,18 @@ func TestMain(m *testing.M) {
 
 func TestPassthroughs(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	passthroughChecks(t, c)
 
-	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.StartTransaction()
 
 	passthroughChecks(t, c)
 
 	c.CommitTransaction()
 
-	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	passthroughChecks(t, c)
@@ -68,7 +69,7 @@ func TestPassthroughs(t *testing.T) {
 
 func TestTempQueries(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.RegisterTempQuery("QT","123")
 
 
@@ -88,7 +89,7 @@ func TestTempQueries(t *testing.T) {
 
 func TestFindOrCreate(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	p1, p2 := testStandardParams()
 
@@ -136,7 +137,7 @@ func passthroughChecks(t *testing.T, c *RdbmsClient) {
 
 func TestNonTxSelectMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	testSelectMethods(t, c)
@@ -146,7 +147,7 @@ func TestNonTxSelectMethodsWithCtx(t *testing.T) {
 
 func TestNonTxSelectMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	testSelectMethods(t, c)
 
@@ -155,7 +156,7 @@ func TestNonTxSelectMethods(t *testing.T) {
 
 func TestTxSelectMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.StartTransaction()
 	testSelectMethods(t, c)
 	c.CommitTransaction()
@@ -164,7 +165,7 @@ func TestTxSelectMethods(t *testing.T) {
 
 func TestTxSelectMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 	c.StartTransaction()
 	testSelectMethods(t, c)
@@ -175,7 +176,7 @@ func TestTxSelectMethodsWithCtx(t *testing.T) {
 
 func TestNonTxDeleteMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	testDeleteMethods(t, c)
 
@@ -183,7 +184,7 @@ func TestNonTxDeleteMethods(t *testing.T) {
 
 func TestNonTxDeleteMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	testDeleteMethods(t, c)
@@ -192,7 +193,7 @@ func TestNonTxDeleteMethodsWithCtx(t *testing.T) {
 
 func TestTxDeleteMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.StartTransaction()
 	testDeleteMethods(t, c)
 	c.CommitTransaction()
@@ -204,7 +205,7 @@ func TestTxDeleteMethods(t *testing.T) {
 
 func TestNonTxUpdateMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	testUpdateMethods(t, c)
 
@@ -212,7 +213,7 @@ func TestNonTxUpdateMethods(t *testing.T) {
 
 func TestNonTxUpdateMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	testUpdateMethods(t, c)
@@ -221,7 +222,7 @@ func TestNonTxUpdateMethodsWithCtx(t *testing.T) {
 
 func TestTxUpdateMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.StartTransaction()
 	testUpdateMethods(t, c)
 	c.CommitTransaction()
@@ -230,7 +231,7 @@ func TestTxUpdateMethods(t *testing.T) {
 
 func TestTxUpdateMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 	c.StartTransaction()
 	testUpdateMethods(t, c)
@@ -245,7 +246,7 @@ func TestTxUpdateMethodsWithCtx(t *testing.T) {
 
 func TestTxInsertMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	c.StartTransaction()
@@ -256,7 +257,7 @@ func TestTxInsertMethodsWithCtx(t *testing.T) {
 
 func TestNonTxInsertMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	testInsertMethods(t, c)
 
@@ -264,7 +265,7 @@ func TestNonTxInsertMethods(t *testing.T) {
 
 func TestNonTxInsertMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	testInsertMethods(t, c)
@@ -273,7 +274,7 @@ func TestNonTxInsertMethodsWithCtx(t *testing.T) {
 
 func TestTxInsertMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.StartTransaction()
 	testInsertMethods(t, c)
 	c.CommitTransaction()
@@ -282,7 +283,7 @@ func TestTxInsertMethods(t *testing.T) {
 
 func TestTxDeleteMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	c.StartTransaction()
@@ -293,7 +294,7 @@ func TestTxDeleteMethodsWithCtx(t *testing.T) {
 
 func TestTransactionBehaviour(t *testing.T){
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	err := c.CommitTransaction()
 
@@ -311,7 +312,7 @@ func TestTransactionBehaviour(t *testing.T){
 	err = c.StartTransaction()
 	test.ExpectNotNil(t, err)
 
-	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	err = c.StartTransactionWithOptions(new(sql.TxOptions))
 	test.ExpectNil(t, err)
@@ -328,7 +329,7 @@ func TestTransactionBehaviour(t *testing.T){
 	err = c.StartTransactionWithOptions(new(sql.TxOptions))
 	test.ExpectNotNil(t, err)
 
-	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	err = c.CommitTransaction()
@@ -355,7 +356,7 @@ func TestTransactionBehaviour(t *testing.T){
 
 func TestFragmentFinding(t *testing.T){
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	v, err := c.FindFragment("AAA")
 
@@ -367,7 +368,7 @@ func TestFragmentFinding(t *testing.T){
 
 func TestBuildQuery(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	p1, p2 := testStandardParams()
 
@@ -390,7 +391,7 @@ func TestBuildQuery(t *testing.T) {
 
 func TestIllegalResultContents(t *testing.T){
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId)
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	//SelectBindSingleQId
 	drv.colNames = []string{"TimeResult"}

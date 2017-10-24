@@ -74,6 +74,7 @@ import (
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/pkg/errors"
 )
 
 // The name of the query manager in the IoC container.
@@ -93,6 +94,38 @@ func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentL
 	ca.Populate("QueryManager", queryManager)
 
 	cn.WrapAndAddProto(QueryManagerComponentName, queryManager)
+
+	if build, _ := ca.BoolVal("QueryManager.CreateDefaultValueProcessor"); build == false {
+		//Construction of stock value processor has been disabled
+		return nil
+	}
+
+	vpName, err := ca.StringVal("QueryManager.ProcessorName")
+
+	if err != nil || (vpName != "configurable" && vpName != "sql") {
+		return errors.New("QueryManager.ProcessorName must be set to 'configurable' or 'sql' if you want to use a stock ValueProcessor")
+	}
+
+	vpConfig := "QueryManager.valueProcessors." + vpName
+
+	if !ca.PathExists(vpConfig) {
+		return errors.New("Missing configuration path for ValueProcessor: " + vpConfig)
+	}
+
+	var vp dsquery.ParamValueProcessor
+
+	if vpName == "configurable" {
+		vp = new(dsquery.ConfigurableProcessor)
+	} else if vpName == "sql" {
+
+		vp = new(dsquery.SqlProcessor)
+
+	}
+
+	ca.Populate(vpConfig, vp)
+
+	queryManager.ValueProcessor = vp
+
 
 	return nil
 }

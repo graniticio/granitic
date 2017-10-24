@@ -26,6 +26,7 @@ import (
 const rdbmsClientManagerName = instance.FrameworkPrefix + "RdbmsClientManager"
 const providerDecorator = instance.FrameworkPrefix + "DbProviderDecorator"
 const managerDecorator = instance.FrameworkPrefix + "DbClientManagerDecorator"
+const sharedClientLog = instance.FrameworkPrefix + "RdbmsClient"
 
 // Creates an instance of rdbms.RDBMSClientManager that can be injected into your application components.
 type RdbmsAccessFacilityBuilder struct {
@@ -57,6 +58,8 @@ func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLo
 	md.manager = manager
 
 	cn.WrapAndAddProto(managerDecorator, md)
+
+	manager.SharedLog = lm.CreateLogger(sharedClientLog)
 
 	return nil
 

@@ -57,6 +57,8 @@ func NewTemplatedQueryManager() *TemplatedQueryManager {
 // on demand with maps of named parameters. This is the implementation provided by the QueryManager facility. See
 // http://granitic.io/1.0/ref/query-manager for details.
 type TemplatedQueryManager struct {
+
+
 	// The path to a folder where template files are stored.
 	TemplateLocation string
 
@@ -73,12 +75,11 @@ type TemplatedQueryManager struct {
 	// Whether or not query IDs should have leading and trailing whitespace removed.
 	TrimIdWhiteSpace bool
 
-	// Whether string parameters should have their contents wrapped with the string defined in StringWrapWith before
-	// being injected into the query. For example, SQL RDBMSs usually require strings to be wrapped with ' or "
-	WrapStrings bool
+	// A component able to handle missing parameter values and the escaping of supplied parameters
+	ValueProcessor ParamValueProcessor
 
-	// A string that will be used as a prefix and suffix to a string parameter if WrapStrings is true.
-	StringWrapWith string
+	// Whether or not a stock ParamValueProcessor should be injected into this component (set to false if defining your own)
+	CreateDefaultValueProcessor bool
 
 	// The character sequence that indicates a new line in a template file (e.g. \n)
 	NewLine            string
@@ -123,19 +124,48 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 
 	var b bytes.Buffer
 
+	vp := qm.ValueProcessor
+	log := qm.FrameworkLogger
+	trace := log.IsLevelEnabled(logging.Trace)
+
 	for _, token := range template.Tokens {
 
 		if token.Type == fragmentToken {
 			b.WriteString(token.Content)
 		} else {
 
-			paramValue := params[token.Content]
+			key := token.Content
 
-			if paramValue == nil {
-				return "", errors.New(fmt.Sprintf("TemplatedQueryManager: Query %s requires a parameter named %s but none supplied.", qid, token.Content))
+			if trace {
+				log.LogTracef("Processing parameter %s", key)
 			}
 
-			switch t := paramValue.(type) {
+			paramValue := params[token.Content]
+
+			vc := ParamValueContext{
+				Value: paramValue,
+				Key: token.Content,
+				QueryId: qid,
+			}
+
+			if paramValue == nil {
+
+				if trace {
+					log.LogTracef("Parameter %s is unset", key)
+				}
+
+				if err := vp.SubstituteUnset(&vc); err != nil {
+
+					//ValueProcessor does not allow this parameter to be unset
+					return "", err
+				}
+
+			}
+
+			//Perform any required escaping on the parameter value
+			vp.EscapeParamValue(&vc)
+
+			switch t := vc.Value.(type) {
 			default:
 				return "", errors.New(fmt.Sprintf("TemplatedQueryManager: Value for parameter %s is not a supported type. (type is %T)", token.Content, t))
 			case string:
@@ -168,6 +198,7 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 
 }
 
+
 // StartComponent is called by the IoC container. Loads, parses and tokenizes query templates. Returns an error
 // if there was a problem loading, parsing or tokenizing.
 func (qm *TemplatedQueryManager) StartComponent() error {
@@ -175,6 +206,13 @@ func (qm *TemplatedQueryManager) StartComponent() error {
 	if qm.state != ioc.StoppedState {
 		return nil
 	}
+
+
+	if qm.ValueProcessor == nil {
+		m := fmt.Sprintf("No ValueProcessor available for QueryManager. If you have set QueryManager.CreateDefaultValueProcessor to false you must define a component that implements ParamValueProcessor")
+		return errors.New(m)
+	}
+
 	qm.state = ioc.StartingState
 
 	fl := qm.FrameworkLogger

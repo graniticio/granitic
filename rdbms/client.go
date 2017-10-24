@@ -8,9 +8,10 @@ import (
 	"errors"
 	"github.com/graniticio/granitic/dsquery"
 	"context"
+	"github.com/graniticio/granitic/logging"
 )
 
-func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedId) *RdbmsClient {
+func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertFunc InsertWithReturnedId, logger logging.Logger) *RdbmsClient {
 	rc := new(RdbmsClient)
 	rc.db = database
 	rc.queryManager = querymanager
@@ -18,6 +19,9 @@ func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertF
 	rc.emptyParams = make(map[string]interface{})
 	rc.binder = new(RowBinder)
 	rc.tempQueries = make(map[string]string)
+
+	rc.FrameworkLogger = logger
+
 	return rc
 }
 
@@ -34,6 +38,7 @@ type RdbmsClient struct {
 	emptyParams  map[string]interface{}
 	binder       *RowBinder
 	ctx          context.Context
+	FrameworkLogger logging.Logger
 }
 
 // FindFragment returns a partial query from the underlying QueryManager. Fragments are no
@@ -241,6 +246,12 @@ func (rc *RdbmsClient) buildQuery(qid string, p ...interface{}) (string, error) 
 		if pm, err := ParamsFromFieldsOrTags(p...); err != nil {
 			return "", err
 		} else {
+
+			if rc.FrameworkLogger.IsLevelEnabled(logging.Trace) {
+				//Log the parameters to be injected into the query
+				rc.FrameworkLogger.LogTracef("Parameters: %v", pm)
+			}
+
 			return rc.queryManager.BuildQueryFromId(qid, pm)
 		}
 	}

@@ -16,6 +16,14 @@
  * Transactions can now be opened with [sql.TxOptions](https://golang.org/pkg/database/sql/#TxOptions)
  * Proxy interfaces introduced in front of [sql.Db](https://golang.org/pkg/database/sql/#Db) and [sql.TxOptions](https://golang.org/pkg/database/sql/#TxOptions) to facilitate testing.
  
+## QueryManager
+ 
+ * Escaping of parameter values and handling of missing values now deferred to new [ParamValueProcessor](https://godoc.org/github.com/graniticio/granitic/dsquery#ParamValueProcessor) components.
+ * Two built-in [ParamValueProcessor](https://godoc.org/github.com/graniticio/granitic/dsquery#ParamValueProcessor) components are available - select by setting QueryManager.ProcessorName to <code>configurable</code> or <code>sql</code>
+ * Default is <code>configurable</code> which mimics Granitic 1.0 behaviour.
+ * Choosing <code>sql</code> will set missing parameter values to <code>null</code> and map bools to configurable DB specific values.
+ * Parameters in a query can now be marked as required by prefixing their name with <code>!</code> in the query template.
+
 ### HttpServer
 
  * Contexts passed to WsHandler are now inherited from the context on http.Request

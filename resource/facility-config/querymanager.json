@@ -4,8 +4,14 @@
     "QueryIdPrefix": "ID:",
     "TrimIdWhiteSpace": true,
     "VarMatchRegEx": "\\$\\{([^\\}]*)\\}",
-    "WrapStrings": true,
-    "StringWrapWith": "'",
-    "NewLine": "\n"
+    "NewLine": "\n",
+    "CreateDefaultValueProcessor": true,
+    "ProcessorName": "configurable",
+    "valueProcessors": {
+      "configurable": {
+        "WrapStrings": true,
+        "StringWrapWith": "'"
+      }
+    }
   }
 }

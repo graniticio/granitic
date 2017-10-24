@@ -249,7 +249,7 @@ This facility allows you to define your database queries in text files outside o
 the template at runtime to create a working query.
 
 The [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) 
-uses <code>resource/queries</code> as the default location for templates, so create a new file <code>recordstore/resource/queries/search</code> 
+uses <code>resource/queries</code> as the default location for templates, so create a new file <code>recordstore/resource/queries/artist</code> 
 and set the contents to:
 
 ```sql
