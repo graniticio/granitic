@@ -132,7 +132,7 @@ open your <code>config.json</code> and add the following:
 
 ```json
 "serviceErrors": [
-	["C", "INVALID_ARTIST", "Cannot create an artist with the information provided."]
+  ["C", "INVALID_ARTIST", "Cannot create an artist with the information provided."]
 ]
 ```
 
@@ -248,9 +248,9 @@ Change your rule to:
  
  ```json
  "serviceErrors": [
- 	["C", "INVALID_ARTIST", "Cannot create an artist with the information provided."],
- 	["C", "NAME_MISSING", "You must supply the Name field on your submission."],
- 	["C", "NAME_BAD_LENGTH", "Names must be 5-50 characters in length."]
+   ["C", "INVALID_ARTIST", "Cannot create an artist with the information provided."],
+   ["C", "NAME_MISSING", "You must supply the Name field on your submission."],
+   ["C", "NAME_BAD_LENGTH", "Names must be 5-50 characters in length."]
  ]
  ```
  

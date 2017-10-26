@@ -9,7 +9,7 @@
  
 #### Note for Windows users
  
- The below instructions were tested on Windows 10 having followed the [Go 1.7.5 installation instructions for Windows](https://golang.org/doc/install?download=go1.7.5.windows-amd64.msi)
+ The below instructions were tested on Windows 10 having followed the [Go installation instructions for Windows](https://golang.org/doc/install?download=go1.7.5.windows-amd64.msi)
  
  You must [set the GOPATH environment variable](https://golang.org/doc/code.html#GOPATH) and have the Git command line tools installed and configured to work with Command Prompt
  

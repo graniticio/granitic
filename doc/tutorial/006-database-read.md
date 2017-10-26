@@ -108,7 +108,7 @@ type MySqlProvider struct {
 
 func (p *MySqlProvider) Database() (*sql.DB, error) {
   dsn := p.Config.FormatDSN()
-  
+  <br>
   if db, err := sql.Open("mysql", dsn); err == nil {
     return db, nil
   } else {
@@ -260,14 +260,14 @@ SELECT
 FROM
   artist
 WHERE
-  id = &#36;{Id}
+  id = ${Id}
   
 ```  
 
 Each file can contain any number of queries. The line starting <code>ID:</code> delimits the queries and assigns an ID to
-the following query (in this case <code>ARTIST_BY_ID</code>). Variables are surrounded by <code>&#36;{}</code> and names are case sensitive.
+the following query (in this case <code>ARTIST_BY_ID</code>). Variables are surrounded by <code>${}</code> and names are case sensitive.
 
-In this case, the <code>&#36;{Id}</code> parameter will be populated when we call:
+In this case, the <code>${Id}</code> parameter will be populated when we call:
 
 ```go
   dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, ar)

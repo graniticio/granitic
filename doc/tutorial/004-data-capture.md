@@ -61,8 +61,8 @@ add the following struct to the end of the file.
 
 ```go
 type ArtistRequest struct {
-	Id int
-	NormaliseName *types.NilableBool
+  Id int
+  NormaliseName *types.NilableBool
 }
 ```
 

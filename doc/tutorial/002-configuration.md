@@ -89,24 +89,24 @@ The Go IoC container automatically injects configuration values into your compon
 package endpoint
 
 import (
-	"github.com/graniticio/granitic/ws"
-	"context"
+  "github.com/graniticio/granitic/ws"
+  "context"
 )
 
 type ArtistLogic struct {
-	EnvLabel string
+  EnvLabel string
 }
 
 func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
 
-	a := new(ArtistDetail)
-	a.Name = "Hello, World from " + al.EnvLabel
+  a := new(ArtistDetail)
+  a.Name = "Hello, World from " + al.EnvLabel
 
-	res.Body = a
+  res.Body = a
 }
 
 type ArtistDetail struct {
-	Name string
+  Name string
 }
 ```
 

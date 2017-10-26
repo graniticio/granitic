@@ -157,8 +157,8 @@ Create the file <code>recordstore/endpoint/artist.go</code> and set the contents
 package endpoint
 
 import (
-	"github.com/graniticio/granitic/ws"
-	"context"
+  "github.com/graniticio/granitic/ws"
+  "context"
 )
 
 type ArtistLogic struct {
@@ -166,14 +166,14 @@ type ArtistLogic struct {
 
 func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
 
-	a := new(ArtistDetail)
-	a.Name = "Hello, World!"
+  a := new(ArtistDetail)
+  a.Name = "Hello, World!"
 
-	res.Body = a
+  res.Body = a
 }
 
 type ArtistDetail struct {
-	Name string
+  Name string
 }
 ```
 
