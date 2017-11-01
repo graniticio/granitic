@@ -4,7 +4,7 @@
 
 1. How to use MySQL and Docker to support this tutorial
 1. How to connect Granitic to an RDBMS
-1. How to template queries using Granitic's QueryManager facility
+1. How to build templates for your SQL queries using Granitic's QueryManager facility
 1. How to read data from an RDBMS into Go structs
 
 ## Prerequisites
@@ -76,7 +76,7 @@ Schema:   recordstore
 
 ## Creating a DatabaseProvider
 
-Go's SQL abstraction and 'driver management' models are much looser than some other language's RDBMS access layers. In
+Go's SQL abstraction and 'driver management' models are much looser than some other languages' RDBMS access layers. In
 order to allow Granitic's components and facilities to be agnostic of the underlying RDBMS, an additional layer of abstraction
 has been defined - the [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider) interface.
 Your application will have to define a component that implements this interface. 
@@ -129,11 +129,11 @@ func (p *MySqlProvider) Database() (*sql.DB, error) {
 
 ```
 
-In this file we are importing the database driver package and providing a method of Granitic to call when it needs a connection
+In this file we are importing the database driver package and providing a method for Granitic to call when it needs a connection
 to your database. The implementation here is very simple and doesn't offer any connection management other than that implemented
 by the driver itself.
 
-In the <code>resource/components/components.json</code> file:, you'll need to declare a component for your [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider) 
+In your <code>resource/components/components.json</code> file you'll need to declare a component for your [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider) 
 and a component to store your connection parameters:
 
 ```json
@@ -163,7 +163,7 @@ to the packages section at the start of <code>components.json</code>
 
 ### Configuration in components.json
 
-Directly storing the database connection parameters in the <code>components.json</code> file is bad practise and is only used here
+Directly storing the database connection parameters in the <code>components.json</code> file is bad practice and is only used here
 to keep the length of this tutorial down. Refer back to [the configuration tutorial](002-configuration.md) to see how
 you could use config promises and a separate configuration file to store this type of environment-specific configuration.
 
@@ -188,8 +188,8 @@ and [RdbmsAccess](https://godoc.org/github.com/graniticio/granitic/facility/rdbm
 ### RdbmsAccess
 
 This facility is the bridge between Granitic's database framework and your application code. It uses the [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider)
-to obtain connections to your database and injects a instance of [RdbmsClientManager](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClientManager) into
-any of your application components thats have a member variable of the form:
+to obtain connections to your database and injects an instance of [RdbmsClientManager](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClientManager) into
+any of your application components that have the field:
 
 ```go
   DbClientManager rdbms.RdbmsClientManager
@@ -201,7 +201,7 @@ An optional (but recommended) facility offered by Granitic is the [QueryManager]
 This facility allows you to define your database queries in text files outside of your Go code and have variables injected into the template at runtime to create a working query.
 
 The [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) facility is not intended to be specific
-to relational databases; it is design to support any data source that supports a query language (e.g. search engines, NoSQL databases).
+to relational databases; it is designed to support any data source that supports a query language (e.g. search engines, NoSQL databases).
 
 However, it can be configured to provide additional support for SQL queries, so add this to your <code>config.json</code> file:
 
@@ -224,24 +224,26 @@ type ArtistLogic struct {
 }
 
 func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
-
   ar := req.RequestBody.(*ArtistRequest)
 
-  l := al.Log
-  l.LogTracef("Request for artist with ID %d", ar.Id)
-
-  result := new(ArtistDetail)
-
+  // Obtain an RdmsClient from the rdbms.RdbmsClientManager injected into this component
   dbc, _ := al.DbClientManager.Client()
 
+  // Create a new object to store the results of our database call 
+  result := new(ArtistDetail)
+
+  // Call the database and populate our object
   if found, err := dbc.SelectBindSingleQIdParams("ARTIST_BY_ID", result, ar); found {
+    // Make our result object the body of the HTTP response we'll send
     res.Body = result
   
   } else if err != nil{
-    l.LogErrorf(err.Error())
+    // Something went wrong when communicating with the database - return HTTP 500
+    al.Log.LogErrorf(err.Error())
     res.HttpStatus = http.StatusInternalServerError
 
   } else {
+    // No results were returned by the database call - return HTTP 404
     res.HttpStatus = http.StatusNotFound
   }
 }
@@ -264,22 +266,17 @@ import (
 )
 ```
 
-
-The call that asks Granitic to execute a database query is:
-
-```go
-  dbc.SelectBindSingleQIdParams("ARTIST_BY_ID", result, ar)
-```
-
-
 ### RdbmsClient
 
-The methods on <code>RdbmsClient</code> are named to make the intent of your database calls more obvious, in this <code>SelectBindSingleQIDParams</code>
+[RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) is the interface your code uses to execute queries and manage transasctions. It is *not* goroutine-safe and should not be shared, which is why
+we use the <code>RdbmsClientManager</code> to create a new instance on every request. 
+
+The methods on [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) are named to make the intent of your database calls more obvious, in this case the method <code>SelectBindSingleQIDParams</code> tells us:
 
  * Select - You are executing a SELECT-type SQL query
- * BindSingle - You expect zero or one results and want the result bound into a supplied object (the <code>ArtistDetail</code>)
+ * BindSingle - You expect zero or one results and want the result bound into a supplied object (the *ArtistDetail*)
  * QId - You are supplying the Query ID of a previously templated query to execute
- * Params - You are supplying one or more objects that can be used to inject values into your templated queries (the <code>ArtistRequest</code>)
+ * Params - You are supplying one or more objects that can be used to inject values into your templated queries (the *ArtistRequest*)
 
 There are a number of variations on these methods, including binding multi-row queries into a slice of objects of your choice. Refer to the [rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms)
 for more information.
@@ -307,9 +304,9 @@ Each file can contain any number of queries. The line starting <code>ID:</code> 
 the following query (in this case <code>ARTIST_BY_ID</code>). Variables are surrounded by <code>${}</code> and names are case sensitive.
 
 
-### Parameter binding
+### Parameters to queries
 
-In this exmaple, the <code>${Id}</code> parameter will be populated when we call:
+Values for parameters are injected into the query template when you call a method on <code>RdbmsClient</code>. In the case of this query the <code>${Id}</code> parameter will be populated when we call:
 
 ```go
   dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, ar)
@@ -327,7 +324,22 @@ type ArtistRequest struct {
 or you can supply a <code>map[string]interface{}</code> as a source of parameters instead of a struct and have complete control over the
 names of the map keys.
 
-### Debugging queries
+### Matching column names and aliases
+
+Granitic automatically populates the fields on the supplied target object (in this case an instance of <code>ArtistDetail</code>) by finding a field 
+whose name and type matches a column name or alias in the SQL query's results. This process is case sensitive, which is why we've had to define
+the column alias <code>Name</code> in the query to match it to the <code>ArtistDetail.Name</code> field.
+
+If you'd prefer not to use aliases in your query or want the the name of the field on the struct to be very different to the column name, you
+can use the <code>column</code> tag on your target object, e.g.:
+
+```go
+type ArtistDetail struct {
+ 	Name string `column:name`
+} 
+```
+
+#### Debugging queries
 
 You can make the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) log the queries it constructs by
 setting the <code>grncQueryManager</code> framework component's log level to <code>DEBUG</code> in your config file:
@@ -358,7 +370,7 @@ cd $GOPATH/src/granitic-tutorial/recordstore
 grnc-bind && go build && ./recordstore -c resource/config
 ``` 
 
-and visiting <code>http://localhost:8080/artist-search/1</code> will yield a response like:
+and visiting <code>http://localhost:8080/artist/1</code> will yield a response like:
 
 ```json
 {
@@ -371,7 +383,9 @@ and visiting <code>http://localhost:8080/artist-search/1</code> will yield a res
 ## Recap
 
  * Granitic requires your code to implement a [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider)  component.
- * [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) objects are automatically injected into your code to provide the interface for executing queries.
+ * [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) objects provide the interface for executing queries.
+ * These are obtained through the [RdbmsClientManager](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClientManager) framework component which is automatically
+ injected into your application components if they have a field *DbClientManager rdbms.RdbmsClientManager*
  * Queries can be stored in template files and accesed by your code using IDs. This feature is provided by the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) facility.
  
 ## Further reading
