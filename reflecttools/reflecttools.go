@@ -213,6 +213,13 @@ func TargetFieldIsArray(i interface{}, name string) bool {
 	return TypeOfField(i, name).Kind() == reflect.Array
 }
 
+func IsSliceOrArray(i interface{}) bool {
+	pv := reflect.ValueOf(i)
+	pvk := pv.Kind()
+
+	return pvk == reflect.Array || pvk == reflect.Slice
+}
+
 // ExtractDotPath converts a dot-delimited path into a string array of its constiuent parts. E.g. "a.b.c" becomes
 // ["a","b","c"]
 func ExtractDotPath(path string) []string {

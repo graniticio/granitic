@@ -1,10 +1,9 @@
-# Tutorial - Reading data from an RDBMS
+# Tutorial - Writing data to a database
 
 ## What you'll learn
 
 1. How to insert data into your database and capture generated IDs
 1. How to make your database calls transactional
-1. How to add database calls to your automatic validation
 
 ## Prerequisites
 
@@ -33,7 +32,7 @@ Our tutorial already allows web service clients to submit a new artist to be sto
 <code>/artist POST</code> endpoint, but it currently just simulates an insert. To alter this code to actually store data, 
 open the <code>resource/queries/artist</code> file and add the following query:
 
-```mysql
+```sql
 ID:CREATE_ARTIST
 
 INSERT INTO artist(
@@ -130,7 +129,7 @@ and POST the following JSON to <code>http://localhost:8080/artist</code>
 }
 ```
 
-(see the [data capture tutorial](004-data-capture.md) for instructions on using a broswer plugin to do this)
+(see the [data capture tutorial](004-data-capture.md) for instructions on using a browser plugin to do this)
 
 You should see a response like:
 
@@ -143,3 +142,139 @@ You should see a response like:
 ```
 
 and the ID will increment by one each time you re-POST the data.
+
+
+## Transactions
+
+Only the simplest web service endpoints insert a single row - more often than not you'll need to make multiple
+inserts and updates. In most cases, you'll need to make your database calls as part of a transaction. We will illustrate this by
+allowing the web service caller to provide a list of 'related artists' when calling <code>/artist POST</code>. 
+
+The test database contains a table that stores this relationship:
+
+```sql
+CREATE TABLE related_artist (
+  artist_id INT NOT NULL,
+  related_artist_id INT NOT NULL,
+  FOREIGN KEY (artist_id) REFERENCES artist(id),
+  FOREIGN KEY (related_artist_id) REFERENCES artist(id),
+  UNIQUE (artist_id, related_artist_id)
+)
+```
+
+First alter the definition of the <code>SubmittedArtistRequest</code> so it looks like:
+
+```go
+type SubmittedArtistRequest struct {
+  Name            *types.NilableString
+  FirstYearActive *types.NilableInt64
+  RelatedArtists []int64
+}
+
+```
+
+Create a new query in your <code>resource/queries/artist</code> file:
+
+```sql
+
+ID:RELATE_ARTIST
+
+INSERT INTO related_artist(
+  artist_id,
+  related_artist_id
+) VALUES (
+  ${!ArtistId},
+  ${!RelatedArtistId}
+)
+```
+
+
+And modify the <code>SubmitArtistLogic.Process</code> method so it looks like:
+
+
+```go
+func (sal *SubmitArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
+
+	sar := req.RequestBody.(*SubmittedArtistRequest)
+
+	// Obtain an RdmsClient from the rdbms.RdbmsClientManager injected into this component
+	dbc, _ := sal.DbClientManager.Client()
+	defer dbc.Rollback()
+
+	// Start a database transaction
+	dbc.StartTransaction()
+
+	// Declare a variable to capture the ID of the newly inserted artist
+	var id int64
+
+	// Execute the insert, storing the generated ID in our variable
+	if err := dbc.InsertCaptureQIdParams("CREATE_ARTIST", &id, sar); err != nil {
+		// Something went wrong when communicating with the database - return HTTP 500
+		sal.Log.LogErrorf(err.Error())
+		res.HttpStatus = http.StatusInternalServerError
+
+		return
+
+	}
+
+	// Insert a row for each related artist
+	params := make(map[string]interface{})
+	params["ArtistId"] = id
+
+	for _, raId := range sar.RelatedArtists {
+		params["RelatedArtistId"] = raId
+
+		if _, err := dbc.InsertQIdParams("RELATE_ARTIST", params); err != nil {
+			// Something went wrong inserting the relationship
+			sal.Log.LogErrorf(err.Error())
+			res.HttpStatus = http.StatusInternalServerError
+
+			return
+		}
+
+	}
+
+	// Commit the transaction
+	dbc.CommitTransaction()
+
+	// Use the new ID as the HTTP response, wrapped in a struct
+	res.Body = struct {
+		Id int64
+	}{id}
+
+}
+```
+
+A few things are worth noting here:
+
+  1. When using transactions, it's good practice to call <code>defer dbc.Rollback()</code> this means that the transaction 
+  will be explicitly rolled back if we return from the function or if there is a panic.
+  1. Calling <code>Rollback</code> has no effect if the tranasction has already been commited.
+  1. <code>StartTransaction</code>, <code>Rollback</code> and <code>Commit</code> can all return errors which are being ignored in
+  this example.
+  
+Rebuild and restart your new service and test it with:
+
+```json
+{
+  "Name": "Artist with friends",
+  "RelatedArtists":[1,2]
+}
+```
+
+## Recap
+
+ * Granitic requires your code to implement a [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider)  component.
+ * [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) objects provide the interface for executing queries.
+ * These are obtained through the [RdbmsClientManager](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClientManager) framework component which is automatically
+ injected into your application components if they have a field *DbClientManager rdbms.RdbmsClientManager*
+ * Queries can be stored in template files and accesed by your code using IDs. This feature is provided by the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) facility.
+ 
+## Further reading
+
+ * [RDBMS GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms)
+ * [QueryManager GoDoc](https://godoc.org/github.com/graniticio/granitic/facility/querymanager)
+ 
+## Next
+
+The next tutorial covers the [writing of data to an RDBMS](007-database-write.md)

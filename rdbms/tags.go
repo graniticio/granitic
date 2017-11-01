@@ -107,7 +107,7 @@ ArgLoop:
 			tagVal := field.Tag.Get(DBParamTag)
 			fieldValInterface := argVal.FieldByName(field.Name).Interface()
 
-			if reflecttools.IsZero(fieldValInterface) {
+			if reflecttools.IsSliceOrArray(fieldValInterface) || reflecttools.IsZero(fieldValInterface) {
 				continue FieldLoop
 			}
 
