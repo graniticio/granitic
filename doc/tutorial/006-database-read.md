@@ -365,7 +365,7 @@ Refer to the [logging tutorial](003-logging.md) for more information on how this
 
 At this point your service can be started:
 
-```go
+```
 cd $GOPATH/src/granitic-tutorial/recordstore
 grnc-bind && go build && ./recordstore -c resource/config
 ``` 
