@@ -29,7 +29,7 @@ section which explains how to run Docker and MySQL with a pre-built test databas
 
 ## Inserting data
 
-Our tutorial already allows web service clients to submit a new artist to be stored in our record store database using the 
+Our tutorial application already allows web service clients to submit a new artist to be stored in our database using the 
 <code>/artist POST</code> endpoint, but it currently just simulates an insert. To alter this code to actually store data, 
 open the <code>resource/queries/artist</code> file and add the following query:
 
@@ -70,7 +70,7 @@ As the <code>FirstYearActive</code> parameter maps to the nullable column:
 in the database, it is not marked as required. If the <code>FirstYearActive</code> parameter is missing (or set to <code>nil</code>),
 the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) will substitute the value <code>null</code> when generating 
 the query, because we configured the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) to run in <code>SQL</code> 
-mode in the previous.
+mode in the previous tutorial.
 
 
 ## Executing the query and capturing the ID
@@ -142,13 +142,13 @@ You should see a response like:
 }
 ```
 
-and the ID will increment by one each time you re-POST the data.
+and the ID will increment by one each time you re-POST the data as new rows are inserted into the database.
 
 
 ## Transactions
 
 Only the simplest web service endpoints insert a single row - more often than not you'll need to make multiple
-inserts and updates. In most cases, you'll need to make your database calls as part of a transaction. We will illustrate this by
+inserts and updates to create a resource. In this case you'll need to make your database calls as part of a transaction. We will illustrate this by
 allowing the web service caller to provide a list of 'related artists' when calling <code>/artist POST</code>. 
 
 The test database contains a table that stores this relationship:
@@ -171,13 +171,11 @@ type SubmittedArtistRequest struct {
   FirstYearActive *types.NilableInt64
   RelatedArtists []int64
 }
-
 ```
 
 Create a new query in your <code>resource/queries/artist</code> file:
 
 ```sql
-
 ID:RELATE_ARTIST
 
 INSERT INTO related_artist(
@@ -196,52 +194,52 @@ And modify the <code>SubmitArtistLogic.Process</code> method so it looks like:
 ```go
 func (sal *SubmitArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
 
-	sar := req.RequestBody.(*SubmittedArtistRequest)
+  sar := req.RequestBody.(*SubmittedArtistRequest)
 
-	// Obtain an RdmsClient from the rdbms.RdbmsClientManager injected into this component
-	dbc, _ := sal.DbClientManager.Client()
-	defer dbc.Rollback()
+  // Obtain an RdmsClient from the rdbms.RdbmsClientManager injected into this component
+  dbc, _ := sal.DbClientManager.Client()
+  defer dbc.Rollback()
 
-	// Start a database transaction
-	dbc.StartTransaction()
+  // Start a database transaction
+  dbc.StartTransaction()
 
-	// Declare a variable to capture the ID of the newly inserted artist
-	var id int64
+  // Declare a variable to capture the ID of the newly inserted artist
+  var id int64
 
-	// Execute the insert, storing the generated ID in our variable
-	if err := dbc.InsertCaptureQIdParams("CREATE_ARTIST", &id, sar); err != nil {
-		// Something went wrong when communicating with the database - return HTTP 500
-		sal.Log.LogErrorf(err.Error())
-		res.HttpStatus = http.StatusInternalServerError
+  // Execute the insert, storing the generated ID in our variable
+  if err := dbc.InsertCaptureQIdParams("CREATE_ARTIST", &id, sar); err != nil {
+    // Something went wrong when communicating with the database - return HTTP 500
+    sal.Log.LogErrorf(err.Error())
+    res.HttpStatus = http.StatusInternalServerError
 
-		return
+    return
 
-	}
+  }
 
-	// Insert a row for each related artist
-	params := make(map[string]interface{})
-	params["ArtistId"] = id
+  // Insert a row for each related artist
+  params := make(map[string]interface{})
+  params["ArtistId"] = id
 
-	for _, raId := range sar.RelatedArtists {
-		params["RelatedArtistId"] = raId
+  for _, raId := range sar.RelatedArtists {
+    params["RelatedArtistId"] = raId
 
-		if _, err := dbc.InsertQIdParams("RELATE_ARTIST", params); err != nil {
-			// Something went wrong inserting the relationship
-			sal.Log.LogErrorf(err.Error())
-			res.HttpStatus = http.StatusInternalServerError
+    if _, err := dbc.InsertQIdParams("RELATE_ARTIST", params); err != nil {
+      // Something went wrong inserting the relationship
+      sal.Log.LogErrorf(err.Error())
+      res.HttpStatus = http.StatusInternalServerError
 
-			return
-		}
+      return
+    }
 
-	}
+  }
 
-	// Commit the transaction
-	dbc.CommitTransaction()
+  // Commit the transaction
+  dbc.CommitTransaction()
 
-	// Use the new ID as the HTTP response, wrapped in a struct
-	res.Body = struct {
-		Id int64
-	}{id}
+  // Use the new ID as the HTTP response, wrapped in a struct
+  res.Body = struct {
+    Id int64
+  }{id}
 
 }
 ```
