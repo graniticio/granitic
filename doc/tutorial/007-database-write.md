@@ -9,8 +9,9 @@
 
  1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/doc/installation.md)
  1. Read the [before you start](000-before-you-start.md) tutorial
- 1. Either have completed [tutorial 6](006-database-read.md) or open a terminal and run:
  1. Followed the [setting up a test database](006-database-read.md) section of [tutorial 6](006-database-read.md)
+ 1. Either have completed [tutorial 6](006-database-read.md) or open a terminal and run:
+  
  
 <pre>
 cd $GOPATH/src/github.com/graniticio
@@ -22,7 +23,7 @@ cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
 
 ## Test database
 
-If you didn't follow the [tutorial 6](006-database-read.md), please work through the '[Setting up a test database](006-database-read.md)'
+If you didn't follow [tutorial 6](006-database-read.md), please work through the '[Setting up a test database](006-database-read.md)'
 section which explains how to run Docker and MySQL with a pre-built test database.
 
 
@@ -247,7 +248,7 @@ func (sal *SubmitArtistLogic) Process(ctx context.Context, req *ws.WsRequest, re
 
 A few things are worth noting here:
 
-  1. When using transactions, it's good practice to call <code>defer dbc.Rollback()</code> this means that the transaction 
+  1. When using transactions, it's good practice to call <code>defer dbc.Rollback()</code> as this means that the transaction 
   will be explicitly rolled back if we return from the function or if there is a panic.
   1. Calling <code>Rollback</code> has no effect if the tranasction has already been commited.
   1. <code>StartTransaction</code>, <code>Rollback</code> and <code>Commit</code> can all return errors which are being ignored in
@@ -262,14 +263,36 @@ Rebuild and restart your new service and test it with:
 }
 ```
 
-## Recap
+## Including database checks as part of validation
 
- * Granitic requires your code to implement a [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider)  component.
- * [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) objects provide the interface for executing queries.
- * These are obtained through the [RdbmsClientManager](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClientManager) framework component which is automatically
- injected into your application components if they have a field *DbClientManager rdbms.RdbmsClientManager*
- * Queries can be stored in template files and accesed by your code using IDs. This feature is provided by the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) facility.
- 
+At moment our code will fail with a database error if we supply a 'related artist' ID that isn't actually the ID of an artist
+in the database. Try sending:
+
+```json
+{
+  "Name": "Artist with friends",
+  "RelatedArtists":[-1000]
+}
+```
+
+and you'll get a generic Granitic HTTP 500 error and the following in the logs:
+
+```
+ERROR submitArtistLogic Error 1452: Cannot add or update a child row: a foreign key constraint fails
+```
+
+Although the integrity of the data in the database has been protected, this isn't very elegant. What we'd like to is
+have the submitted IDs checked during validation. We can do this by creating a component that implements the [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator)
+interface.
+
+The [next tutorial](008-shared-validation.md) explains how to do this, but if you haven't followed the [validation tutorial](005-validation.md) now would be a good time to familiarise yourself with it.
+
+
+## Recap
+  * Parameters in query templates can be marked as required by prefixing the parameter name with !
+  * [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) provides the methods for managing transactions
+  * It is good practice to <code>defer</code> a call to <code>Rollback()</code> to make sure transactions are explicitly rolled back if something goes wrong.
+  
 ## Further reading
 
  * [RDBMS GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms)
@@ -277,4 +300,5 @@ Rebuild and restart your new service and test it with:
  
 ## Next
 
-The next tutorial covers the [writing of data to an RDBMS](007-database-write.md)
+The next tutorial covers [sharing validation rules](008-shared-validation.md) between endpoints and using custom Granitic components
+to validate fields. 

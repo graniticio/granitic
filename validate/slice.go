@@ -139,7 +139,8 @@ func (sv *SliceValidationRule) runOperations(field string, v reflect.Value, vc *
 				ec.Add(op.ErrCode)
 			}
 		case sliceOpElem:
-			err = sv.checkElementContents(field, v, op.elemValidator, r, vc)
+
+			err = sv.checkElementContents(field, v, op.elemValidator, r, vc, op.ErrCode)
 		}
 	}
 
@@ -149,7 +150,9 @@ func (sv *SliceValidationRule) runOperations(field string, v reflect.Value, vc *
 
 }
 
-func (bv *SliceValidationRule) checkElementContents(field string, slice reflect.Value, v ValidationRule, r *ValidationResult, pvc *ValidationContext) error {
+func (bv *SliceValidationRule) checkElementContents(field string, slice reflect.Value, v ValidationRule, r *ValidationResult, pvc *ValidationContext, overrideError string) error {
+
+	useOverride := overrideError != bv.defaultErrorCode
 
 	stringElement := false
 	nilable := false
@@ -192,6 +195,10 @@ func (bv *SliceValidationRule) checkElementContents(field string, slice reflect.
 		}
 
 		ee := vr.ErrorCodes[fa]
+
+		if useOverride && len(ee) > 0 {
+			ee = []string{overrideError}
+		}
 
 		r.AddForField(fa, ee)
 
@@ -338,6 +345,7 @@ func (bv *SliceValidationRule) MEx(fields types.StringSet, code ...string) *Slic
 
 // Elem supplies a ValidationRule that can be used to checked the validity of the elements of the slice.
 func (bv *SliceValidationRule) Elem(v ValidationRule, code ...string) *SliceValidationRule {
+
 	op := new(sliceOperation)
 	op.ErrCode = bv.chooseErrorCode(code)
 	op.OpType = sliceOpElem
@@ -478,6 +486,8 @@ func (vb *sliceValidationRuleBuilder) addElementValidationOperation(field string
 	if err != nil {
 		return err
 	}
+
+	sv.codesInUse.AddAll(v.CodesInUse())
 
 	switch v.(type) {
 	case *StringValidationRule, *BoolValidationRule, *IntValidationRule, *FloatValidationRule:

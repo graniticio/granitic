@@ -49,7 +49,7 @@ const (
 // An object able to evaluate the supplied string to see if it meets some definition of validity.
 type ExternalStringValidator interface {
 	// ValidString returns true if the implementation considers the supplied string to be valid.
-	ValidString(string) bool
+	ValidString(string) (bool, error)
 }
 
 type trimMode uint
@@ -239,9 +239,10 @@ OpLoop:
 			}
 
 		case stringOpExt:
-			if !op.External.ValidString(s) {
-
+			if valid, err := op.External.ValidString(s); err == nil && !valid {
 				ec.Add(op.ErrCode)
+			} else if err != nil {
+				return err
 			}
 
 		case stringOpBreak:

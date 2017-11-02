@@ -29,6 +29,10 @@
  * Contexts passed to WsHandler are now inherited from the context on http.Request
  * Server makes use of new Shutdown and Close http.Server methods during framework shutdown
 
+
+### Validation
+
+ * validate.ExternalXXXValidator interfaces (i.e ExternalInt64Validator) now return an error as well as a bool
  
 ### Fixes
 

@@ -17,7 +17,7 @@ import (
 // An object able to evaulate the supplied float64 to see if it meets some definition of validity.
 type ExternalFloat64Validator interface {
 	// ValidFloat64 returns true if the object considers the supplied float64 to be valid.
-	ValidFloat64(float64) bool
+	ValidFloat64(float64) (bool, error)
 }
 
 const floatRuleCode = "FLOAT"
@@ -209,8 +209,10 @@ OpLoop:
 			}
 
 		case floatOpExt:
-			if !op.External.ValidFloat64(i) {
+			if valid, err := op.External.ValidFloat64(i); err == nil && !valid {
 				ec.Add(op.ErrCode)
+			} else if err != nil {
+				return err
 			}
 
 		case floatOpRange:

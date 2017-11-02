@@ -17,7 +17,7 @@ import (
 // An object able to evaluate the supplied int64 to see if it meets some definition of validity.
 type ExternalInt64Validator interface {
 	// ValidInt64 returns true if the implementation considers the supplied int64 to be valid.
-	ValidInt64(int64) bool
+	ValidInt64(int64) (bool, error)
 }
 
 const intRuleCode = "INT"
@@ -168,8 +168,11 @@ OpLoop:
 			}
 
 		case intOpExt:
-			if !op.External.ValidInt64(i) {
+			if valid, err := op.External.ValidInt64(i); err == nil && !valid {
+
 				ec.Add(op.ErrCode)
+			} else if err != nil {
+				return err
 			}
 
 		case intOpRange:
@@ -361,6 +364,7 @@ func (iv *IntValidationRule) In(set []string, code ...string) *IntValidationRule
 
 // ExternalValidation adds a check to call the supplied object to ask it to check the validity of the int in question.
 func (iv *IntValidationRule) ExternalValidation(v ExternalInt64Validator, code ...string) *IntValidationRule {
+
 	ec := iv.chooseErrorCode(code)
 
 	o := new(intOperation)
@@ -563,6 +567,7 @@ func (vb *intValidationRuleBuilder) addIntExternalOperation(field string, ops []
 	if pCount == 2 {
 		iv.ExternalValidation(ev)
 	} else {
+
 		iv.ExternalValidation(ev, ops[2])
 	}
 
