@@ -171,7 +171,7 @@ Visiting [http://localhost:8080/artist](http://localhost:8080/artist) will now r
 result in a response and a log line similar to:
 
 <pre>
-09/Oct/2017:12:44:13 Z TRACE artistLogic Request for artist with ID 1234
+09/Oct/2017:12:44:13 Z TRACE [artistLogic] Request for artist with ID 1234
 </pre>
 
 
@@ -289,7 +289,7 @@ instructions are based on [Advanced Rest Client (ARC) for Chrome](https://chrome
 1. From the 'Custom content type' picklist choose <code>application/json</code>
 1. Enter the 'test JSON' below into the large text area at the bottom of the page
 1. Press <code>SEND</code>
-1. You should receive a JSON formatted response with an Id of 0 and see a log line similar to: <code>09/Oct/2017:14:11:15 Z INFO  submitArtistLogic New artist Another Artist</code>
+1. You should receive a JSON formatted response with an Id of 0 and see a log line similar to: <code>09/Oct/2017:14:11:15 Z INFO  [submitArtistLogic] New artist Another Artist</code>
 
 
 ### Test JSON

@@ -85,7 +85,7 @@ go build
 Keep the terminal window visible and visit [http://localhost:8080/artist](http://localhost:8080/artist) and you'll see a line appear in your terminal similar to:
 
 <pre>
-09/Aug/2017:14:50:24 Z INFO  artistLogic Environment is set to 'PROD'
+09/Aug/2017:14:50:24 Z INFO [artistLogic] Environment is set to 'PROD'
 </pre>
 
 This line shows:
@@ -182,8 +182,8 @@ If you stop and restart your recordstore application and refresh or re-visit [ht
 you'll see an additional message displayed:
 
 <pre>
-09/Aug/2017:21:05:55 Z INFO  artistLogic Environment is set to 'PROD'
-09/Aug/2017:21:05:55 Z TRACE artistLogic Request served
+09/Aug/2017:21:05:55 Z INFO  [artistLogic] Environment is set to 'PROD'
+09/Aug/2017:21:05:55 Z TRACE [artistLogic] Request served
 </pre>
 
 Try setting the <code>artistLogic</code> log level to <code>FATAL</code> to see what happens.
@@ -206,7 +206,7 @@ section looks like:
 
 Restart <code>recordstore</code> and you will see a new line in the startup logs:
 
-<pre>10/Aug/2017:06:55:28 Z INFO  grncCtlServer Listening on 9099</pre>
+<pre>10/Aug/2017:06:55:28 Z INFO  [grncCtlServer] Listening on 9099</pre>
 
 You can now use the [grnc-ctrl command line tool](https://godoc.org/github.com/graniticio/granitic/cmd/grnc-ctl) to issue
 commands to <code>recordstore</code> while it is running.

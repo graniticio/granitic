@@ -76,15 +76,15 @@ You should see output similar to:
 
 <pre>
 
-04/Jan/2017:14:41:20 Z INFO  grncInit Starting components
-04/Jan/2017:14:41:20 Z INFO  grncInit Ready (startup time 3.866393ms)
+04/Jan/2017:14:41:20 Z INFO  [grncInit] Starting components
+04/Jan/2017:14:41:20 Z INFO  [grncInit] Ready (startup time 3.866393ms)
 
 </pre>
 
 This means your application has started and is waiting. You can stop it with <code>CTRL+C</code> and will see output similar to
 
 <pre>
-04/Jan/2017:14:43:11 Z INFO  grncInit Shutting down (system signal)
+04/Jan/2017:14:43:11 Z INFO  [grncInit] Shutting down (system signal)
 </pre>
 
 ## Facilities
@@ -136,7 +136,7 @@ go build
 You'll see an additional line of logging on startup similar to:
 
 <pre>
-04/Jan/2017:16:34:27 Z INFO  grncHttpServer Listening on 8080
+04/Jan/2017:16:34:27 Z INFO  [grncHttpServer] Listening on 8080
 </pre>
 
 Which shows that a HTTP server is listening on the default port of 8080. Stop the runnning service with <code>CTRL+C</code>

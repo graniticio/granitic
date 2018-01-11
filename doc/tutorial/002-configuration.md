@@ -133,7 +133,7 @@ If you now run:
 you will see an error message similar to:
 
 <pre>
-17/Jan/2017:16:39:42 Z FATAL grncContainer No value found at environment.label
+17/Jan/2017:16:39:42 Z FATAL [grncContainer] No value found at environment.label
 </pre>
 
 Granitic adopts a fail-fast model for configuration and will not allow an application to start if it relies on configuration
