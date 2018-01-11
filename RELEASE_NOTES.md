@@ -1,5 +1,14 @@
 # Release notes
 
+## 1.2.0  (2018-xx-xx)
+
+### General
+ * Now requires Go 1.9 or later
+ 
+### Logging
+ * Default log prefix now wraps component names in square brackets to improve readability
+
+
 ## 1.1.0  (2018-01-11)
 
 ### General

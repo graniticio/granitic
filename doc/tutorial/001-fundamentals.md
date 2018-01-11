@@ -104,7 +104,8 @@ by inspecting the file <code>$GRANITIC_HOME/resource/facility-config/facilities.
     "QueryManager": false,
     "RdbmsAccess": false,
     "ServiceErrorManager": false,
-    "RuntimeCtl": false
+    "RuntimeCtl": false,
+    "TaskScheduler": false
   }
 }
 ```

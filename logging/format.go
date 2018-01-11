@@ -14,7 +14,7 @@ import (
 )
 
 // The default prefix format for log lines
-const PresetFormatFramework = "%{02/Jan/2006:15:04:05 Z0700}t %P %c "
+const PresetFormatFramework = "%{02/Jan/2006:15:04:05 Z0700}t %P [%c] "
 const FrameworkPresetPrefix = "framework"
 const formatRegex = "\\%[a-zA-Z]|\\%\\%|\\%{[^}]*}[a-zA-Z]"
 const varModifiedRegex = "\\%{([^}]*)}([a-zA-Z])"

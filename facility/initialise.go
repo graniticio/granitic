@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package facility
@@ -13,6 +13,7 @@ import (
 	"github.com/graniticio/granitic/facility/rdbms"
 	"github.com/graniticio/granitic/facility/runtimectl"
 	"github.com/graniticio/granitic/facility/serviceerror"
+	"github.com/graniticio/granitic/facility/taskscheduler"
 	"github.com/graniticio/granitic/facility/ws"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
@@ -128,6 +129,7 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.ConfigAccessor) error {
 	fi.addFacility(new(serviceerror.ServiceErrorManagerFacilityBuilder))
 	fi.addFacility(new(rdbms.RdbmsAccessFacilityBuilder))
 	fi.addFacility(new(runtimectl.RuntimeCtlFacilityBuilder))
+	fi.addFacility(new(taskscheduler.TaskSchedulerFacilityBuilder))
 
 	err = fi.buildEnabledFacilities()
 

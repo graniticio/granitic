@@ -29,7 +29,8 @@ which will look something like:
 		"QueryManager": false,
 		"RdbmsAccess": false,
 		"ServiceErrorManager": false,
-		"RuntimeCtl": false
+		"RuntimeCtl": false,
+		"TaskScheduler": false
 	  }
 	}
 
