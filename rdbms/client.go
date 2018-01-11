@@ -4,10 +4,10 @@
 package rdbms
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"github.com/graniticio/granitic/dsquery"
-	"context"
 	"github.com/graniticio/granitic/logging"
 )
 
@@ -30,14 +30,14 @@ func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertF
 //
 // RdbmsClient is stateful and MUST NOT be shared across goroutines
 type RdbmsClient struct {
-	db           *sql.DB
-	queryManager dsquery.QueryManager
-	tx           *sql.Tx
-	lastId       InsertWithReturnedId
-	tempQueries  map[string]string
-	emptyParams  map[string]interface{}
-	binder       *RowBinder
-	ctx          context.Context
+	db              *sql.DB
+	queryManager    dsquery.QueryManager
+	tx              *sql.Tx
+	lastId          InsertWithReturnedId
+	tempQueries     map[string]string
+	emptyParams     map[string]interface{}
+	binder          *RowBinder
+	ctx             context.Context
 	FrameworkLogger logging.Logger
 }
 
@@ -153,7 +153,7 @@ func (rc *RdbmsClient) SelectBindSingleQIdParams(qid string, target interface{},
 // SelectBindQId executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
 // are returned in a slice of the same type as the supplied template struct.
 func (rc *RdbmsClient) SelectBindQId(qid string, template interface{}) ([]interface{}, error) {
-	return rc.SelectBindQIdParams(qid, template, rc.emptyParams )
+	return rc.SelectBindQIdParams(qid, template, rc.emptyParams)
 }
 
 // SelectBindQIdParam executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
@@ -383,8 +383,6 @@ func (rc *RdbmsClient) QueryRow(query string, args ...interface{}) *sql.Row {
 			return rc.db.QueryRow(query, args...)
 		}
 	}
-
-
 
 }
 

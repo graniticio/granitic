@@ -1,12 +1,12 @@
 package rdbms
 
 import (
-	"testing"
-	"reflect"
-	"github.com/graniticio/granitic/test"
-	"fmt"
-	"github.com/graniticio/granitic/types"
 	"database/sql/driver"
+	"fmt"
+	"github.com/graniticio/granitic/test"
+	"github.com/graniticio/granitic/types"
+	"reflect"
+	"testing"
 )
 
 func TestScan(t *testing.T) {
@@ -65,7 +65,6 @@ func TestScan(t *testing.T) {
 
 		test.ExpectNil(t, err)
 
-
 		test.ExpectString(t, sv, "123")
 
 		err = s.Scan([]byte("-1"))
@@ -83,8 +82,6 @@ func TestScan(t *testing.T) {
 
 		test.ExpectNil(t, err)
 
-
-
 		test.ExpectString(t, sv, "123.1")
 
 		err = s.Scan([]byte("xx"))
@@ -92,7 +89,6 @@ func TestScan(t *testing.T) {
 		test.ExpectNotNil(t, err)
 
 	}
-
 
 	s.kind = reflect.Struct
 	err = s.Scan([]byte("xx"))
@@ -105,10 +101,8 @@ func TestNilable(t *testing.T) {
 	s.kind = reflect.Ptr
 	s.nilable = NilBool
 
-
 	err := s.Scan([]byte("true"))
 	test.ExpectNil(t, err)
-
 
 	nb, f := s.val.(*types.NilableBool)
 
@@ -122,12 +116,10 @@ func TestNilable(t *testing.T) {
 	err = s.Scan([]byte("xx"))
 	test.ExpectNotNil(t, err)
 
-
 	s.nilable = NilFloat
 
 	err = s.Scan([]byte("32.2"))
 	test.ExpectNil(t, err)
-
 
 	nf, f := s.val.(*types.NilableFloat64)
 
@@ -135,12 +127,10 @@ func TestNilable(t *testing.T) {
 	test.ExpectBool(t, f, nf.IsSet())
 	test.ExpectFloat(t, nf.Float64(), float64(32.2))
 
-
 	s.nilable = NilInt
 
 	err = s.Scan([]byte("32"))
 	test.ExpectNil(t, err)
-
 
 	ni, f := s.val.(*types.NilableInt64)
 
@@ -148,12 +138,10 @@ func TestNilable(t *testing.T) {
 	test.ExpectBool(t, f, ni.IsSet())
 	test.ExpectInt(t, int(ni.Int64()), int(32))
 
-
 	s.nilable = NilString
 
 	err = s.Scan([]byte("XX"))
 	test.ExpectNil(t, err)
-
 
 	ns, f := s.val.(*types.NilableString)
 
@@ -163,7 +151,7 @@ func TestNilable(t *testing.T) {
 
 }
 
-func TestBindRowBasicErrors (t *testing.T) {
+func TestBindRowBasicErrors(t *testing.T) {
 
 	rb := new(RowBinder)
 
@@ -184,9 +172,8 @@ func TestBindRowBasicErrors (t *testing.T) {
 	test.ExpectBool(t, f, false)
 	test.ExpectNotNil(t, err)
 
-
 	drv.colNames = []string{"StrResult"}
-	drv.rowData = [][]driver.Value{{"okay"},{"not"}}
+	drv.rowData = [][]driver.Value{{"okay"}, {"not"}}
 
 	r, err = db.Query("")
 	test.ExpectNotNil(t, r)
@@ -197,7 +184,7 @@ func TestBindRowBasicErrors (t *testing.T) {
 
 }
 
-func TestScanIntoNative (t *testing.T) {
+func TestScanIntoNative(t *testing.T) {
 
 	rb := new(RowBinder)
 
@@ -215,10 +202,9 @@ func TestScanIntoNative (t *testing.T) {
 	test.ExpectNil(t, err)
 	test.ExpectString(t, tar, "okay")
 
-
 }
 
-func TestBindRowsBasicErrors (t *testing.T) {
+func TestBindRowsBasicErrors(t *testing.T) {
 
 	rb := new(RowBinder)
 
@@ -243,7 +229,6 @@ func TestBindRowsBasicErrors (t *testing.T) {
 	res, err = rb.BindRows(r, *tar)
 	test.ExpectNotNil(t, err)
 
-
 	//Closed results
 	drv.colNames = []string{"StrResult"}
 	drv.rowData = [][]driver.Value{{"okay"}}
@@ -255,7 +240,6 @@ func TestBindRowsBasicErrors (t *testing.T) {
 	res, err = rb.BindRows(r, tar)
 	test.ExpectNotNil(t, err)
 
-
 	//No matching target
 	drv.colNames = []string{"XXXResult"}
 	drv.rowData = [][]driver.Value{{"okay"}}
@@ -265,8 +249,6 @@ func TestBindRowsBasicErrors (t *testing.T) {
 
 	res, err = rb.BindRows(r, tar)
 	test.ExpectNotNil(t, err)
-
-
 
 	//Unsupported target
 

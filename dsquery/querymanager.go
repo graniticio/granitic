@@ -33,7 +33,6 @@ import (
 
 const requiredPrefix = "!"
 
-
 // A QueryManager is a type that is able to populate a pre-defined template query given a set of named parameters
 // and return a complete query ready for execution against some data source.
 type QueryManager interface {
@@ -60,7 +59,6 @@ func NewTemplatedQueryManager() *TemplatedQueryManager {
 // on demand with maps of named parameters. This is the implementation provided by the QueryManager facility. See
 // http://granitic.io/1.0/ref/query-manager for details.
 type TemplatedQueryManager struct {
-
 
 	// The path to a folder where template files are stored.
 	TemplateLocation string
@@ -143,8 +141,6 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 				log.LogTracef("Processing parameter %s", key)
 			}
 
-
-
 			required := strings.HasPrefix(key, requiredPrefix)
 
 			if required {
@@ -154,8 +150,8 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 			paramValue := params[key]
 
 			vc := ParamValueContext{
-				Value: paramValue,
-				Key: key,
+				Value:   paramValue,
+				Key:     key,
 				QueryId: qid,
 			}
 
@@ -213,7 +209,6 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 
 }
 
-
 // StartComponent is called by the IoC container. Loads, parses and tokenizes query templates. Returns an error
 // if there was a problem loading, parsing or tokenizing.
 func (qm *TemplatedQueryManager) StartComponent() error {
@@ -221,7 +216,6 @@ func (qm *TemplatedQueryManager) StartComponent() error {
 	if qm.state != ioc.StoppedState {
 		return nil
 	}
-
 
 	if qm.ValueProcessor == nil {
 		m := fmt.Sprintf("No ValueProcessor available for QueryManager. If you have set QueryManager.CreateDefaultValueProcessor to false you must define a component that implements ParamValueProcessor")

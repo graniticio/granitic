@@ -98,7 +98,6 @@ const QueryManagerComponentName = instance.FrameworkPrefix + "QueryManager"
 // The name of the facility
 const QueryManagerFacilityName = "QueryManager"
 
-
 const processorDecorator = instance.FrameworkPrefix + "ParamValueProcessorDecorator"
 
 // Creates an instance of dsquery.QueryManager and stores it in the IoC container.
@@ -119,7 +118,6 @@ func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentL
 		vpd := new(valueProcessorDecorator)
 		vpd.QueryManager = queryManager
 		cn.WrapAndAddProto(processorDecorator, vpd)
-
 
 		return nil
 	}
@@ -150,7 +148,6 @@ func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentL
 
 	queryManager.ValueProcessor = vp
 
-
 	return nil
 }
 
@@ -163,7 +160,6 @@ func (qmfb *QueryManagerFacilityBuilder) FacilityName() string {
 func (qmfb *QueryManagerFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
-
 
 // Finds ValueProccessor implementations and injects them into the QueryManager
 type valueProcessorDecorator struct {
@@ -178,9 +174,8 @@ func (vpd *valueProcessorDecorator) OfInterest(component *ioc.Component) bool {
 
 	return found
 
-
 }
 
-func (vpd *valueProcessorDecorator)DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
-	vpd.QueryManager.ValueProcessor , _ = component.Instance.(dsquery.ParamValueProcessor)
+func (vpd *valueProcessorDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+	vpd.QueryManager.ValueProcessor, _ = component.Instance.(dsquery.ParamValueProcessor)
 }

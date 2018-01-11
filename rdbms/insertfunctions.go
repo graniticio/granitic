@@ -3,7 +3,6 @@
 
 package rdbms
 
-
 // A function able execute an insert statement and return an RDBMS generated ID as an int64.
 // If your implementation requires access to the context, it is available on the *RdbmsClient
 type InsertWithReturnedId func(string, *RdbmsClient, *int64) error

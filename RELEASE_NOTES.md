@@ -1,6 +1,6 @@
 # Release notes
 
-## 1.1.0  (2017-xx-xx)
+## 1.1.0  (2018-01-11)
 
 ### General
  * Various internal changes to make use of updated libraries in Go 1.8

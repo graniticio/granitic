@@ -1,9 +1,9 @@
 package dsquery
 
 import (
-	"github.com/pkg/errors"
 	"fmt"
 	"github.com/graniticio/granitic/types"
+	"github.com/pkg/errors"
 )
 
 // Implemented by components able to escape the value of a parameter to a query and handle unset parameters
@@ -12,10 +12,9 @@ type ParamValueProcessor interface {
 	SubstituteUnset(v *ParamValueContext) error
 }
 
-
 type ParamValueContext struct {
-	Key string
-	Value interface{}
+	Key     string
+	Value   interface{}
 	QueryId string
 	Escaped bool
 }
@@ -41,7 +40,6 @@ type ConfigurableProcessor struct {
 
 	// A string that will be used as a prefix and suffix to a string parameter if WrapStrings is true.
 	StringWrapWith string
-
 }
 
 func (cp *ConfigurableProcessor) EscapeParamValue(v *ParamValueContext) {
@@ -58,11 +56,10 @@ func (cp *ConfigurableProcessor) EscapeParamValue(v *ParamValueContext) {
 }
 
 func (cp *ConfigurableProcessor) wrapString(v *ParamValueContext, s string) {
-	if cp.WrapStrings && (s != cp.DefaultParameterValue || !cp.DisableWrapWhenDefaultParameterValue){
+	if cp.WrapStrings && (s != cp.DefaultParameterValue || !cp.DisableWrapWhenDefaultParameterValue) {
 		v.Value = cp.StringWrapWith + s + cp.StringWrapWith
 	}
 }
-
 
 func (cp *ConfigurableProcessor) SubstituteUnset(v *ParamValueContext) error {
 
@@ -82,7 +79,7 @@ func (cp *ConfigurableProcessor) SubstituteUnset(v *ParamValueContext) error {
 // SqlProcessor replaces missing values with the word null, wraps strings with single quotes and
 // replaces bool values with the value the BoolTrue and BoolFalse members
 type SqlProcessor struct {
-	BoolTrue interface{}
+	BoolTrue  interface{}
 	BoolFalse interface{}
 }
 
@@ -127,8 +124,3 @@ func (sp *SqlProcessor) SubstituteUnset(v *ParamValueContext) error {
 
 	return nil
 }
-
-
-
-
-

@@ -208,7 +208,6 @@ type NonStandardInsertProvider interface {
 	InsertIDFunc() InsertWithReturnedId
 }
 
-
 /*
  Implemented by DatabaseProvider implementations that need to be given a context when establishing a database connection
 */
@@ -262,7 +261,7 @@ type GraniticRdbmsClientManager struct {
 	BlockUntilConnected bool
 
 	// Injected by Granitic.
-	FrameworkLogger    logging.Logger
+	FrameworkLogger logging.Logger
 
 	SharedLog logging.Logger
 
@@ -349,7 +348,7 @@ func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*R
 
 func (cm *GraniticRdbmsClientManager) chooseInsertFunction() InsertWithReturnedId {
 
-	if iwi, found := cm.Provider.(NonStandardInsertProvider); found{
+	if iwi, found := cm.Provider.(NonStandardInsertProvider); found {
 		return iwi.InsertIDFunc()
 	} else {
 		return DefaultInsertWithReturnedId

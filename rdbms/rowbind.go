@@ -28,7 +28,7 @@ type RowBinder struct {
 */
 func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 
-	if r == nil{
+	if r == nil {
 		return false, errors.New("Nil sql.Rows supplied to BindRow")
 	}
 
@@ -102,7 +102,6 @@ func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error)
 		return nil, errors.New("Nil *sql.Rows supplied")
 	}
 
-
 	if !rt.IsPointerToStruct(t) {
 		return nil, errors.New("Template must be a pointer to a struct.")
 	}
@@ -114,7 +113,6 @@ func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error)
 	colCount := len(columnNames)
 
 	targetScanners = rb.generateTargets(t)
-
 
 	scanners := make([]interface{}, colCount)
 
@@ -148,7 +146,7 @@ func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error)
 			return nil, err
 		}
 
-		if built, err := rb.buildAndPopulate(t, scanners);err != nil {
+		if built, err := rb.buildAndPopulate(t, scanners); err != nil {
 			return nil, err
 		} else {
 			results = append(results, built)
@@ -181,7 +179,6 @@ func (rb *RowBinder) buildAndPopulate(t interface{}, scanners []interface{}) (r 
 				}
 			}()
 
-
 			f.Set(pv)
 		}
 
@@ -191,14 +188,14 @@ func (rb *RowBinder) buildAndPopulate(t interface{}, scanners []interface{}) (r 
 
 }
 
-func (rb *RowBinder) generateTargets(t interface{}) (map[string]*scanner) {
+func (rb *RowBinder) generateTargets(t interface{}) map[string]*scanner {
 
 	targets := make(map[string]*scanner)
 
 	rv := reflect.ValueOf(t).Elem()
 	rt := reflect.TypeOf(t).Elem()
 
-	FieldLoop:
+FieldLoop:
 	for i := 0; i < rt.NumField(); i++ {
 		f := rt.Field(i)
 		alias := f.Tag.Get("column")

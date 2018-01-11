@@ -1,21 +1,20 @@
 package rdbms
 
 import (
-	"database/sql"
-	"testing"
-	"github.com/graniticio/granitic/types"
-	"fmt"
-	"database/sql/driver"
-	"os"
-	"io"
-	"github.com/graniticio/granitic/test"
-	"time"
-	"github.com/graniticio/granitic/reflecttools"
 	"context"
-	"github.com/pkg/errors"
+	"database/sql"
+	"database/sql/driver"
+	"fmt"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/reflecttools"
+	"github.com/graniticio/granitic/test"
+	"github.com/graniticio/granitic/types"
+	"github.com/pkg/errors"
+	"io"
+	"os"
+	"testing"
+	"time"
 )
-
 
 var db *sql.DB
 var drv *mockDriver
@@ -64,14 +63,12 @@ func TestPassthroughs(t *testing.T) {
 
 	c.Rollback()
 
-
 }
 
 func TestTempQueries(t *testing.T) {
 
 	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
-	c.RegisterTempQuery("QT","123")
-
+	c.RegisterTempQuery("QT", "123")
 
 	qm.reset()
 	_, err := c.DeleteQIdParams("QT")
@@ -95,22 +92,22 @@ func TestFindOrCreate(t *testing.T) {
 
 	var id int64
 
-	err := c.ExistingIdOrInsertParams("CQ","IQ", &id, p1, p2)
+	err := c.ExistingIdOrInsertParams("CQ", "IQ", &id, p1, p2)
 
 	if !paramMergedCorrectly(qm.lastParams) {
 		t.FailNow()
 	}
 
-	test.ExpectNil(t,err)
+	test.ExpectNil(t, err)
 
 	test.ExpectInt(t, int(id), 1)
 
 	drv.colNames = []string{"Int64Result"}
 	drv.rowData = [][]driver.Value{{int64(8)}}
 
-	err = c.ExistingIdOrInsertParams("CQ","IQ", &id, p1, p2)
+	err = c.ExistingIdOrInsertParams("CQ", "IQ", &id, p1, p2)
 
-	test.ExpectNil(t,err)
+	test.ExpectNil(t, err)
 
 	test.ExpectInt(t, int(id), 8)
 }
@@ -119,20 +116,20 @@ func passthroughChecks(t *testing.T, c *RdbmsClient) {
 	drv.consumed()
 	r, err := c.Query("TEST")
 
-	test.ExpectNil(t,err)
-	test.ExpectNotNil(t,r)
+	test.ExpectNil(t, err)
+	test.ExpectNotNil(t, r)
 
-	test.ExpectBool(t, r.Next(),false)
+	test.ExpectBool(t, r.Next(), false)
 
 	drv.colNames = []string{"Float64Result"}
 	drv.rowData = [][]driver.Value{{float64(123.1)}}
 
 	w := c.QueryRow("TEST", "A")
-	test.ExpectNotNil(t,w)
+	test.ExpectNotNil(t, w)
 
 	res, err := c.Exec("TEST")
-	test.ExpectNil(t,err)
-	test.ExpectNotNil(t,res)
+	test.ExpectNil(t, err)
+	test.ExpectNotNil(t, res)
 }
 
 func TestNonTxSelectMethodsWithCtx(t *testing.T) {
@@ -144,13 +141,11 @@ func TestNonTxSelectMethodsWithCtx(t *testing.T) {
 
 }
 
-
 func TestNonTxSelectMethods(t *testing.T) {
 
 	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	testSelectMethods(t, c)
-
 
 }
 
@@ -172,7 +167,6 @@ func TestTxSelectMethodsWithCtx(t *testing.T) {
 	c.Rollback()
 
 }
-
 
 func TestNonTxDeleteMethods(t *testing.T) {
 
@@ -199,9 +193,6 @@ func TestTxDeleteMethods(t *testing.T) {
 	c.CommitTransaction()
 
 }
-
-
-
 
 func TestNonTxUpdateMethods(t *testing.T) {
 
@@ -238,11 +229,6 @@ func TestTxUpdateMethodsWithCtx(t *testing.T) {
 	c.Rollback()
 
 }
-
-
-
-
-
 
 func TestTxInsertMethodsWithCtx(t *testing.T) {
 
@@ -292,7 +278,7 @@ func TestTxDeleteMethodsWithCtx(t *testing.T) {
 
 }
 
-func TestTransactionBehaviour(t *testing.T){
+func TestTransactionBehaviour(t *testing.T) {
 
 	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
@@ -348,21 +334,16 @@ func TestTransactionBehaviour(t *testing.T){
 	err = c.StartTransaction()
 	test.ExpectNotNil(t, err)
 
-
-
-
 }
 
-
-func TestFragmentFinding(t *testing.T){
+func TestFragmentFinding(t *testing.T) {
 
 	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	v, err := c.FindFragment("AAA")
 
 	test.ExpectNil(t, err)
-	test.ExpectString(t,v, "AAA")
-
+	test.ExpectString(t, v, "AAA")
 
 }
 
@@ -381,21 +362,18 @@ func TestBuildQuery(t *testing.T) {
 	test.ExpectNil(t, err)
 	test.ExpectString(t, q, "OK")
 
-
 	q, err = c.BuildQueryFromQIdParams("ERROR", p1, p2)
 
 	test.ExpectNotNil(t, err)
 	test.ExpectString(t, q, "")
 }
 
-
-func TestIllegalResultContents(t *testing.T){
+func TestIllegalResultContents(t *testing.T) {
 
 	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	//SelectBindSingleQId
 	drv.colNames = []string{"TimeResult"}
-
 
 	drv.rowData = [][]driver.Value{{types.NewNilableString("AA")}}
 
@@ -435,8 +413,6 @@ func testInsertMethods(t *testing.T, c *RdbmsClient) {
 	test.ExpectNil(t, err)
 }
 
-
-
 func testDeleteMethods(t *testing.T, c *RdbmsClient) {
 
 	p1, p2 := testStandardParams()
@@ -451,7 +427,7 @@ func testDeleteMethods(t *testing.T, c *RdbmsClient) {
 	drv.forceError = true
 	r, err = c.DeleteQIdParam("DQP", "p1", "v1")
 	test.ExpectNotNil(t, err)
-	test.ExpectNil(t,r)
+	test.ExpectNil(t, r)
 
 	r, err = c.DeleteQIdParams("DQPs", p1, p2)
 	test.ExpectNil(t, err)
@@ -463,12 +439,10 @@ func testDeleteMethods(t *testing.T, c *RdbmsClient) {
 		t.FailNow()
 	}
 
-
 	drv.forceError = true
 	r, err = c.DeleteQIdParams("DQPs", p1, p2)
 	test.ExpectNotNil(t, err)
-	test.ExpectNil(t,r)
-
+	test.ExpectNil(t, r)
 
 }
 
@@ -486,7 +460,7 @@ func testUpdateMethods(t *testing.T, c *RdbmsClient) {
 	drv.forceError = true
 	r, err = c.UpdateQIdParam("DQP", "p1", "v1")
 	test.ExpectNotNil(t, err)
-	test.ExpectNil(t,r)
+	test.ExpectNil(t, r)
 
 	r, err = c.UpdateQIdParams("DQPs", p1, p2)
 	test.ExpectNil(t, err)
@@ -498,12 +472,10 @@ func testUpdateMethods(t *testing.T, c *RdbmsClient) {
 		t.FailNow()
 	}
 
-
 	drv.forceError = true
 	r, err = c.UpdateQIdParams("DQPs", p1, p2)
 	test.ExpectNotNil(t, err)
-	test.ExpectNil(t,r)
-
+	test.ExpectNil(t, r)
 
 }
 
@@ -511,11 +483,9 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 
 	p1, p2 := testStandardParams()
 
-
-
 	//SelectBindQId
 	drv.colNames = []string{"Int64Result"}
-	drv.rowData = [][]driver.Value{{int64(45)},{int64(32)}}
+	drv.rowData = [][]driver.Value{{int64(45)}, {int64(32)}}
 
 	bt := new(testTarget)
 	results, err := c.SelectBindQId("SBQ", bt)
@@ -530,7 +500,6 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(results), 0)
-
 
 	drv.forceError = true
 	results, err = c.SelectBindQId("SBQ", bt)
@@ -554,15 +523,13 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(results), 0)
 
-
 	drv.forceError = true
 	results, err = c.SelectBindQIdParam("SBQP", "p1", "v1", bt)
 	test.ExpectNotNil(t, err)
 
-
 	//SelectBindQIdParams
 	drv.colNames = []string{"BoolResult"}
-	drv.rowData = [][]driver.Value{{true},{false},{true}}
+	drv.rowData = [][]driver.Value{{true}, {false}, {true}}
 
 	results, err = c.SelectBindQIdParams("SBQPs", bt, p1, p2)
 
@@ -579,10 +546,8 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 	results, err = c.SelectBindQIdParams("SBQPs", bt, p1, p2)
 	test.ExpectNotNil(t, err)
 
-
 	//SelectBindSingleQId
 	drv.colNames = []string{"TimeResult"}
-
 
 	drv.rowData = [][]driver.Value{{time.Now()}}
 
@@ -601,15 +566,13 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 	test.ExpectBool(t, found, false)
 	test.ExpectBool(t, reflecttools.IsZero(bt.TimeResult), true)
 
-
 	drv.forceError = true
 	found, err = c.SelectBindSingleQId("SBSQ", bt)
 	test.ExpectNotNil(t, err)
 
-
 	//SelectBindSingleQIdParam
 	drv.colNames = []string{"StrResult", "Int64Result"}
-	drv.rowData = [][]driver.Value{{"okay", int64(1)},{"not",int64(2)}}
+	drv.rowData = [][]driver.Value{{"okay", int64(1)}, {"not", int64(2)}}
 
 	bt = new(testTarget)
 
@@ -626,7 +589,6 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, found, true)
 
-
 	test.ExpectInt(t, int(bt.Int64Result), 1)
 	test.ExpectString(t, bt.StrResult, "okay")
 
@@ -634,11 +596,9 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 	found, err = c.SelectBindSingleQIdParam("SBSQ", "p1", "v1", bt)
 	test.ExpectNotNil(t, err)
 
-
 	//SelectBindSingleQIdParams
 	drv.colNames = []string{"StrResult"}
 	drv.rowData = [][]driver.Value{{"okay"}}
-
 
 	bt = new(testTarget)
 	found, err = c.SelectBindSingleQIdParams("SBSQP", bt, p1, p2)
@@ -660,7 +620,6 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 	found, err = c.SelectBindSingleQIdParams("SBSQP", bt, p1, p2)
 	test.ExpectNotNil(t, err)
 
-
 	//SelectQId
 	drv.colNames = []string{"StrResult"}
 	drv.rowData = [][]driver.Value{{"okay"}}
@@ -674,10 +633,9 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 	r, err = c.SelectQId("SQ")
 	test.ExpectNotNil(t, err)
 
-
 	//SelectQIdParam
 	drv.colNames = []string{"StrResult"}
-	drv.rowData = [][]driver.Value{{"okay"},{"not"}}
+	drv.rowData = [][]driver.Value{{"okay"}, {"not"}}
 	r, err = c.SelectQIdParam("SQP", "p1", "v1")
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, r.Next(), true)
@@ -687,11 +645,9 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 	r, err = c.SelectQIdParam("SQP", "p1", "v1")
 	test.ExpectNotNil(t, err)
 
-
 	//SelectQIdParams
 	drv.colNames = []string{"StrResult"}
-	drv.rowData = [][]driver.Value{{"okay"},{"not"}}
-
+	drv.rowData = [][]driver.Value{{"okay"}, {"not"}}
 
 	r, err = c.SelectQIdParams("SQPs", p1, p2)
 	test.ExpectNil(t, err)
@@ -703,15 +659,13 @@ func testSelectMethods(t *testing.T, c *RdbmsClient) {
 	test.ExpectNotNil(t, err)
 }
 
-
-func testStandardParams() (interface{}, interface{}){
+func testStandardParams() (interface{}, interface{}) {
 
 	tp := new(testParam)
 
 	tp.IParam = 44
 	tp.NSParam = types.NewNilableString("NS")
 	tp.SParam = "S"
-
 
 	pm := make(map[string]interface{})
 
@@ -732,27 +686,24 @@ func paramMergedCorrectly(p map[string]interface{}) bool {
 }
 
 type testTarget struct {
-	StrResult string
-	Int64Result int64
-	Float64Result float64
-	BoolResult bool
+	StrResult       string
+	Int64Result     int64
+	Float64Result   float64
+	BoolResult      bool
 	ByteArrayResult []byte
-	TimeResult time.Time
-	Aliased string "column: ColumnAlias"
-	StructResult testParam
+	TimeResult      time.Time
+	Aliased         string "column: ColumnAlias"
+	StructResult    testParam
 }
 
 type testParam struct {
-	SParam string
+	SParam  string
 	NSParam *types.NilableString
-	IParam int `dbparam:"IOV"`
+	IParam  int `dbparam:"IOV"`
 }
 
-
-
-
 type testQueryManagerProxy struct {
-	lastParams map[string]interface{}
+	lastParams        map[string]interface{}
 	lastQueryReturned string
 }
 
@@ -764,7 +715,7 @@ func (tqm *testQueryManagerProxy) reset() {
 func (tqm *testQueryManagerProxy) BuildQueryFromId(qid string, params map[string]interface{}) (string, error) {
 	tqm.lastParams = params
 
-	if qid == "ERROR"{
+	if qid == "ERROR" {
 		tqm.lastQueryReturned = ""
 		return "", errors.New("Forced error")
 	}
@@ -784,20 +735,20 @@ func (tqm *testQueryManagerProxy) FragmentFromId(qid string) (string, error) {
 
 type mockResult struct {
 	lid int64
-	ra int64
+	ra  int64
 }
 
 func (mr mockResult) LastInsertId() (int64, error) {
 	return mr.lid, nil
 }
 
-func  (mr mockResult) RowsAffected() (int64, error) {
+func (mr mockResult) RowsAffected() (int64, error) {
 	return mr.ra, nil
 }
 
 type mockDriver struct {
-	colNames []string
-	rowData [][]driver.Value
+	colNames   []string
+	rowData    [][]driver.Value
 	forceError bool
 }
 
@@ -811,8 +762,7 @@ func (d *mockDriver) Open(name string) (driver.Conn, error) {
 	return newMockConn(d), nil
 }
 
-
-func newMockConn(d *mockDriver) *mockConn{
+func newMockConn(d *mockDriver) *mockConn {
 	c := new(mockConn)
 	c.d = d
 
@@ -835,8 +785,7 @@ func (c *mockConn) Begin() (driver.Tx, error) {
 	return new(mockTx), nil
 }
 
-
-func newMockStmt(d *mockDriver) *mockStmt{
+func newMockStmt(d *mockDriver) *mockStmt {
 	s := new(mockStmt)
 	s.d = d
 
@@ -847,15 +796,15 @@ type mockStmt struct {
 	d *mockDriver
 }
 
-func (s* mockStmt) Close() error {
+func (s *mockStmt) Close() error {
 	return nil
 }
 
-func (s* mockStmt) NumInput() int {
+func (s *mockStmt) NumInput() int {
 	return 0
 }
 
-func (s* mockStmt) Exec(args []driver.Value) (driver.Result, error) {
+func (s *mockStmt) Exec(args []driver.Value) (driver.Result, error) {
 
 	if s.d.forceError {
 		drv.consumed()
@@ -871,13 +820,12 @@ func (s* mockStmt) Exec(args []driver.Value) (driver.Result, error) {
 	return mr, nil
 }
 
-func (s* mockStmt) Query(args []driver.Value) (driver.Rows, error) {
+func (s *mockStmt) Query(args []driver.Value) (driver.Rows, error) {
 
 	if s.d.forceError {
 		drv.consumed()
 		return nil, errors.New("Forced error")
 	}
-
 
 	drv = s.d
 	mr := newMockRows(drv.colNames, drv.rowData)
@@ -897,10 +845,9 @@ func newMockRows(c []string, data [][]driver.Value) *mockRows {
 }
 
 type mockRows struct {
-
 	served int
-	c []string
-	d [][]driver.Value
+	c      []string
+	d      [][]driver.Value
 }
 
 func (r *mockRows) Columns() []string {
@@ -927,7 +874,6 @@ func (r *mockRows) Next(dest []driver.Value) error {
 }
 
 type mockTx struct {
-
 }
 
 func (t *mockTx) Commit() error {
