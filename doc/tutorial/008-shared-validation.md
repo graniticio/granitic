@@ -47,7 +47,7 @@ be useful in a number of places. Granitic provides a mechanism for defining rule
 }
 ```
 
-and modify the <code>submitArtistValidator</code> component so its definition looks like:
+In the same file, modify the <code>submitArtistValidator</code> component so its definition looks like:
 
 ```json
 "submitArtistValidator": {
@@ -58,7 +58,7 @@ and modify the <code>submitArtistValidator</code> component so its definition lo
 }
 ```
 
-We now need to edit <code>resource/config/config.json</code> to some shared rules. Add the following:
+We now need to edit <code>resource/config/config.json</code> to add some shared rules. Add the following:
 
 ```json
 "sharedRules": {
