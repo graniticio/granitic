@@ -8,6 +8,7 @@ import (
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/schedule"
 )
 
 // The name of the TaskScheduler component as stored in the IoC framework.
@@ -21,8 +22,8 @@ type TaskSchedulerFacilityBuilder struct {
 // See FacilityBuilder.BuildAndRegister
 func (fb *TaskSchedulerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	ts := new(TaskScheduler)
-	ts.state = ioc.StoppedState
+	ts := new(schedule.TaskScheduler)
+	ts.State = ioc.StoppedState
 
 	//Inject JSON config
 	ca.Populate(facilityName, ts)

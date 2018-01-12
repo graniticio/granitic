@@ -43,14 +43,6 @@ func (t *Task) FullName() string {
 
 }
 
-func (t *Task) SetOverlapBehaviour(ob OverlapBehaviour) {
-	t.overlap = ob
-}
-
-func (t *Task) SetLogic(tl TaskLogic) {
-	t.logic = tl
-}
-
 type TaskStatus int
 
 const (

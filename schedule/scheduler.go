@@ -1,19 +1,18 @@
 // Copyright 2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
-package taskscheduler
+package schedule
 
 import (
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/schedule"
 	"github.com/pkg/errors"
 )
 
 type TaskScheduler struct {
 	componentContainer *ioc.ComponentContainer
-	state              ioc.ComponentState
+	State              ioc.ComponentState
 	// Logger used by Granitic framework components. Automatically injected.
 	FrameworkLogger logging.Logger
 }
@@ -26,7 +25,7 @@ func (ts *TaskScheduler) Container(container *ioc.ComponentContainer) {
 // StartComponent Finds any schedules, parses them and verifies the component they reference implements schedule.TaskLogic
 func (ts *TaskScheduler) StartComponent() error {
 
-	if ts.state != ioc.StoppedState {
+	if ts.State != ioc.StoppedState {
 		return nil
 	}
 
@@ -37,7 +36,7 @@ func (ts *TaskScheduler) StartComponent() error {
 
 		ts.FrameworkLogger.LogTracef("Considering %s", component.Name)
 
-		if task, found := component.Instance.(*schedule.Task); found {
+		if task, found := component.Instance.(*Task); found {
 			if task.Id == "" {
 				//Use the name of the component containing the task as an ID for the task if it isn't explicitly set
 				task.Id = component.Name
@@ -55,7 +54,7 @@ func (ts *TaskScheduler) StartComponent() error {
 	return nil
 }
 
-func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *schedule.Task) error {
+func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Task) error {
 
 	if err := ts.findLogic(cn, task); err != nil {
 		return err
@@ -68,7 +67,7 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *sc
 	return nil
 }
 
-func (ts *TaskScheduler) findLogic(cn *ioc.ComponentContainer, task *schedule.Task) error {
+func (ts *TaskScheduler) findLogic(cn *ioc.ComponentContainer, task *Task) error {
 	if task.Component == "" {
 		return errors.New("Missing Component (you must provide the name of the component that will execute your task")
 	}
@@ -80,25 +79,25 @@ func (ts *TaskScheduler) findLogic(cn *ioc.ComponentContainer, task *schedule.Ta
 		return errors.New(m)
 	}
 
-	tl, okay := tc.Instance.(schedule.TaskLogic)
+	tl, okay := tc.Instance.(TaskLogic)
 
 	if !okay {
 		m := fmt.Sprintf("Component %s does not implement schedule.TaskLogic", task.Component)
 		return errors.New(m)
 	}
 
-	task.SetLogic(tl)
+	task.logic = tl
 
 	return nil
 }
 
-func (ts *TaskScheduler) setOverlapBehaviour(task *schedule.Task) error {
+func (ts *TaskScheduler) setOverlapBehaviour(task *Task) error {
 	switch task.Overlap {
 	case "":
 	case "SKIP":
-		task.SetOverlapBehaviour(schedule.SKIP)
+		task.overlap = SKIP
 	case "ALLOW":
-		task.SetOverlapBehaviour(schedule.ALLOW)
+		task.overlap = ALLOW
 	default:
 		m := fmt.Sprintf("Unsupported OverlapBehaviour %s - should be SKIP or ALLOW", task.Overlap)
 		return errors.New(m)
