@@ -26,6 +26,8 @@ type Task struct {
 	Overlap string
 	// If set to true, suppress warning messages being logged when a task is scheduled to run while another instance is already running
 	NoWarnOnOverlap bool
+	// A human-readable expression (in English) of how frequently the task should be run - see package docs
+	Every string
 
 	logic   TaskLogic
 	overlap OverlapBehaviour
