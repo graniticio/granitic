@@ -57,6 +57,18 @@ func (ts *TaskScheduler) StartComponent() error {
 
 func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *schedule.Task) error {
 
+	if err := ts.findLogic(cn, task); err != nil {
+		return err
+	}
+
+	if err := ts.setOverlapBehaviour(task); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ts *TaskScheduler) findLogic(cn *ioc.ComponentContainer, task *schedule.Task) error {
 	if task.Component == "" {
 		return errors.New("Missing Component (you must provide the name of the component that will execute your task")
 	}
@@ -68,6 +80,29 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *sc
 		return errors.New(m)
 	}
 
-	return nil
+	tl, okay := tc.Instance.(schedule.TaskLogic)
 
+	if !okay {
+		m := fmt.Sprintf("Component %s does not implement schedule.TaskLogic", task.Component)
+		return errors.New(m)
+	}
+
+	task.SetLogic(tl)
+
+	return nil
+}
+
+func (ts *TaskScheduler) setOverlapBehaviour(task *schedule.Task) error {
+	switch task.Overlap {
+	case "":
+	case "SKIP":
+		task.SetOverlapBehaviour(schedule.SKIP)
+	case "ALLOW":
+		task.SetOverlapBehaviour(schedule.ALLOW)
+	default:
+		m := fmt.Sprintf("Unsupported OverlapBehaviour %s - should be SKIP or ALLOW", task.Overlap)
+		return errors.New(m)
+	}
+
+	return nil
 }
