@@ -88,7 +88,7 @@ func (ss *UnorderedStringSet) Contains(m string) bool {
 	return ss.members[m]
 }
 
-// See StringSet.Add
+// See StringSet.Enqueue
 func (ss *UnorderedStringSet) Add(s string) {
 	ss.members[s] = true
 }
@@ -115,7 +115,7 @@ func (os *OrderedStringSet) Contains(m string) bool {
 	return os.members.Contains(m)
 }
 
-// See StringSet.Add
+// See StringSet.Enqueue
 func (os *OrderedStringSet) Add(s string) {
 
 	if os.ordered == nil {

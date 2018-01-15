@@ -46,6 +46,9 @@ func parseEvery(every string) (*interval, error) {
 
 	i.Frequency = time.Duration(frequencyValue) * frequencyUnit
 
+	i.Mode = OFFSET_FROM_START
+	i.CalculatedAt = time.Now()
+
 	return i, nil
 
 }
