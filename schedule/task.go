@@ -45,20 +45,11 @@ func (t *Task) FullName() string {
 
 }
 
-type TaskStatus int
-
-const (
-	TASK_START TaskStatus = iota
-	TASK_PROGRESS_UPDATE
-	TASK_END_SUCCESS
-	TASK_END_FAIL
-	TASK_END_PARTIAL
-)
-
 type TaskStatusUpdate struct {
-	Status TaskStatus
+	Message string
+	Status  interface{}
 }
 
 type TaskLogic interface {
-	ExecuteTask(c chan TaskStatusUpdate)
+	ExecuteTask(c chan TaskStatusUpdate) error
 }

@@ -12,6 +12,7 @@ import (
 
 type TaskScheduler struct {
 	componentContainer *ioc.ComponentContainer
+	managedTasks       []*invocationManager
 	State              ioc.ComponentState
 	// Logger used by Granitic framework components. Automatically injected.
 	FrameworkLogger logging.Logger
@@ -24,6 +25,8 @@ func (ts *TaskScheduler) Container(container *ioc.ComponentContainer) {
 
 // StartComponent Finds any schedules, parses them and verifies the component they reference implements schedule.TaskLogic
 func (ts *TaskScheduler) StartComponent() error {
+
+	ts.managedTasks = make([]*invocationManager, 0)
 
 	if ts.State != ioc.StoppedState {
 		return nil
@@ -54,6 +57,29 @@ func (ts *TaskScheduler) StartComponent() error {
 	return nil
 }
 
+func (ts *TaskScheduler) AllowAccess() error {
+
+	for _, tm := range ts.managedTasks {
+
+		go tm.Start()
+
+	}
+
+	ts.FrameworkLogger.LogDebugf("%d task manager(s) started", len(ts.managedTasks))
+
+	return nil
+}
+
+func (ts *TaskScheduler) PrepareToStop() {
+
+	for _, tm := range ts.managedTasks {
+
+		tm.PrepareToStop()
+
+	}
+
+}
+
 func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Task) error {
 
 	if err := ts.findLogic(cn, task); err != nil {
@@ -61,6 +87,22 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Ta
 	}
 
 	if err := ts.setOverlapBehaviour(task); err != nil {
+		return err
+	}
+
+	if task.Every == "" {
+		m := fmt.Sprintf("You must set the 'Every' field to set an execution interval")
+		return errors.New(m)
+	}
+
+	tm := NewInvocationManager(task)
+	ts.managedTasks = append(ts.managedTasks, tm)
+	tm.Log = ts.FrameworkLogger
+
+	if interval, err := parseEvery(task.Every); err == nil {
+		tm.Interval = interval
+	} else {
+
 		return err
 	}
 

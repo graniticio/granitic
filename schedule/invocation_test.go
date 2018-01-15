@@ -7,7 +7,7 @@ import (
 func TestEmptyQueue(t *testing.T) {
 
 	iq := new(invocationQueue)
-	c := iq.Counters()
+	c := iq.Contents()
 
 	if len(c) != 0 {
 		t.Fail()
@@ -23,13 +23,13 @@ func TestSingleQueue(t *testing.T) {
 	i1.counter = 1
 
 	iq.Enqueue(i1)
-	c := iq.Counters()
+	c := iq.Contents()
 
 	if len(c) != 1 {
 		t.FailNow()
 	}
 
-	if c[0] != 1 {
+	if c[0].counter != 1 {
 		t.Fail()
 	}
 
@@ -43,13 +43,13 @@ func TestQueueMulti(t *testing.T) {
 	i1.counter = 1
 
 	iq.Enqueue(i1)
-	c := iq.Counters()
+	c := iq.Contents()
 
 	if len(c) != 1 {
 		t.FailNow()
 	}
 
-	if c[0] != 1 {
+	if c[0].counter != 1 {
 		t.Fail()
 	}
 
@@ -57,17 +57,17 @@ func TestQueueMulti(t *testing.T) {
 	i2.counter = 2
 
 	iq.Enqueue(i2)
-	c = iq.Counters()
+	c = iq.Contents()
 
 	if len(c) != 2 {
 		t.FailNow()
 	}
 
-	if c[0] != 1 {
+	if c[0].counter != 1 {
 		t.Fail()
 	}
 
-	if c[1] != 2 {
+	if c[1].counter != 2 {
 		t.Fail()
 	}
 
@@ -75,21 +75,21 @@ func TestQueueMulti(t *testing.T) {
 	i3.counter = 3
 
 	iq.Enqueue(i3)
-	c = iq.Counters()
+	c = iq.Contents()
 
 	if len(c) != 3 {
 		t.FailNow()
 	}
 
-	if c[0] != 1 {
+	if c[0].counter != 1 {
 		t.Fail()
 	}
 
-	if c[1] != 2 {
+	if c[1].counter != 2 {
 		t.Fail()
 	}
 
-	if c[2] != 3 {
+	if c[2].counter != 3 {
 		t.Fail()
 	}
 }
@@ -132,7 +132,7 @@ func TestDequeueMulti(t *testing.T) {
 		t.FailNow()
 	}
 
-	c := iq.Counters()
+	c := iq.Contents()
 
 	if len(c) != 2 {
 		t.FailNow()
@@ -144,7 +144,7 @@ func TestDequeueMulti(t *testing.T) {
 		t.FailNow()
 	}
 
-	c = iq.Counters()
+	c = iq.Contents()
 
 	if len(c) != 1 {
 		t.FailNow()
@@ -156,7 +156,7 @@ func TestDequeueMulti(t *testing.T) {
 		t.FailNow()
 	}
 
-	c = iq.Counters()
+	c = iq.Contents()
 
 	if len(c) != 0 {
 		t.FailNow()
@@ -183,13 +183,13 @@ func TestDequeueMulti(t *testing.T) {
 
 	iq.Enqueue(i6)
 
-	c = iq.Counters()
+	c = iq.Contents()
 
 	if len(c) != 3 {
 		t.FailNow()
 	}
 
-	if c[0] != 4 || c[1] != 5 || c[2] != 6 {
+	if c[0].counter != 4 || c[1].counter != 5 || c[2].counter != 6 {
 		t.FailNow()
 	}
 

@@ -82,7 +82,7 @@ func validUnit(s string) (time.Duration, bool) {
 type interval struct {
 	Mode            intervalMode
 	OffsetFromStart time.Duration
-	ActualStart     time.Duration
+	ActualStart     time.Time
 	Frequency       time.Duration
 	CalculatedAt    time.Time
 }

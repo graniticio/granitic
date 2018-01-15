@@ -3,28 +3,48 @@
 
 package schedule
 
+import "time"
+
 type invocation struct {
-	nextInvocation *invocation
-	counter        uint64
+	counter   uint64
+	runAt     time.Time
+	startedAt time.Time
 }
 
 type invocationQueue struct {
-	head *invocation
-	tail *invocation
+	head *queueMember
+	tail *queueMember
+}
+
+type queueMember struct {
+	i *invocation
+	n *queueMember
 }
 
 func (iq *invocationQueue) Enqueue(i *invocation) {
 
+	qm := new(queueMember)
+	qm.i = i
+
 	if iq.head == nil {
-		iq.head = i
+		iq.head = qm
 	} else if iq.tail == nil {
-		iq.head.nextInvocation = i
-		iq.tail = i
+		iq.head.n = qm
+		iq.tail = qm
 	} else {
-		iq.tail.nextInvocation = i
-		iq.tail = i
+		iq.tail.n = qm
+		iq.tail = qm
 	}
 
+}
+
+func (iq *invocationQueue) Peek() *invocation {
+
+	if iq.head == nil {
+		return nil
+	}
+
+	return iq.head.i
 }
 
 func (iq *invocationQueue) Dequeue() *invocation {
@@ -33,30 +53,34 @@ func (iq *invocationQueue) Dequeue() *invocation {
 
 	if ch != nil {
 
-		iq.head = ch.nextInvocation
+		iq.head = ch.n
 
-		if ch.nextInvocation == nil || iq.head.nextInvocation == nil {
+		if ch.n == nil || iq.head.n == nil {
 			iq.tail = nil
 		}
+
+		return ch.i
+
+	} else {
+		return nil
 	}
 
-	return ch
 }
 
-func (iq *invocationQueue) Counters() []uint64 {
+func (iq *invocationQueue) Contents() []*invocation {
 
-	c := make([]uint64, 0)
+	c := make([]*invocation, 0)
 
-	return iq.addCounter(iq.head, c)
+	return iq.addToContents(iq.head, c)
 }
 
-func (iq *invocationQueue) addCounter(i *invocation, c []uint64) []uint64 {
+func (iq *invocationQueue) addToContents(qm *queueMember, c []*invocation) []*invocation {
 
-	if i == nil {
+	if qm == nil {
 
 		return c
 	} else {
-		c = append(c, i.counter)
-		return iq.addCounter(i.nextInvocation, c)
+		c = append(c, qm.i)
+		return iq.addToContents(qm.n, c)
 	}
 }
