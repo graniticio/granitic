@@ -1,6 +1,7 @@
 package schedule
 
 import (
+	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"time"
@@ -37,10 +38,10 @@ func (im *invocationManager) Start() {
 	for im.State != ioc.StoppedState && im.State != ioc.StoppingState {
 		//Pop tasks from the schedule queue as long as we're not stopping
 
-		next := im.scheduled.Peek()
+		first := im.scheduled.Peek()
 
-		if next != nil {
-			runAt := next.runAt
+		if first != nil {
+			runAt := first.runAt
 
 			now := time.Now()
 
@@ -48,20 +49,31 @@ func (im *invocationManager) Start() {
 				im.scheduled.Dequeue()
 
 				if im.State == ioc.RunningState {
-					im.running.Enqueue(next)
+					im.running.Enqueue(first)
 
-					go im.runTask(next)
+					go im.runTask(first)
 				}
+
+				im.addNextInvocation(first)
 			}
 
 		}
 
+		waitTime := im.determineWait()
+
+		fmt.Println(waitTime)
+
+		time.Sleep(waitTime)
 	}
 }
 
 func (im *invocationManager) runTask(i *invocation) {
 
 	i.startedAt = time.Now()
+
+	if im.Log.IsLevelEnabled(logging.Trace) {
+		im.Log.LogTracef("Accuracy: %v", i.startedAt.Sub(i.runAt))
+	}
 
 	updates := make(chan TaskStatusUpdate)
 
@@ -74,6 +86,25 @@ func (im *invocationManager) runTask(i *invocation) {
 	}
 
 	close(updates)
+
+}
+func (im *invocationManager) determineWait() time.Duration {
+
+	next := im.scheduled.Peek()
+
+	if next == nil {
+		return time.Second
+	} else {
+
+		untilNext := next.runAt.Sub(time.Now())
+
+		if untilNext < time.Second {
+			return untilNext
+		} else {
+			return time.Second
+		}
+
+	}
 
 }
 
@@ -91,6 +122,19 @@ func (im *invocationManager) setFirstInvocation() {
 	}
 
 	im.scheduled.Enqueue(i)
+
+}
+
+func (im *invocationManager) addNextInvocation(previous *invocation) time.Time {
+
+	interval := im.Interval
+
+	i := new(invocation)
+	i.runAt = previous.runAt.Add(interval.Frequency)
+
+	im.scheduled.Enqueue(i)
+
+	return i.runAt
 
 }
 
