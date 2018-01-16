@@ -9,11 +9,11 @@ import (
 	"github.com/graniticio/granitic/reflecttools"
 	"github.com/graniticio/granitic/test"
 	"github.com/graniticio/granitic/types"
-	"github.com/pkg/errors"
 	"io"
 	"os"
 	"testing"
 	"time"
+	"errors"
 )
 
 var db *sql.DB

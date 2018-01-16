@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
-	"github.com/pkg/errors"
+	"errors"
 )
 
 type TaskScheduler struct {

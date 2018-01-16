@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"errors"
 )
 
 func parseEvery(every string) (*interval, error) {

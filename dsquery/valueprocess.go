@@ -3,7 +3,7 @@ package dsquery
 import (
 	"fmt"
 	"github.com/graniticio/granitic/types"
-	"github.com/pkg/errors"
+	"errors"
 )
 
 // Implemented by components able to escape the value of a parameter to a query and handle unset parameters
