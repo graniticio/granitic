@@ -103,6 +103,66 @@ func TestDequeueEmpty(t *testing.T) {
 	}
 }
 
+func TestRemoveEmpty(t *testing.T) {
+	iq := new(invocationQueue)
+
+	iq.Remove(0)
+}
+
+func TestRemoveOnly(t *testing.T) {
+	iq := buildTo(1)
+
+	iq.Remove(1)
+
+	if iq.Size() != 0 {
+		t.FailNow()
+	}
+
+}
+
+func TestRemoveNonExistent(t *testing.T) {
+	iq := buildTo(11)
+
+	iq.Remove(88)
+
+	if iq.Size() != 11 {
+		t.FailNow()
+	}
+
+}
+
+func TestRemoveMiddleMany(t *testing.T) {
+	iq := buildTo(11)
+
+	iq.Remove(7)
+
+	if iq.Size() != 10 {
+		t.FailNow()
+	}
+
+	c := iq.Contents()
+
+	if c[6].counter != 8 {
+		t.FailNow()
+	}
+
+}
+
+func buildTo(max int) *invocationQueue {
+
+	iq := new(invocationQueue)
+
+	for i := 1; i <= max; i++ {
+
+		in := new(invocation)
+		in.counter = uint64(i)
+		iq.Enqueue(in)
+	}
+
+	return iq
+
+}
+
 func TestDequeueMulti(t *testing.T) {
 	iq := new(invocationQueue)
 	i := iq.Dequeue()

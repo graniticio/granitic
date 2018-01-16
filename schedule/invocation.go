@@ -3,7 +3,10 @@
 
 package schedule
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 type invocation struct {
 	counter   uint64
@@ -14,6 +17,8 @@ type invocation struct {
 type invocationQueue struct {
 	head *queueMember
 	tail *queueMember
+	mux  sync.Mutex
+	size uint64
 }
 
 type queueMember struct {
@@ -22,6 +27,8 @@ type queueMember struct {
 }
 
 func (iq *invocationQueue) Enqueue(i *invocation) {
+
+	iq.mux.Lock()
 
 	qm := new(queueMember)
 	qm.i = i
@@ -36,20 +43,83 @@ func (iq *invocationQueue) Enqueue(i *invocation) {
 		iq.tail = qm
 	}
 
+	iq.size++
+
+	iq.mux.Unlock()
+
 }
 
 func (iq *invocationQueue) Peek() *invocation {
 
+	var result *invocation
+
+	iq.mux.Lock()
+
 	if iq.head == nil {
-		return nil
+		result = nil
 	}
 
-	return iq.head.i
+	result = iq.head.i
+
+	iq.mux.Unlock()
+
+	return result
+}
+
+func (iq *invocationQueue) Remove(c uint64) {
+
+	iq.mux.Lock()
+
+	var previous *queueMember
+
+	qm := iq.head
+
+	if qm != nil {
+
+		for qm != nil {
+
+			if qm.i.counter == c {
+
+				if previous == nil {
+					//Removing head
+					iq.head = nil
+
+				} else if qm.n == nil {
+					//Removing tail
+					iq.tail = nil
+					previous = nil
+
+				} else {
+					previous.n = qm.n
+				}
+
+				qm = nil
+				iq.size--
+
+			} else {
+				previous = qm
+				qm = qm.n
+			}
+
+		}
+
+	}
+
+	iq.mux.Unlock()
+
+}
+
+func (iq *invocationQueue) Size() uint64 {
+	return iq.size
 }
 
 func (iq *invocationQueue) Dequeue() *invocation {
 
+	iq.mux.Lock()
+
 	ch := iq.head
+
+	var result *invocation
 
 	if ch != nil {
 
@@ -59,19 +129,30 @@ func (iq *invocationQueue) Dequeue() *invocation {
 			iq.tail = nil
 		}
 
-		return ch.i
+		result = ch.i
 
-	} else {
-		return nil
 	}
+
+	iq.size--
+
+	iq.mux.Unlock()
+
+	return result
 
 }
 
 func (iq *invocationQueue) Contents() []*invocation {
 
+	iq.mux.Lock()
+
 	c := make([]*invocation, 0)
 
-	return iq.addToContents(iq.head, c)
+	result := iq.addToContents(iq.head, c)
+
+	iq.mux.Unlock()
+
+	return result
+
 }
 
 func (iq *invocationQueue) addToContents(qm *queueMember, c []*invocation) []*invocation {

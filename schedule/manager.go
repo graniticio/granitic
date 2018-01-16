@@ -79,8 +79,8 @@ func (im *invocationManager) runTask(i *invocation) {
 	defer func() {
 		if r := recover(); r != nil {
 			im.Log.LogErrorfWithTrace("Panic recovered while executing task %s (invocation %d started at %v)\n %v", im.Task.FullName(), i.counter, i.startedAt, r)
+			close(updates)
 		}
-		close(updates)
 	}()
 
 	err := im.Task.logic.ExecuteTask(updates)
