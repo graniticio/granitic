@@ -37,7 +37,7 @@ func (im *invocationManager) Start() {
 	for im.State != ioc.StoppedState && im.State != ioc.StoppingState {
 		//Pop tasks from the schedule queue as long as we're not stopping
 
-		first := im.scheduled.Peek()
+		first := im.scheduled.PeekHead()
 
 		if first != nil {
 			runAt := first.runAt
@@ -94,7 +94,7 @@ func (im *invocationManager) runTask(i *invocation) {
 
 func (im *invocationManager) determineWait() time.Duration {
 
-	next := im.scheduled.Peek()
+	next := im.scheduled.PeekHead()
 
 	if next == nil {
 		return time.Second

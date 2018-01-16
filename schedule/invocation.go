@@ -49,7 +49,7 @@ func (iq *invocationQueue) Enqueue(i *invocation) {
 
 }
 
-func (iq *invocationQueue) Peek() *invocation {
+func (iq *invocationQueue) PeekHead() *invocation {
 
 	var result *invocation
 
