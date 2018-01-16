@@ -156,36 +156,36 @@ func (cf *TestComponentFinder) ComponentByName(name string) *ioc.Component {
 type PasswordValidator struct {
 }
 
-func (pv *PasswordValidator) ValidString(p string) bool {
+func (pv *PasswordValidator) ValidString(p string) (bool, error) {
 
 	if p == "password" {
-		return false
+		return false, nil
 	}
 
-	return true
+	return true, nil
 }
 
 type ExtStringChecker struct {
 }
 
-func (ec *ExtStringChecker) ValidString(s string) bool {
-	return s == "valid"
+func (ec *ExtStringChecker) ValidString(s string) (bool, error) {
+	return s == "valid", nil
 }
 
 type ExtIntChecker struct {
 }
 
-func (ec *ExtIntChecker) ValidInt64(i int64) bool {
+func (ec *ExtIntChecker) ValidInt64(i int64) (bool, error) {
 
-	return i == 64
+	return i == 64, nil
 }
 
 type ExtFloatChecker struct {
 }
 
-func (ec *ExtFloatChecker) ValidFloat64(f float64) bool {
+func (ec *ExtFloatChecker) ValidFloat64(f float64) (bool, error) {
 
-	return f == 64.21019
+	return f == 64.21019, nil
 }
 
 type CompFinder struct {

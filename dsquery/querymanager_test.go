@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package dsquery
@@ -143,7 +143,7 @@ func buildQueryManager() *TemplatedQueryManager {
 
 	qm := new(TemplatedQueryManager)
 	qm.QueryIdPrefix = "ID:"
-	qm.StringWrapWith = "'"
+	qm.ValueProcessor = new(SqlProcessor)
 	qm.TrimIdWhiteSpace = true
 	qm.VarMatchRegEx = "\\$\\{([^\\}]*)\\}"
 	qm.NewLine = "\n"
