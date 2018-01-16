@@ -148,6 +148,24 @@ func TestRemoveMiddleMany(t *testing.T) {
 
 }
 
+func TestRemoveHeadMany(t *testing.T) {
+	iq := buildTo(11)
+
+	iq.Remove(1)
+
+	if iq.Size() != 10 {
+		t.FailNow()
+	}
+
+	h := iq.PeekHead()
+
+	if h.counter != 2 {
+		t.FailNow()
+	}
+
+}
+
+
 func buildTo(max int) *invocationQueue {
 
 	iq := new(invocationQueue)

@@ -5,7 +5,6 @@ package schedule
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
 	"strings"

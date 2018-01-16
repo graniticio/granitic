@@ -57,9 +57,26 @@ func (iq *invocationQueue) PeekHead() *invocation {
 
 	if iq.head == nil {
 		result = nil
+	} else {
+		result = iq.head.i
 	}
 
-	result = iq.head.i
+	iq.mux.Unlock()
+
+	return result
+}
+
+func (iq *invocationQueue) PeekTail() *invocation {
+
+	var result *invocation
+
+	iq.mux.Lock()
+
+	if iq.tail == nil {
+		result = nil
+	} else {
+		result = iq.tail.i
+	}
 
 	iq.mux.Unlock()
 
