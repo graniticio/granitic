@@ -1,7 +1,6 @@
 package schedule
 
 import (
-	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"time"
@@ -61,8 +60,6 @@ func (im *invocationManager) Start() {
 
 		waitTime := im.determineWait()
 
-		fmt.Println(waitTime)
-
 		time.Sleep(waitTime)
 	}
 }
@@ -79,6 +76,13 @@ func (im *invocationManager) runTask(i *invocation) {
 
 	im.Log.LogDebugf("Executing %s", im.Task.FullName())
 
+	defer func() {
+		if r := recover(); r != nil {
+			im.Log.LogErrorfWithTrace("Panic recovered while executing task %s (invocation %d started at %v)\n %v", im.Task.FullName(), i.counter, i.startedAt, r)
+		}
+		close(updates)
+	}()
+
 	err := im.Task.logic.ExecuteTask(updates)
 
 	if err != nil {
@@ -86,8 +90,8 @@ func (im *invocationManager) runTask(i *invocation) {
 	}
 
 	close(updates)
-
 }
+
 func (im *invocationManager) determineWait() time.Duration {
 
 	next := im.scheduled.Peek()
@@ -130,6 +134,7 @@ func (im *invocationManager) addNextInvocation(previous *invocation) time.Time {
 	interval := im.Interval
 
 	i := new(invocation)
+	i.counter = previous.counter + 1
 	i.runAt = previous.runAt.Add(interval.Frequency)
 
 	im.scheduled.Enqueue(i)
