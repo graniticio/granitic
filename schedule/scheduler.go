@@ -122,6 +122,26 @@ func (ts *TaskScheduler) findLogic(cn *ioc.ComponentContainer, task *Task) error
 
 	task.logic = tl
 
+	if task.StatusUpdateReceiver == "" {
+		return nil
+	}
+
+	sr := cn.ComponentByName(task.StatusUpdateReceiver)
+
+	if sr == nil {
+		m := fmt.Sprintf("StatusUpdateReceiver %s does not exist (no component with that name)", task.StatusUpdateReceiver)
+		return errors.New(m)
+	}
+
+	sri, okay := sr.Instance.(TaskStatusUpdateReceiver)
+
+	if !okay {
+		m := fmt.Sprintf("StatusUpdateReceiver %s does not implement schedule.TaskStatusUpdateReceiver", task.Component)
+		return errors.New(m)
+	}
+
+	task.receiver = sri
+
 	return nil
 }
 

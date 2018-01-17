@@ -3,7 +3,10 @@
 
 package schedule
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // Task describes when and how frequently a scheduled task should be executed and the component that provides a
 // method to actually perform the task
@@ -22,6 +25,14 @@ type Task struct {
 	// A human-readable expression (in English) of how frequently the task should be run - see package docs
 	Every string
 
+	// If set to true, any status updates messages sent from the task to the scheduler will be logged
+	LogStatusMessages bool
+
+	// The name of a component that is interested in receiving status updates from a running task
+	StatusUpdateReceiver string
+
+	receiver TaskStatusUpdateReceiver
+
 	logic TaskLogic
 }
 
@@ -37,6 +48,15 @@ func (t *Task) FullName() string {
 
 }
 
+func StatusMessagef(format string, a ...interface{}) TaskStatusUpdate {
+	message := fmt.Sprintf(format, a...)
+
+	return TaskStatusUpdate{
+		Message: message,
+	}
+
+}
+
 type TaskStatusUpdate struct {
 	Message string
 	Status  interface{}
@@ -44,4 +64,15 @@ type TaskStatusUpdate struct {
 
 type TaskLogic interface {
 	ExecuteTask(c chan TaskStatusUpdate) error
+}
+
+type TaskStatusUpdateReceiver interface {
+	Receive(summary TaskInvocationSummary, update TaskStatusUpdate)
+}
+
+type TaskInvocationSummary struct {
+	TaskName        string
+	TaskId          string
+	StartedAt       time.Time
+	InvocationCount uint64
 }

@@ -48,9 +48,19 @@ func (im *invocationManager) Start() {
 				im.scheduled.Dequeue()
 
 				if im.State == ioc.RunningState {
-					im.running.Enqueue(first)
 
-					go im.runTask(first)
+					if im.running.Size() != 0 && !im.Task.NoWarnOnOverlap {
+						im.Log.LogWarnf("%d instance(s) of task %s are already running.", im.running.Size(), im.Task.FullName())
+					}
+
+					if im.running.Size() > uint64(im.Task.MaxOverlapping) {
+						im.Log.LogErrorf("Will not start new instance of task %s as %d instance(s) are already running - maximum allowed is %d", im.Task.FullName(), im.running.Size(), im.Task.MaxOverlapping+1)
+					} else {
+
+						im.running.Enqueue(first)
+
+						go im.runTask(first)
+					}
 				}
 
 				im.addNextInvocation(first)
@@ -72,9 +82,13 @@ func (im *invocationManager) runTask(i *invocation) {
 		im.Log.LogTracef("Accuracy: %v", i.startedAt.Sub(i.runAt))
 	}
 
-	updates := make(chan TaskStatusUpdate)
+	updates := make(chan TaskStatusUpdate, 20)
 
 	im.Log.LogDebugf("Executing %s", im.Task.FullName())
+
+	if im.Task.LogStatusMessages || im.Task.receiver != nil {
+		go im.listenForStatusUpdates(i, updates)
+	}
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -90,6 +104,36 @@ func (im *invocationManager) runTask(i *invocation) {
 
 	if err != nil {
 		im.Log.LogErrorf("Problem executing task %s (invocation %d started at %v): %s", im.Task.FullName(), i.counter, i.startedAt, err.Error())
+	}
+
+}
+
+func (im *invocationManager) listenForStatusUpdates(i *invocation, ch chan TaskStatusUpdate) {
+
+	task := im.Task
+
+	ts := TaskInvocationSummary{
+		InvocationCount: i.counter,
+		StartedAt:       i.startedAt,
+		TaskId:          task.Id,
+		TaskName:        task.Name,
+	}
+
+	for {
+		su, ok := <-ch
+
+		if !ok {
+			break
+		}
+
+		if task.LogStatusMessages && len(su.Message) > 0 {
+			im.Log.LogInfof("Task: %s Invocation: %d: %s", task.FullName(), i.counter, su.Message)
+		}
+
+		if task.receiver != nil {
+			task.receiver.Receive(ts, su)
+		}
+
 	}
 
 }
