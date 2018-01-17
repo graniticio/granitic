@@ -1,8 +1,8 @@
 package schedule
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestEmptyQueue(t *testing.T) {
@@ -206,8 +206,6 @@ func TestRemoveMultiMany(t *testing.T) {
 	}
 
 }
-
-
 
 func buildTo(max int) *invocationQueue {
 

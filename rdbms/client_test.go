@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/reflecttools"
@@ -13,7 +14,6 @@ import (
 	"os"
 	"testing"
 	"time"
-	"errors"
 )
 
 var db *sql.DB

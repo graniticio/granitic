@@ -84,12 +84,12 @@
 package querymanager
 
 import (
+	"errors"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/dsquery"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
-	"errors"
 )
 
 // The name of the query manager in the IoC container.

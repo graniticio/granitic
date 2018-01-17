@@ -1,8 +1,10 @@
 package schedule
 
 import (
+	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
+	"github.com/pkg/errors"
 	"time"
 )
 
@@ -35,8 +37,6 @@ func (im *invocationManager) Start() {
 	im.State = ioc.RunningState
 
 	for im.State != ioc.StoppedState && im.State != ioc.StoppingState {
-		//Pop tasks from the schedule queue as long as we're not stopping
-
 		first := im.scheduled.PeekHead()
 
 		if first != nil {
@@ -79,8 +79,11 @@ func (im *invocationManager) runTask(i *invocation) {
 	defer func() {
 		if r := recover(); r != nil {
 			im.Log.LogErrorfWithTrace("Panic recovered while executing task %s (invocation %d started at %v)\n %v", im.Task.FullName(), i.counter, i.startedAt, r)
-			close(updates)
 		}
+
+		close(updates)
+		im.running.Remove(i.counter)
+
 	}()
 
 	err := im.Task.logic.ExecuteTask(updates)
@@ -89,7 +92,6 @@ func (im *invocationManager) runTask(i *invocation) {
 		im.Log.LogErrorf("Problem executing task %s (invocation %d started at %v): %s", im.Task.FullName(), i.counter, i.startedAt, err.Error())
 	}
 
-	close(updates)
 }
 
 func (im *invocationManager) determineWait() time.Duration {
@@ -145,4 +147,25 @@ func (im *invocationManager) addNextInvocation(previous *invocation) time.Time {
 
 func (im *invocationManager) PrepareToStop() {
 	im.State = ioc.StoppingState
+}
+
+func (im *invocationManager) ReadyToStop() (bool, error) {
+
+	if im.running.Size() == 0 {
+		return true, nil
+	} else {
+
+		m := fmt.Sprintf("%d instance(s) of task %s are running", im.running.size, im.Task.FullName())
+		return false, errors.New(m)
+	}
+
+}
+
+func (im *invocationManager) Stop() error {
+	if im.running.Size() > 0 {
+		m := fmt.Sprintf("%d instance(s) of task %s are still running", im.running.size, im.Task.FullName())
+		return errors.New(m)
+	}
+
+	return nil
 }

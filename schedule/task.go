@@ -5,13 +5,6 @@ package schedule
 
 import "fmt"
 
-type OverlapBehaviour int
-
-const (
-	SKIP OverlapBehaviour = iota
-	ALLOW
-)
-
 // Task describes when and how frequently a scheduled task should be executed and the component that provides a
 // method to actually perform the task
 type Task struct {
@@ -22,15 +15,14 @@ type Task struct {
 	Id string
 	// The name of the IoC component implementing TaskLogic that actually performs this task
 	Component string
-	// How the scheduler should handle two overlapping invocations of a task. See OverlapBehaviour const names for allowed values - default is SKIP
-	Overlap string
+	// The maximum number of overlapping instances of the task that are allowed to run. Zero means only one instance of this task can run at a time
+	MaxOverlapping int
 	// If set to true, suppress warning messages being logged when a task is scheduled to run while another instance is already running
 	NoWarnOnOverlap bool
 	// A human-readable expression (in English) of how frequently the task should be run - see package docs
 	Every string
 
-	logic   TaskLogic
-	overlap OverlapBehaviour
+	logic TaskLogic
 }
 
 func (t *Task) FullName() string {

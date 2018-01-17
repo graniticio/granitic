@@ -4,12 +4,12 @@
 package schedule
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
-	"errors"
 )
 
 func parseEvery(every string) (*interval, error) {

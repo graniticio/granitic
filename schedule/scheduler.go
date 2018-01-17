@@ -4,10 +4,11 @@
 package schedule
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
-	"errors"
 )
 
 type TaskScheduler struct {
@@ -70,28 +71,19 @@ func (ts *TaskScheduler) AllowAccess() error {
 	return nil
 }
 
-func (ts *TaskScheduler) PrepareToStop() {
-
-	for _, tm := range ts.managedTasks {
-
-		tm.PrepareToStop()
-
-	}
-
-}
-
 func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Task) error {
 
 	if err := ts.findLogic(cn, task); err != nil {
 		return err
 	}
 
-	if err := ts.setOverlapBehaviour(task); err != nil {
-		return err
-	}
-
 	if task.Every == "" {
 		m := fmt.Sprintf("You must set the 'Every' field to set an execution interval")
+		return errors.New(m)
+	}
+
+	if task.MaxOverlapping < 0 {
+		m := fmt.Sprintf("The 'MaxOverlapping' field cannot be a negative number")
 		return errors.New(m)
 	}
 
@@ -133,17 +125,67 @@ func (ts *TaskScheduler) findLogic(cn *ioc.ComponentContainer, task *Task) error
 	return nil
 }
 
-func (ts *TaskScheduler) setOverlapBehaviour(task *Task) error {
-	switch task.Overlap {
-	case "":
-	case "SKIP":
-		task.overlap = SKIP
-	case "ALLOW":
-		task.overlap = ALLOW
-	default:
-		m := fmt.Sprintf("Unsupported OverlapBehaviour %s - should be SKIP or ALLOW", task.Overlap)
-		return errors.New(m)
+func (ts *TaskScheduler) PrepareToStop() {
+
+	for _, tm := range ts.managedTasks {
+
+		tm.PrepareToStop()
+
 	}
 
-	return nil
+}
+
+func (ts *TaskScheduler) ReadyToStop() (bool, error) {
+
+	ready := true
+	var buffer bytes.Buffer
+
+	for _, tm := range ts.managedTasks {
+
+		managerReady, err := tm.ReadyToStop()
+
+		if !managerReady {
+			ready = false
+
+			if err != nil {
+				buffer.WriteString("\n")
+				buffer.WriteString(err.Error())
+			}
+
+		}
+	}
+
+	if ready {
+		return true, nil
+	}
+
+	var err error
+
+	if bc := buffer.String(); len(bc) > 0 {
+		err = errors.New(bc)
+	}
+
+	return false, err
+}
+
+func (ts *TaskScheduler) Stop() error {
+	var buffer bytes.Buffer
+
+	for _, tm := range ts.managedTasks {
+
+		err := tm.Stop()
+
+		if err != nil {
+			buffer.WriteString("\n")
+			buffer.WriteString(err.Error())
+		}
+	}
+
+	var err error
+
+	if bc := buffer.String(); len(bc) > 0 {
+		err = errors.New(bc)
+	}
+
+	return err
 }
