@@ -99,12 +99,12 @@ func (iq *invocationQueue) Remove(c uint64) {
 
 				if previous == nil {
 					//Removing head
-					iq.head = nil
+					iq.head = qm.n
 
 				} else if qm.n == nil {
 					//Removing tail
-					iq.tail = nil
-					previous = nil
+					iq.tail = previous
+					iq.tail.n = nil
 
 				} else {
 					previous.n = qm.n

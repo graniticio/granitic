@@ -2,6 +2,7 @@ package schedule
 
 import (
 	"testing"
+	"fmt"
 )
 
 func TestEmptyQueue(t *testing.T) {
@@ -164,6 +165,48 @@ func TestRemoveHeadMany(t *testing.T) {
 	}
 
 }
+
+func TestRemoveTailMany(t *testing.T) {
+	iq := buildTo(11)
+
+	iq.Remove(11)
+
+	if iq.Size() != 10 {
+		t.FailNow()
+	}
+
+	h := iq.PeekTail()
+
+	if h.counter != 10 {
+		t.FailNow()
+	}
+
+}
+
+func TestRemoveMultiMany(t *testing.T) {
+	iq := buildTo(11)
+
+	iq.Remove(10)
+	iq.Remove(11)
+	iq.Remove(5)
+	iq.Remove(9)
+	iq.Remove(1)
+	iq.Remove(2)
+
+	if iq.Size() != 5 {
+		t.FailNow()
+	}
+
+	h := iq.PeekTail()
+
+	if h.counter != 8 {
+		fmt.Println(h.counter)
+
+		t.FailNow()
+	}
+
+}
+
 
 
 func buildTo(max int) *invocationQueue {
