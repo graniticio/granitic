@@ -12,9 +12,27 @@ import (
 	"time"
 )
 
-func parseEvery(every string) (*interval, error) {
+const day_single = "DAY"
+const day_single_space = day_single + " "
+const minute_single = "MINUTE"
+const minute_single_space = minute_single + " "
+const hour_single = "HOUR"
+const hour_single_space = hour_single + " "
+const second_single = "SECOND"
+const second_single_space = hour_single + " "
+const double_space = "  "
+const single_space = " "
+const at = "AT"
 
-	m := fmt.Sprintf("Cannot parse recurring schedule [%s]", every)
+const dayDuration = time.Hour * 24
+
+func parseEvery(every string) (*interval, error) {
+	return parseEveryFromGivenNow(every, time.Now())
+}
+
+func parseEveryFromGivenNow(every string, now time.Time) (*interval, error) {
+
+	m := fmt.Sprintf("Cannot parse recurring schedule [%s] ", every)
 	i := new(interval)
 
 	alphaNumRe := regexp.MustCompile("[^a-zA-Z0-9 ]+")
@@ -22,6 +40,22 @@ func parseEvery(every string) (*interval, error) {
 	norm := alphaNumRe.ReplaceAllString(every, "")
 
 	norm = strings.TrimSpace(strings.ToUpper(norm))
+
+	firstChar := string(norm[0])
+
+	if _, err := strconv.Atoi(firstChar); err != nil {
+
+		if singleUnit(norm) {
+			norm = "1 " + norm
+		} else {
+			return i, errors.New(m)
+		}
+
+	}
+
+	for strings.Contains(norm, double_space) {
+		norm = strings.Replace(norm, double_space, single_space, -1)
+	}
 
 	tokens := strings.Split(norm, " ")
 
@@ -40,16 +74,126 @@ func parseEvery(every string) (*interval, error) {
 	frequencyUnit, okay := validUnit(tokens[1])
 
 	if !okay {
-		em := fmt.Sprintf("%s: %s cannot be interpreted as a valid unit (seconds, hours, days) ", m, tokens[1])
+		em := fmt.Sprintf("%s: %s cannot be interpreted as a valid unit (seconds, minutes, hours, days) ", m, tokens[1])
 		return i, errors.New(em)
 	}
 
 	i.Frequency = time.Duration(frequencyValue) * frequencyUnit
 
-	i.Mode = OFFSET_FROM_START
-	i.CalculatedAt = time.Now()
+	if len(tokens) == 2 {
 
-	return i, nil
+		i.Mode = OFFSET_FROM_START
+		i.CalculatedAt = now
+
+		return i, nil
+	}
+
+	if len(tokens) < 4 {
+		return i, errors.New(m)
+	}
+
+	modifier := tokens[2]
+
+	if modifier == at {
+		err := configureRunAtModifier(tokens[3], i, now)
+
+		if err != nil {
+			err = errors.New(m + err.Error())
+		}
+
+		return i, err
+	}
+
+	return i, errors.New(m)
+}
+
+func configureRunAtModifier(offset string, i *interval, now time.Time) error {
+
+	var re = regexp.MustCompile(`(?m)^(.{2}):?(.{2}):?((?:.{2})?)$`)
+
+	if !re.MatchString(offset) {
+		return errors.New("time following 'at' should be of the form HHMM, HHMMSS, HH:MM or HH:MM:SS")
+	}
+
+	components := re.FindStringSubmatch(offset)
+
+	_, err := extractTimeElements(components[1:], i.Frequency)
+
+	if err != nil {
+		return err
+	}
+
+	switch {
+	case i.Frequency == time.Minute:
+	case i.Frequency == time.Hour:
+	case i.Frequency == dayDuration:
+	default:
+		return errors.New("'at' can only be used if the frequency is a single minute, hour or day")
+	}
+
+	return nil
+}
+
+func extractTimeElements(s []string, freq time.Duration) (timeElements, error) {
+
+	te := timeElements{}
+
+	hours := s[0]
+
+	if freq < dayDuration {
+		//Ignore hours
+		te.hour = -1
+	} else if hi, err := strconv.Atoi(hours); err == nil && hi >= 0 && hi < 24 {
+		te.hour = hi
+	} else {
+		m := fmt.Sprintf("%s is not a valid hour (must be 00-23)", hours)
+		return te, errors.New(m)
+	}
+
+	minutes := s[1]
+
+	if freq < time.Hour {
+		//Ignore minutes
+		te.minute = -1
+	} else if hi, err := strconv.Atoi(minutes); err == nil && hi >= 0 && hi <= 59 {
+		te.minute = hi
+	} else {
+		m := fmt.Sprintf("%s is not a valid minute (must be 00-59)", minutes)
+		return te, errors.New(m)
+	}
+
+	ec := len(s)
+
+	m := fmt.Sprintf("you must provide the second past the minute that the task should at (e.g. HH:MM:30)")
+
+	if (ec < 3 && freq == time.Minute) || (freq == time.Minute && s[2] == "") {
+
+		return te, errors.New(m)
+	} else if freq == time.Minute {
+
+		seconds := s[2]
+
+		if hi, err := strconv.Atoi(seconds); err == nil && hi >= 0 && hi <= 59 {
+			te.second = hi
+		} else {
+			m := fmt.Sprintf("%s is not a valid second (must be 00-59)", seconds)
+			return te, errors.New(m)
+		}
+
+	}
+
+	return timeElements{}, nil
+
+}
+
+func singleUnit(s string) bool {
+
+	result := (s == day_single || strings.HasPrefix(s, day_single_space) ||
+		s == hour_single || strings.HasPrefix(s, hour_single_space) ||
+		s == minute_single || strings.HasPrefix(s, minute_single_space) ||
+		s == second_single || strings.HasPrefix(s, second_single_space))
+
+	return result
 
 }
 
@@ -65,12 +209,19 @@ func validUnit(s string) (time.Duration, bool) {
 
 	switch s {
 	case "SECOND":
+		fallthrough
 	case "SECONDS":
 		return time.Second, true
+	case "MINUTE":
+		fallthrough
+	case "MINUTES":
+		return time.Minute, true
 	case "HOUR":
+		fallthrough
 	case "HOURS":
 		return time.Hour, true
 	case "DAY":
+		fallthrough
 	case "DAYS":
 		return time.Hour * time.Duration(24), true
 
@@ -95,4 +246,8 @@ const (
 )
 
 type intervalToken struct {
+}
+
+type timeElements struct {
+	hour, minute, second int
 }
