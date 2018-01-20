@@ -171,6 +171,10 @@ func (im *invocationManager) setFirstInvocation() {
 		i.runAt = interval.ActualStart
 	}
 
+	if im.Log.IsLevelEnabled(logging.Debug) {
+		im.Log.LogDebugf("Task %s will first run at %v and intervals of %v thereafter", im.Task.FullName(), i.runAt, interval.Frequency)
+	}
+
 	im.scheduled.Enqueue(i)
 
 }

@@ -23,6 +23,7 @@ type TaskSchedulerFacilityBuilder struct {
 func (fb *TaskSchedulerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
 	ts := new(schedule.TaskScheduler)
+	ts.FrameworkLogManager = lm
 	ts.State = ioc.StoppedState
 
 	//Inject JSON config

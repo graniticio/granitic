@@ -16,7 +16,8 @@ type TaskScheduler struct {
 	managedTasks       []*invocationManager
 	State              ioc.ComponentState
 	// Logger used by Granitic framework components. Automatically injected.
-	FrameworkLogger logging.Logger
+	FrameworkLogger     logging.Logger
+	FrameworkLogManager *logging.ComponentLoggerManager
 }
 
 // Implements ioc.ContainerAccessor
@@ -89,7 +90,7 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Ta
 
 	tm := NewInvocationManager(task)
 	ts.managedTasks = append(ts.managedTasks, tm)
-	tm.Log = ts.FrameworkLogger
+	tm.Log = ts.FrameworkLogManager.CreateLogger(task.Id + "TaskManager")
 
 	if interval, err := parseEvery(task.Every); err == nil {
 		tm.Interval = interval

@@ -117,21 +117,42 @@ func configureRunAtModifier(offset string, i *interval, now time.Time) error {
 
 	components := re.FindStringSubmatch(offset)
 
-	_, err := extractTimeElements(components[1:], i.Frequency)
+	te, err := extractTimeElements(components[1:], i.Frequency)
 
 	if err != nil {
 		return err
 	}
 
-	switch {
-	case i.Frequency == time.Minute:
-	case i.Frequency == time.Hour:
-	case i.Frequency == dayDuration:
-	default:
-		return errors.New("'at' can only be used if the frequency is a single minute, hour or day")
-	}
+	i.ActualStart = calculateFirstRun(te, i.Frequency)
+	i.Mode = ACTUAL_START_TIME
 
 	return nil
+}
+
+func calculateFirstRun(te timeElements, freq time.Duration) time.Time {
+
+	now := time.Now()
+
+	date := now.Format("2006-01-02")
+
+	if te.hour == -1 {
+		te.hour = now.Hour()
+	}
+
+	if te.minute == -1 {
+		te.minute = now.Minute()
+	}
+
+	proposedTime := fmt.Sprintf("%s %02d:%02d:%02d", date, te.hour, te.minute, te.second)
+
+	runTime, _ := time.Parse("2006-01-02 15:04:05", proposedTime)
+
+	if runTime.Before(time.Now()) {
+		runTime = runTime.Add(freq)
+	}
+
+	return runTime
+
 }
 
 func extractTimeElements(s []string, freq time.Duration) (timeElements, error) {
@@ -169,7 +190,7 @@ func extractTimeElements(s []string, freq time.Duration) (timeElements, error) {
 	if (ec < 3 && freq == time.Minute) || (freq == time.Minute && s[2] == "") {
 
 		return te, errors.New(m)
-	} else if freq == time.Minute {
+	} else if s[2] != "" {
 
 		seconds := s[2]
 
@@ -182,7 +203,7 @@ func extractTimeElements(s []string, freq time.Duration) (timeElements, error) {
 
 	}
 
-	return timeElements{}, nil
+	return te, nil
 
 }
 
