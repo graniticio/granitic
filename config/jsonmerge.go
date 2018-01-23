@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package config
@@ -40,12 +40,17 @@ type JsonMerger struct {
 // See the top of this page for a brief explanation of how merging works. Returns an error if a remote URI returned a 4xx or 5xx response code,
 // a file or folder could not be accessed or if two files could not be merged dued to JSON parsing errors.
 func (jm *JsonMerger) LoadAndMergeConfig(files []string) (map[string]interface{}, error) {
-
 	var mergedConfig map[string]interface{}
+
+	return jm.LoadAndMergeConfigWithBase(mergedConfig, files)
+}
+
+func (jm *JsonMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, files []string) (map[string]interface{}, error) {
+
 	var jsonData []byte
 	var err error
 
-	for index, fileName := range files {
+	for _, fileName := range files {
 
 		if isURL(fileName) {
 			jm.Logger.LogTracef("Acessing URL %s", fileName)
@@ -73,15 +78,11 @@ func (jm *JsonMerger) LoadAndMergeConfig(files []string) (map[string]interface{}
 
 		additionalConfig := loadedConfig.(map[string]interface{})
 
-		if index == 0 {
-			mergedConfig = additionalConfig
-		} else {
-			mergedConfig = jm.merge(mergedConfig, additionalConfig)
-		}
+		config = jm.merge(config, additionalConfig)
 
 	}
 
-	return mergedConfig, nil
+	return config, nil
 }
 
 func (jm *JsonMerger) loadFromURL(url string) ([]byte, error) {

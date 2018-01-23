@@ -33,27 +33,7 @@ go install github.com/graniticio/granitic/cmd/grnc-ctl
 go install github.com/graniticio/granitic/cmd/grnc-project
 </pre>
  
-### Set the GRANITIC_HOME environment variable
 
-#### UNIX-type operating systems
-
-You will need to set the following environment variable in your .bash_profile file (or whichever file your shell uses to
-set user environment variables)
-
-<pre>GRANITIC_HOME=$GOPATH/src/github.com/graniticio/granitic</pre>
-
-You should also make sure that your PATH variable includes _$GOPATH/bin_
-
-### Windows
-
-You need to create an environment variable named GRANITIC_HOME and set it to:
-
-<pre>
-%GOPATH%\src\github.com\graniticio\granitic
-</pre>
-
-You should also make sure that your PATH environment variable includes _$GOPATH\bin_
- 
 ### Testing your installation
 
 The following commands make use of all the environment variables and some of the support tools used when developing 
@@ -92,6 +72,30 @@ If your installation has been successful, you'll see command line output similar
 </pre>
 
 You can stop the program with CTRL+C and can safely delete the $GOPATH/src/install-test folder.
+
+### Non-standard install locations - GRANITIC_HOME
+
+If you have _not_ installed Granitic in the standard location of $GOPATH/src/github.com/graniticio/granitic as described above:
+
+#### UNIX-type operating systems
+
+You will need to set the following environment variable in your .bash_profile file (or whichever file your shell uses to
+set user environment variables)
+
+<pre>GRANITIC_HOME=$GOPATH/src/github.com/graniticio/granitic</pre>
+
+You should also make sure that your PATH variable includes _$GOPATH/bin_
+
+### Windows
+
+You need to create an environment variable named GRANITIC_HOME and set it to:
+
+<pre>
+%GOPATH%\src\github.com\graniticio\granitic
+</pre>
+
+You should also make sure that your PATH environment variable includes _$GOPATH\bin_
+
 
 ## Next steps
 

@@ -7,6 +7,11 @@
  
 ### Logging
  * Default log prefix now wraps component names in square brackets to improve readability
+ 
+### Build and configuration
+
+Applications built with Granitic no longer need access to a copy of Granitic's built-in JSON configuration files at runtime. This means that you do not 
+have to set the GRANITIC_HOME environment variable on the servers you are deploying your applications to.
 
 
 ## 1.1.0  (2018-01-11)

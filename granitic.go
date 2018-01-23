@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -55,6 +55,9 @@ where you are expected to programatically define the initial settings.
 package granitic
 
 import (
+	"bytes"
+	"encoding/base64"
+	"encoding/gob"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility"
 	"github.com/graniticio/granitic/instance"
@@ -81,6 +84,7 @@ const (
 func StartGranitic(cs *ioc.ProtoComponents) {
 
 	is := config.InitialSettingsFromEnvironment()
+	is.BuiltInConfig = cs.FrameworkConfig
 
 	StartGraniticWithSettings(cs, is)
 }
@@ -128,7 +132,7 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 	l.LogInfof("Starting components")
 
 	//Merge all configuration files and create a container
-	ca := i.createConfigAccessor(is.Configuration, frameworkLoggingManager)
+	ca := i.createConfigAccessor(is.BuiltInConfig, is.Configuration, frameworkLoggingManager)
 
 	//Load system settings from config
 	ss := i.loadSystemsSettings(ca)
@@ -212,7 +216,31 @@ func (i *initiator) shutdown(cc *ioc.ComponentContainer) {
 
 // Merge together all of the local and remote JSON configuration files and wrap them in a *config.ConfigAccessor
 // which allows programmatic access to the merged config.
-func (i *initiator) createConfigAccessor(configPaths []string, flm *logging.ComponentLoggerManager) *config.ConfigAccessor {
+func (i *initiator) createConfigAccessor(builtIn64 *string, configPaths []string, flm *logging.ComponentLoggerManager) *config.ConfigAccessor {
+
+	builtIn := map[string]interface{}{}
+
+	bz, err := base64.StdEncoding.DecodeString(*builtIn64)
+
+	if err != nil {
+		i.logger.LogFatalf("Unable to deserialize the copy of Grantic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
+		instance.ExitError()
+	}
+
+	b := bytes.Buffer{}
+	b.Write(bz)
+
+	gob.Register(map[string]interface{}{})
+	gob.Register([]interface{}{})
+
+	dc := gob.NewDecoder(&b)
+
+	err = dc.Decode(&builtIn)
+
+	if err != nil {
+		i.logger.LogFatalf("Unable to deserialize the copy of Grantic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
+		instance.ExitError()
+	}
 
 	i.logConfigLocations(configPaths)
 
@@ -220,7 +248,7 @@ func (i *initiator) createConfigAccessor(configPaths []string, flm *logging.Comp
 
 	jm := config.NewJsonMerger(flm)
 
-	mergedJson, err := jm.LoadAndMergeConfig(configPaths)
+	mergedJson, err := jm.LoadAndMergeConfigWithBase(builtIn, configPaths)
 
 	if err != nil {
 		i.logger.LogFatalf(err.Error())

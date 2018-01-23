@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -39,10 +39,13 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/base64"
+	"encoding/gob"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/graniticio/granitic/config"
+	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/types"
 	"io/ioutil"
@@ -69,17 +72,18 @@ const (
 	entryFuncSignature         = "func Components() *ioc.ProtoComponents {"
 	protoArrayVar              = "protoComponents"
 	modifierVar                = "frameworkModifiers"
+	serialisedVar              = "ser"
 	confLocationFlag    string = "c"
 	confLocationDefault string = "resource/components"
 	confLocationHelp    string = "A comma separated list of component definition files or directories containing component definition files"
 
 	bindingsFileFlag    string = "o"
 	bindingsFileDefault string = "bindings/bindings.go"
-	bindingsFileHelp    string = "Path to the Go source file that will be generated"
+	bindingsFileHelp    string = "Path to the Go source file that will be generated containing your JSON component details"
 
 	mergeLocationFlag    string = "m"
 	mergeLocationDefault string = ""
-	mergeLocationHelp    string = "The path of a file where the merged component defintion file should be written to. Execution will halt after writing."
+	mergeLocationHelp    string = "The path of a file where the merged component definition file should be written to. Execution will halt after writing."
 
 	newline = "\n"
 
@@ -108,6 +112,49 @@ func main() {
 
 	w := bufio.NewWriter(f)
 	writeBindings(w, ca)
+
+}
+
+func serialiseBuiltinConfig() string {
+	gh := config.GraniticHome()
+
+	ghr := path.Join(gh, "resource", "facility-config")
+
+	if fcf, err := config.FindConfigFilesInDir(ghr); err != nil {
+		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", gh, "GRANITIC_HOME", "GOPATH")
+		instance.ExitError()
+	} else {
+
+		jm := new(config.JsonMerger)
+		jm.MergeArrays = true
+		jm.Logger = new(logging.ConsoleErrorLogger)
+
+		if mc, err := jm.LoadAndMergeConfig(fcf); err != nil {
+
+			fmt.Printf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
+			instance.ExitError()
+
+		} else {
+
+			b := bytes.Buffer{}
+			e := gob.NewEncoder(&b)
+
+			gob.Register(map[string]interface{}{})
+			gob.Register([]interface{}{})
+
+			if err := e.Encode(mc); err != nil {
+				fmt.Printf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
+				instance.ExitError()
+			}
+
+			ser := base64.StdEncoding.EncodeToString(b.Bytes())
+			return ser
+
+		}
+
+	}
+
+	return ""
 }
 
 func writeBindings(w *bufio.Writer, ca *config.ConfigAccessor) {
@@ -129,6 +176,7 @@ func writeBindings(w *bufio.Writer, ca *config.ConfigAccessor) {
 		i++
 	}
 
+	writeSerialisedConfig(w)
 	writeFrameworkModifiers(w, ca)
 
 	writeEntryFunctionClose(w)
@@ -407,7 +455,7 @@ func writeProto(w *bufio.Writer, n string, index int, tabs int) {
 }
 
 func writeEntryFunctionClose(w *bufio.Writer) {
-	a := fmt.Sprintf("\treturn ioc.NewProtoComponents(%s, %s)\n}\n", protoArrayVar, modifierVar)
+	a := fmt.Sprintf("\treturn ioc.NewProtoComponents(%s, %s, &%s)\n}\n", protoArrayVar, modifierVar, serialisedVar)
 	w.WriteString(a)
 }
 
@@ -539,6 +587,16 @@ func parseTemplates(ca *config.ConfigAccessor) map[string]interface{} {
 	}
 
 	return flattened
+
+}
+
+func writeSerialisedConfig(w *bufio.Writer) {
+
+	sv := serialiseBuiltinConfig()
+
+	s := fmt.Sprintf("%s := \"%s\"\n", serialisedVar, sv)
+
+	w.WriteString(tabIndent(s, 1))
 
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package config
@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/logging"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,6 +17,7 @@ import (
 
 const (
 	graniticHomeEnvVar = "GRANITIC_HOME"
+	goPathEnvVar       = "GOPATH"
 )
 
 // Returns the value of the OS environment variable GRANITIC_HOME. This is expected to be the path
@@ -23,22 +25,39 @@ const (
 // This is required so that configuration files for built-in facilities can be loaded from the resource sub-directory
 // of the Granitic installation.
 func GraniticHome() string {
-	return os.Getenv(graniticHomeEnvVar)
-}
 
-func checkForGraniticHome() {
+	//Check if GRANITIC_HOME explicitly set
+	graniticPath := os.Getenv(graniticHomeEnvVar)
 
-	gh := GraniticHome()
+	if graniticPath == "" {
 
-	if gh == "" {
-		fmt.Printf("%s environment variable is not set.\n")
+		if gopath := os.Getenv(goPathEnvVar); gopath == "" {
+
+			fmt.Printf("Neither %s or %s environment variable is not set. Cannot find Granitic\n", graniticHomeEnvVar, goPathEnvVar)
+			instance.ExitError()
+
+		} else {
+
+			graniticPath = filepath.Join(gopath, "src", "github.com", "graniticio", "granitic")
+
+			if _, err := ioutil.ReadDir(graniticPath); err != nil {
+
+				fmt.Printf("%s environment variable is not set and cannot find Granitic in the default install path of %s (your GOPATH variable is set to %s)\n", graniticHomeEnvVar, graniticPath, gopath)
+				instance.ExitError()
+			}
+
+		}
+
+	}
+
+	resourcePath := filepath.Join(graniticPath, "resource", "facility-config")
+
+	if _, err := FindConfigFilesInDir(resourcePath); err != nil {
+		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", graniticPath, graniticHomeEnvVar, goPathEnvVar)
 		instance.ExitError()
 	}
 
-	if strings.HasSuffix(gh, "/") || strings.HasSuffix(gh, "\\") {
-		fmt.Printf("%s environment variable should not end with a / or \\.\n")
-		instance.ExitError()
-	}
+	return graniticPath
 
 }
 
@@ -55,14 +74,14 @@ type InitialSettings struct {
 	// Files, directories and URLs from which JSON configuration should be loaded and merged.
 	Configuration []string
 
-	// The path (without trailing slash) where Granitic has been installed.
-	GraniticHome string
-
 	// The time at which the application was started (to allow accurate timing of the IoC container start process).
 	StartTime time.Time
 
 	// An (optional) unique identifier for this instance of a Granitic application.
 	InstanceId string
+
+	// A base 64 serialised version of Granitic's built-in configuration files
+	BuiltInConfig *string
 }
 
 // InitialSettingsFromEnvironment builds an InitialSettings and populates it with defaults or the values of command line
@@ -70,12 +89,10 @@ type InitialSettings struct {
 func InitialSettingsFromEnvironment() *InitialSettings {
 
 	start := time.Now()
-	checkForGraniticHome()
 
 	is := new(InitialSettings)
 	is.StartTime = start
-	is.GraniticHome = GraniticHome()
-	is.Configuration = BuiltInConfigFiles()
+	is.Configuration = make([]string, 0)
 
 	processCommandLineArgs(is)
 
@@ -139,24 +156,4 @@ func ExpandToFilesAndURLs(paths []string) ([]string, error) {
 
 func isURL(u string) bool {
 	return strings.HasPrefix(u, "http:") || strings.HasPrefix(u, "https:")
-}
-
-// BuiltInConfigFiles provides a list of file paths, each of which points to one of the default configuration files
-// for Granitic's built-in facilities. This is useful when programmatically building an InitialSettings object.
-func BuiltInConfigFiles() []string {
-
-	builtInConfigPath := filepath.Join(GraniticHome(), "resource", "facility-config")
-
-	files, err := FindConfigFilesInDir(builtInConfigPath)
-
-	if err != nil {
-
-		fmt.Printf("Problem loading Grantic's built-in configuration from %s:\n", builtInConfigPath)
-		fmt.Println(err.Error())
-		instance.ExitError()
-
-	}
-
-	return files
-
 }

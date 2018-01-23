@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -181,6 +181,9 @@ type ProtoComponents struct {
 	// FrameworkDependencies are instructions to inject components into built-in Granitic components to alter their behaviour.
 	// The structure is map[
 	FrameworkDependencies map[string]map[string]string
+
+	//A Base64 encoded version of the JSON files found in resource/facility-confg
+	FrameworkConfig *string
 }
 
 // Clear removes the reference to the ProtoComponent objects held in this object, encouraging garbage collection.
@@ -189,10 +192,11 @@ func (pc *ProtoComponents) Clear() {
 }
 
 // NewProtoComponents creates a wrapping structure for a list of ProtoComponents
-func NewProtoComponents(pc []*ProtoComponent, fd map[string]map[string]string) *ProtoComponents {
+func NewProtoComponents(pc []*ProtoComponent, fd map[string]map[string]string, ser *string) *ProtoComponents {
 	p := new(ProtoComponents)
 	p.Components = pc
 	p.FrameworkDependencies = fd
+	p.FrameworkConfig = ser
 	return p
 }
 

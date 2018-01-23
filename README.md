@@ -15,6 +15,7 @@ Granitic is a framework and lightweight application server for building and runn
 * Component based error logging.
 * Query management for data sources.
 * RDMBS integration with an interface designed to promote more readable code.
+* A flexible task scheduler
 
 
 Additionally, Granitic is designed to be 'DevOps friendly' and offers:
@@ -23,6 +24,7 @@ Additionally, Granitic is designed to be 'DevOps friendly' and offers:
 * Low memory footprint and fast startup times (compared to JVM/CLR equivalents).
 * Runtime control of deployed applications (including suspension/resumption).
 * Runtime control of log levels (e.g. temporarily enable debugging without restarts).
+* Runtime monitoring and control of scheduled activities.
 
 ## Getting started
 
