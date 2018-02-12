@@ -178,7 +178,7 @@
 	Option 1: use this facility to provide support for your application's 'main' database and manually add components of type rdbms.DefaultRDBMSClientManager to
 	your component definition file to support your other database.
 
-	Option 2: disable this facility and manually add components of type rdbms.DefaultRDBMSClientManager to
+	Option 2: disable this facility and manually add components of type rdbms.GraniticRdbmsClientManager to
 	your component definition file to support all of your databases.
 */
 package rdbms
