@@ -13,6 +13,10 @@
 Applications built with Granitic no longer need access to a copy of Granitic's built-in JSON configuration files at runtime. This means that you do not 
 have to set the GRANITIC_HOME environment variable on the servers you are deploying your applications to.
 
+### RDBMS
+
+Improved support for connecting to multiple databases using the RdbmsAccess facility. Refer to the [granitic.rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms) 
+for more information.
 
 ## 1.1.0  (2018-01-11)
 

@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package rdbms
@@ -11,26 +11,25 @@ import (
 )
 
 type clientManagerDecorator struct {
-	fieldNames []string
-	manager    rdbms.RdbmsClientManager
+	fieldNameManager map[string]rdbms.RdbmsClientManager
 }
 
 func (cmd *clientManagerDecorator) OfInterest(component *ioc.Component) bool {
 
 	result := false
 
-	for _, f := range cmd.fieldNames {
+	for field, manager := range cmd.fieldNameManager {
 
 		i := component.Instance
 
-		if fieldPresent := reflecttools.HasFieldOfName(i, f); !fieldPresent {
+		if fieldPresent := reflecttools.HasFieldOfName(i, field); !fieldPresent {
 			continue
 		}
 
-		targetFieldType := reflecttools.TypeOfField(i, f)
-		managerType := reflect.TypeOf(cmd.manager)
+		targetFieldType := reflecttools.TypeOfField(i, field)
+		managerType := reflect.TypeOf(manager)
 
-		v := reflect.ValueOf(i).Elem().FieldByName(f)
+		v := reflect.ValueOf(i).Elem().FieldByName(field)
 
 		if managerType.AssignableTo(targetFieldType) && v.IsNil() {
 			return true
@@ -42,22 +41,22 @@ func (cmd *clientManagerDecorator) OfInterest(component *ioc.Component) bool {
 
 func (cmd *clientManagerDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
 
-	for _, f := range cmd.fieldNames {
+	for field, manager := range cmd.fieldNameManager {
 
 		i := component.Instance
 
-		if fieldPresent := reflecttools.HasFieldOfName(i, f); !fieldPresent {
+		if fieldPresent := reflecttools.HasFieldOfName(i, field); !fieldPresent {
 			continue
 		}
 
-		targetFieldType := reflecttools.TypeOfField(i, f)
-		managerType := reflect.TypeOf(cmd.manager)
+		targetFieldType := reflecttools.TypeOfField(i, field)
+		managerType := reflect.TypeOf(manager)
 
-		v := reflect.ValueOf(i).Elem().FieldByName(f)
+		v := reflect.ValueOf(i).Elem().FieldByName(field)
 
 		if managerType.AssignableTo(targetFieldType) && v.IsNil() {
 			rc := reflect.ValueOf(i).Elem()
-			rc.FieldByName(f).Set(reflect.ValueOf(cmd.manager))
+			rc.FieldByName(field).Set(reflect.ValueOf(manager))
 		}
 	}
 

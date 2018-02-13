@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -15,18 +15,20 @@
 package rdbms
 
 import (
+	"fmt"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility/querymanager"
 	"github.com/graniticio/granitic/instance"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/rdbms"
+	"github.com/graniticio/granitic/types"
+	"github.com/pkg/errors"
 )
 
-const rdbmsClientManagerName = instance.FrameworkPrefix + "RdbmsClientManager"
-const providerDecorator = instance.FrameworkPrefix + "DbProviderDecorator"
+const rdbmsClientManagerConfigName = instance.FrameworkPrefix + "RdbmsClientManagerConfig"
+
 const managerDecorator = instance.FrameworkPrefix + "DbClientManagerDecorator"
-const sharedClientLog = instance.FrameworkPrefix + "RdbmsClient"
 
 // Creates an instance of rdbms.RDBMSClientManager that can be injected into your application components.
 type RdbmsAccessFacilityBuilder struct {
@@ -35,33 +37,103 @@ type RdbmsAccessFacilityBuilder struct {
 // See FacilityBuilder.BuildAndRegister
 func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	manager := new(rdbms.GraniticRdbmsClientManager)
-	ca.Populate("RdbmsAccess", manager)
+	//Find the names of components that implement DatabaseProvider
+	pn := rafb.findProviders(cn)
 
-	proto := ioc.CreateProtoComponent(manager, rdbmsClientManagerName)
+	if len(pn) == 0 {
+		return errors.New("You must define a component that implements rdbms.DatabaseProvider if you want to use the RdbmsAccess facility")
+	}
 
-	proto.AddDependency("QueryManager", querymanager.QueryManagerComponentName)
+	managerConfigs := make(map[string]*rdbms.RdbmsClientManagerConfig)
 
-	cn.AddProto(proto)
+	if len(pn) == 1 {
 
-	pd := new(databaseProviderDecorator)
-	pd.receiver = manager
+		providerName := pn[0]
 
-	cn.WrapAndAddProto(providerDecorator, pd)
+		// Create config for a default ClientManager
+		mc := new(rdbms.RdbmsClientManagerConfig)
+		ca.Populate("RdbmsAccess.Default", mc)
 
-	if manager.DisableAutoInjection {
-		return nil
+		proto := ioc.CreateProtoComponent(mc, mc.ClientName+"ManagerConfig")
+
+		proto.AddDependency("Provider", providerName)
+		cn.AddProto(proto)
+
+		managerConfigs[rdbmsClientManagerConfigName] = mc
+
+	}
+
+	return rafb.createManagers(cn, managerConfigs, lm)
+
+}
+
+func (rafb *RdbmsAccessFacilityBuilder) createManagers(cn *ioc.ComponentContainer, conf map[string]*rdbms.RdbmsClientManagerConfig, lm *logging.ComponentLoggerManager) error {
+
+	mn := types.NewEmptyUnorderedStringSet()
+
+	for _, v := range conf {
+		for _, method := range v.InjectFieldNames {
+
+			if mn.Contains(method) {
+				message := fmt.Sprintf("More than one rdbms.RdbmsClientManagerConfig component is configured to inject into the field name %s", method)
+				return errors.New(message)
+			} else {
+				mn.Add(method)
+			}
+
+		}
+	}
+
+	fieldsToManager := make(map[string]rdbms.RdbmsClientManager)
+
+	for k, managerConf := range conf {
+		manager := new(rdbms.GraniticRdbmsClientManager)
+		manager.SharedLog = lm.CreateLogger(managerConf.ClientName)
+
+		if managerConf.ManagerName == "" {
+			managerConf.ManagerName = managerConf.ClientName + "Manager"
+		}
+
+		proto := ioc.CreateProtoComponent(manager, managerConf.ManagerName)
+
+		proto.AddDependency("QueryManager", querymanager.QueryManagerComponentName)
+		proto.AddDependency("Configuration", k)
+		cn.AddProto(proto)
+
+		for _, methodToInject := range managerConf.InjectFieldNames {
+			fieldsToManager[methodToInject] = manager
+		}
+
 	}
 
 	md := new(clientManagerDecorator)
-	md.fieldNames = manager.InjectFieldNames
-	md.manager = manager
+	md.fieldNameManager = fieldsToManager
 
 	cn.WrapAndAddProto(managerDecorator, md)
 
-	manager.SharedLog = lm.CreateLogger(sharedClientLog)
-
 	return nil
+
+}
+
+func (rafb *RdbmsAccessFacilityBuilder) findProviders(cn *ioc.ComponentContainer) []string {
+
+	p := make([]string, 0)
+
+	for name, c := range cn.ProtoComponents() {
+
+		i := c.Component.Instance
+
+		if i != nil {
+
+			if _, okay := i.(rdbms.DatabaseProvider); okay {
+				p = append(p, name)
+			}
+
+		}
+
+	}
+
+	return p
 
 }
 
@@ -74,23 +146,4 @@ func (rafb *RdbmsAccessFacilityBuilder) FacilityName() string {
 // enable the QueryManager facility.
 func (rafb *RdbmsAccessFacilityBuilder) DependsOnFacilities() []string {
 	return []string{querymanager.QueryManagerFacilityName}
-}
-
-// Finds implementations of rdbms.DatabaseProvider in the IoC container and injects them into the RDBMSClientManager
-type databaseProviderDecorator struct {
-	receiver rdbms.ProviderComponentReceiver
-}
-
-// OfInterest returns true if the subject component implements rdbms.DatabaseProvider
-func (dpd *databaseProviderDecorator) OfInterest(subject *ioc.Component) bool {
-
-	_, found := subject.Instance.(rdbms.DatabaseProvider)
-
-	return found
-}
-
-// DecorateComponent injects the DatabaseProvider into the subject component.
-func (dpd *databaseProviderDecorator) DecorateComponent(subject *ioc.Component, cc *ioc.ComponentContainer) {
-	dpd.receiver.RegisterProvider(subject)
-
 }

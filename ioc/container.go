@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package ioc
@@ -59,6 +59,10 @@ type ComponentContainer struct {
 	modifiers          map[string]map[string]string
 	Lifecycle          *LifecycleManager
 	system             *instance.System
+}
+
+func (cc *ComponentContainer) ProtoComponents() map[string]*ProtoComponent {
+	return cc.protoComponents
 }
 
 // See ComponentByNameFinder.ComponentByName

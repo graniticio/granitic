@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -187,7 +187,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/graniticio/granitic/dsquery"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
@@ -233,6 +232,24 @@ type ProviderComponentReceiver interface {
 	RegisterProvider(p *ioc.Component)
 }
 
+// RdbmsClientManagerConfig is used to organise the various components that interact to manage a database connection when your
+// application needs to connect to more that one database simultaneously.
+type RdbmsClientManagerConfig struct {
+	Provider DatabaseProvider
+
+	// The names of fields on a component that should have a reference to this component's associated RdbmsClientManager
+	// automatically injected into them.
+	InjectFieldNames []string
+
+	BlockUntilConnected bool
+
+	// A name that will be shared by any instances of RdbmsClient created by this manager - this is used for logging purposes
+	ClientName string
+
+	// Name that will be given to the RdbmsClientManager component that will be created. If not set, it will be set the value of ClientName + "Manager"
+	ManagerName string
+}
+
 /*
 	Granitic's default implementation of RdbmsClientManager. An instance of this will be created when you enable the
 
@@ -243,41 +260,30 @@ type GraniticRdbmsClientManager struct {
 	// Set to true if you are creating an instance of GraniticRdbmsClientManager manually
 	DisableAutoInjection bool
 
-	// The names of fields on a component (of type rdbms.RdbmsClientManager) that should have a reference to this component
-	// automatically injected into them.
-	InjectFieldNames []string
-
-	// Directly set the DatabaseProvider to use when operating multiple RDBMSClientManagers
-	Provider DatabaseProvider
-
-	// If multiple DatabaseProviders are available, the name of the component to use.
-	ProviderName string
-
 	// Auto-injected if the QueryManager facility is enabled
 	QueryManager dsquery.QueryManager
 
-	// Do not allow the Granitic application to start become Accessible (see ioc pacakge) until a connection to the
-	// underlying RDBMS is established.
-	BlockUntilConnected bool
+	Configuration *RdbmsClientManagerConfig
 
 	// Injected by Granitic.
 	FrameworkLogger logging.Logger
 
 	SharedLog logging.Logger
 
-	state              ioc.ComponentState
-	candidateProviders []*ioc.Component
+	state ioc.ComponentState
 }
 
 // BlockAccess returns true if BlockUntilConnected is set to true and a connection to the underlying RDBMS
 // has not yet been established.
 func (cm *GraniticRdbmsClientManager) BlockAccess() (bool, error) {
 
-	if !cm.BlockUntilConnected {
+	if !cm.Configuration.BlockUntilConnected {
 		return false, nil
 	}
 
-	db, err := cm.Provider.Database()
+	provider := cm.Configuration.Provider
+
+	db, err := provider.Database()
 
 	if err != nil {
 		return true, errors.New("Unable to connect to database: " + err.Error())
@@ -291,16 +297,6 @@ func (cm *GraniticRdbmsClientManager) BlockAccess() (bool, error) {
 
 }
 
-// See ProviderComponentReceiver.RegisterProvider
-func (cm *GraniticRdbmsClientManager) RegisterProvider(p *ioc.Component) {
-
-	if cm.candidateProviders == nil {
-		cm.candidateProviders = []*ioc.Component{p}
-	} else {
-		cm.candidateProviders = append(cm.candidateProviders, p)
-	}
-}
-
 // See RdbmsClientManager.Client
 func (cm *GraniticRdbmsClientManager) Client() (*RdbmsClient, error) {
 
@@ -311,7 +307,9 @@ func (cm *GraniticRdbmsClientManager) Client() (*RdbmsClient, error) {
 	var db *sql.DB
 	var err error
 
-	if db, err = cm.Provider.Database(); err != nil {
+	provider := cm.Configuration.Provider
+
+	if db, err = provider.Database(); err != nil {
 		return nil, err
 	}
 
@@ -328,14 +326,16 @@ func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*R
 	var db *sql.DB
 	var err error
 
-	if cdp, found := cm.Provider.(ContextAwareDatabaseProvider); found {
+	provider := cm.Configuration.Provider
+
+	if cdp, found := provider.(ContextAwareDatabaseProvider); found {
 
 		if db, err = cdp.DatabaseFromContext(ctx); err != nil {
 			return nil, err
 		}
 
 	} else {
-		if db, err = cm.Provider.Database(); err != nil {
+		if db, err = provider.Database(); err != nil {
 			return nil, err
 		}
 	}
@@ -348,7 +348,7 @@ func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*R
 
 func (cm *GraniticRdbmsClientManager) chooseInsertFunction() InsertWithReturnedId {
 
-	if iwi, found := cm.Provider.(NonStandardInsertProvider); found {
+	if iwi, found := cm.Configuration.Provider.(NonStandardInsertProvider); found {
 		return iwi.InsertIDFunc()
 	} else {
 		return DefaultInsertWithReturnedId
@@ -365,59 +365,7 @@ func (cm *GraniticRdbmsClientManager) StartComponent() error {
 
 	cm.state = ioc.StartingState
 
-	if err := cm.selectProvider(); err != nil {
-		return err
-	}
-
 	cm.state = ioc.RunningState
-
-	return nil
-}
-
-func (cm *GraniticRdbmsClientManager) selectProvider() error {
-
-	if cm.Provider != nil {
-		return nil
-	}
-
-	cp := cm.candidateProviders
-	l := len(cp)
-
-	if l == 0 {
-		return errors.New("No components implementing rdbms.DatabaseProvider are available.")
-	} else if l == 1 {
-		cm.Provider = cp[0].Instance.(DatabaseProvider)
-
-	} else {
-
-		if cm.ProviderName == "" {
-			return errors.New("Multiple components implementing rdbms.DatabaseProvider are available, but no ProviderName provided to allow one to be chosen.")
-		}
-
-		cm.Provider = cm.findProviderByName()
-
-		if cm.Provider == nil {
-
-			m := fmt.Sprintf("No component called %s and implementing rdbms.DatabaseProvider is available", cm.ProviderName)
-			return errors.New(m)
-
-		}
-
-	}
-
-	return nil
-
-}
-
-func (cm *GraniticRdbmsClientManager) findProviderByName() DatabaseProvider {
-
-	for _, c := range cm.candidateProviders {
-
-		if c.Name == cm.ProviderName {
-			return c.Instance.(DatabaseProvider)
-		}
-
-	}
 
 	return nil
 }

@@ -1,8 +1,9 @@
 {
   "RdbmsAccess":{
-    "DatabaseProviderComponentName": "databaseProvider",
-    "DisableAutoInjection": false,
-    "InjectFieldNames": ["DBClientManager","DbClientManager"],
-    "BlockUntilConnected": false
+    "Default": {
+      "InjectFieldNames": ["DBClientManager", "DbClientManager"],
+      "BlockUntilConnected": false,
+      "ClientName": "grncRdbmsClient"
+    }
   }
 }
