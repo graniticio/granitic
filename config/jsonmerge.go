@@ -40,7 +40,7 @@ type JsonMerger struct {
 // See the top of this page for a brief explanation of how merging works. Returns an error if a remote URI returned a 4xx or 5xx response code,
 // a file or folder could not be accessed or if two files could not be merged dued to JSON parsing errors.
 func (jm *JsonMerger) LoadAndMergeConfig(files []string) (map[string]interface{}, error) {
-	var mergedConfig map[string]interface{}
+	mergedConfig := make(map[string]interface{})
 
 	return jm.LoadAndMergeConfigWithBase(mergedConfig, files)
 }
