@@ -34,7 +34,6 @@ func (ts *TaskScheduler) StartComponent() error {
 		return nil
 	}
 
-	ts.FrameworkLogger.LogInfof("Starting")
 	ts.FrameworkLogger.LogDebugf("Searching for schedule.Task components")
 
 	for _, component := range ts.componentContainer.AllComponents() {
@@ -43,8 +42,8 @@ func (ts *TaskScheduler) StartComponent() error {
 
 		if task, found := component.Instance.(*Task); found {
 			if task.Id == "" {
-				//Use the name of the component containing the task as an ID for the task if it isn't explicitly set
-				task.Id = component.Name
+				//Use the name of the component to be run as ID for the task if it isn't explicitly set
+				task.Id = task.Component
 			}
 
 			ts.FrameworkLogger.LogDebugf("Found Task %s", task.FullName())
@@ -90,7 +89,7 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Ta
 
 	tm := NewInvocationManager(task)
 	ts.managedTasks = append(ts.managedTasks, tm)
-	tm.Log = ts.FrameworkLogManager.CreateLogger(task.Id + "TaskManager")
+	tm.Log = ts.FrameworkLogManager.CreateLogger(task.Component + "TaskManager")
 
 	if interval, err := parseEvery(task.Every); err == nil {
 		tm.Interval = interval
