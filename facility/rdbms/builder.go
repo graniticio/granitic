@@ -32,10 +32,16 @@ const managerDecorator = instance.FrameworkPrefix + "DbClientManagerDecorator"
 
 // Creates an instance of rdbms.RDBMSClientManager that can be injected into your application components.
 type RdbmsAccessFacilityBuilder struct {
+	Log logging.Logger
 }
 
 // See FacilityBuilder.BuildAndRegister
 func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+
+	log := lm.CreateLoggerAtLevel(instance.FrameworkPrefix+"RdbmsAccessFacilityBuilder", logging.Trace)
+	rafb.Log = log
+
+	log.LogTracef("Configuring RDBMS client managers")
 
 	//Find the names of components that implement DatabaseProvider
 	pn := rafb.findProviders(cn)
@@ -46,8 +52,14 @@ func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLo
 
 	managerConfigs := make(map[string]*rdbms.RdbmsClientManagerConfig)
 
-	if len(pn) == 1 {
+	//See if client manager configs have been explicitly defined
+	rafb.findConfigurations(cn, managerConfigs)
 
+	if len(managerConfigs) == 0 {
+
+		log.LogTracef("Provider found but no explicit rdbms.RdbmsClientManagerConfig components. Creating default configuration")
+
+		//We have a provider
 		providerName := pn[0]
 
 		// Create config for a default ClientManager
@@ -108,6 +120,7 @@ func (rafb *RdbmsAccessFacilityBuilder) createManagers(cn *ioc.ComponentContaine
 
 	md := new(clientManagerDecorator)
 	md.fieldNameManager = fieldsToManager
+	md.log = lm.CreateLogger(instance.FrameworkPrefix + "ClientManagerDecorator")
 
 	cn.WrapAndAddProto(managerDecorator, md)
 
@@ -115,21 +128,49 @@ func (rafb *RdbmsAccessFacilityBuilder) createManagers(cn *ioc.ComponentContaine
 
 }
 
+func (rafb *RdbmsAccessFacilityBuilder) findConfigurations(cn *ioc.ComponentContainer, c map[string]*rdbms.RdbmsClientManagerConfig) {
+
+	matcher := func(i interface{}) (okay bool) {
+		_, okay = i.(*rdbms.RdbmsClientManagerConfig)
+		return
+	}
+
+	for _, comp := range cn.ProtoComponentsByType(matcher) {
+		name := comp.Component.Name
+
+		rafb.Log.LogTracef("Found instance of dbms.RdbmsClientManagerConfig: %s", name)
+
+		config, _ := comp.Component.Instance.(*rdbms.RdbmsClientManagerConfig)
+
+		if config.ClientName == "" {
+			config.ClientName = name + "Client"
+		}
+
+		rafb.Log.LogTracef("Client name will be: %s", config.ClientName)
+
+		if config.ManagerName == "" {
+			config.ManagerName = config.ClientName + "Manager"
+		}
+
+		rafb.Log.LogTracef("ClientManager name will be: %s", config.ManagerName)
+
+		c[name] = config
+
+	}
+
+}
+
 func (rafb *RdbmsAccessFacilityBuilder) findProviders(cn *ioc.ComponentContainer) []string {
 
 	p := make([]string, 0)
 
-	for name, c := range cn.ProtoComponents() {
+	matcher := func(i interface{}) (okay bool) {
+		_, okay = i.(rdbms.DatabaseProvider)
+		return
+	}
 
-		i := c.Component.Instance
-
-		if i != nil {
-
-			if _, okay := i.(rdbms.DatabaseProvider); okay {
-				p = append(p, name)
-			}
-
-		}
+	for _, comp := range cn.ProtoComponentsByType(matcher) {
+		p = append(p, comp.Component.Name)
 
 	}
 

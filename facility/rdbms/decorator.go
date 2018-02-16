@@ -5,6 +5,7 @@ package rdbms
 
 import (
 	"github.com/graniticio/granitic/ioc"
+	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/rdbms"
 	"github.com/graniticio/granitic/reflecttools"
 	"reflect"
@@ -12,6 +13,7 @@ import (
 
 type clientManagerDecorator struct {
 	fieldNameManager map[string]rdbms.RdbmsClientManager
+	log              logging.Logger
 }
 
 func (cmd *clientManagerDecorator) OfInterest(component *ioc.Component) bool {
@@ -32,6 +34,9 @@ func (cmd *clientManagerDecorator) OfInterest(component *ioc.Component) bool {
 		v := reflect.ValueOf(i).Elem().FieldByName(field)
 
 		if managerType.AssignableTo(targetFieldType) && v.IsNil() {
+
+			cmd.log.LogTracef("%s.%s needs a client manager", component.Name, field)
+
 			return true
 		}
 	}

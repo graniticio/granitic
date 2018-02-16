@@ -61,6 +61,25 @@ type ComponentContainer struct {
 	system             *instance.System
 }
 
+// ProtoComponentsByType returns any ProtoComponents whose Component.Instance field matches the against the supplied TypeMatcher function.
+// If called after the container is 'Accessible' an empty slice will be returned.
+func (cc *ComponentContainer) ProtoComponentsByType(tm TypeMatcher) []*ProtoComponent {
+
+	results := make([]*ProtoComponent, 0)
+
+	for _, pc := range cc.protoComponents {
+
+		if tm(pc.Component.Instance) {
+			results = append(results, pc)
+		}
+
+	}
+
+	return results
+}
+
+// ProtoComponents returns all components that have been registered by the container but have not yet all their dependencies
+// resolved. If called after the container is 'Accessible' an empty slice will be returned.
 func (cc *ComponentContainer) ProtoComponents() map[string]*ProtoComponent {
 	return cc.protoComponents
 }
@@ -376,3 +395,6 @@ func (cc *ComponentContainer) addBySupport(c *Component, ls LifecycleSupport) {
 	cc.byLifecycleSupport[ls] = a
 
 }
+
+// TypeMatcher implementations return true if the supplied interface is (or implements) an expected type
+type TypeMatcher func(i interface{}) bool
