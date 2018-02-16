@@ -38,7 +38,7 @@ type RdbmsAccessFacilityBuilder struct {
 // See FacilityBuilder.BuildAndRegister
 func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
 
-	log := lm.CreateLoggerAtLevel(instance.FrameworkPrefix+"RdbmsAccessFacilityBuilder", logging.Trace)
+	log := lm.CreateLogger(instance.FrameworkPrefix + "RdbmsAccessFacilityBuilder")
 	rafb.Log = log
 
 	log.LogTracef("Configuring RDBMS client managers")
