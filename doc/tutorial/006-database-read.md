@@ -361,6 +361,34 @@ or at runtime from your command line:
 
 Refer to the [logging tutorial](003-logging.md) for more information on how this works.
 
+
+### Query ID definition
+
+By default, query IDs are defined in your template file with a line like:
+
+```
+ID:YOUR_QUERY_ID
+```
+
+If your query files only contain SQL queries, you'll probably want edit them in an IDE or editor that has SQL syntax highlighting
+and checking. Your editor will complain about the lines where query IDs are defined.
+
+If you add the following to your config:
+
+```json
+"QueryManager": {
+  "QueryIdPrefix": "--ID:"
+}
+``` 
+
+you can define your query IDs like:
+
+```
+--ID:YOUR_QUERY_ID
+```
+
+and your editor will stop complaining.
+
 ## Start and test
 
 At this point your service can be started:
