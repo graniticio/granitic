@@ -23,7 +23,7 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/rdbms"
 	"github.com/graniticio/granitic/types"
-	"github.com/pkg/errors"
+	"errors"
 )
 
 const rdbmsClientManagerConfigName = instance.FrameworkPrefix + "RdbmsClientManagerConfig"
