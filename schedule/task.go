@@ -31,6 +31,9 @@ type Task struct {
 	// The name of a component that is interested in receiving status updates from a running task
 	StatusUpdateReceiver string
 
+	// If set to true the task will never run
+	Disabled bool
+
 	receiver TaskStatusUpdateReceiver
 
 	logic TaskLogic
