@@ -5,6 +5,42 @@ import (
 	"testing"
 )
 
+func TestRetryManagement(t *testing.T) {
+
+	i := newInvocation(0, 0)
+
+
+	if !i.firstAttempt() {
+		t.Fail()
+	}
+
+	i.attempt++
+
+	if i.retryAllowed() {
+		t.Fail()
+	}
+
+	if i.firstAttempt() {
+		t.Fail()
+	}
+
+	i = newInvocation(0, 3)
+
+	i.attempt++
+	i.attempt++
+
+	if !i.retryAllowed() {
+		t.Fail()
+	}
+
+	i.attempt++
+
+	if i.retryAllowed() {
+		t.Fail()
+	}
+
+}
+
 func TestEmptyQueue(t *testing.T) {
 
 	iq := new(invocationQueue)

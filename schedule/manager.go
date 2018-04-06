@@ -39,7 +39,10 @@ func (im *invocationManager) Start() {
 	im.State = ioc.RunningState
 
 	for im.State != ioc.StoppedState && im.State != ioc.StoppingState {
+
+		// The first invocation on the queue is the next to be run
 		first := im.scheduled.PeekHead()
+
 
 		if first != nil {
 			runAt := first.runAt
@@ -47,8 +50,10 @@ func (im *invocationManager) Start() {
 			now := time.Now()
 
 			if runAt == now || runAt.Before(now) {
+				// The time at which this invocation was scheduled to run has arrived (or passed)
 				im.scheduled.Dequeue()
 
+				// Only run this invocation if this task manager is running
 				if im.State == ioc.RunningState {
 
 					if im.running.Size() != 0 && !im.Task.NoWarnOnOverlap {
@@ -105,7 +110,17 @@ func (im *invocationManager) runTask(i *invocation) {
 	err := im.Task.logic.ExecuteTask(updates)
 
 	if err != nil {
-		im.Log.LogErrorf("Problem executing task %s (invocation %d started at %v): %s", im.Task.FullName(), i.counter, i.startedAt, err.Error())
+
+		m := fmt.Sprintf("Problem executing task %s (invocation %d, attempt %d started at %v): %s", im.Task.FullName(), i.counter, i.attempt, i.startedAt, err.Error())
+
+		if _, ok := err.(*AllowRetryError); ok {
+
+			im.Log.LogWarnf("Can retry? %v", i.retryAllowed())
+
+		}
+
+
+		im.Log.LogErrorf(m)
 	}
 
 }
@@ -164,8 +179,7 @@ func (im *invocationManager) setFirstInvocation() {
 
 	interval := im.Interval
 
-	i := new(invocation)
-	i.counter = 1
+	i := newInvocation(1, im.Task.MaxRetries)
 
 	if interval.Mode == OFFSET_FROM_START {
 		i.runAt = time.Now().Add(interval.OffsetFromStart)
@@ -175,6 +189,13 @@ func (im *invocationManager) setFirstInvocation() {
 
 	im.Log.LogInfof("Task '%s' will first run at %s and intervals of %v thereafter", im.Task.FullName(), i.runAt.Format(firstRunFormat), interval.Frequency)
 
+	t := im.Task
+
+	if t.MaxRetries > 0 {
+		im.Log.LogDebugf("Task '%s' can be retried a maxium of %d time(s) with an interval of %v between retries", t.FullName(), t.MaxRetries, t.retryWait)
+	}
+
+
 	im.scheduled.Enqueue(i)
 
 }
@@ -183,8 +204,7 @@ func (im *invocationManager) addNextInvocation(previous *invocation) time.Time {
 
 	interval := im.Interval
 
-	i := new(invocation)
-	i.counter = previous.counter + 1
+	i := newInvocation(previous.counter + 1, im.Task.MaxRetries)
 	i.runAt = previous.runAt.Add(interval.Frequency)
 
 	im.scheduled.Enqueue(i)

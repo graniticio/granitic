@@ -30,6 +30,42 @@ func parseEvery(every string) (*interval, error) {
 	return parseEveryFromGivenNow(every, time.Now())
 }
 
+func parseNaturalToDuration(interval string) (time.Duration, error) {
+
+	tokens := strings.Split(strings.ToUpper(interval), " ")
+
+	if len(tokens) < 2 {
+		m := fmt.Sprintf("%s cannot be parsed as a numeric value and a unit of time", interval)
+		return 0, errors.New(m)
+	}
+
+	if v, u, err := parseValueUnit(tokens[0], tokens[1]); err != nil {
+		return 0, err
+	} else {
+		return time.Duration(v) * u, nil
+	}
+}
+
+func parseValueUnit(value, unit string) (int64,time.Duration, error) {
+	//Make such the first token is a postive integer
+	frequencyValue, okay := validValue(value)
+
+	if !okay {
+		em := fmt.Sprintf("%s cannot be interpreted as a positive integer greater than 1", value)
+		return 0, 0, errors.New(em)
+	}
+
+	frequencyUnit, okay := validUnit(unit)
+
+	if !okay {
+		em := fmt.Sprintf("%s cannot be interpreted as a valid unit (seconds, minutes, hours, days) ", unit)
+		return 0, 0, errors.New(em)
+	}
+
+	return frequencyValue, frequencyUnit, nil
+}
+
+
 func parseEveryFromGivenNow(every string, now time.Time) (*interval, error) {
 
 	m := fmt.Sprintf("Cannot parse recurring schedule [%s] ", every)
@@ -63,20 +99,12 @@ func parseEveryFromGivenNow(every string, now time.Time) (*interval, error) {
 		return i, errors.New(m)
 	}
 
-	//Make such the first token is a postive integer
-	frequencyValue, okay := validValue(tokens[0])
+	frequencyValue, frequencyUnit, err := parseValueUnit(tokens[0], tokens[1])
 
-	if !okay {
-		em := fmt.Sprintf("%s: %s cannot be interpreted as a positive integer greater than 1", m, tokens[0])
-		return i, errors.New(em)
+	if err != nil {
+		return nil, errors.New(m + err.Error())
 	}
 
-	frequencyUnit, okay := validUnit(tokens[1])
-
-	if !okay {
-		em := fmt.Sprintf("%s: %s cannot be interpreted as a valid unit (seconds, minutes, hours, days) ", m, tokens[1])
-		return i, errors.New(em)
-	}
 
 	i.Frequency = time.Duration(frequencyValue) * frequencyUnit
 

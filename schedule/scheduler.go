@@ -94,6 +94,22 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Ta
 		return errors.New(m)
 	}
 
+	if task.MaxRetries > 0{
+		if task.RetryInterval == "" {
+			m := fmt.Sprintf("The 'RetryInterval' must be set if 'MaxRetries' > 0")
+			return errors.New(m)
+
+		}
+
+		if retryWait, err := parseNaturalToDuration(task.RetryInterval); err != nil {
+			return err
+		} else {
+			task.retryWait = retryWait
+		}
+
+	}
+
+
 	tm := NewInvocationManager(task)
 	ts.managedTasks = append(ts.managedTasks, tm)
 	tm.Log = ts.FrameworkLogManager.CreateLogger(task.Component + "TaskManager")

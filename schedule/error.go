@@ -5,7 +5,7 @@ package schedule
 
 import "fmt"
 
-func NewAllowRetryErrorf(template string, args ...interface{}) *AllowRetryError {
+func NewAllowRetryErrorf(template string, args ...interface{}) error {
 	return &AllowRetryError {
 		message: fmt.Sprintf(template, args...),
 	}

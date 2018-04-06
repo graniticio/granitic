@@ -8,10 +8,29 @@ import (
 	"time"
 )
 
+
+func newInvocation(counter uint64, retries int) *invocation {
+	i := new(invocation)
+	i.counter = counter
+	i.attempt = 1
+	i.maxAttempts = retries + 1
+	return i
+}
+
 type invocation struct {
 	counter   uint64
 	runAt     time.Time
 	startedAt time.Time
+	attempt int
+	maxAttempts int
+}
+
+func (i *invocation) firstAttempt() bool{
+	return i.attempt == 1
+}
+
+func (i *invocation) retryAllowed() bool{
+	return i.attempt < i.maxAttempts
 }
 
 type invocationQueue struct {

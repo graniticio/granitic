@@ -34,9 +34,18 @@ type Task struct {
 	// If set to true the task will never run
 	Disabled bool
 
+	// The number of times an invocation of this task should be re-tried if the task fails with an AllowRetryError
+	MaxRetries int
+
+	// A human-readable expression (in English) of how the interval to wait between a failure and a retry (e.g. 1 minute, 20 seconds)
+	// Must be set if MaxRetries > 0
+	RetryInterval string
+
 	receiver TaskStatusUpdateReceiver
 
 	logic TaskLogic
+
+	retryWait time.Duration
 }
 
 func (t *Task) FullName() string {
