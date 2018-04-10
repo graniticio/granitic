@@ -45,7 +45,32 @@ type queueMember struct {
 	n *queueMember
 }
 
-func (iq *invocationQueue) Enqueue(i *invocation) {
+func (iq *invocationQueue) EnqueueAtHead(i *invocation) {
+
+	iq.mux.Lock()
+
+	newHead := new(queueMember)
+	newHead.i = i
+
+	if iq.head == nil {
+		iq.head = newHead
+	} else {
+
+		newHead.n = iq.head
+
+		if iq.tail == nil {
+			iq.tail = iq.head
+		}
+
+		iq.head = newHead
+
+	}
+
+	iq.mux.Unlock()
+
+}
+
+func (iq *invocationQueue) EnqueueAtTail(i *invocation) {
 
 	iq.mux.Lock()
 

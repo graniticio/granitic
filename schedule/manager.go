@@ -53,6 +53,10 @@ func (im *invocationManager) Start() {
 				// The time at which this invocation was scheduled to run has arrived (or passed)
 				im.scheduled.Dequeue()
 
+				if first.attempt == 1 {
+					im.addNextInvocation(first)
+				}
+
 				// Only run this invocation if this task manager is running
 				if im.State == ioc.RunningState {
 
@@ -64,13 +68,13 @@ func (im *invocationManager) Start() {
 						im.Log.LogErrorf("Will not start new instance of task %s as %d instance(s) are already running - maximum allowed is %d", im.Task.FullName(), im.running.Size(), im.Task.MaxOverlapping+1)
 					} else {
 
-						im.running.Enqueue(first)
+						im.running.EnqueueAtTail(first)
 
 						go im.runTask(first)
 					}
 				}
 
-				im.addNextInvocation(first)
+
 			}
 
 		}
@@ -115,13 +119,46 @@ func (im *invocationManager) runTask(i *invocation) {
 
 		if _, ok := err.(*AllowRetryError); ok {
 
-			im.Log.LogWarnf("Can retry? %v", i.retryAllowed())
+			if okay, when := im.attemptRetry(i); okay{
+				im.Log.LogWarnf(m)
+				im.Log.LogWarnf("Will retry at %v", when)
+			} else {
+				im.Log.LogErrorf(m)
+			}
 
+		} else {
+			im.Log.LogErrorf(m)
 		}
 
 
-		im.Log.LogErrorf(m)
+
 	}
+
+}
+
+// See if the invocation of a task can be tried again
+func (im *invocationManager) attemptRetry(i *invocation) (bool, time.Time) {
+
+	if !i.retryAllowed(){
+		return false, time.Now()
+	}
+
+	retryTime := time.Now().Add(im.Task.retryWait)
+
+	nextScheduled := im.scheduled.PeekHead().runAt
+
+	if nextScheduled.Before(retryTime) {
+		//No point retrying as next scheduled run will happen before that
+		im.Log.LogWarnf("Retry attempt attempt abandoned as next scheduled invocation will arrive first")
+		return false, time.Now()
+	}
+
+	i.attempt += 1
+	i.runAt = retryTime
+
+	im.scheduled.EnqueueAtHead(i)
+
+	return true, retryTime
 
 }
 
@@ -196,7 +233,7 @@ func (im *invocationManager) setFirstInvocation() {
 	}
 
 
-	im.scheduled.Enqueue(i)
+	im.scheduled.EnqueueAtTail(i)
 
 }
 
@@ -207,7 +244,7 @@ func (im *invocationManager) addNextInvocation(previous *invocation) time.Time {
 	i := newInvocation(previous.counter + 1, im.Task.MaxRetries)
 	i.runAt = previous.runAt.Add(interval.Frequency)
 
-	im.scheduled.Enqueue(i)
+	im.scheduled.EnqueueAtTail(i)
 
 	return i.runAt
 
