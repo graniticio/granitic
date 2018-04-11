@@ -1,10 +1,10 @@
 package schedule
 
 import (
+	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
-	"errors"
 	"time"
 )
 
@@ -43,7 +43,6 @@ func (im *invocationManager) Start() {
 		// The first invocation on the queue is the next to be run
 		first := im.scheduled.PeekHead()
 
-
 		if first != nil {
 			runAt := first.runAt
 
@@ -73,7 +72,6 @@ func (im *invocationManager) Start() {
 						go im.runTask(first)
 					}
 				}
-
 
 			}
 
@@ -119,7 +117,7 @@ func (im *invocationManager) runTask(i *invocation) {
 
 		if _, ok := err.(*AllowRetryError); ok {
 
-			if okay, when := im.attemptRetry(i); okay{
+			if okay, when := im.attemptRetry(i); okay {
 				im.Log.LogWarnf(m)
 				im.Log.LogWarnf("Will retry at %v", when)
 			} else {
@@ -130,8 +128,6 @@ func (im *invocationManager) runTask(i *invocation) {
 			im.Log.LogErrorf(m)
 		}
 
-
-
 	}
 
 }
@@ -139,7 +135,7 @@ func (im *invocationManager) runTask(i *invocation) {
 // See if the invocation of a task can be tried again
 func (im *invocationManager) attemptRetry(i *invocation) (bool, time.Time) {
 
-	if !i.retryAllowed(){
+	if !i.retryAllowed() {
 		return false, time.Now()
 	}
 
@@ -232,7 +228,6 @@ func (im *invocationManager) setFirstInvocation() {
 		im.Log.LogDebugf("Task '%s' can be retried a maxium of %d time(s) with an interval of %v between retries", t.FullName(), t.MaxRetries, t.retryWait)
 	}
 
-
 	im.scheduled.EnqueueAtTail(i)
 
 }
@@ -241,7 +236,7 @@ func (im *invocationManager) addNextInvocation(previous *invocation) time.Time {
 
 	interval := im.Interval
 
-	i := newInvocation(previous.counter + 1, im.Task.MaxRetries)
+	i := newInvocation(previous.counter+1, im.Task.MaxRetries)
 	i.runAt = previous.runAt.Add(interval.Frequency)
 
 	im.scheduled.EnqueueAtTail(i)

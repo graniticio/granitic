@@ -6,16 +6,15 @@ package schedule
 import "fmt"
 
 func NewAllowRetryErrorf(template string, args ...interface{}) error {
-	return &AllowRetryError {
+	return &AllowRetryError{
 		message: fmt.Sprintf(template, args...),
 	}
 }
-
 
 type AllowRetryError struct {
 	message string
 }
 
-func (e *AllowRetryError) Error() string{
+func (e *AllowRetryError) Error() string {
 	return e.message
 }

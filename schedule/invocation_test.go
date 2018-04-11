@@ -9,7 +9,6 @@ func TestRetryManagement(t *testing.T) {
 
 	i := newInvocation(0, 0)
 
-
 	if !i.firstAttempt() {
 		t.Fail()
 	}
@@ -88,11 +87,11 @@ func TestEnqueueHead(t *testing.T) {
 
 	c := iq.Contents()
 
-	if c[0].counter != 2 || iq.PeekHead().counter != 2{
+	if c[0].counter != 2 || iq.PeekHead().counter != 2 {
 		t.FailNow()
 	}
 
-	if c[1].counter != 1 || iq.PeekTail().counter != 1{
+	if c[1].counter != 1 || iq.PeekTail().counter != 1 {
 		t.FailNow()
 	}
 
@@ -100,7 +99,7 @@ func TestEnqueueHead(t *testing.T) {
 
 	iq.EnqueueAtHead(i2)
 
-	if c[0].counter != 2 || iq.PeekHead().counter != 2{
+	if c[0].counter != 2 || iq.PeekHead().counter != 2 {
 		t.FailNow()
 	}
 
@@ -116,11 +115,11 @@ func TestEnqueueHead(t *testing.T) {
 
 	c = iq.Contents()
 
-	if c[0].counter != 3 || iq.PeekHead().counter != 3{
+	if c[0].counter != 3 || iq.PeekHead().counter != 3 {
 		t.FailNow()
 	}
 
-	if c[2].counter != 2 || iq.PeekTail().counter != 2{
+	if c[2].counter != 2 || iq.PeekTail().counter != 2 {
 		t.FailNow()
 	}
 

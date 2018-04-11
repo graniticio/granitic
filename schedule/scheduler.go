@@ -36,7 +36,7 @@ func (ts *TaskScheduler) StartComponent() error {
 
 	ts.FrameworkLogger.LogDebugf("Searching for schedule.Task components")
 
-	CheckComponent:
+CheckComponent:
 	for _, component := range ts.componentContainer.AllComponents() {
 
 		ts.FrameworkLogger.LogTracef("Considering %s", component.Name)
@@ -53,7 +53,6 @@ func (ts *TaskScheduler) StartComponent() error {
 				ts.FrameworkLogger.LogWarnf("Task %s will never run as it has been disabled", task.FullName())
 				continue CheckComponent
 			}
-
 
 			if err := ts.validateAndPrepare(ts.componentContainer, task); err != nil {
 				return errors.New(fmt.Sprintf("%s: %s", component.Name, err.Error()))
@@ -94,7 +93,7 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Ta
 		return errors.New(m)
 	}
 
-	if task.MaxRetries > 0{
+	if task.MaxRetries > 0 {
 		if task.RetryInterval == "" {
 			m := fmt.Sprintf("The 'RetryInterval' must be set if 'MaxRetries' > 0")
 			return errors.New(m)
@@ -108,7 +107,6 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Ta
 		}
 
 	}
-
 
 	tm := NewInvocationManager(task)
 	ts.managedTasks = append(ts.managedTasks, tm)

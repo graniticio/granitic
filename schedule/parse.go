@@ -46,7 +46,7 @@ func parseNaturalToDuration(interval string) (time.Duration, error) {
 	}
 }
 
-func parseValueUnit(value, unit string) (int64,time.Duration, error) {
+func parseValueUnit(value, unit string) (int64, time.Duration, error) {
 	//Make such the first token is a postive integer
 	frequencyValue, okay := validValue(value)
 
@@ -64,7 +64,6 @@ func parseValueUnit(value, unit string) (int64,time.Duration, error) {
 
 	return frequencyValue, frequencyUnit, nil
 }
-
 
 func parseEveryFromGivenNow(every string, now time.Time) (*interval, error) {
 
@@ -104,7 +103,6 @@ func parseEveryFromGivenNow(every string, now time.Time) (*interval, error) {
 	if err != nil {
 		return nil, errors.New(m + err.Error())
 	}
-
 
 	i.Frequency = time.Duration(frequencyValue) * frequencyUnit
 
