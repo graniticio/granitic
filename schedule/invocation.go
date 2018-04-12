@@ -8,11 +8,19 @@ import (
 	"time"
 )
 
-func newInvocation(counter uint64, retries int) *invocation {
+const (
+	SCHEDULED = "SCHEDULED"
+	RETRY = "RETRY"
+	MANUAL = "MANUAL"
+)
+
+func newInvocation(counter uint64, retries int, reason string) *invocation {
 	i := new(invocation)
 	i.counter = counter
 	i.attempt = 1
 	i.maxAttempts = retries + 1
+	i.reason = reason
+
 	return i
 }
 
@@ -22,6 +30,7 @@ type invocation struct {
 	startedAt   time.Time
 	attempt     int
 	maxAttempts int
+	reason string
 }
 
 func (i *invocation) firstAttempt() bool {

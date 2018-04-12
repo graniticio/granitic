@@ -36,7 +36,7 @@ func (ts *TaskScheduler) StartComponent() error {
 
 	ts.FrameworkLogger.LogDebugf("Searching for schedule.Task components")
 
-CheckComponent:
+
 	for _, component := range ts.componentContainer.AllComponents() {
 
 		ts.FrameworkLogger.LogTracef("Considering %s", component.Name)
@@ -50,8 +50,7 @@ CheckComponent:
 			ts.FrameworkLogger.LogDebugf("Found Task %s", task.FullName())
 
 			if task.Disabled {
-				ts.FrameworkLogger.LogWarnf("Task %s will never run as it has been disabled", task.FullName())
-				continue CheckComponent
+				ts.FrameworkLogger.LogWarnf("Task %s will never run on a schedule as it has been disabled. Can be invoked manually", task.FullName())
 			}
 
 			if err := ts.validateAndPrepare(ts.componentContainer, task); err != nil {
