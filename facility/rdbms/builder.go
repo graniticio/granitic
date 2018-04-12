@@ -15,6 +15,7 @@
 package rdbms
 
 import (
+	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/config"
 	"github.com/graniticio/granitic/facility/querymanager"
@@ -23,7 +24,6 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/rdbms"
 	"github.com/graniticio/granitic/types"
-	"errors"
 )
 
 const rdbmsClientManagerConfigName = instance.FrameworkPrefix + "RdbmsClientManagerConfig"
