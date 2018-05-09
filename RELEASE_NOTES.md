@@ -18,6 +18,26 @@ have to set the GRANITIC_HOME environment variable on the servers you are deploy
 Improved support for connecting to multiple databases using the RdbmsAccess facility. Refer to the [granitic.rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms) 
 for more information.
 
+### JSON Web Services
+
+__BREAKING CHANGE__
+
+ By default, the JsonWs facility now no longer wraps response objects in a wrapper with 'response' and 'errors' sections.
+ Instead the object returned by the WsHandler is serialised as the HTTP response body unless errors are present, in which case
+ the errors structure is used as the response body.
+ 
+ To revert to the previous behaviour, set:
+ 
+ ```json
+ {
+   "JsonWs": {
+     "WrapMode": "WRAP"
+   }
+ }
+ ``` 
+ 
+ in your application's configuration
+
 ## 1.1.0  (2018-01-11)
 
 ### General

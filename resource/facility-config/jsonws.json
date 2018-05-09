@@ -10,6 +10,7 @@
       "IndentString": "  ",
       "PrefixString": ""
     },
+    "WrapMode": "BODY",
     "ResponseWrapper": {
       "ErrorsFieldName": "Errors",
       "BodyFieldName":   "Response"

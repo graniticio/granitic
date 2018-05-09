@@ -87,6 +87,25 @@ type errorWrapper struct {
 	Message string
 }
 
+// Implementation of ResponseWrapper that just returns the body object if not nil or the errors object if not nil
+type BodyOrErrorWrapper struct {
+
+}
+
+// WrapResponse returns body if not nil or errors if not nil. Otherwise returns nil
+func (rw *BodyOrErrorWrapper) WrapResponse(body interface{}, errors interface{}) interface{} {
+
+	if body != nil {
+		return body
+	}
+
+	if errors != nil {
+		return errors
+	}
+
+	return nil
+}
+
 // Component for wrapping response data before it is serialised. The wrapping structure is a map[string]string
 type GraniticJSONResponseWrapper struct {
 	ErrorsFieldName string

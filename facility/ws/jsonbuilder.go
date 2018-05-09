@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package ws
@@ -10,10 +10,15 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
 	"github.com/graniticio/granitic/ws/json"
+	"fmt"
+	"errors"
 )
 
 const jsonResponseWriterComponentName = instance.FrameworkPrefix + "JsonResponseWriter"
 const jsonUnmarshallerComponentName = instance.FrameworkPrefix + "JsonUnmarshaller"
+
+const mode_wrap = "WRAP"
+const mode_body = "BODY"
 
 // Creates the components required to support the JsonWs facility and adds them the IoC container.
 type JsonWsFacilityBuilder struct {
@@ -41,9 +46,31 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 	}
 
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "ResponseWrapper") {
-		wrap := new(json.GraniticJSONResponseWrapper)
-		ca.Populate("JsonWs.ResponseWrapper", wrap)
-		rw.ResponseWrapper = wrap
+
+		// User hasn't defined their own wrapper for JSON responses, use one of the defaults
+		if mode, err := ca.StringVal("JsonWs.WrapMode"); err != nil {
+			return err
+		} else{
+
+			var wrap ws.ResponseWrapper
+
+			switch mode {
+			case mode_body:
+				wrap = new(json.BodyOrErrorWrapper)
+			case mode_wrap:
+				wrap = new(json.GraniticJSONResponseWrapper)
+			default:
+				m := fmt.Sprintf("JsonWs.WrapMode must be either %s or %s", mode_wrap, mode_body)
+
+				return errors.New(m)
+			}
+
+			ca.Populate("JsonWs.ResponseWrapper", wrap)
+			rw.ResponseWrapper = wrap
+
+		}
+
+
 	}
 
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "MarshalingWriter") {
