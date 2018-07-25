@@ -1,6 +1,6 @@
 # Release notes
 
-## 1.2.0  (2018-xx-xx)
+## 1.2.0  (2018-07-25)
 
 ### General
  * Now requires Go 1.9 or later
@@ -13,9 +13,20 @@
 Applications built with Granitic no longer need access to a copy of Granitic's built-in JSON configuration files at runtime. This means that you do not 
 have to set the GRANITIC_HOME environment variable on the servers you are deploying your applications to.
 
+### Scheduled tasks
+
+The new `TaskScheduler` facility allows processes to be run at predetermined intervals. Includes support for
+
+ * Natural language definition of intervals (every `2 days at 1405` etc)
+ * Control over error and retry behaviour
+ * Notification to other components when tasks end (successfully or not)
+ * Control over overlapping task runs
+ 
+Refer to the [granitic.schedule GoDoc](https://godoc.org/github.com/graniticio/granitic/schedule) for more details.
+
 ### RDBMS
 
-Improved support for connecting to multiple databases using the RdbmsAccess facility. Refer to the [granitic.rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms) 
+Improved support for connecting to multiple databases using the `RdbmsAccess` facility. Refer to the [granitic.rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms) 
 for more information.
 
 ### JSON Web Services
