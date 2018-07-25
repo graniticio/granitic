@@ -2,14 +2,14 @@
 
 ## Requirements
 
- * Go 1.8 or later
+ * Go 1.9 or later
  * Git
  
  It is highly recommended that you have installed Go according to the [standard Go installation instructions](https://golang.org/doc/install) and have set your GOPATH environment variable correctly.
  
 #### Note for Windows users
  
- The below instructions were tested on Windows 10 having followed the [Go installation instructions for Windows](https://golang.org/doc/install?download=go1.7.5.windows-amd64.msi)
+ The below instructions were tested on Windows 10 having followed the [Go MSI installation instructions for Windows](https://golang.org/doc/install)
  
  You must [set the GOPATH environment variable](https://golang.org/doc/code.html#GOPATH) and have the Git command line tools installed and configured to work with Command Prompt
  

@@ -173,21 +173,19 @@ get a result like:
 
 ```json
 {
-  "Errors":{
-    "ByField":{
-      "RelatedArtists[0]":[
-        {
-          "Code":"C-NO_SUCH_RELATED",
-          "Message":"Related artist does not exist."
-        }
-      ],
-      "RelatedArtists[2]":[
-        {
-          "Code":"C-NO_SUCH_RELATED",
-          "Message":"Related artist does not exist."
-        }
-      ]
-    }
+  "ByField":{
+    "RelatedArtists[0]":[
+      {
+        "Code":"C-NO_SUCH_RELATED",
+        "Message":"Related artist does not exist."
+      }
+    ],
+    "RelatedArtists[2]":[
+      {
+        "Code":"C-NO_SUCH_RELATED",
+        "Message":"Related artist does not exist."
+      }
+    ]
   }
 }
 ```

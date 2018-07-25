@@ -115,14 +115,12 @@ will result in this response with an HTTP 500 status code
 
 ```json
 {  
-  "Errors":{  
-    "General":[  
-      {  
-        "Code":"U-DB_UNEXPECTED",
-        "Message":"Unexpected problem communicating with the database"
-      }
-    ]
-  }
+  "General":[  
+    {  
+      "Code":"U-DB_UNEXPECTED",
+      "Message":"Unexpected problem communicating with the database"
+    }
+  ]
 }
 ```
 

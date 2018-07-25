@@ -168,15 +168,13 @@ You should see a response similar to:
 
 ```json
 {
-  "Errors":{
-    "ByField":{
-      "Name":[
-        {
-          "Code":"C-INVALID_ARTIST",
-          "Message":"Cannot create an artist with the information provided."
-        }
-      ]
-    }
+  "ByField":{
+    "Name":[
+     {
+       "Code":"C-INVALID_ARTIST",
+       "Message":"Cannot create an artist with the information provided."
+     }
+    ]
   }
 }
 ```
