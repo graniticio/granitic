@@ -292,9 +292,7 @@ and you should see the response:
 
 ```json
 {
-  "Response":{
-    "Name": "Hello, World!"
-  }
+  "Name": "Hello, World!"
 }
 ```
 

@@ -402,9 +402,7 @@ and visiting <code>http://localhost:8080/artist/1</code> will yield a response l
 
 ```json
 {
-  "Response":{
-    "Name":"Younger artist"
-  }
+  "Name":"Younger artist"
 }
 ```
 

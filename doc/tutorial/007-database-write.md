@@ -136,9 +136,7 @@ You should see a response like:
 
 ```json
 {
-  "Response": {
-    "Id": 10
-  }
+  "Id": 10
 }
 ```
 
