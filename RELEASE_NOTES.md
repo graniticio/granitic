@@ -1,5 +1,9 @@
 # Release notes
 
+## 1.2.1  (2018-xx-xx)
+
+GoDoc improvements and additional tutorials.
+
 ## 1.2.0  (2018-07-25)
 
 ### General
