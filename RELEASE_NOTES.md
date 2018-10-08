@@ -1,6 +1,6 @@
 # Release notes
 
-## 1.2.1  (2018-xx-xx)
+## 1.2.1  (2018-10-08)
 
  * GoDoc improvements
  * Tests now run if ```GRANITIC_HOME``` not set
