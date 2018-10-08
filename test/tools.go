@@ -1,10 +1,10 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
 Package test provides tools for Granitic's unit tests.
 
-One of Grantic's design principles is that Granitic should not introduce
+One of Granitic's design principles is that Granitic should not introduce
 dependencies on third-party libraries, so this package contains convenience methods for making Grantic's built-in unit tests
 more usable and readable that would be better served by a third-party test library.
 
@@ -13,6 +13,9 @@ These methods are not recommended for use in user applications or tests.
 package test
 
 import (
+	"fmt"
+	"github.com/graniticio/granitic/instance"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -20,9 +23,38 @@ import (
 	"testing"
 )
 
+const (
+	graniticHomeEnvVar = "GRANITIC_HOME"
+	goPathEnvVar       = "GOPATH"
+)
+
 // TestFilePath finds the absolute path of a file that is provided relative to the resource/test directory.
 func TestFilePath(file string) string {
-	return filepath.Join(os.Getenv("GRANITIC_HOME"), "resource", "test", file)
+
+	//Check if GRANITIC_HOME explicitly set
+	graniticPath := os.Getenv(graniticHomeEnvVar)
+
+	if graniticPath == "" {
+
+		if gopath := os.Getenv(goPathEnvVar); gopath == "" {
+
+			fmt.Printf("Neither %s or %s environment variable is not set. Cannot find Granitic\n", graniticHomeEnvVar, goPathEnvVar)
+			instance.ExitError()
+
+		} else {
+
+			graniticPath = filepath.Join(gopath, "src", "github.com", "graniticio", "granitic")
+
+			if _, err := ioutil.ReadDir(graniticPath); err != nil {
+
+				fmt.Printf("%s environment variable is not set and cannot find Granitic in the default install path of %s (your GOPATH variable is set to %s)\n", graniticHomeEnvVar, graniticPath, gopath)
+				instance.ExitError()
+			}
+
+		}
+
+	}
+	return filepath.Join(graniticPath, "resource", "test", file)
 }
 
 // ExpectString stops a test and logs an error if the string to be checked does not have the expected value.

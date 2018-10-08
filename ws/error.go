@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package ws
@@ -139,7 +139,7 @@ func CodeToCategory(c string) (ServiceErrorCategory, error) {
 	case "S":
 		return Security, nil
 	default:
-		message := fmt.Sprint("Unknown error category %s", c)
+		message := fmt.Sprintf("Unknown error category %s", c)
 		return -1, errors.New(message)
 	}
 

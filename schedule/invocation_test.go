@@ -7,7 +7,7 @@ import (
 
 func TestRetryManagement(t *testing.T) {
 
-	i := newInvocation(0, 0)
+	i := newInvocation(0, 0, "Test")
 
 	if !i.firstAttempt() {
 		t.Fail()
@@ -23,7 +23,7 @@ func TestRetryManagement(t *testing.T) {
 		t.Fail()
 	}
 
-	i = newInvocation(0, 3)
+	i = newInvocation(0, 3, "Test")
 
 	i.attempt++
 	i.attempt++

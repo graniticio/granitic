@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package validate
@@ -632,7 +632,7 @@ func (vb *stringValidationRuleBuilder) addStringRegexOperation(field string, ops
 	r, err := regexp.Compile(pattern)
 
 	if err != nil {
-		m := fmt.Sprintf("Regex for field %s could not be compiled. Pattern provided was ", field, pattern)
+		m := fmt.Sprintf("Regex for field %s could not be compiled. Pattern provided was ", field)
 		return errors.New(m)
 	}
 
