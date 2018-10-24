@@ -43,7 +43,7 @@ Note that the script creates a user <code>grnc</code> and allows it to connect f
 [Install Docker](https://docs.docker.com/engine/installation/) then open a terminal and run:
 
 <pre>
-cd $GOPATH/src/github.com/graniticio/granitic-examples/recordstore/graniticrs
+cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial/docker
 docker-compose up --build -d
 </pre>
 
@@ -147,7 +147,8 @@ and a component to store your connection parameters:
   "User": "grnc",
   "Passwd": "OKnasd8!k",
   "Addr": "localhost",
-  "DBName": "recordstore"
+  "DBName": "recordstore",
+  "AllowNativePasswords": true
 }
 ```
 
