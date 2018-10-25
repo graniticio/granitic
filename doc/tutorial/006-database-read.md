@@ -23,7 +23,7 @@ cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
 ## Setting up a test database
 
 In order to streamline this tutorial, you will use an existing MySQL schema and test data supplied as part of the [Granitic Examples](https://github.com/graniticio/granitic-examples) 
-GitHub repository in the <code>recordstore/graniticrs/db/schema-with-test-data.sql</code> file. 
+GitHub repository in the <code>tutorial/docker/db/schema-with-test-data.sql</code> file. 
 
 If you haven't already cloned the [Granitic Examples](https://github.com/graniticio/granitic-examples) repo, you can do it with:
 
