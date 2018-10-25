@@ -9,7 +9,7 @@
 
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
  1. Read the [before you start](000-before-you-start.md) tutorial
  1. Either have completed [tutorial 5](005-validation.md) or open a terminal and run:
  

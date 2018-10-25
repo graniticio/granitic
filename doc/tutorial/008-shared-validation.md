@@ -7,7 +7,7 @@
 
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
  1. Read the [before you start](000-before-you-start.md) tutorial
  1. Followed the [setting up a test database](006-database-read.md) section of [tutorial 6](006-database-read.md)
  1. Either have completed [tutorial 7](007-database-write.md) or open a terminal and run:
