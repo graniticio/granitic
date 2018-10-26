@@ -33,7 +33,7 @@
 	standard or custom HTTP method can be used.
 
 	3. A 'logic' component that implements at least WsRequestProcessor (additional WsXXX interfaces can be implemented
-	to support advanced behaviour).
+	to support advanced behaviour) OR has a method with the signature ProcessPayload(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse, payload *YourStruct)
 
 */
 package handler
@@ -41,6 +41,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/iam"
 	"github.com/graniticio/granitic/ioc"
@@ -48,8 +49,11 @@ import (
 	"github.com/graniticio/granitic/validate"
 	"github.com/graniticio/granitic/ws"
 	"net/http"
+	"reflect"
 	"regexp"
 )
+
+const processPayloadFunc = "ProcessPayload"
 
 // Implementing WsRequestProcessor is the minimum required of a component to be considered a 'logic' component suitable for
 // use by a WsHandler.
@@ -163,7 +167,7 @@ type WsHandler struct {
 	Log logging.Logger
 
 	// The object representing the 'logic' behind this handler.
-	Logic WsRequestProcessor
+	Logic interface{}
 
 	// A component injected by the Granitic framework that can map text representations of query and path parameters to Go
 	// and Granitic types.
@@ -203,6 +207,7 @@ type WsHandler struct {
 	state             ioc.ComponentState
 	validationEnabled bool
 	validator         WsRequestValidator
+	genericProcessor  WsRequestProcessor
 }
 
 // ProvideErrorFinder receives a component that can be used to map error codes to categorised errors.
@@ -521,7 +526,19 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 	}()
 
 	wsRes := ws.NewWsResponse(wh.ErrorFinder)
-	wh.Logic.Process(ctx, request, wsRes)
+
+	if wh.genericProcessor != nil {
+		//Logic component implements WsRequestProcessor
+		wh.genericProcessor.Process(ctx, request, wsRes)
+	} else {
+		//Call the ProcessPayload method via reflection which allows us to pass in the body of the response as a typed object
+		//without knowing the type at compile time
+		method := reflect.ValueOf(wh.Logic).MethodByName(processPayloadFunc)
+
+		va := []reflect.Value{reflect.ValueOf(ctx), reflect.ValueOf(request), reflect.ValueOf(wsRes), reflect.ValueOf(request.RequestBody)}
+
+		method.Call(va)
+	}
 
 	if wh.PostProcessor != nil {
 		wh.PostProcessor.PostProcess(ctx, wh.ComponentName(), request, wsRes)
@@ -620,6 +637,10 @@ func (wh *WsHandler) StartComponent() error {
 		return errors.New("You must set ErrorFinder if you set AutoValidator. Is the ServiceErrorManager facility enabled?")
 	}
 
+	if err := wh.checkLogicComponent(); err != nil {
+		return err
+	}
+
 	validator, found := wh.Logic.(WsRequestValidator)
 
 	wh.validationEnabled = found || wh.AutoValidator != nil
@@ -652,6 +673,54 @@ func (wh *WsHandler) StartComponent() error {
 
 	return nil
 
+}
+
+func (wh *WsHandler) checkLogicComponent() error {
+	if rp, found := wh.Logic.(WsRequestProcessor); found {
+
+		wh.genericProcessor = rp
+
+	} else {
+
+		message := fmt.Sprintf("Logic compoonent must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse, payload *YourStruct)", processPayloadFunc)
+
+		//Logic component doesn't implement WsRequestProcessor - must instead have a method called ProcessPayload
+		method := reflect.ValueOf(wh.Logic).MethodByName(processPayloadFunc)
+
+		if !method.IsValid() {
+			return errors.New(message)
+		}
+
+		t := method.Type()
+
+		//Quick check of parameter counts on the method signature
+		if t.NumIn() != 4 || t.NumOut() != 0 {
+			return errors.New(message)
+		}
+
+		//Check first arg is context
+		if t.In(0).String() != "context.Context" {
+			return errors.New(message)
+		}
+
+		//Check second arg is *ws.WsRequest
+		if t.In(1) != reflect.TypeOf(new(ws.WsRequest)) {
+			return errors.New(message)
+		}
+
+		//Check third arg is *ws.WsResponse
+		if t.In(2) != reflect.TypeOf(new(ws.WsResponse)) {
+			return errors.New(message)
+		}
+
+		//Check fourth arg is a pointer to a struct
+		fourthArg := t.In(3)
+		if fourthArg.Kind() != reflect.Ptr && fourthArg.Elem().Kind() != reflect.Struct {
+			return errors.New(message)
+		}
+	}
+
+	return nil
 }
 
 // See ComponentNamer.ComponentName
