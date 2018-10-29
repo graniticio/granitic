@@ -109,9 +109,12 @@ can define how path binding will work through configuration. Change the definiti
   "HttpMethod": "GET",
   "Logic": "ref:artistLogic",
   "PathPattern": "^/artist/([\\d]+)[/]?$",
-  "BindPathParams": ["Id"]
+  "BindPathParams": ["Id"],
+  "CreateTarget": "es:endpoint.ArtistRequest"
 }
 ```
+
+### Capturing data in request paths
 
 We've altered the regular expression that this endpoint expects to 
 
@@ -125,14 +128,17 @@ We've also added a new field <code>BindPathParams</code> and set it to an array 
 array should match the number of groups in the <code>PathPattern</code> regex. Here we are saying that the value of the first regex group
 should be injected into a field called 'Id'.
 
-The last step is to tell Grantic that the <code>Id</code> field we're refering to is the one on our <code>ArtistRequest</code>
-struct. This is done in code by making your <code>ArtistLogic</code> struct implement [handler.WsUnmarshallTarget](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsUnmarshallTarget)
+### Parsing data into a struct
 
-The method 
+The line:
 
-<code>UnmarshallTarget() interface{}</code> 
+```json
+  "CreateTarget": "es:endpoint.ArtistRequest"
+```
 
-required by this interface allows each endpoint to create a 'target' object that any data from a request will be decanted into. 
+in the component definition above tells Granitic that incoming data (in the HTTP request body, path and parameters) should 
+be parsed into a new instance of the struct <code>endpoint.ArtistRequest</code>.
+
 
 Change your <code>ArtistLogic</code> struct to look like:
 
@@ -142,9 +148,7 @@ type ArtistLogic struct {
   Log      logging.Logger
 }
 
-func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
-
-  ar := req.RequestBody.(*ArtistRequest)
+func (al *ArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, ar *ArtistRequest) {
 
   a := new(ArtistDetail)
   a.Name = "Some Artist"
@@ -155,11 +159,10 @@ func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.W
   l.LogTracef("Request for artist with ID %d", ar.Id)
 
 }
-
-func (al *ArtistLogic) UnmarshallTarget() interface{} {
-  return new(ArtistRequest)
-}
 ```
+
+Notice that we are now implementing a method called `ProcessPayload` rather than `Process`
+
 
 Stop, rebuild and restart your application:
 
@@ -175,18 +178,6 @@ result in a response and a log line similar to:
 </pre>
 
 
-### Type assertion
-
-To work flexibly with any custom code you might create, the various methods and interfaces in Granitic's [handler]([handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler))
-package tend to work with <code>interface{}</code> types. One of the side effects of this is that the code
-in your endpoint's <code>Process</code> method will need to perform a type assertion when accessing the contents of a request's body. In this case the line
-
-```go
-ar := req.RequestBody.(*ArtistRequest)
-```
-
-performs the required check.
-
 ## Binding query parameters
 
 The technique for binding query parameters to your 'target' object is very similar to that used for binding path parameters. 
@@ -199,7 +190,7 @@ of your <code>artistHandler</code> component:
    }
 ``` 
 
-and add the following Go to the end your <code>ArtistLogic.Process</code> method:
+and add the following Go to the end your <code>ArtistLogic.ProcessPayload</code> method:
 
 ```go
   if ar.NormaliseName != nil && ar.NormaliseName.Bool() {
@@ -223,9 +214,7 @@ type SubmitArtistLogic struct {
   Log      logging.Logger
 }
 
-func (sal *SubmitArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
-
-  sar := req.RequestBody.(*SubmittedArtistRequest)
+func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, sar *SubmittedArtistRequest) {
 
   sal.Log.LogInfof("New artist %s", sar.Name)
 
@@ -235,11 +224,6 @@ func (sal *SubmitArtistLogic) Process(ctx context.Context, req *ws.WsRequest, re
   }{0} 
 
 }
-
-func (sal *SubmitArtistLogic) UnmarshallTarget() interface{} {
-  return new(SubmittedArtistRequest)
-}
-
 
 type SubmittedArtistRequest struct {
   Name string
@@ -261,7 +245,8 @@ In order to have this code invoked, we will need to add the following to the <co
   "type": "handler.WsHandler",
   "HttpMethod": "POST",
   "Logic": "ref:submitArtistLogic",
-  "PathPattern": "^/artist[/]?$"
+  "PathPattern": "^/artist[/]?$",
+  "CreateTarget": "es:endpoint.SubmittedArtistRequest"
 }
 ```
 
@@ -285,9 +270,9 @@ instructions are based on [Advanced Rest Client (ARC) for Chrome](https://chrome
 
 1. Open ARC
 1. Set 'Request URL' to  <code>http://localhost:8080/artist</code>
-1. Select the 'POST' radio button
-1. From the 'Custom content type' picklist choose <code>application/json</code>
-1. Enter the 'test JSON' below into the large text area at the bottom of the page
+1. Change the method picklist to <code>POST</code>
+1. Click on *Body* and set *Body content type* to <code>application/json</code>
+1. Enter the 'test JSON' below into the large grey text area
 1. Press <code>SEND</code>
 1. You should receive a JSON formatted response with an Id of 0 and see a log line similar to: <code>09/Oct/2017:14:11:15 Z INFO  [submitArtistLogic] New artist Another Artist</code>
 
