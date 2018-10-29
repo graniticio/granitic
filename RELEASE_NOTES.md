@@ -1,5 +1,36 @@
 # Release notes
 
+## 1.3.0  (2018-xx-xx)
+
+## General
+  
+  * Reference documentation for the framework now available in `doc/ref`
+  
+## Web services
+
+### Alternative to WsRequestProcessor
+
+Previously the `Logic` component attached to each instance of `ws.WsHandler` was required to implement `ws.WsRequestProcessor`. 
+You can now use any struct as the Logic component as long as it implements `ws.WsRequestProcessor` _OR_ has a method like:
+
+```json
+ProcessPayload(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse, payload *YourStruct)
+```
+
+Where `YourStruct` is the same type returned by your Logic component's `UnmarshallTarget()` method, e.g:
+
+```json
+ ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, ar *ArtistRequest)
+```
+
+This approach means that your logic code can immediately use data extracted from the incoming HTTP request instead of having
+to use the pattern:
+
+```json
+sar := req.RequestBody.(*SubmittedArtistRequest)
+``` 
+
+
 ## 1.2.1  (2018-10-08)
 
  * GoDoc improvements
