@@ -138,6 +138,9 @@ type WsHandler struct {
 	// Check caller's permissions after request has been parsed (true) or before parsing (false).
 	CheckAccessAfterParse bool
 
+	// A function able to create an empty initialised struct to use as a target for request binding
+	CreateTarget ioc.StructFactory
+
 	// If true, do not automatically return an error response if errors are found during the parsing and binding phases of request processing.
 	DeferFrameworkErrors bool
 
@@ -351,29 +354,38 @@ func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.WsRequest, e
 
 func (wh *WsHandler) unmarshall(ctx context.Context, req *http.Request, wsReq *ws.WsRequest) {
 
-	targetSource, found := wh.Logic.(WsUnmarshallTarget)
+	var uf ioc.StructFactory
 
-	if found {
-		target := targetSource.UnmarshallTarget()
-		wsReq.RequestBody = target
-
-		if req.ContentLength == 0 {
-			return
-		}
-
-		err := wh.Unmarshaller.Unmarshall(ctx, req, wsReq)
-
-		if err != nil {
-
-			wh.Log.LogDebugfCtx(ctx, "Error unmarshalling request body for %s %s %s", req.URL.Path, req.Method, err)
-
-			m, c := wh.FrameworkErrors.MessageCode(ws.UnableToParseRequest)
-
-			f := ws.NewUnmarshallWsFrameworkError(m, c)
-			wsReq.AddFrameworkError(f)
-		}
-
+	if targetSource, found := wh.Logic.(WsUnmarshallTarget); found {
+		//Logic component implements WsUnmarshallTarget - use that to create target
+		uf = targetSource.UnmarshallTarget
+	} else if wh.CreateTarget != nil {
+		//A function has been provided to generate targets
+		uf = wh.CreateTarget
+	} else {
+		//No way of creating a target
+		return
 	}
+
+	target := uf()
+	wsReq.RequestBody = target
+
+	if req.ContentLength == 0 {
+		return
+	}
+
+	err := wh.Unmarshaller.Unmarshall(ctx, req, wsReq)
+
+	if err != nil {
+
+		wh.Log.LogDebugfCtx(ctx, "Error unmarshalling request body for %s %s %s", req.URL.Path, req.Method, err)
+
+		m, c := wh.FrameworkErrors.MessageCode(ws.UnableToParseRequest)
+
+		f := ws.NewUnmarshallWsFrameworkError(m, c)
+		wsReq.AddFrameworkError(f)
+	}
+
 }
 
 func (wh *WsHandler) processPathParams(req *http.Request, wsReq *ws.WsRequest) {

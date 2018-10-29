@@ -87,10 +87,12 @@ const (
 
 	newline = "\n"
 
-	refPrefix  = "ref:"
-	refAlias   = "r:"
-	confPrefix = "conf:"
-	confAlias  = "c:"
+	refPrefix         = "ref:"
+	refAlias          = "r:"
+	confPrefix        = "conf:"
+	confAlias         = "c:"
+	emptyStructPrefix = "empty-struct:"
+	emptyStructAlias  = "es:"
 )
 
 func main() {
@@ -230,6 +232,7 @@ func writeComponent(w *bufio.Writer, name string, component map[string]interface
 
 	values := make(map[string]interface{})
 	refs := make(map[string]interface{})
+	emptyStructs := make(map[string]interface{})
 	confPromises := make(map[string]interface{})
 
 	mergeValueSources(component, templates)
@@ -247,6 +250,8 @@ func writeComponent(w *bufio.Writer, name string, component map[string]interface
 		} else if isRef(value) {
 			refs[field] = value
 
+		} else if isEmptyStruct(value) {
+			emptyStructs[field] = value
 		} else {
 			values[field] = value
 		}
@@ -256,6 +261,7 @@ func writeComponent(w *bufio.Writer, name string, component map[string]interface
 	writeValues(w, name, values, baseIdent)
 	writeDeferred(w, name, confPromises, baseIdent, "AddConfigPromise")
 	writeDeferred(w, name, refs, baseIdent, "AddDependency")
+	writeEmptyStructFunctions(w, name, emptyStructs, baseIdent)
 
 	w.WriteString(newline)
 	w.WriteString(newline)
@@ -301,6 +307,28 @@ func writeDeferred(w *bufio.Writer, cName string, promises map[string]interface{
 
 		s := fmt.Sprintf("%s.%s(%s, %s)\n", p, funcName, quoteString(k), quoteString(fc))
 		w.WriteString(tabIndent(s, tabs))
+
+	}
+
+}
+
+func writeEmptyStructFunctions(w *bufio.Writer, cName string, emptyStructs map[string]interface{}, tabs int) {
+
+	if len(emptyStructs) > 0 {
+		w.WriteString(newline)
+	}
+
+	for k, v := range emptyStructs {
+
+		reqType := strings.SplitN(v.(string), ":", 2)[1]
+
+		s := fmt.Sprintf("%s.%s = func() interface{} {\n", cName, k)
+		w.WriteString(tabIndent(s, tabs))
+
+		s = fmt.Sprintf("\treturn new(%s)\n", reqType)
+		w.WriteString(tabIndent(s, tabs))
+
+		w.WriteString(tabIndent("}\n\n", tabs))
 
 	}
 
@@ -483,6 +511,17 @@ func isRef(v interface{}) bool {
 
 	return strings.HasPrefix(s, refPrefix) || strings.HasPrefix(s, refAlias)
 
+}
+
+func isEmptyStruct(v interface{}) bool {
+
+	s, found := v.(string)
+
+	if !found {
+		return false
+	}
+
+	return strings.HasPrefix(s, emptyStructPrefix) || strings.HasPrefix(s, emptyStructAlias)
 }
 
 func reservedFieldName(f string) bool {

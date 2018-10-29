@@ -6,28 +6,65 @@
   
   * Reference documentation for the framework now available in `doc/ref`
   
+## IOC
+
+### Empty Struct factory functions
+
+The IOC container supports a new prefix `empty-struct:` or `es:`. This is used in conjunction with the name of a struct e.g.
+
+```json
+    "YourField": "es:yourpackage.YourStruct"
+```
+
+This will cause an anonymous function:
+
+```go
+    func() interface{} {
+        return new(yourpackage.YourStruct)
+    }    
+```
+
+to be injected into `YourField`, so that field must be of type `func() interface{}`. `yourPackage` must be present in the 
+`packages` section at the top of your components file.
+
+See below for an example of where this technique is useful.
+
 ## Web services
 
-### Alternative to WsRequestProcessor
+### Alternative to implementing WsUnmarshallTarget
+
+Previously the `Logic` component attached to each instance of `ws.WsHandler` was required to implement `ws.WsUnmarshallTarget` to create an
+empty struct for unmarhsallling HTTP body, path and parameter data into. This can now be streamlined by setting:
+
+```json
+  "CreateTarget": "es:yourpackage.YourStruct"    
+```
+
+In the component definition for your handler, where `yourpackage.YourStruct` is the type that your `UnmarshallTarget()` method would've returned.
+`yourPackage` must be present in the `packages` section at the top of your components file.
+ 
+
+
+### Alternative to implementing WsRequestProcessor
 
 Previously the `Logic` component attached to each instance of `ws.WsHandler` was required to implement `ws.WsRequestProcessor`. 
 You can now use any struct as the Logic component as long as it implements `ws.WsRequestProcessor` _OR_ has a method like:
 
-```json
-ProcessPayload(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse, payload *YourStruct)
+```go
+  ProcessPayload(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse, payload *YourStruct)
 ```
 
 Where `YourStruct` is the same type returned by your Logic component's `UnmarshallTarget()` method, e.g:
 
-```json
- ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, ar *ArtistRequest)
+```go
+  ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, ar *ArtistRequest)
 ```
 
 This approach means that your logic code can immediately use data extracted from the incoming HTTP request instead of having
 to use the pattern:
 
-```json
-sar := req.RequestBody.(*SubmittedArtistRequest)
+```go
+  sar := req.RequestBody.(*SubmittedArtistRequest)
 ``` 
 
 
