@@ -102,6 +102,7 @@ Validation is triggered by the handler component associated with your endpoint. 
   "HttpMethod": "POST",
   "Logic": "ref:submitArtistLogic",
   "PathPattern": "^/artist[/]?$",
+  "CreateTarget": "es:endpoint.SubmittedArtistRequest",
   "AutoValidator": "ref:submitArtistValidator"
 },
 

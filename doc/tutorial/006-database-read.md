@@ -224,9 +224,7 @@ type ArtistLogic struct {
   DbClientManager rdbms.RdbmsClientManager
 }
 
-func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
-  ar := req.RequestBody.(*ArtistRequest)
-
+func (al *ArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, ar *ArtistRequest) {
   // Obtain an RdmsClient from the rdbms.RdbmsClientManager injected into this component
   dbc, _ := al.DbClientManager.Client()
 
@@ -249,9 +247,6 @@ func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.W
   }
 }
 
-func (al *ArtistLogic) UnmarshallTarget() interface{} {
-  return new(ArtistRequest)
-}
 ```  
 
 The imports section of this file should now be:

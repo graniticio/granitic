@@ -83,9 +83,7 @@ type SubmitArtistLogic struct {
   DbClientManager rdbms.RdbmsClientManager
 }
 
-func (sal *SubmitArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
-
-  sar := req.RequestBody.(*SubmittedArtistRequest)
+func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, sar *SubmittedArtistRequest) {
 
   // Obtain an RdmsClient from the rdbms.RdbmsClientManager injected into this component
   dbc, _ := sal.DbClientManager.Client()
@@ -105,10 +103,6 @@ func (sal *SubmitArtistLogic) Process(ctx context.Context, req *ws.WsRequest, re
     Id int64
   }{id}
 
-}
-
-func (sal *SubmitArtistLogic) UnmarshallTarget() interface{} {
-  return new(SubmittedArtistRequest)
 }
 ```
 
@@ -190,9 +184,7 @@ And modify the <code>SubmitArtistLogic.Process</code> method so it looks like:
 
 
 ```go
-func (sal *SubmitArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
-
-  sar := req.RequestBody.(*SubmittedArtistRequest)
+func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, sar *SubmittedArtistRequest) {
 
   // Obtain an RdmsClient from the rdbms.RdbmsClientManager injected into this component
   dbc, _ := sal.DbClientManager.Client()
