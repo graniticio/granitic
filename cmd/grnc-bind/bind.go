@@ -61,6 +61,7 @@ func (jdl *JsonDefinitionLoader) LoadAndMerge(files []string) (map[string]interf
 	jm := new(config.JsonMerger)
 	jm.MergeArrays = true
 	jm.Logger = new(logging.ConsoleErrorLogger)
+	jm.Parser = new(config.JsonContentParser)
 
 	return jm.LoadAndMergeConfig(files)
 }

@@ -102,6 +102,7 @@ func (b *Binder) serialiseBuiltinConfig() string {
 		jm := new(config.JsonMerger)
 		jm.MergeArrays = true
 		jm.Logger = new(logging.ConsoleErrorLogger)
+		jm.Parser = new(config.JsonContentParser)
 
 		if mc, err := jm.LoadAndMergeConfig(fcf); err != nil {
 

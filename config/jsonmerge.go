@@ -16,11 +16,23 @@ import (
 
 const jsonMergerComponentName string = instance.FrameworkPrefix + "JsonMerger"
 
+type ContentParser interface {
+	ParseInto(data []byte, target interface{}) error
+}
+
+type JsonContentParser struct {
+}
+
+func (jcp *JsonContentParser) ParseInto(data []byte, target interface{}) error {
+	return json.Unmarshal(data, &target)
+}
+
 // NewJsonMerger creates a JsonMerger with a Logger
 func NewJsonMerger(flm *logging.ComponentLoggerManager) *JsonMerger {
 	jm := new(JsonMerger)
 
 	jm.Logger = flm.CreateLogger(jsonMergerComponentName)
+	jm.Parser = new(JsonContentParser)
 
 	return jm
 }
@@ -34,6 +46,9 @@ type JsonMerger struct {
 
 	// True if arrays should be joined when merging; false if the entire conetnts of the array should be overwritten.
 	MergeArrays bool
+
+	// Converts a slice of bytes into a JSON-like map structure
+	Parser ContentParser
 }
 
 // LoadAndMergeConfig takes a list of file paths or URIs to JSON files and merges them into a single in-memory object representation.
@@ -69,7 +84,8 @@ func (jm *JsonMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, 
 		}
 
 		var loadedConfig interface{}
-		err = json.Unmarshal(jsonData, &loadedConfig)
+
+		err = jm.Parser.ParseInto(jsonData, &loadedConfig)
 
 		if err != nil {
 			m := fmt.Sprintf("Problem parsing data from a file or URL (%s) as JSON : %s", fileName, err)
