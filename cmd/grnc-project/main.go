@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -44,88 +44,33 @@ package main
 
 import (
 	"bufio"
-	"fmt"
-	"os"
-	"path"
+	"github.com/graniticio/granitic/cmd/grnc-project/generate"
 	"path/filepath"
 )
 
 func main() {
 
-	a := os.Args
+	pg := new(generate.ProjectGenerator)
+	pg.CompWriterFunc = writeComponentsFile
+	pg.ConfWriterFunc = writeConfigFile
+	pg.ToolName = "grnc-project"
+	pg.Generate()
 
-	if len(a) < 2 {
-		exitError("You must provide a name for your project")
+}
+
+func tab(s string, t int) string {
+
+	for i := 0; i < t; i++ {
+		s = "  " + s
 	}
 
-	projectPackage := "."
-	changePackageComment := "  //Change to a non-relative path if you want to use 'go install'"
-
-	if len(a) > 2 {
-		projectPackage = a[2]
-		changePackageComment = ""
-	}
-
-	name := a[1]
-	resourceDir := filepath.Join(name, "resource")
-	confDir := filepath.Join(resourceDir, "config")
-	compDir := filepath.Join(resourceDir, "components")
-
-	mkDir(name)
-	mkDir(resourceDir)
-	mkDir(confDir)
-	mkDir(compDir)
-
-	writeComponentsFile(compDir)
-	writeConfigFile(confDir)
-	writeMainFile(name, projectPackage, changePackageComment)
-	writeGitIgnore(name)
+	return s
 }
 
-func writeMainFile(name string, projectPackage string, changePackageComment string) {
-
-	mainFile := filepath.Join(name, "service.go")
-
-	f := openOutputFile(mainFile)
-
-	defer f.Close()
-
-	w := bufio.NewWriter(f)
-
-	w.WriteString("package main\n\n")
-	w.WriteString("import \"github.com/graniticio/granitic\"\n")
-	w.WriteString("import \"")
-	w.WriteString(projectPackage)
-	w.WriteString("/bindings\"")
-	w.WriteString(changePackageComment)
-	w.WriteString("\n\n")
-	w.WriteString("func main() {\n")
-	w.WriteString("\tgranitic.StartGranitic(bindings.Components())\n")
-	w.WriteString("}\n")
-	w.Flush()
-
-}
-
-func writeGitIgnore(name string) {
-
-	ignoreFile := filepath.Join(name, ".gitignore")
-
-	f := openOutputFile(ignoreFile)
-
-	defer f.Close()
-
-	w := bufio.NewWriter(f)
-
-	w.WriteString("bindings*\n")
-	w.WriteString(name + "\n")
-	w.Flush()
-
-}
-
-func writeConfigFile(confDir string) {
+func writeConfigFile(confDir string, pg *generate.ProjectGenerator) {
 
 	compFile := filepath.Join(confDir, "config.json")
-	f := openOutputFile(compFile)
+	f := pg.OpenOutputFile(compFile)
 
 	defer f.Close()
 
@@ -138,10 +83,10 @@ func writeConfigFile(confDir string) {
 
 }
 
-func writeComponentsFile(compDir string) {
+func writeComponentsFile(compDir string, pg *generate.ProjectGenerator) {
 
 	compFile := filepath.Join(compDir, "components.json")
-	f := openOutputFile(compFile)
+	f := pg.OpenOutputFile(compFile)
 
 	defer f.Close()
 
@@ -154,39 +99,4 @@ func writeComponentsFile(compDir string) {
 
 	w.Flush()
 
-}
-
-func openOutputFile(p string) *os.File {
-	os.MkdirAll(path.Dir(p), 0755)
-
-	if f, err := os.Create(p); err != nil {
-		exitError(err.Error())
-	} else {
-		return f
-	}
-
-	return nil
-}
-
-func mkDir(dir string) {
-	if err := os.Mkdir(dir, 0755); err != nil {
-		exitError(err.Error())
-	}
-}
-
-func exitError(message string, a ...interface{}) {
-
-	m := "grnc-project: " + message + "\n"
-
-	fmt.Printf(m, a...)
-	os.Exit(1)
-}
-
-func tab(s string, t int) string {
-
-	for i := 0; i < t; i++ {
-		s = "  " + s
-	}
-
-	return s
 }
