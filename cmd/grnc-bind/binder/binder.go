@@ -98,11 +98,8 @@ func (b *Binder) serialiseBuiltinConfig() string {
 		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", gh, "GRANITIC_HOME", "GOPATH")
 		instance.ExitError()
 	} else {
-
-		jm := new(config.JsonMerger)
+		jm := config.NewJsonMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JsonContentParser))
 		jm.MergeArrays = true
-		jm.Logger = new(logging.ConsoleErrorLogger)
-		jm.Parser = new(config.JsonContentParser)
 
 		if mc, err := jm.LoadAndMergeConfig(fcf); err != nil {
 
@@ -429,10 +426,24 @@ func (b *Binder) assessArrayType(a []interface{}) string {
 		}
 	}
 
+	//All the types in the array are the same - but need to be careful with floats without decimals
 	switch t := a[0].(type) {
+	case int:
+		for _, m := range a {
+			switch at := m.(type) {
+			case float64:
+				//Although the first array member looks like an int, it's part of a set of floats
+				return fmt.Sprintf("%T", at)
+
+			}
+		}
+
+		return fmt.Sprintf("%T", t)
+
 	default:
 		return fmt.Sprintf("%T", t)
 	}
+
 }
 
 func (b *Binder) writeComponentNameComment(w *bufio.Writer, n string, i int) {

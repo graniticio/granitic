@@ -12,12 +12,16 @@ import (
 	"github.com/graniticio/granitic/logging"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 const jsonMergerComponentName string = instance.FrameworkPrefix + "JsonMerger"
 
+// A ContentParser can take a []byte of some structured file type (e.g. YAML, JSON() and convert into a map[string]interface{} representation
 type ContentParser interface {
 	ParseInto(data []byte, target interface{}) error
+	Extensions() []string
+	ContentTypes() []string
 }
 
 type JsonContentParser struct {
@@ -27,12 +31,33 @@ func (jcp *JsonContentParser) ParseInto(data []byte, target interface{}) error {
 	return json.Unmarshal(data, &target)
 }
 
-// NewJsonMerger creates a JsonMerger with a Logger
-func NewJsonMerger(flm *logging.ComponentLoggerManager) *JsonMerger {
-	jm := new(JsonMerger)
+func (jcp *JsonContentParser) Extensions() []string {
+	return []string{"json"}
+}
 
-	jm.Logger = flm.CreateLogger(jsonMergerComponentName)
-	jm.Parser = new(JsonContentParser)
+func (jcp *JsonContentParser) ContentTypes() []string {
+	return []string{"application/json", "application/x-javascript", "text/javascript", "text/x-javascript", "text/x-json"}
+}
+
+// NewJsonMerger creates a JsonMerger with a Logger
+func NewJsonMergerWithManagedLogging(flm *logging.ComponentLoggerManager, cp ContentParser) *JsonMerger {
+
+	l := flm.CreateLogger(jsonMergerComponentName)
+
+	return NewJsonMergerWithDirectLogging(l, cp)
+
+}
+
+func NewJsonMergerWithDirectLogging(l logging.Logger, cp ContentParser) *JsonMerger {
+
+	jm := new(JsonMerger)
+	jm.Logger = l
+	jm.DefaultParser = cp
+
+	jm.parserByContent = make(map[string]ContentParser)
+	jm.parserByFile = make(map[string]ContentParser)
+
+	jm.RegisterContentParser(cp)
 
 	return jm
 }
@@ -47,8 +72,10 @@ type JsonMerger struct {
 	// True if arrays should be joined when merging; false if the entire conetnts of the array should be overwritten.
 	MergeArrays bool
 
-	// Converts a slice of bytes into a JSON-like map structure
-	Parser ContentParser
+	DefaultParser ContentParser
+
+	parserByFile    map[string]ContentParser
+	parserByContent map[string]ContentParser
 }
 
 // LoadAndMergeConfig takes a list of file paths or URIs to JSON files and merges them into a single in-memory object representation.
@@ -60,6 +87,22 @@ func (jm *JsonMerger) LoadAndMergeConfig(files []string) (map[string]interface{}
 	return jm.LoadAndMergeConfigWithBase(mergedConfig, files)
 }
 
+func (jm *JsonMerger) RegisterContentParser(cp ContentParser) {
+
+	for _, ct := range cp.ContentTypes() {
+
+		jm.parserByContent[strings.ToLower(ct)] = cp
+
+	}
+
+	for _, ext := range cp.Extensions() {
+
+		jm.parserByFile[strings.ToLower(ext)] = cp
+
+	}
+
+}
+
 func (jm *JsonMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, files []string) (map[string]interface{}, error) {
 
 	var jsonData []byte
@@ -67,13 +110,26 @@ func (jm *JsonMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, 
 
 	for _, fileName := range files {
 
+		var cp ContentParser
+
 		if isURL(fileName) {
+			//Read config from a remote URL
 			jm.Logger.LogTracef("Acessing URL %s", fileName)
 
-			jsonData, err = jm.loadFromURL(fileName)
+			jsonData, cp, err = jm.loadFromURL(fileName)
 
 		} else {
+			//Read config from a filesystem file
 			jm.Logger.LogTracef("Reading file %s", fileName)
+
+			ext := jm.extractExtension(fileName)
+
+			if jm.parserByFile[ext] != nil {
+				jm.Logger.LogTracef("Found ContentParser for extension %s", ext)
+				cp = jm.parserByFile[ext]
+			} else {
+				cp = jm.DefaultParser
+			}
 
 			jsonData, err = ioutil.ReadFile(fileName)
 		}
@@ -85,7 +141,7 @@ func (jm *JsonMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, 
 
 		var loadedConfig interface{}
 
-		err = jm.Parser.ParseInto(jsonData, &loadedConfig)
+		err = cp.ParseInto(jsonData, &loadedConfig)
 
 		if err != nil {
 			m := fmt.Sprintf("Problem parsing data from a file or URL (%s) as JSON : %s", fileName, err)
@@ -101,17 +157,42 @@ func (jm *JsonMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, 
 	return config, nil
 }
 
-func (jm *JsonMerger) loadFromURL(url string) ([]byte, error) {
+func (jm *JsonMerger) extractExtension(path string) string {
+
+	c := strings.Split(path, ".")
+
+	if len(c) == 1 {
+		return ""
+	} else {
+		return strings.ToLower(c[len(c)-1])
+	}
+}
+
+func (jm *JsonMerger) loadFromURL(url string) ([]byte, ContentParser, error) {
 
 	r, err := http.Get(url)
 
 	if err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	cp := jm.DefaultParser
+
+	if ct := r.Header.Get("content-type"); ct != "" {
+		ct = strings.Split(ct, ";")[0]
+		ct = strings.TrimSpace(ct)
+		ct = strings.ToLower(ct)
+
+		if jm.parserByContent[ct] != nil {
+			jm.Logger.LogDebugf("Found content parser for %s", ct)
+			cp = jm.parserByContent[ct]
+		}
+
 	}
 
 	if r.StatusCode >= 400 {
 		m := fmt.Sprintf("HTTP %d", r.StatusCode)
-		return nil, errors.New(m)
+		return nil, nil, errors.New(m)
 	}
 
 	var b bytes.Buffer
@@ -119,7 +200,7 @@ func (jm *JsonMerger) loadFromURL(url string) ([]byte, error) {
 	b.ReadFrom(r.Body)
 	r.Body.Close()
 
-	return b.Bytes(), nil
+	return b.Bytes(), cp, nil
 }
 
 func (jm *JsonMerger) merge(base, additional map[string]interface{}) map[string]interface{} {

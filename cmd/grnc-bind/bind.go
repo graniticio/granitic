@@ -58,10 +58,8 @@ type JsonDefinitionLoader struct {
 }
 
 func (jdl *JsonDefinitionLoader) LoadAndMerge(files []string) (map[string]interface{}, error) {
-	jm := new(config.JsonMerger)
+	jm := config.NewJsonMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JsonContentParser))
 	jm.MergeArrays = true
-	jm.Logger = new(logging.ConsoleErrorLogger)
-	jm.Parser = new(config.JsonContentParser)
 
 	return jm.LoadAndMergeConfig(files)
 }

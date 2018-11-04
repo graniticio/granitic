@@ -141,7 +141,7 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 	l.LogInfof("Starting components")
 
 	//Merge all configuration files and create a container
-	ca := i.createConfigAccessor(is.BuiltInConfig, is.Configuration, frameworkLoggingManager)
+	ca := i.createConfigAccessor(is, frameworkLoggingManager)
 
 	//Load system settings from config
 	ss := i.loadSystemsSettings(ca)
@@ -225,11 +225,11 @@ func (i *initiator) shutdown(cc *ioc.ComponentContainer) {
 
 // Merge together all of the local and remote JSON configuration files and wrap them in a *config.ConfigAccessor
 // which allows programmatic access to the merged config.
-func (i *initiator) createConfigAccessor(builtIn64 *string, configPaths []string, flm *logging.ComponentLoggerManager) *config.ConfigAccessor {
+func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *logging.ComponentLoggerManager) *config.ConfigAccessor {
 
 	builtIn := map[string]interface{}{}
 
-	bz, err := base64.StdEncoding.DecodeString(*builtIn64)
+	bz, err := base64.StdEncoding.DecodeString(*is.BuiltInConfig)
 
 	if err != nil {
 		i.logger.LogFatalf("Unable to deserialize the copy of Grantic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
@@ -251,13 +251,19 @@ func (i *initiator) createConfigAccessor(builtIn64 *string, configPaths []string
 		instance.ExitError()
 	}
 
-	i.logConfigLocations(configPaths)
+	i.logConfigLocations(is.Configuration)
 
 	fl := flm.CreateLogger(configAccessorComponentName)
 
-	jm := config.NewJsonMerger(flm)
+	jm := config.NewJsonMergerWithManagedLogging(flm, new(config.JsonContentParser))
 
-	mergedJson, err := jm.LoadAndMergeConfigWithBase(builtIn, configPaths)
+	for _, cp := range is.ConfigParsers {
+
+		jm.RegisterContentParser(cp)
+
+	}
+
+	mergedJson, err := jm.LoadAndMergeConfigWithBase(builtIn, is.Configuration)
 
 	if err != nil {
 		i.logger.LogFatalf(err.Error())

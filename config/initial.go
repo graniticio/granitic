@@ -82,6 +82,9 @@ type InitialSettings struct {
 
 	// A base 64 serialised version of Granitic's built-in configuration files
 	BuiltInConfig *string
+
+	// Additional parsers to support config files in a format other than JSON
+	ConfigParsers []ContentParser
 }
 
 // InitialSettingsFromEnvironment builds an InitialSettings and populates it with defaults or the values of command line
