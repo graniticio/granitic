@@ -54,9 +54,12 @@ func main() {
 
 }
 
+// Loads JSON files from local files and remote URLs and provides a mechanism for writing the resulting merged
+// file to disk
 type JsonDefinitionLoader struct {
 }
 
+// LoadAndMerge reads one or more JSON from local files or HTTP URLs and merges them into a single data structure
 func (jdl *JsonDefinitionLoader) LoadAndMerge(files []string) (map[string]interface{}, error) {
 	jm := config.NewJsonMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JsonContentParser))
 	jm.MergeArrays = true
@@ -64,6 +67,7 @@ func (jdl *JsonDefinitionLoader) LoadAndMerge(files []string) (map[string]interf
 	return jm.LoadAndMergeConfig(files)
 }
 
+// WriteMerged converts the supplied data structure to JSON and writes to disk at the specified location
 func (jdl *JsonDefinitionLoader) WriteMerged(data map[string]interface{}, path string) error {
 
 	b, err := json.MarshalIndent(data, "", "\t")

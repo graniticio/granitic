@@ -10,10 +10,12 @@ import (
 
 type TemplateConfigWriter func(confDir string, pg *ProjectGenerator)
 type TemplateComponentWriter func(confDir string, pg *ProjectGenerator)
+type MainFileContentWriter func(w *bufio.Writer, pp string)
 
 type ProjectGenerator struct {
 	ConfWriterFunc TemplateConfigWriter
 	CompWriterFunc TemplateComponentWriter
+	MainFileFunc   MainFileContentWriter
 	ToolName       string
 }
 
@@ -58,16 +60,8 @@ func (pg *ProjectGenerator) writeMainFile(name string, projectPackage string, ch
 
 	w := bufio.NewWriter(f)
 
-	w.WriteString("package main\n\n")
-	w.WriteString("import \"github.com/graniticio/granitic\"\n")
-	w.WriteString("import \"")
-	w.WriteString(projectPackage)
-	w.WriteString("/bindings\"")
-	w.WriteString(changePackageComment)
-	w.WriteString("\n\n")
-	w.WriteString("func main() {\n")
-	w.WriteString("\tgranitic.StartGranitic(bindings.Components())\n")
-	w.WriteString("}\n")
+	pg.MainFileFunc(w, projectPackage)
+
 	w.Flush()
 
 }
