@@ -85,6 +85,9 @@ type InitialSettings struct {
 
 	// Additional parsers to support config files in a format other than JSON
 	ConfigParsers []ContentParser
+
+	// Exit immediately after container has successfully started
+	DryRun bool
 }
 
 // InitialSettingsFromEnvironment builds an InitialSettings and populates it with defaults or the values of command line

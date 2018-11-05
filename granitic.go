@@ -103,6 +103,7 @@ func StartGranitic(cs *ioc.ProtoComponents) {
 // a runtime control shutdown command.
 func StartGraniticWithSettings(cs *ioc.ProtoComponents, is *config.InitialSettings) {
 	i := new(initiator)
+	is.BuiltInConfig = cs.FrameworkConfig
 	i.Start(cs, is)
 }
 
@@ -114,6 +115,10 @@ func (i *initiator) Start(customComponents *ioc.ProtoComponents, is *config.Init
 
 	container := i.buildContainer(customComponents, is)
 	customComponents.Clear()
+
+	if is.DryRun {
+		return
+	}
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)

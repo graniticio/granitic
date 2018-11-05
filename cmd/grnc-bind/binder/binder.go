@@ -89,7 +89,7 @@ func (b *Binder) Bind() {
 	b.writeBindings(w, ca)
 }
 
-func (b *Binder) serialiseBuiltinConfig() string {
+func SerialiseBuiltinConfig() string {
 	gh := config.GraniticHome()
 
 	ghr := path.Join(gh, "resource", "facility-config")
@@ -598,7 +598,7 @@ func (b *Binder) parseTemplates(ca *config.ConfigAccessor) map[string]interface{
 
 func (b *Binder) writeSerialisedConfig(w *bufio.Writer) {
 
-	sv := b.serialiseBuiltinConfig()
+	sv := SerialiseBuiltinConfig()
 
 	s := fmt.Sprintf("%s := \"%s\"\n", serialisedVar, sv)
 
