@@ -67,6 +67,10 @@ to use the pattern:
   sar := req.RequestBody.(*SubmittedArtistRequest)
 ``` 
 
+### Bug fixes
+
+ * Component definition files containing a slice of `float64` could not be bound if the first element was parseable as an int.
+ * The `ServiceErrorManager` was not respecting the value of `ErrorCodeUser.ValidateMissing()` when complaining about missing error codes.
 
 ## 1.2.1  (2018-10-08)
 
