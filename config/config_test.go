@@ -13,14 +13,39 @@ import (
 )
 
 type SimpleConfig struct {
-	String      string
-	Bool        bool
-	Int         int
-	Float       float64
-	StringArray []string
-	FloatArray  []float64
-	IntArray    []int
-	StringMap   map[string]string
+	String         string
+	Bool           bool
+	Int            int
+	Float          float64
+	StringArray    []string
+	FloatArray     []float64
+	IntArray       []int
+	StringMap      map[string]string
+	Unsupported    *SimpleConfig
+	StringArrayMap map[string][]string
+}
+
+func TestTypeDetection(t *testing.T) {
+
+	if JsonType("") != JsonString {
+		t.FailNow()
+	}
+
+	if JsonType(true) != JsonBool {
+		t.FailNow()
+	}
+
+	if JsonType(make(map[string]interface{})) != JsonMap {
+		t.FailNow()
+	}
+
+	if JsonType([]interface{}{}) != JsonArray {
+		t.FailNow()
+	}
+
+	if JsonType(1) != JsonUnknown {
+		t.FailNow()
+	}
 }
 
 func LoadConfigFromFile(f string) *ConfigAccessor {
@@ -73,6 +98,16 @@ func TestSimpleConfig(t *testing.T) {
 	f, err := ca.Float64Val("simpleOne.Float")
 	test.ExpectNil(t, err)
 	test.ExpectFloat(t, 32.22, f)
+
+	sa, err := ca.Array("simpleOne.StringArray")
+	test.ExpectNil(t, err)
+	test.ExpectString(t, sa[1].(string), "b")
+
+	sa, err = ca.Array("simpleOne.StringArrayX")
+	test.ExpectNil(t, err)
+
+	sa, err = ca.Array("simpleOne.Bool")
+	test.ExpectNotNil(t, err)
 
 }
 
@@ -146,6 +181,70 @@ func TestPopulateObject(t *testing.T) {
 
 	test.ExpectInt(t, 3, len(sc.FloatArray))
 
+}
+
+func TestSetField(t *testing.T) {
+
+	ca := LoadConfigFromFile("simple.json")
+	ca.FrameworkLogger = new(logging.ConsoleErrorLogger)
+
+	var sc SimpleConfig
+
+	if err := ca.SetField("String", "simpleOne.String", &sc); err != nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("Bool", "simpleOne.Bool", &sc); err != nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("Int", "simpleOne.Int", &sc); err != nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("Float", "simpleOne.Float", &sc); err != nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("IntArray", "simpleOne.IntArray", &sc); err != nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("StringMap", "simpleOne.StringMap", &sc); err != nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("Unsupported", "simpleOne.IntArray", &sc); err == nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("StringMap", "missing.path", &sc); err == nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("StringMap", "simpleOne.Bool", &sc); err == nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("StringMap", "simpleOne.BoolA", &sc); err == nil {
+		t.FailNow()
+	}
+
+	if _, err := ca.ObjectVal("simpleOne.Bool"); err == nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("StringArrayMap", "simpleOne.StringArrayMap", &sc); err != nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("StringArrayMap", "simpleOne.EmptyStringArrayMap", &sc); err == nil {
+		t.FailNow()
+	}
+
+	if err := ca.SetField("StringArrayMap", "simpleOne.BoolArrayMap", &sc); err == nil {
+		t.FailNow()
+	}
 }
 
 func TestPopulateObjectMissingPath(t *testing.T) {

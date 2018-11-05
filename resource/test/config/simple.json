@@ -10,6 +10,15 @@
     "StringMap": {
       "key1": "val1",
       "key1": "val2"
+    },
+    "StringArrayMap": {
+      "key1": ["a","b"]
+    },
+    "EmptyStringArrayMap": {
+      "key1": []
+    },
+    "BoolArrayMap": {
+      "key1": [true, false]
     }
   },
 

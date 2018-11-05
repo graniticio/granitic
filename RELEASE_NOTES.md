@@ -5,6 +5,8 @@
 ## General
   
   * Reference documentation for the framework now available in `doc/ref`
+  * YAML support for configuration and component definition files via [graniticio/granitic-yaml](https://github.com/graniticio/granitic-yaml)
+  * Improved test coverage
   
 ## IOC
 
@@ -71,7 +73,9 @@ to use the pattern:
 
  * Component definition files containing a slice of `float64` could not be bound if the first element was parseable as an int.
  * The `ServiceErrorManager` was not respecting the value of `ErrorCodeUser.ValidateMissing()` when complaining about missing error codes.
-
+ * Using `ConfigAccessor` to try and push configuration into an unsupported type of target field was not returning an error.
+ * Some configuration parsing errors were causing Granitic to exit rather than return an error
+ 
 ## 1.2.1  (2018-10-08)
 
  * GoDoc improvements

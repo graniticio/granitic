@@ -89,7 +89,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/logging"
-	"os"
 	"reflect"
 	"strings"
 )
@@ -255,7 +254,6 @@ func (c *ConfigAccessor) BoolVal(path string) (bool, error) {
 
 	}
 
-	return v.(bool), nil
 }
 
 // Determines the apparent JSON type of the supplied Go interface.
@@ -323,7 +321,9 @@ func (ca *ConfigAccessor) SetField(fieldName string, path string, target interfa
 	case reflect.Map:
 
 		if v, err := ca.ObjectVal(path); err == nil {
-			ca.populateMapField(targetField, v)
+			if err = ca.populateMapField(targetField, v); err != nil {
+				return err
+			}
 		} else {
 			return err
 		}
@@ -331,7 +331,10 @@ func (ca *ConfigAccessor) SetField(fieldName string, path string, target interfa
 		ca.populateSlice(targetField, path, target)
 
 	default:
-		ca.FrameworkLogger.LogErrorf("Unable to use value at path %s as target field %s is not a suppported type (%s)", path, fieldName, k)
+		m := fmt.Sprintf("Unable to use value at path %s as target field %s is not a suppported type (%s)", path, fieldName, k)
+		ca.FrameworkLogger.LogErrorf(m)
+
+		return errors.New(m)
 	}
 
 	return nil
@@ -354,7 +357,9 @@ func (ca *ConfigAccessor) populateSlice(targetField reflect.Value, path string, 
 
 }
 
-func (ca *ConfigAccessor) populateMapField(targetField reflect.Value, contents map[string]interface{}) {
+func (ca *ConfigAccessor) populateMapField(targetField reflect.Value, contents map[string]interface{}) error {
+	var err error
+
 	m := reflect.MakeMap(targetField.Type())
 	targetField.Set(m)
 
@@ -364,23 +369,29 @@ func (ca *ConfigAccessor) populateMapField(targetField reflect.Value, contents m
 		vVal := reflect.ValueOf(v)
 
 		if vVal.Kind() == reflect.Slice {
-			vVal = ca.arrayVal(vVal)
+			vVal, err = ca.arrayVal(vVal)
+
+			if err != nil {
+				return err
+			}
 		}
 
 		m.SetMapIndex(kVal, vVal)
 
 	}
 
+	return nil
 }
 
-func (ca *ConfigAccessor) arrayVal(a reflect.Value) reflect.Value {
+func (ca *ConfigAccessor) arrayVal(a reflect.Value) (reflect.Value, error) {
 
 	v := a.Interface().([]interface{})
 	l := len(v)
 
 	if l == 0 {
-		ca.FrameworkLogger.LogFatalf("Cannot use an empty array as a value in a Map.")
-		os.Exit(-1)
+
+		return reflect.Zero(reflect.TypeOf(ca)), errors.New("Cannot use an empty array as a value in a Map.")
+
 	}
 
 	var s reflect.Value
@@ -389,8 +400,8 @@ func (ca *ConfigAccessor) arrayVal(a reflect.Value) reflect.Value {
 	case string:
 		s = reflect.MakeSlice(reflect.TypeOf([]string{}), 0, 0)
 	default:
-		ca.FrameworkLogger.LogFatalf("Cannot use an array of %T as a value in a Map.", t)
-		os.Exit(-1)
+		m := fmt.Sprintf("Cannot use an array of %T as a value in a Map.", t)
+		return reflect.Zero(reflect.TypeOf(ca)), errors.New(m)
 	}
 
 	for _, elem := range v {
@@ -399,7 +410,7 @@ func (ca *ConfigAccessor) arrayVal(a reflect.Value) reflect.Value {
 
 	}
 
-	return s
+	return s, nil
 }
 
 // Populate sets the fields on the supplied target object using the JSON data
@@ -412,13 +423,20 @@ func (ca *ConfigAccessor) Populate(path string, target interface{}) error {
 		return errors.New("No such path: " + path)
 	}
 
-	if object, err := ca.ObjectVal(path); err == nil {
-		data, _ := json.Marshal(object)
+	//Already check if path exists
+	object, _ := ca.ObjectVal(path)
 
-		json.Unmarshal(data, target)
-
-		return nil
+	if data, err := json.Marshal(object); err != nil {
+		m := fmt.Sprintf("%T cannot be marshalled to JSON", object)
+		return errors.New(m)
 	} else {
-		return err
+
+		if json.Unmarshal(data, target); err != nil {
+			m := fmt.Sprintf("%T cannot be populated with %v to JSON", object, data)
+			return errors.New(m)
+		}
 	}
+
+	return nil
+
 }
