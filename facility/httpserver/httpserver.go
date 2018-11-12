@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -78,8 +78,12 @@ type HttpServer struct {
 
 	// A component able to examine an incoming request and determine which version of functionality is being requested.
 	VersionExtractor httpendpoint.RequestedVersionExtractor
-	state            ioc.ComponentState
-	server           *http.Server
+
+	// A component able to use data in an HTTP request's headers to populate a context
+	IdContextBuilder IdentifiedRequestContextBuilder
+
+	state  ioc.ComponentState
+	server *http.Server
 }
 
 // Implements ioc.ContainerAccessor
@@ -223,6 +227,19 @@ func (h *HttpServer) SetProvidersManually(p map[string]httpendpoint.HttpEndpoint
 	h.unregisteredProviders = p
 }
 
+func (h *HttpServer) writeAbnormal(ctx context.Context, status int, wrw *httpendpoint.HttpResponseWriter, err ...error) {
+
+	if len(err) > 0 {
+		h.FrameworkLogger.LogErrorf(err[0].Error())
+	}
+
+	state := ws.NewAbnormalState(status, wrw)
+	if err := h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state); err != nil {
+		h.FrameworkLogger.LogErrorfCtx(ctx, err.Error())
+	}
+
+}
+
 func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	wrw := httpendpoint.NewHttpResponseWriter(res)
@@ -230,10 +247,8 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	defer cancelFunc()
 
 	if h.state != ioc.RunningState {
-		state := ws.NewAbnormalState(h.TooBusyStatus, wrw)
-		if err := h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state); err != nil {
-			h.FrameworkLogger.LogErrorfCtx(ctx, err.Error())
-		}
+		// The HTTP server is suspended - reject the request
+		h.writeAbnormal(ctx, h.TooBusyStatus, wrw)
 		return
 	}
 
@@ -241,14 +256,29 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	defer atomic.AddInt64(&h.ActiveRequests, -1)
 
 	if h.MaxConcurrent > 0 && rCount > h.MaxConcurrent {
-		state := ws.NewAbnormalState(h.TooBusyStatus, wrw)
-		if err := h.AbnormalStatusWriter.WriteAbnormalStatus(ctx, state); err != nil {
-			h.FrameworkLogger.LogErrorfCtx(ctx, err.Error())
-		}
+		// Too many requests already being processed
+		h.writeAbnormal(ctx, h.TooBusyStatus, wrw)
 		return
 	}
 
+	//To mitigate denial of service attacks, any activity that does work or consumes memory should be below this line
+	var requestId string
 	received := time.Now()
+
+	if h.IdContextBuilder != nil {
+		if idCtx, err := h.IdContextBuilder.Identify(ctx, req); err != nil {
+
+			//Something went wrong trying to use HTTP data to identify a context - treat as a bad request (400)
+			h.writeAbnormal(ctx, http.StatusBadRequest, wrw, err)
+
+			return
+		} else {
+
+			ctx = idCtx.(context.Context)
+			requestId = idCtx.Id()
+		}
+	}
+
 	matched := false
 
 	providersByMethod := h.registeredProvidersByMethod[req.Method]

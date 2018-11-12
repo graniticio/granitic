@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2018 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package httpserver
@@ -12,6 +12,7 @@ import (
 
 // The name of the HttpServer component as stored in the IoC framework.
 const HttpServerComponentName = instance.FrameworkPrefix + "HttpServer"
+const contextIdDecoratorName = instance.FrameworkPrefix + "RequestIdContextDecorator"
 
 // The field on the HttpServer component into which a ws.AbnormalStatusWriter can be injected. Most applications will use either
 // the JsonWs or XmlWs facility, in which case a AbnormalStatusWriter that will respond to requests with an abnormal result
@@ -45,6 +46,8 @@ func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLog
 
 	cn.WrapAndAddProto(accessLogWriterName, accessLogWriter)
 
+	idbd := new(contextBuilderDecorator)
+	cn.WrapAndAddProto(contextIdDecoratorName, idbd)
 	return nil
 
 }
