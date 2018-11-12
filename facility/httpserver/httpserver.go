@@ -276,6 +276,11 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 			ctx = idCtx.(context.Context)
 			requestId = idCtx.Id()
+
+			if h.FrameworkLogger.IsLevelEnabled(logging.Trace) {
+				h.FrameworkLogger.LogTracef("Request ID: %s\n", requestId)
+			}
+
 		}
 	}
 
