@@ -45,6 +45,7 @@ func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLog
 	}
 
 	idbd := new(contextBuilderDecorator)
+	idbd.Server = httpServer
 	cn.WrapAndAddProto(contextIdDecoratorName, idbd)
 
 	return nil

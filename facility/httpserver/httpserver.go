@@ -266,7 +266,8 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	received := time.Now()
 
 	if h.IdContextBuilder != nil {
-		if idCtx, err := h.IdContextBuilder.Identify(ctx, req); err != nil {
+
+		if idCtx, err := h.IdContextBuilder.WithIdentity(ctx, req); err != nil {
 
 			//Something went wrong trying to use HTTP data to identify a context - treat as a bad request (400)
 			h.writeAbnormal(ctx, http.StatusBadRequest, wrw, err)
@@ -275,7 +276,7 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 		} else {
 
 			ctx = idCtx.(context.Context)
-			requestId = idCtx.Id()
+			requestId = h.IdContextBuilder.Id(idCtx)
 
 			if h.FrameworkLogger.IsLevelEnabled(logging.Trace) {
 				h.FrameworkLogger.LogTracef("Request ID: %s\n", requestId)
