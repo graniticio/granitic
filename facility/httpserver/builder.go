@@ -35,19 +35,18 @@ func (hsfb *HttpServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLog
 
 	cn.WrapAndAddProto(HttpServerComponentName, httpServer)
 
-	if !httpServer.AccessLogging {
-		return nil
+	if httpServer.AccessLogging {
+		accessLogWriter := new(AccessLogWriter)
+		ca.Populate("HttpServer.AccessLog", accessLogWriter)
+
+		httpServer.AccessLogWriter = accessLogWriter
+
+		cn.WrapAndAddProto(accessLogWriterName, accessLogWriter)
 	}
-
-	accessLogWriter := new(AccessLogWriter)
-	ca.Populate("HttpServer.AccessLog", accessLogWriter)
-
-	httpServer.AccessLogWriter = accessLogWriter
-
-	cn.WrapAndAddProto(accessLogWriterName, accessLogWriter)
 
 	idbd := new(contextBuilderDecorator)
 	cn.WrapAndAddProto(contextIdDecoratorName, idbd)
+
 	return nil
 
 }
