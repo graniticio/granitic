@@ -9,5 +9,5 @@ The Granitic reference documentation complements the information available in th
 ## Contents
 
   1. [Introduction](001-introduction.md) - purpose, principles and intended use cases.
-  1. [Anatomy of a Granitic application](002-anatomy-of-granitic-app.md) - structure of code and types of resource.
+  1. [Anatomy of a Granitic application](010-anatomy-of-granitic-app.md) - structure of code and types of resource.
    
