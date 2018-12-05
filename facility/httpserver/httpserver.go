@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
+	"github.com/graniticio/granitic/instrument"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/ws"
@@ -70,6 +71,10 @@ type HttpServer struct {
 	// The number of HTTP requests currently being handled by the server.
 	ActiveRequests int64
 
+	// Allow request instrumentation to begin BEFORE too-busy/suspended checks. Allows instrumentation of requests that would be trivially
+	// rejected, but potentially increases risk of denial-of-service if instrumentation setup causes load or consumes memory.
+	AllowEarlyInstrumentation bool
+
 	// How many concurrent requests the server should allow before returning 'too busy' responses to subsequent requests.
 	MaxConcurrent int64
 
@@ -82,8 +87,12 @@ type HttpServer struct {
 	// A component able to use data in an HTTP request's headers to populate a context
 	IdContextBuilder IdentifiedRequestContextBuilder
 
-	state  ioc.ComponentState
-	server *http.Server
+	// ID of a component that implements instrument.RequestInstrumentationManager
+	RequestInstrumentationManagerName string
+
+	state          ioc.ComponentState
+	server         *http.Server
+	reqInstManager instrument.RequestInstrumentationManager
 }
 
 // Implements ioc.ContainerAccessor
@@ -156,6 +165,25 @@ func (h *HttpServer) StartComponent() error {
 
 	if h.AbnormalStatusWriter == nil {
 		return errors.New("No AbnormalStatusWriter set.")
+	}
+
+	if rid := h.RequestInstrumentationManagerName; rid == "" {
+		//No RequestInstrumentationManager component specified, use a 'noop' implementation
+		h.reqInstManager = new(noopRequestInstrumentationManager)
+	} else {
+
+		if c := h.componentContainer.ComponentByName(rid); c == nil {
+			return fmt.Errorf("No component named %s exists - was specified in the RequestInstrumentationManagerName field", rid)
+		} else {
+
+			if rim, found := c.Instance.(instrument.RequestInstrumentationManager); found {
+				h.reqInstManager = rim
+			} else {
+				return fmt.Errorf("Component %s exists, but does not implement instrument.RequestInstrumentationManager. Was specified in the RequestInstrumentationManagerName field", rid)
+			}
+
+		}
+
 	}
 
 	h.state = ioc.AwaitingAccessState
@@ -242,9 +270,17 @@ func (h *HttpServer) writeAbnormal(ctx context.Context, status int, wrw *httpend
 
 func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
-	wrw := httpendpoint.NewHttpResponseWriter(res)
+	var instrumentor instrument.RequestInstrumentor
+
 	ctx, cancelFunc := context.WithCancel(req.Context())
 	defer cancelFunc()
+
+	if h.AllowEarlyInstrumentation {
+		ctx, instrumentor = h.reqInstManager.Begin(ctx, res, req)
+		defer h.reqInstManager.End(ctx)
+	}
+
+	wrw := httpendpoint.NewHttpResponseWriter(res)
 
 	if h.state != ioc.RunningState {
 		// The HTTP server is suspended - reject the request
@@ -261,7 +297,11 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	//To mitigate denial of service attacks, any activity that does work or consumes memory should be below this line
+	if instrumentor == nil {
+		ctx, instrumentor = h.reqInstManager.Begin(ctx, res, req)
+		defer h.reqInstManager.End(ctx)
+	}
+
 	var requestId string
 	received := time.Now()
 
@@ -277,6 +317,8 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 			ctx = idCtx.(context.Context)
 			requestId = h.IdContextBuilder.Id(idCtx)
+
+			instrumentor.Amend(instrument.REQUEST_ID, requestId)
 
 			if h.FrameworkLogger.IsLevelEnabled(logging.Trace) {
 				h.FrameworkLogger.LogTracef("Request ID: %s\n", requestId)
@@ -299,7 +341,7 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 		h.FrameworkLogger.LogTracef("Testing %s", pattern.String())
 
-		if pattern.MatchString(path) && h.versionMatch(req, handlerPattern.Provider) {
+		if pattern.MatchString(path) && h.versionMatch(instrumentor, req, handlerPattern.Provider) {
 			h.FrameworkLogger.LogTracef("Matches %s", pattern.String())
 			matched = true
 			ctx = handlerPattern.Provider.ServeHttp(ctx, wrw, req)
@@ -321,13 +363,15 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func (h *HttpServer) versionMatch(r *http.Request, p httpendpoint.HttpEndpointProvider) bool {
+func (h *HttpServer) versionMatch(ri instrument.RequestInstrumentor, r *http.Request, p httpendpoint.HttpEndpointProvider) bool {
 
 	if h.VersionExtractor == nil || !p.VersionAware() {
 		return true
 	}
 
 	version := h.VersionExtractor.Extract(r)
+
+	ri.Amend(instrument.REQUEST_VERSION, version)
 
 	return p.SupportsVersion(version)
 

@@ -44,6 +44,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/httpendpoint"
 	"github.com/graniticio/granitic/iam"
+	"github.com/graniticio/granitic/instrument"
 	"github.com/graniticio/granitic/ioc"
 	"github.com/graniticio/granitic/logging"
 	"github.com/graniticio/granitic/validate"
@@ -231,6 +232,11 @@ func (wh *WsHandler) ServeHttp(ctx context.Context, w *httpendpoint.HttpResponse
 			wh.writePanicResponse(ctx, r, w)
 		}
 	}()
+
+	if ri := instrument.RequestInstrumentorFromContext(ctx); ri != nil {
+		//This request is being instrumented, let the instrumentation have access to this handler
+		ri.Amend(instrument.HANDLER, wh)
+	}
 
 	wsReq := new(ws.WsRequest)
 	wsReq.HttpMethod = req.Method
