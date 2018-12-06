@@ -233,7 +233,7 @@ func (wh *WsHandler) ServeHttp(ctx context.Context, w *httpendpoint.HttpResponse
 		}
 	}()
 
-	if ri := instrument.RequestInstrumentorFromContext(ctx); ri != nil {
+	if ri := instrument.InstrumentorFromContext(ctx); ri != nil {
 		//This request is being instrumented, let the instrumentation have access to this handler
 		ri.Amend(instrument.HANDLER, wh)
 	}

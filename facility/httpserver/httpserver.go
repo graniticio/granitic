@@ -270,7 +270,7 @@ func (h *HttpServer) writeAbnormal(ctx context.Context, status int, wrw *httpend
 
 func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
-	var instrumentor instrument.RequestInstrumentor
+	var instrumentor instrument.Instrumentor
 
 	ctx, cancelFunc := context.WithCancel(req.Context())
 	defer cancelFunc()
@@ -363,7 +363,7 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func (h *HttpServer) versionMatch(ri instrument.RequestInstrumentor, r *http.Request, p httpendpoint.HttpEndpointProvider) bool {
+func (h *HttpServer) versionMatch(ri instrument.Instrumentor, r *http.Request, p httpendpoint.HttpEndpointProvider) bool {
 
 	if h.VersionExtractor == nil || !p.VersionAware() {
 		return true

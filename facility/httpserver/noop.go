@@ -12,32 +12,32 @@ import (
 // A default implementation of RequestInstrumentationManager that does nothing
 type noopRequestInstrumentationManager struct{}
 
-func (nm *noopRequestInstrumentationManager) Begin(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, instrument.RequestInstrumentor) {
+func (nm *noopRequestInstrumentationManager) Begin(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, instrument.Instrumentor) {
 	ri := new(noopRequestInstrumentor)
-	nc := instrument.AddRequestInstrumentorToContext(ctx, ri)
+	nc := instrument.AddInstrumentorToContext(ctx, ri)
 
 	return nc, ri
 }
 
 func (nm *noopRequestInstrumentationManager) End(context.Context) {}
 
-// A default implementation of instrument.RequestInstrumentor that does nothing
+// A default implementation of instrument.Instrumentor that does nothing
 type noopRequestInstrumentor struct {
 }
 
-func (ni *noopRequestInstrumentor) StartEvent(id string, metadata ...interface{}) {
+func (ni *noopRequestInstrumentor) StartEvent(id string, metadata ...interface{}) instrument.EndEvent {
+	return ni.endEvent
+}
+
+func (ni *noopRequestInstrumentor) endEvent() {
 	return
 }
 
-func (ni *noopRequestInstrumentor) EndEvent() error {
-	return nil
-}
-
-func (ni *noopRequestInstrumentor) Fork(ctx context.Context) (context.Context, instrument.RequestInstrumentor) {
+func (ni *noopRequestInstrumentor) Fork(ctx context.Context) (context.Context, instrument.Instrumentor) {
 	return ctx, ni
 }
 
-func (ni *noopRequestInstrumentor) Integrate(instrumentor instrument.RequestInstrumentor) {
+func (ni *noopRequestInstrumentor) Integrate(instrumentor instrument.Instrumentor) {
 	return
 }
 

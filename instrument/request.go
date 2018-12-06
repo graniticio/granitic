@@ -6,23 +6,24 @@ package instrument
 import (
 	"context"
 	"net/http"
+	"runtime"
 )
 
 // RequestInstrumentationManager is implemented by components that can instrument a web service request. This often involves recording
 // timing data at various points in a request's lifecycle. Implementations can be attached to an instance of the Granitic HttpServer.
 type RequestInstrumentationManager interface {
 
-	// Begin starts instrumentation and returns a RequestInstrumentor that is able to instrument sub/child events of the request.
-	// It is expected that most implementation will also store the RequestInstrumentor in the context so it can be easily recovered
-	// at any point in the request using the function RequestInstrumentorFromContext.
-	Begin(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, RequestInstrumentor)
+	// Begin starts instrumentation and returns a Instrumentor that is able to instrument sub/child events of the request.
+	// It is expected that most implementation will also store the Instrumentor in the context so it can be easily recovered
+	// at any point in the request using the function InstrumentorFromContext.
+	Begin(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, Instrumentor)
 
 	// End ends instrumentation of the request.
 	End(ctx context.Context)
 }
 
-// Additional is used as a flag to indicate what additional data being passed to the RequestInstrumentor represents. These are
-// used by Granitic to pass additional data about a request into a RequestInstrumentor that is not known at the point instrumentation starts
+// Additional is used as a flag to indicate what additional data being passed to the Instrumentor represents. These are
+// used by Granitic to pass additional data about a request into a Instrumentor that is not known at the point instrumentation starts
 type Additional uint
 
 const (
@@ -32,25 +33,24 @@ const (
 	HANDLER                           //The handler that is processing the request (*ws.Handler)
 )
 
-// RequestInstrumentor is implemented by types that can add additional information to a request that is being instrumented in
+// Instrumentor is implemented by types that can add additional information to a request that is being instrumented in
 // the form of sub/child events that are instrumented separately and additional framework data that was not available when instrumentation
 // began.
 //
 // Interfaces are not expected to be explicitly goroutine safe - the Fork and Integrate methods are intended for use when the
 // request under instrumentation spawns new goroutines
-type RequestInstrumentor interface {
+type Instrumentor interface {
 	// StartEvent indicates that a new instrumentable activity has begun with the supplied ID. Implementation specific additional
 	// information about the event can be supplied via the metadata varg
-	StartEvent(id string, metadata ...interface{})
+	//
+	// The function returned by this method should be called when the event ends. This facilitates a pattern like defer StartEvent(id)()
+	StartEvent(id string, metadata ...interface{}) EndEvent
 
-	// EndEvent is called when an instrumentable activity is complete. Implementations are expected to return an error if StartEvent has not been called
-	EndEvent() error
+	// Fork creates a new context and Instrumentor suitable for passing to a child goroutine
+	Fork(ctx context.Context) (context.Context, Instrumentor)
 
-	// Fork creates a new context and RequestInstrumentor suitable for passing to a child goroutine
-	Fork(ctx context.Context) (context.Context, RequestInstrumentor)
-
-	//Integrate incorporates the data from a forked RequestInstrumentor that was passed to a goroutine
-	Integrate(instrumentor RequestInstrumentor)
+	//Integrate incorporates the data from a forked Instrumentor that was passed to a goroutine
+	Integrate(instrumentor Instrumentor)
 
 	//Amend allows Granitic to provide additional information about the request that was not available when instrumentation started
 	Amend(additional Additional, value interface{})
@@ -58,22 +58,50 @@ type RequestInstrumentor interface {
 
 type ctxKey int
 
-const requestInstrumentorKey ctxKey = 0
+const instrumentorKey ctxKey = 0
 
-// RequestInstrumentorFromContext returns a RequestInstrumentor from the supplied context, or nil if no RequestInstrumentor
+// InstrumentorFromContext returns a Instrumentor from the supplied context, or nil if no Instrumentor
 // is present
-func RequestInstrumentorFromContext(ctx context.Context) RequestInstrumentor {
+func InstrumentorFromContext(ctx context.Context) Instrumentor {
 
-	v := ctx.Value(requestInstrumentorKey)
+	v := ctx.Value(instrumentorKey)
 
-	if ri, found := v.(RequestInstrumentor); found {
+	if ri, found := v.(Instrumentor); found {
 		return ri
 	} else {
 		return nil
 	}
 }
 
-// AddRequestInstrumentorToContext stores the supplied RequestInstrumentor in a new context, derivied from the supplied context.
-func AddRequestInstrumentorToContext(ctx context.Context, ri RequestInstrumentor) context.Context {
-	return context.WithValue(ctx, requestInstrumentorKey, ri)
+// AddInstrumentorToContext stores the supplied Instrumentor in a new context, derived from the supplied context.
+func AddInstrumentorToContext(ctx context.Context, ri Instrumentor) context.Context {
+	return context.WithValue(ctx, instrumentorKey, ri)
+}
+
+type EndEvent func()
+
+// Event is convenience function that calls InstrumentorFromContext then StartEvent. This function
+// fails silently if the result of InstrumentorFromContext is nil (e.g there is no Instrumentor in the context)
+func Event(ctx context.Context, id string, metadata ...interface{}) EndEvent {
+	if ri := InstrumentorFromContext(ctx); ri == nil {
+		return noop
+	} else {
+		return ri.StartEvent(id, metadata...)
+	}
+}
+
+func noop() { return }
+
+// Method is a convenience function that calls Event with the name of the calling function as the ID.
+// The format of the method name will be /path/to/package.(type).FunctionName
+//
+// This function fails silently if the result of InstrumentorFromContext is nil (e.g there is no Instrumentor in the context)
+func Method(ctx context.Context, metadata ...interface{}) EndEvent {
+	pc := make([]uintptr, 1)
+	n := runtime.Callers(2, pc)
+	frames := runtime.CallersFrames(pc[:n])
+	frame, _ := frames.Next()
+
+	return Event(ctx, frame.Function, metadata...)
+
 }
