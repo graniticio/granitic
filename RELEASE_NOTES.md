@@ -33,6 +33,12 @@ See below for an example of where this technique is useful.
 
 ## Web services
 
+### Instrumentation
+
+Granitic now supports a pattern for instrumenting web service requests. You can provide implementations
+of `instrument.RequestInstrumentationManager` and `instrument.Instrumentor` to integrate with whichever tool
+or provider you use for collating instrumentation data. Refer to the `instrument` and `facility/httpserver` package documentation for more details.
+
 ### Alternative to implementing WsUnmarshallTarget
 
 Previously the `Logic` component attached to each instance of `ws.WsHandler` was required to implement `ws.WsUnmarshallTarget` to create an
