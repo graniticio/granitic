@@ -69,13 +69,11 @@ type EndEvent func()
 // fails silently if the result of InstrumentorFromContext is nil (e.g there is no Instrumentor in the context)
 func Event(ctx context.Context, id string, metadata ...interface{}) EndEvent {
 	if ri := InstrumentorFromContext(ctx); ri == nil {
-		return noop
+		return func() {}
 	} else {
 		return ri.StartEvent(id, metadata...)
 	}
 }
-
-func noop() { return }
 
 // Method is a convenience function that calls Event with the name of the calling function as the ID.
 // The format of the method name will be /path/to/package.(type).FunctionName

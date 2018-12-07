@@ -12,25 +12,19 @@ import (
 // A default implementation of RequestInstrumentationManager that does nothing
 type noopRequestInstrumentationManager struct{}
 
-func (nm *noopRequestInstrumentationManager) Begin(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, instrument.Instrumentor) {
+func (nm *noopRequestInstrumentationManager) Begin(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, instrument.Instrumentor, func()) {
 	ri := new(noopRequestInstrumentor)
 	nc := instrument.AddInstrumentorToContext(ctx, ri)
 
-	return nc, ri
+	return nc, ri, func() {}
 }
-
-func (nm *noopRequestInstrumentationManager) End(context.Context) {}
 
 // A default implementation of instrument.Instrumentor that does nothing
 type noopRequestInstrumentor struct {
 }
 
 func (ni *noopRequestInstrumentor) StartEvent(id string, metadata ...interface{}) instrument.EndEvent {
-	return ni.endEvent
-}
-
-func (ni *noopRequestInstrumentor) endEvent() {
-	return
+	return func() {}
 }
 
 func (ni *noopRequestInstrumentor) Fork(ctx context.Context) (context.Context, instrument.Instrumentor) {

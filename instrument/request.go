@@ -31,8 +31,5 @@ type RequestInstrumentationManager interface {
 	// Begin starts instrumentation and returns a Instrumentor that is able to instrument sub/child events of the request.
 	// It is expected that most implementation will also store the Instrumentor in the context so it can be easily recovered
 	// at any point in the request using the function InstrumentorFromContext.
-	Begin(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, Instrumentor)
-
-	// End ends instrumentation of the request.
-	End(ctx context.Context)
+	Begin(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, Instrumentor, func())
 }

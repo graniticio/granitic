@@ -271,13 +271,13 @@ func (h *HttpServer) writeAbnormal(ctx context.Context, status int, wrw *httpend
 func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	var instrumentor instrument.Instrumentor
-
+	var endInstrumentation func()
 	ctx, cancelFunc := context.WithCancel(req.Context())
 	defer cancelFunc()
 
 	if h.AllowEarlyInstrumentation {
-		ctx, instrumentor = h.reqInstManager.Begin(ctx, res, req)
-		defer h.reqInstManager.End(ctx)
+		ctx, instrumentor, endInstrumentation = h.reqInstManager.Begin(ctx, res, req)
+		defer endInstrumentation()
 	}
 
 	wrw := httpendpoint.NewHttpResponseWriter(res)
@@ -298,8 +298,8 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if instrumentor == nil {
-		ctx, instrumentor = h.reqInstManager.Begin(ctx, res, req)
-		defer h.reqInstManager.End(ctx)
+		ctx, instrumentor, endInstrumentation = h.reqInstManager.Begin(ctx, res, req)
+		defer endInstrumentation()
 	}
 
 	var requestId string
