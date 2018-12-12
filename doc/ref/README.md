@@ -8,28 +8,28 @@ The Granitic reference documentation complements the information available in th
     * [Creating a new project](gpr-create.md)
     * [Building and running your application](gpr-build.md)
     * [JSON and YAML](gpr-json.md)
-  * The Component Container
-    * Principles
-    * Component definition files
-    * Lifecycle management
-  * Configuration
-    * Principles
-    * Configuration files
-    * Merging
-  * Logging
-    * Principles
-    * Adding logging to your code
-    * Runtime control
-  * Web Services
-    * Principles
-    * Endpoints
-    * Capturing data
-    * Nilable types
-    * Validating data
-    * Error handling
-    * Identity Access Management integration
-    * Service versioning
-    * Instrumentation
+  * [The Component Container](ioc-index.md)
+    * [Principles](ioc-principles.md)
+    * [Component definition files](ioc-definition-files.md)
+    * [Lifecycle management](ioc-lifecycle.md)
+  * [Configuration](cfg-index.md)
+    * [Principles](cfg-principles)
+    * [Configuration files](cfg-files.md)
+    * [Merging](cfg-merging.md)
+  * [Logging](log-index.md)
+    * [Principles](log-principles.md)
+    * [Adding logging to your code](log-code.md)
+    * [Runtime control](log-runtime.md)
+  * [Web Services](ws-index.md)
+    * [Principles](ws-principles.md)
+    * [Endpoints](ws-endpoints.md)
+    * [Capturing data](ws-capture.md)
+    * [Nilable types](ws-nilable.md)
+    * [Validating data](ws-validate.md)
+    * [Error handling](ws-error.md)
+    * [Identity Access Management integration](ws-iam.md)
+    * [Service versioning](ws-versions.md)
+    * [Instrumentation](ws-instrumentation.md)
   * Relational Databases
     * Principles
     * Query management
@@ -49,7 +49,7 @@ The Granitic reference documentation complements the information available in th
   * Administration
     * Remote configuration
     * Instance identification
-    * System facility
+    * System facilityPr
     * Runtime control via API
     
   
