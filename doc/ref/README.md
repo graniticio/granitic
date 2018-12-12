@@ -13,7 +13,7 @@ The Granitic reference documentation complements the information available in th
     * [Component definition files](ioc-definition-files.md)
     * [Lifecycle management](ioc-lifecycle.md)
   * [Configuration](cfg-index.md)
-    * [Principles](cfg-principles)
+    * [Principles](cfg-principles.md)
     * [Configuration files](cfg-files.md)
     * [Merging](cfg-merging.md)
   * [Logging](log-index.md)
@@ -30,26 +30,32 @@ The Granitic reference documentation complements the information available in th
     * [Identity Access Management integration](ws-iam.md)
     * [Service versioning](ws-versions.md)
     * [Instrumentation](ws-instrumentation.md)
-  * Relational Databases
-    * Principles
-    * Query management
-    * Executing queries
-  * Scheduled Activities
-    * Principles
-    * Defining schedules
-  * Facilities
-    * HTTP Server
-    * Logger
-    * JSON Web Services
-    * XML Web Services
-    * Query Manager
-    * RDBMS
-    * Runtime Control
-    * Service Error Management
-  * Administration
-    * Remote configuration
-    * Instance identification
-    * System facilityPr
-    * Runtime control via API
+  * [Relational Databases](db-index.md)
+    * [Principles](db-principles.md)
+    * [Provider](db-provider.md)
+    * [Query management](db-query.md)
+    * [Executing queries](db-execution.md)
+  * [Scheduled Activities](sch-index.md)
+    * [Principles](sch-principles.md)
+    * [Defining schedules](sch-define.md)
+  * [Facilities](fac-index.md)
+    * [HTTP Server](fac-http-server.md)
+    * [Logger](fac-logger.md)
+    * [JSON Web Services](fac-json-ws.md)
+    * [XML Web Services](fac-xml-ws.md)
+    * [Query Manager](fac-query.md)
+    * [RDBMS](fac-rdbms.md)
+    * [Runtime Control](fac-runtime.md)
+    * [Service Error Management](fac-service-errors.md)
+  * [Runtime Control](rtc-index.md)
+    * [Principles](rtc-principles.md)
+    * [Using the command line tool](rtc-command.md)
+    * [Built-in commands](rtc-build-in.md)
+    * [Adding commands](rtc-adding.md)
+    * [API](rtc-api.md)
+  * [Administration](adm-index.md)
+    * [Remote configuration](adm-remote.md)
+    * [Instance identification](adm-instance.md)
+    * [System facility](adm-system.md)
     
   
