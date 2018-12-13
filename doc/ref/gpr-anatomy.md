@@ -4,7 +4,7 @@ Granitic applications are built from three main resources:
 
   * Go source code
   * Component definition files
-  * Configuration
+  * Configuration files
   
 ## Go source code
 
@@ -12,10 +12,24 @@ Your application will define its application logic in Go source files. There is 
 on how you structure your code in terms of packages and source files. The only two restrictions are:
 
  1. Your application needs a main method in which it can pass control to Granitic
- 2. The Granitic IoC container expects to manage components that are instances of [structs](https://gobyexample.com/structs)
- so your application logic needs to be represent as structs.
+ 2. The Granitic IoC container expects to manage components that are instances of [structs](https://gobyexample.com/structs) so your application logic needs to be represented as structs.
  
- ## Component definition files
+### Minimal 'main' file
+
+```go
+package main
+
+import "github.com/graniticio/granitic"
+import "path/to/your/project/bindings"  
+
+func main() {
+	granitic.StartGranitic(bindings.Components())
+}
+```
+
+This example file provides a `main` function for Go and passes control to Granitic using the `StartGranitic` function. This allows Granitic to have full control over the parsing of [command line arguments](gpr-build.md). If your application needs to parse it's own command line arguments, refer to the GoDoc for [alternative ways to start Granitic](https://godoc.org/github.com/graniticio/granitic)
+
+## Component definition files
  
  A component is a named instance of a struct that Granitic will instantiate and configure on behalf of
  your application. Component definition files are JSON ([or YAML](https://github.com/graniticio/granitic-yaml)) files
@@ -30,16 +44,29 @@ on how you structure your code in terms of packages and source files. The only t
     }
 ```
 
-is the definition for a _handler_ component that can receive web service requests.
+is the definition for a _handler_ component that can receive web service requests. Your application _must_ include at least one component definition file.
 
-The structure and capabilities of these files are described [in detail here](020-component-definition-files.md)
+The structure and capabilities of these files are described [in detail here](ioc-definition-files.md)
 
-### Binding
+## Configuration files
 
-Building Granitic applications requires a step called _binding_ this is the process of converting the component
-definitions into Go source files using the built-in [grnc-bind](apx-001-command-line-tools.md) command. For most projects 
-the build process is simply:
+Granitic applications are designed such that no configuration is include in the compiled exectuable created when you `go build` your application. Instead you provide configuration as JSON files that are loaded when your application starts. The usage of [configuration files is described in detail here](cfg-index.md).
+
+## Default locations
+
+By default, Granitic expects to find the following directory structure in your project root:
 
 ```
-    grnc-bind && go build
+  resource
+    components
+      files.json
+    config
+      files.json
 ```
+
+But this is only a convention and the tools that interact with component definition files and configuration files accept alternative locations for these files.
+
+## Next
+[Creating a new project](gpr-create.md)
+
+

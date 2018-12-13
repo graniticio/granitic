@@ -1,1 +1,8 @@
-#TODO
+# Runtime Control
+
+## In this section
+  * [Principles](rtc-principles.md)
+  * [Using the command line tool](rtc-command.md)
+  * [Built-in commands](rtc-build-in.md)
+  * [Adding commands](rtc-adding.md)
+  * [API](rtc-api.md)
