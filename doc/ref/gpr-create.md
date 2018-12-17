@@ -40,7 +40,7 @@ You can avoid this by providing your full package name as a second argument to `
 ```
   grnc-project your-project-name github.com/yourAccount/your-project-name
 ```
+---
+**Next**: [Building and running your application](gpr-build.md) 
 
-## Next
-
-[Building and running your application](gpr-build.md)
+**Prev**: [Anatomy of a Granitic project](grp-anatomy.md)
