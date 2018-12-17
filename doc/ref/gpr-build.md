@@ -8,7 +8,7 @@ Granitic's core feature is a [component container](ioc-index.md) which allows Gr
 
 Refer to the [component container principles](ioc-principles) for more information about the concepts around components.
 
-Developers define the behaviour and relationships between components in [JSON files](ioc-definition-files.md). In intepreted lanaguges (Python, Ruby etc) or virtual machine langauges (Java, .NET) these files could be loaded at runtime to discover which objects need to be created and, if those objects are not part of the base programming langauge, the libraries which _do_ containt the objects can be dynamically loaded.
+Developers define the behaviour and relationships between components in [JSON files](ioc-definition-files.md). In intepreted lanaguges (Python, Ruby etc) or virtual machine langauges (Java, .NET) these files could be loaded at runtime to discover which objects need to be created and, if those objects are not part of the base programming langauge, the libraries which _do_ contain the objects can be dynamically loaded.
 
 This is not a realistic option in mainstream Go - some of Go's core benefits (small distributables, fast startup and execution times) derive from the fact that it is a generally used as a compiled and statically linked lanaguge.
 

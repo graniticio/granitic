@@ -66,7 +66,11 @@ By default, Granitic expects to find the following directory structure in your p
 
 But this is only a convention and the tools that interact with component definition files and configuration files accept alternative locations for these files.
 
-## Next
-[Creating a new project](gpr-create.md)
+---
+**Next**: [Creating a new project](gpr-create.md)
+
+**Prev**: [Granitic projects](gpr-index.md)
+
+
 
 
