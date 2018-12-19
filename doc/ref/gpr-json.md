@@ -9,6 +9,6 @@ YAML is considered by many to be superior to JSON for configuration files that n
 Unfortunately Go does not natively include a YAML parser, so Granitic has as sister project [granitic-yaml](https://github.com/graniticio/granitic-yaml) which enables full support for YAML configuration and component definition files in Granitic at the expense of adding a dependency on the external [yaml](https://gopkg.in/yaml.v2) package.
 
 ---
-**Next**: [Building and running your application](gpr-build.md)
+**Next**: [The component container](ioc-index.md)
 
-**Prev**: [The component container](ioc-index.md)
+**Prev**: [Building and running your application](gpr-build.md)
