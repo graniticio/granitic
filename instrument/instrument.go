@@ -5,6 +5,7 @@ package instrument
 import (
 	"context"
 	"runtime"
+	"strings"
 )
 
 // Additional is used as a flag to indicate what additional data being passed to the Instrumentor represents. These are
@@ -85,6 +86,8 @@ func Method(ctx context.Context, metadata ...interface{}) EndEvent {
 	frames := runtime.CallersFrames(pc[:n])
 	frame, _ := frames.Next()
 
-	return Event(ctx, frame.Function, metadata...)
+	c := strings.Split(frame.Function, "/")
+
+	return Event(ctx, c[len(c)-1], metadata...)
 
 }
