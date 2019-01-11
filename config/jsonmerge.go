@@ -128,7 +128,8 @@ func (jm *JsonMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, 
 				jm.Logger.LogTracef("Found ContentParser for extension %s", ext)
 				cp = jm.parserByFile[ext]
 			} else {
-				cp = jm.DefaultParser
+				jm.Logger.LogTracef("Skipping file with unsupported extension %s", ext)
+				continue
 			}
 
 			jsonData, err = ioutil.ReadFile(fileName)
