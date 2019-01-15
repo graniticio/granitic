@@ -97,36 +97,28 @@ func SerialiseBuiltinConfig() string {
 	if fcf, err := config.FindConfigFilesInDir(ghr); err != nil {
 		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", gh, "GRANITIC_HOME", "GOPATH")
 		instance.ExitError()
-	} else {
-		jm := config.NewJsonMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JsonContentParser))
-		jm.MergeArrays = true
+	}
+	
+	jm := config.NewJsonMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JsonContentParser))
+	jm.MergeArrays = true
+	if mc, err := jm.LoadAndMergeConfig(fcf); err != nil {
+		fmt.Printf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
+		instance.ExitError()
+	} 
 
-		if mc, err := jm.LoadAndMergeConfig(fcf); err != nil {
+	b := bytes.Buffer{}
+	e := gob.NewEncoder(&b)
 
-			fmt.Printf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
-			instance.ExitError()
+	gob.Register(map[string]interface{}{})
+	gob.Register([]interface{}{})
 
-		} else {
-
-			b := bytes.Buffer{}
-			e := gob.NewEncoder(&b)
-
-			gob.Register(map[string]interface{}{})
-			gob.Register([]interface{}{})
-
-			if err := e.Encode(mc); err != nil {
-				fmt.Printf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
-				instance.ExitError()
-			}
-
-			ser := base64.StdEncoding.EncodeToString(b.Bytes())
-			return ser
-
-		}
-
+	if err := e.Encode(mc); err != nil {
+		fmt.Printf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
+		instance.ExitError()
 	}
 
-	return ""
+	ser := base64.StdEncoding.EncodeToString(b.Bytes())
+	return ser
 }
 
 func (b *Binder) writeBindings(w *bufio.Writer, ca *config.ConfigAccessor) {
