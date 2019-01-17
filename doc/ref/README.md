@@ -23,6 +23,7 @@ The Granitic reference documentation complements the information available in th
   * [Web Services](ws-index.md)
     * [Principles](ws-principles.md)
     * [Endpoints](ws-endpoints.md)
+    * [Handlers](ws-handlers.md)
     * [Capturing data](ws-capture.md)
     * [Nilable types](ws-nilable.md)
     * [Validating data](ws-validate.md)
