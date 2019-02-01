@@ -700,7 +700,7 @@ func (wh *WsHandler) checkLogicComponent() error {
 
 	} else {
 
-		message := fmt.Sprintf("Logic compoonent must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse, payload *YourStruct)", processPayloadFunc)
+		message := fmt.Sprintf("Logic component must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse, payload *YourStruct)", processPayloadFunc)
 
 		//Logic component doesn't implement WsRequestProcessor - must instead have a method called ProcessPayload
 		method := reflect.ValueOf(wh.Logic).MethodByName(processPayloadFunc)
