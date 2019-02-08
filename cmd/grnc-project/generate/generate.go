@@ -26,15 +26,13 @@ func (pg *ProjectGenerator) Generate() {
 		pg.exitError("You must provide a name for your project")
 	}
 
-	projectPackage := "."
-	changePackageComment := "  //Change to a non-relative path if you want to use 'go install'"
+	name := a[1]
+	module := name
 
 	if len(a) > 2 {
-		projectPackage = a[2]
-		changePackageComment = ""
+		module = a[2]
 	}
 
-	name := a[1]
 	resourceDir := filepath.Join(name, "resource")
 	confDir := filepath.Join(resourceDir, "config")
 	compDir := filepath.Join(resourceDir, "components")
@@ -46,11 +44,12 @@ func (pg *ProjectGenerator) Generate() {
 
 	pg.CompWriterFunc(compDir, pg)
 	pg.ConfWriterFunc(confDir, pg)
-	pg.writeMainFile(name, projectPackage, changePackageComment)
+	pg.writeMainFile(name, module)
 	pg.writeGitIgnore(name)
+	pg.writeModFile(name, module)
 }
 
-func (pg *ProjectGenerator) writeMainFile(name string, projectPackage string, changePackageComment string) {
+func (pg *ProjectGenerator) writeMainFile(name string, module string) {
 
 	mainFile := filepath.Join(name, "service.go")
 
@@ -60,7 +59,24 @@ func (pg *ProjectGenerator) writeMainFile(name string, projectPackage string, ch
 
 	w := bufio.NewWriter(f)
 
-	pg.MainFileFunc(w, projectPackage)
+	pg.MainFileFunc(w, module)
+
+	w.Flush()
+
+}
+
+func (pg *ProjectGenerator) writeModFile(name string, module string) {
+
+	modFile := filepath.Join(name, "go.mod")
+
+	f := pg.OpenOutputFile(modFile)
+
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+
+	fmt.Fprintf(w, "module %s\n\n", module)
+	fmt.Fprintf(w, "require github.com/graniticio/granitic/v2 v2\n")
 
 	w.Flush()
 

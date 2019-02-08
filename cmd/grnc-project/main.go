@@ -2,11 +2,11 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	The grnc-project tool, used to generate skeleton project files for a new Granitic application.
+	The grnc-project tool, used to generate skeleton project files for a new Granitic application. The generated project is module aware.
 
 	Running
 
-		grnc-project project-name [package]
+		grnc-project project-name [module-name]
 
 	Will create the following files and directories:
 
@@ -15,6 +15,7 @@
 		project-name/service.go
 		project-name/resource/components/components.json
 		project-name/resource/config/config.json
+		project-name/go.mod
 
 	This will allow a minimal Granitic application to be built and started by running:
 
@@ -31,7 +32,7 @@
 
 		import "github.com/yourGitHubUser/yourPackage/bindings"
 
-	You can specify your project's package as the second argument to the grnc-project tool
+	Your project's module name will be the same as the project name unless you provide the module name as the second argument to this tool
 
 	The .gitignore file contains:
 
@@ -102,16 +103,13 @@ func writeComponentsFile(compDir string, pg *generate.ProjectGenerator) {
 
 }
 
-func writeMainFile(w *bufio.Writer, projectPackage string) {
-
-	changePackageComment := "  //Change to a non-relative path if you want to use 'go install'"
+func writeMainFile(w *bufio.Writer, module string) {
 
 	w.WriteString("package main\n\n")
-	w.WriteString("import \"github.com/graniticio/granitic\"\n")
+	w.WriteString("import \"github.com/graniticio/granitic/v2\"\n")
 	w.WriteString("import \"")
-	w.WriteString(projectPackage)
+	w.WriteString(module)
 	w.WriteString("/bindings\"")
-	w.WriteString(changePackageComment)
 	w.WriteString("\n\n")
 	w.WriteString("func main() {\n")
 	w.WriteString("\tgranitic.StartGranitic(bindings.Components())\n")
