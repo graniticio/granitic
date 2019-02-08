@@ -16,11 +16,11 @@ const facilityName = "TaskScheduler"
 const TaskSchedulerComponentName = instance.FrameworkPrefix + facilityName
 
 // Creates the components that make up the TaskScheduler facility
-type TaskSchedulerFacilityBuilder struct {
+type FacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (fb *TaskSchedulerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	ts := new(schedule.TaskScheduler)
 	ts.FrameworkLogManager = lm
@@ -35,11 +35,11 @@ func (fb *TaskSchedulerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLo
 }
 
 // See FacilityBuilder.FacilityName
-func (fb *TaskSchedulerFacilityBuilder) FacilityName() string {
+func (fb *FacilityBuilder) FacilityName() string {
 	return facilityName
 }
 
 // See FacilityBuilder.DependsOnFacilities
-func (fb *TaskSchedulerFacilityBuilder) DependsOnFacilities() []string {
+func (fb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

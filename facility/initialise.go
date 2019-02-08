@@ -49,7 +49,7 @@ func NewFacilitiesInitialisor(cc *ioc.ComponentContainer, flm *logging.Component
 }
 
 // The FacilitiesInitialisor finds all the facilities that have been enabled by the user application and invokes their
-// corresponding FacilityBuilder to initialise and configure them.
+// corresponding Builder to initialise and configure them.
 type FacilitiesInitialisor struct {
 	// Access to the merged view of application configuration.
 	ConfigAccessor *config.Accessor
@@ -60,11 +60,11 @@ type FacilitiesInitialisor struct {
 	//Allows the FacilitiesInitialisor to log problems during facility initialisation.
 	Logger         logging.Logger
 	container      *ioc.ComponentContainer
-	facilities     []FacilityBuilder
+	facilities     []Builder
 	facilityStatus map[string]interface{}
 }
 
-func (fi *FacilitiesInitialisor) addFacility(f FacilityBuilder) {
+func (fi *FacilitiesInitialisor) addFacility(f Builder) {
 	fi.facilities = append(fi.facilities, f)
 }
 
@@ -104,7 +104,7 @@ func (fi *FacilitiesInitialisor) buildEnabledFacilities() error {
 
 }
 
-// Initialise creates a FacilityBuilder for each of the built-in Granitic facilities and then
+// Initialise creates a Builder for each of the built-in Granitic facilities and then
 // builds those facilities that have been enabled by the user.
 func (fi *FacilitiesInitialisor) Initialise(ca *config.Accessor) error {
 	fi.ConfigAccessor = ca
@@ -119,17 +119,17 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.Accessor) error {
 	fi.updateFrameworkLogLevel()
 
 	if fc["ApplicationLogging"].(bool) {
-		fi.addFacility(new(logger.ApplicationLoggingFacilityBuilder))
+		fi.addFacility(new(logger.FacilityBuilder))
 	}
 
-	fi.addFacility(new(querymanager.QueryManagerFacilityBuilder))
-	fi.addFacility(new(httpserver.HTTPServerFacilityBuilder))
-	fi.addFacility(new(ws.JsonWsFacilityBuilder))
-	fi.addFacility(new(ws.XMLWsFacilityBuilder))
-	fi.addFacility(new(serviceerror.ServiceErrorManagerFacilityBuilder))
-	fi.addFacility(new(rdbms.RdbmsAccessFacilityBuilder))
-	fi.addFacility(new(runtimectl.RuntimeCtlFacilityBuilder))
-	fi.addFacility(new(taskscheduler.TaskSchedulerFacilityBuilder))
+	fi.addFacility(new(querymanager.FacilityBuilder))
+	fi.addFacility(new(httpserver.FacilityBuilder))
+	fi.addFacility(new(ws.JsonFacilityBuilder))
+	fi.addFacility(new(ws.XMLFacilityBuilder))
+	fi.addFacility(new(serviceerror.FacilityBuilder))
+	fi.addFacility(new(rdbms.FacilityBuilder))
+	fi.addFacility(new(runtimectl.FacilityBuilder))
+	fi.addFacility(new(taskscheduler.FacilityBuilder))
 
 	err = fi.buildEnabledFacilities()
 

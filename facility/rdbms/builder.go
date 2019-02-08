@@ -31,14 +31,14 @@ const rdbmsClientManagerConfigName = instance.FrameworkPrefix + "RdbmsClientMana
 const managerDecorator = instance.FrameworkPrefix + "DbClientManagerDecorator"
 
 // Creates an instance of rdbms.RDBMSClientManager that can be injected into your application components.
-type RdbmsAccessFacilityBuilder struct {
+type FacilityBuilder struct {
 	Log logging.Logger
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (rafb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
-	log := lm.CreateLogger(instance.FrameworkPrefix + "RdbmsAccessFacilityBuilder")
+	log := lm.CreateLogger(instance.FrameworkPrefix + "FacilityBuilder")
 	rafb.Log = log
 
 	log.LogTracef("Configuring RDBMS client managers")
@@ -79,7 +79,7 @@ func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLo
 
 }
 
-func (rafb *RdbmsAccessFacilityBuilder) createManagers(cn *ioc.ComponentContainer, conf map[string]*rdbms.RdbmsClientManagerConfig, lm *logging.ComponentLoggerManager) error {
+func (rafb *FacilityBuilder) createManagers(cn *ioc.ComponentContainer, conf map[string]*rdbms.RdbmsClientManagerConfig, lm *logging.ComponentLoggerManager) error {
 
 	mn := types.NewEmptyUnorderedStringSet()
 
@@ -128,7 +128,7 @@ func (rafb *RdbmsAccessFacilityBuilder) createManagers(cn *ioc.ComponentContaine
 
 }
 
-func (rafb *RdbmsAccessFacilityBuilder) findConfigurations(cn *ioc.ComponentContainer, c map[string]*rdbms.RdbmsClientManagerConfig) {
+func (rafb *FacilityBuilder) findConfigurations(cn *ioc.ComponentContainer, c map[string]*rdbms.RdbmsClientManagerConfig) {
 
 	matcher := func(i interface{}) (okay bool) {
 		_, okay = i.(*rdbms.RdbmsClientManagerConfig)
@@ -160,7 +160,7 @@ func (rafb *RdbmsAccessFacilityBuilder) findConfigurations(cn *ioc.ComponentCont
 
 }
 
-func (rafb *RdbmsAccessFacilityBuilder) findProviders(cn *ioc.ComponentContainer) []string {
+func (rafb *FacilityBuilder) findProviders(cn *ioc.ComponentContainer) []string {
 
 	p := make([]string, 0)
 
@@ -179,12 +179,12 @@ func (rafb *RdbmsAccessFacilityBuilder) findProviders(cn *ioc.ComponentContainer
 }
 
 // See FacilityBuilder.FacilityName
-func (rafb *RdbmsAccessFacilityBuilder) FacilityName() string {
+func (rafb *FacilityBuilder) FacilityName() string {
 	return "RdbmsAccess"
 }
 
 // DependsOnFacilities returns the other faclities that must be enabled in order to use the RdbmsAccess facility. You must
 // enable the QueryManager facility.
-func (rafb *RdbmsAccessFacilityBuilder) DependsOnFacilities() []string {
+func (rafb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{querymanager.QueryManagerFacilityName}
 }

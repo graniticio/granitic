@@ -21,11 +21,11 @@ const (
 )
 
 // Creates the components required to support the XmlWs facility and adds them the IoC container.
-type XMLWsFacilityBuilder struct {
+type XMLFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
+func (fb *XMLFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
 
 	wc := buildAndRegisterWsCommon(lm, ca, cc)
 
@@ -51,7 +51,7 @@ func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 	return nil
 }
 
-func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.Accessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
+func (fb *XMLFacilityBuilder) createTemplateComponents(ca *config.Accessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
 
 	rw := new(xml.TemplatedXMLResponseWriter)
 	ca.Populate("XMLWs.ResponseWriter", rw)
@@ -64,7 +64,7 @@ func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.Accessor, cc
 
 }
 
-func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.Accessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
+func (fb *XMLFacilityBuilder) createMarshalComponents(ca *config.Accessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
 
 	rw := new(ws.MarshallingResponseWriter)
 	ca.Populate("XMLWs.ResponseWriter", rw)
@@ -94,11 +94,11 @@ func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.Accessor, cc 
 }
 
 // See FacilityBuilder.FacilityName
-func (fb *XMLWsFacilityBuilder) FacilityName() string {
+func (fb *XMLFacilityBuilder) FacilityName() string {
 	return "XMLWs"
 }
 
 // See FacilityBuilder.DependsOnFacilities
-func (fb *XMLWsFacilityBuilder) DependsOnFacilities() []string {
+func (fb *XMLFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

@@ -21,11 +21,11 @@ const mode_wrap = "WRAP"
 const mode_body = "BODY"
 
 // Creates the components required to support the JsonWs facility and adds them the IoC container.
-type JsonWsFacilityBuilder struct {
+type JsonFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (fb *JsonFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	wc := buildAndRegisterWsCommon(lm, ca, cn)
 
@@ -85,11 +85,11 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 }
 
 // See FacilityBuilder.FacilityName
-func (fb *JsonWsFacilityBuilder) FacilityName() string {
+func (fb *JsonFacilityBuilder) FacilityName() string {
 	return "JsonWs"
 }
 
 // See FacilityBuilder.DependsOnFacilities
-func (fb *JsonWsFacilityBuilder) DependsOnFacilities() []string {
+func (fb *JsonFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

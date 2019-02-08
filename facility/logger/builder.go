@@ -24,11 +24,11 @@ const applicationLoggingManagerName = instance.FrameworkPrefix + "ApplicationLog
 
 // Creates a new logging.ComponentLoggerManager for application components and updates the framework's ComponentLoggerManager
 // (which was bootstraped with a command-line supplied global log level) with the application's logging configuration.
-type ApplicationLoggingFacilityBuilder struct {
+type FacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 	globalLogLevelLabel, err := ca.StringVal("ApplicationLogger.GlobalLogLevel")
 
 	if err != nil {
@@ -71,7 +71,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 	return nil
 }
 
-func (alfb *ApplicationLoggingFacilityBuilder) addRuntimeCommands(ca *config.Accessor, alm *logging.ComponentLoggerManager, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
+func (alfb *FacilityBuilder) addRuntimeCommands(ca *config.Accessor, alm *logging.ComponentLoggerManager, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
 
 	if !runtimectl.RuntimeCtlEnabled(ca) {
 		return
@@ -91,7 +91,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) addRuntimeCommands(ca *config.Acc
 
 }
 
-func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.Accessor) (*logging.LogMessageFormatter, error) {
+func (alfb *FacilityBuilder) buildFormatter(ca *config.Accessor) (*logging.LogMessageFormatter, error) {
 
 	lmf := new(logging.LogMessageFormatter)
 
@@ -107,7 +107,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.Accesso
 
 }
 
-func (alfb *ApplicationLoggingFacilityBuilder) buildWriters(ca *config.Accessor) ([]logging.LogWriter, error) {
+func (alfb *FacilityBuilder) buildWriters(ca *config.Accessor) ([]logging.LogWriter, error) {
 	writers := make([]logging.LogWriter, 0)
 
 	if console, err := ca.BoolVal("LogWriting.EnableConsoleLogging"); err != nil {
@@ -135,18 +135,18 @@ func (alfb *ApplicationLoggingFacilityBuilder) buildWriters(ca *config.Accessor)
 	return writers, nil
 }
 
-func (alfb *ApplicationLoggingFacilityBuilder) error(suffix string) error {
+func (alfb *FacilityBuilder) error(suffix string) error {
 
 	return errors.New("Unable to initialise application logging: " + suffix)
 
 }
 
 // See FacilityBuilder.FacilityName
-func (alfb *ApplicationLoggingFacilityBuilder) FacilityName() string {
+func (alfb *FacilityBuilder) FacilityName() string {
 	return "ApplicationLogging"
 }
 
 // See FacilityBuilder.DependsOnFacilities
-func (alfb *ApplicationLoggingFacilityBuilder) DependsOnFacilities() []string {
+func (alfb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

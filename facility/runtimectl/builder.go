@@ -81,10 +81,10 @@ const (
 	defaultValidationCode      = "INV_CTL_REQUEST"
 )
 
-type RuntimeCtlFacilityBuilder struct {
+type FacilityBuilder struct {
 }
 
-func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
+func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
 
 	sv := new(httpserver.HTTPServer)
 	ca.Populate("RuntimeCtl.Server", sv)
@@ -198,7 +198,7 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	return nil
 }
 
-func (fb *RuntimeCtlFacilityBuilder) createBuiltinCommands(lm *logging.ComponentLoggerManager, cc *ioc.ComponentContainer, cm *ctl.CommandManager) {
+func (fb *FacilityBuilder) createBuiltinCommands(lm *logging.ComponentLoggerManager, cc *ioc.ComponentContainer, cm *ctl.CommandManager) {
 
 	sd := new(shutdownCommand)
 	fb.addCommand(cc, shutdownCommandComp, sd)
@@ -224,15 +224,15 @@ func (fb *RuntimeCtlFacilityBuilder) createBuiltinCommands(lm *logging.Component
 
 }
 
-func (fb *RuntimeCtlFacilityBuilder) addCommand(cc *ioc.ComponentContainer, name string, c ctl.Command) {
+func (fb *FacilityBuilder) addCommand(cc *ioc.ComponentContainer, name string, c ctl.Command) {
 	cc.WrapAndAddProto(name, c)
 }
 
-func (fb *RuntimeCtlFacilityBuilder) FacilityName() string {
+func (fb *FacilityBuilder) FacilityName() string {
 	return "RuntimeCtl"
 }
 
-func (fb *RuntimeCtlFacilityBuilder) DependsOnFacilities() []string {
+func (fb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
 

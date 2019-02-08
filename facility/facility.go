@@ -80,7 +80,7 @@ import (
 
 // A facility builder is responsible for programmatically constructing the objects required to support a facility and,
 // where required, adding them to the IoC container.
-type FacilityBuilder interface {
+type Builder interface {
 	//BuildAndRegister constructs the components that together constitute the facility and stores them in the IoC
 	// container.
 	BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error

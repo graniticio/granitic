@@ -24,11 +24,11 @@ const HTTPServerAbnormalStatusFieldName = "AbnormalStatusWriter"
 const accessLogWriterName = instance.FrameworkPrefix + "AccessLogWriter"
 
 // Creates the components that make up the HTTPServer facility (the server and an access log writer).
-type HTTPServerFacilityBuilder struct {
+type FacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (hsfb *HTTPServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	httpServer := new(HTTPServer)
 	ca.Populate("HTTPServer", httpServer)
@@ -53,11 +53,11 @@ func (hsfb *HTTPServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLog
 }
 
 // See FacilityBuilder.FacilityName
-func (hsfb *HTTPServerFacilityBuilder) FacilityName() string {
+func (hsfb *FacilityBuilder) FacilityName() string {
 	return "HTTPServer"
 }
 
 // See FacilityBuilder.DependsOnFacilities
-func (hsfb *HTTPServerFacilityBuilder) DependsOnFacilities() []string {
+func (hsfb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

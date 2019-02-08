@@ -101,11 +101,11 @@ const QueryManagerFacilityName = "QueryManager"
 const processorDecorator = instance.FrameworkPrefix + "ParamValueProcessorDecorator"
 
 // Creates an instance of dsquery.QueryManager and stores it in the IoC container.
-type QueryManagerFacilityBuilder struct {
+type FacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	queryManager := new(dsquery.TemplatedQueryManager)
 	ca.Populate("QueryManager", queryManager)
@@ -152,12 +152,12 @@ func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentL
 }
 
 // See FacilityBuilder.FacilityName
-func (qmfb *QueryManagerFacilityBuilder) FacilityName() string {
+func (qmfb *FacilityBuilder) FacilityName() string {
 	return QueryManagerFacilityName
 }
 
 // See FacilityBuilder.DependsOnFacilities
-func (qmfb *QueryManagerFacilityBuilder) DependsOnFacilities() []string {
+func (qmfb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
 
