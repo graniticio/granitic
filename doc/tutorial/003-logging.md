@@ -8,7 +8,7 @@
  
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
  2. Read the [before you start](000-before-you-start.md) tutorial
  3. Either have completed [tutorial 2](002-configuration.md) or open a terminal and run
 
@@ -27,12 +27,12 @@ concepts for you to become familiar with:
  * Loggers - the components that format log messages and choose whether or not to write them to a console or file them based on the severity assigned to the message.
  * Severity - the importance of a message to be logged.
  
-Severities are (in ascending order of importance)  <code>TRACE, DEBUG, INFO, WARN, ERROR, FATAL</code>. See the [GoDoc for more detail](https://godoc.org/github.com/graniticio/granitic/logging)
+Severities are (in ascending order of importance)  <code>TRACE, DEBUG, INFO, WARN, ERROR, FATAL</code>. See the [GoDoc for more detail](https://godoc.org/github.com/graniticio/granitic/v2/logging)
 
 Your code will dispatch log messages through a Granitic component called a <code>Logger</code>. Granitic has two built-in Loggers - the <code>ApplicationLogger</code> and the <code>FrameworkLogger</code>. 
 As the names suggest, the <code>FrameworkLogger</code> is used by internal Granitic components and the <code>ApplicationLogger</code> is for your application's code.
 
-As the majority of components that you build will need access to the <code>ApplicationLogger</code>, Granitic has a built-in [ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/ioc#ComponentDecorator) that automatically
+As the majority of components that you build will need access to the <code>ApplicationLogger</code>, Granitic has a built-in [ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/v2/ioc#ComponentDecorator) that automatically
 injects a reference to the <code>ApplicationLogger</code> into any of your components with a member variable that is exactly:
 
 ```go
@@ -46,8 +46,8 @@ package endpoint
 
 import (
   "context"
-  "github.com/graniticio/granitic/logging"
-  "github.com/graniticio/granitic/ws"
+  "github.com/graniticio/granitic/v2/logging"
+  "github.com/graniticio/granitic/v2/ws"
 )
 
 type ArtistLogic struct {
@@ -208,7 +208,7 @@ Restart <code>recordstore</code> and you will see a new line in the startup logs
 
 <pre>10/Aug/2017:06:55:28 Z INFO  [grncCtlServer] Listening on 9099</pre>
 
-You can now use the [grnc-ctrl command line tool](https://godoc.org/github.com/graniticio/granitic/cmd/grnc-ctl) to issue
+You can now use the [grnc-ctrl command line tool](https://godoc.org/github.com/graniticio/granitic/v2/cmd/grnc-ctl) to issue
 commands to <code>recordstore</code> while it is running.
 
 Open a terminal and run:
@@ -243,8 +243,8 @@ your application.
  
 ## Further reading
 
- * [Logging GoDoc](https://godoc.org/github.com/graniticio/granitic/logging)
- * [grnc-ctrl usage](https://godoc.org/github.com/graniticio/granitic/cmd/grnc-ctl)
+ * [Logging GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/logging)
+ * [grnc-ctrl usage](https://godoc.org/github.com/graniticio/granitic/v2/cmd/grnc-ctl)
  
  
 ## Next

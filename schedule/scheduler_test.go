@@ -1,7 +1,7 @@
 package schedule
 
 import (
-	"github.com/graniticio/granitic/ioc"
+	"github.com/graniticio/granitic/v2/ioc"
 	"testing"
 )
 

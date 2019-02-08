@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -42,13 +42,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/httpendpoint"
-	"github.com/graniticio/granitic/iam"
-	"github.com/graniticio/granitic/instrument"
-	"github.com/graniticio/granitic/ioc"
-	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/validate"
-	"github.com/graniticio/granitic/ws"
+	"github.com/graniticio/granitic/v2/httpendpoint"
+	"github.com/graniticio/granitic/v2/iam"
+	"github.com/graniticio/granitic/v2/instrument"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/validate"
+	"github.com/graniticio/granitic/v2/ws"
 	"net/http"
 	"reflect"
 	"regexp"

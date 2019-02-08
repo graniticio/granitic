@@ -1,4 +1,4 @@
-// Copyright 2016-2018 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package config
@@ -6,8 +6,8 @@ package config
 import (
 	"flag"
 	"fmt"
-	"github.com/graniticio/granitic/instance"
-	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/v2/instance"
+	"github.com/graniticio/granitic/v2/logging"
 	"io/ioutil"
 	"os"
 	"path/filepath"

@@ -3,8 +3,8 @@ package rdbms
 import (
 	"database/sql/driver"
 	"fmt"
-	"github.com/graniticio/granitic/test"
-	"github.com/graniticio/granitic/types"
+	"github.com/graniticio/granitic/v2/test"
+	"github.com/graniticio/granitic/v2/types"
 	"reflect"
 	"testing"
 )

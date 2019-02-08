@@ -1,4 +1,4 @@
-// Copyright 2018 Granitic. All rights reserved.
+// Copyright 2018-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package schedule
@@ -7,8 +7,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/ioc"
-	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
 )
 
 type TaskScheduler struct {
@@ -35,7 +35,6 @@ func (ts *TaskScheduler) StartComponent() error {
 	}
 
 	ts.FrameworkLogger.LogDebugf("Searching for schedule.Task components")
-
 
 	for _, component := range ts.componentContainer.AllComponents() {
 

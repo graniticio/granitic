@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -46,19 +46,19 @@
 package runtimectl
 
 import (
-	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/ctl"
-	"github.com/graniticio/granitic/facility/httpserver"
-	ge "github.com/graniticio/granitic/grncerror"
-	"github.com/graniticio/granitic/httpendpoint"
-	"github.com/graniticio/granitic/instance"
-	"github.com/graniticio/granitic/ioc"
-	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/types"
-	"github.com/graniticio/granitic/validate"
-	"github.com/graniticio/granitic/ws"
-	"github.com/graniticio/granitic/ws/handler"
-	"github.com/graniticio/granitic/ws/json"
+	"github.com/graniticio/granitic/v2/config"
+	"github.com/graniticio/granitic/v2/ctl"
+	"github.com/graniticio/granitic/v2/facility/httpserver"
+	ge "github.com/graniticio/granitic/v2/grncerror"
+	"github.com/graniticio/granitic/v2/httpendpoint"
+	"github.com/graniticio/granitic/v2/instance"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/types"
+	"github.com/graniticio/granitic/v2/validate"
+	"github.com/graniticio/granitic/v2/ws"
+	"github.com/graniticio/granitic/v2/ws/handler"
+	"github.com/graniticio/granitic/v2/ws/json"
 )
 
 const (

@@ -1,4 +1,4 @@
-// Copyright 2018 Granitic. All rights reserved.
+// Copyright 2018-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package schedule
@@ -10,8 +10,8 @@ import (
 
 const (
 	SCHEDULED = "SCHEDULED"
-	RETRY = "RETRY"
-	MANUAL = "MANUAL"
+	RETRY     = "RETRY"
+	MANUAL    = "MANUAL"
 )
 
 func newInvocation(counter uint64, retries int, reason string) *invocation {
@@ -30,7 +30,7 @@ type invocation struct {
 	startedAt   time.Time
 	attempt     int
 	maxAttempts int
-	reason string
+	reason      string
 }
 
 func (i *invocation) firstAttempt() bool {

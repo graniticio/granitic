@@ -28,9 +28,9 @@ go get github.com/graniticio/granitic
 Open a terminal and run:
 
 <pre>
-go install github.com/graniticio/granitic/cmd/grnc-bind
-go install github.com/graniticio/granitic/cmd/grnc-ctl
-go install github.com/graniticio/granitic/cmd/grnc-project
+go install github.com/graniticio/granitic/v2/cmd/grnc-bind
+go install github.com/graniticio/granitic/v2/cmd/grnc-ctl
+go install github.com/graniticio/granitic/v2/cmd/grnc-project
 </pre>
  
 
@@ -99,4 +99,4 @@ You should also make sure that your PATH environment variable includes _$GOPATH\
 
 ## Next steps
 
-For more information on developing Granitic applications, please [work through the tutorials](https://github.com/graniticio/granitic/tree/master/doc/tutorial)
+For more information on developing Granitic applications, please [work through the tutorials](https://github.com/graniticio/granitic/v2/tree/master/doc/tutorial)

@@ -6,8 +6,8 @@ package json
 import (
 	"context"
 	"encoding/json"
-	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/ws"
+	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/ws"
 	"net/http"
 )
 

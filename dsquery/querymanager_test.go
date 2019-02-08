@@ -1,12 +1,12 @@
-// Copyright 2016-2018 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package dsquery
 
 import (
 	"bytes"
-	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/test"
+	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/test"
 	"io/ioutil"
 	"path/filepath"
 	"strings"

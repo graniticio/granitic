@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -57,9 +57,9 @@
 package serviceerror
 
 import (
-	"github.com/graniticio/granitic/grncerror"
-	"github.com/graniticio/granitic/ioc"
-	"github.com/graniticio/granitic/ws"
+	"github.com/graniticio/granitic/v2/grncerror"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/ws"
 )
 
 type ServiceErrorConsumerDecorator struct {

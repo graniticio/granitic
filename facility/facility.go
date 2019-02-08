@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -73,9 +73,9 @@ change the port on which your application's HTTP server listens on, you could ad
 package facility
 
 import (
-	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/ioc"
-	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/v2/config"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
 )
 
 // A facility builder is responsible for programmatically constructing the objects required to support a facility and,

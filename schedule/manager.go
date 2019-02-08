@@ -3,8 +3,8 @@ package schedule
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/ioc"
-	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
 	"time"
 )
 

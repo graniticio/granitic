@@ -6,7 +6,7 @@
  
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
  2. Read the [before you start](000-before-you-start.md) tutorial
  3. Either have completed [tutorial 3](003-logging.md) or open a terminal and run
 
@@ -66,7 +66,7 @@ type ArtistRequest struct {
 }
 ```
 
-Make sure you add <code>github.com/graniticio/granitic/types</code> to that file's list of imports if your IDE hasn't already done it for you.
+Make sure you add <code>github.com/graniticio/granitic/v2/types</code> to that file's list of imports if your IDE hasn't already done it for you.
 
 ### Nilable types
 
@@ -76,7 +76,7 @@ ambiguous. For example, if you accept a boolean via a query parameter and the va
  * The caller explictly set the value to false or
  * The caller didn't supply that parameter at all, so the variable just defaulted to false.
  
-Granitic's soltuion this problem is to provide a set of 'nilable' struct versions of primitive types ([see the Godoc](https://godoc.org/github.com/graniticio/granitic/types)) that provide additional methods to indicate whether the value was explicity set by the caller
+Granitic's soltuion this problem is to provide a set of 'nilable' struct versions of primitive types ([see the Godoc](https://godoc.org/github.com/graniticio/granitic/v2/types)) that provide additional methods to indicate whether the value was explicity set by the caller
 or was an automatic zero value.
 
 ## Configuring path binding
@@ -85,7 +85,7 @@ A common REST-like technique is to allow a caller to specify the ID of the requi
 into the _path_ of the request. E.g. <code>/artist/1234</code>. We will configure Granitic to extract that ID and inject it
 into the Id field of the <code>ArtistRequest</code> struct you defined above.
 
-All of the automated tasks associated with a Granitic web service endpoint are handled by the [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+All of the automated tasks associated with a Granitic web service endpoint are handled by the [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
 struct.
 
 If you open the file <code>resource/components/components.json</code> you will see:
@@ -99,7 +99,7 @@ If you open the file <code>resource/components/components.json</code> you will s
 }
 ```
 
-The component <code>artistHandler</code> is an instance of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) and we
+The component <code>artistHandler</code> is an instance of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) and we
 can define how path binding will work through configuration. Change the definition of your <code>artistHandler</code> component so it looks like:
 
 
@@ -204,8 +204,8 @@ cause the returned artist's name to be capitalised.
 ## Extracting data from the request body
 
 Path parameters and query parameters are only useful for submitting limited amounts of semi-structured data to a web service. More common is to use a POST or PUT request to include more complex data in the body of an HTTP request. Granitic has built-in support for accepting data in an HTTP request
-body as JSON or XML. The following examples all use JSON, refer to the [facility/ws](https://godoc.org/github.com/graniticio/granitic/facility/ws) and
-[ws/xml](https://godoc.org/github.com/graniticio/granitic/facility/ws) GoDoc to discover how to use XML instead.
+body as JSON or XML. The following examples all use JSON, refer to the [facility/ws](https://godoc.org/github.com/graniticio/granitic/v2/facility/ws) and
+[ws/xml](https://godoc.org/github.com/graniticio/granitic/v2/facility/ws) GoDoc to discover how to use XML instead.
 
 We will create a new endpoint to accept details of a new artist as POSTed JSON. Add the following to your <code>artist.go</code> file:
 
@@ -232,7 +232,7 @@ type SubmittedArtistRequest struct {
 ```
 
 This defines new endpoint logic that will expect a populated <code>SubmittedArtistRequest</code> to be supplied
-as the [ws.WsRequest](https://godoc.org/github.com/graniticio/granitic/ws#WsRequest).RequestBody. 
+as the [ws.WsRequest](https://godoc.org/github.com/graniticio/granitic/v2/ws#WsRequest).RequestBody. 
 
 In order to have this code invoked, we will need to add the following to the <code>components</code> map in our <code>components.json</code> file:
 
@@ -290,12 +290,12 @@ instructions are based on [Advanced Rest Client (ARC) for Chrome](https://chrome
 
  * Granitic can extract data from the path, query and body of an HTTP request and bind it to your custom Go structs.
  * All this behaviour is configurable by changing the configuration of your handler components
- * Handler components are instances of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+ * Handler components are instances of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
  
 ## Further reading
 
- * [Granitic web service processing GoDoc](https://godoc.org/github.com/graniticio/granitic/ws)
- * [Granitic web service facility GoDoc](https://godoc.org/github.com/graniticio/granitic/facility/ws)
+ * [Granitic web service processing GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/ws)
+ * [Granitic web service facility GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/facility/ws)
  
  
 ## Next

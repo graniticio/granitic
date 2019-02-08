@@ -7,7 +7,7 @@
 
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
  1. Read the [before you start](000-before-you-start.md) tutorial
  1. Followed the [setting up a test database](006-database-read.md) section of [tutorial 6](006-database-read.md)
  1. Either have completed [tutorial 7](007-database-write.md) or open a terminal and run:
@@ -67,7 +67,7 @@ We now need to edit <code>resource/config/config.json</code> to add some shared 
 ```
 
 <code>EXT</code> (short for external) is an operation that delegates validation of a field to another Granitic component, in this case
-a component named <code>artistExistsChecker</code> that will need to implement the [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator)
+a component named <code>artistExistsChecker</code> that will need to implement the [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalInt64Validator)
 interface.
 
 We need to alter the existing <code>submitArtistRules</code> in <code>config.json</code> so that they use the shared rule on ID we're given:
@@ -95,8 +95,8 @@ We now need to build the component that actually performs the database check. Cr
 package db
 
 import (
-  "github.com/graniticio/granitic/rdbms"
-  "github.com/graniticio/granitic/logging"
+  "github.com/graniticio/granitic/v2/rdbms"
+  "github.com/graniticio/granitic/v2/logging"
 )
 
 type ArtistExistsChecker struct{
@@ -196,7 +196,7 @@ get a result like:
  * Validation rules can be defined globally so they can be re-used by multiple endpoints
  * When validating slices, the validation of each element can be delegated to another validation rule
  * When validating ints, floats and strings your validation rule can delegate to another component, as long as it implements
- [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator), [validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalFloat64Validator)
-  or [validate.ExternalStringValidator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalStringValidator)
+ [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalInt64Validator), [validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalFloat64Validator)
+  or [validate.ExternalStringValidator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalStringValidator)
  * Database results can be bound to a basic type as long as your query returns one row with one column.
  

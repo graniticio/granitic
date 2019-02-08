@@ -1,14 +1,14 @@
-// Copyright 2018 Granitic. All rights reserved.
+// Copyright 2018-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package taskscheduler
 
 import (
-	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/instance"
-	"github.com/graniticio/granitic/ioc"
-	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/schedule"
+	"github.com/graniticio/granitic/v2/config"
+	"github.com/graniticio/granitic/v2/instance"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/schedule"
 )
 
 // The name of the TaskScheduler component as stored in the IoC framework.

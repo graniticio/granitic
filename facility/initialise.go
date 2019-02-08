@@ -1,4 +1,4 @@
-// Copyright 2016-2018 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package facility
@@ -6,18 +6,18 @@ package facility
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/facility/httpserver"
-	"github.com/graniticio/granitic/facility/logger"
-	"github.com/graniticio/granitic/facility/querymanager"
-	"github.com/graniticio/granitic/facility/rdbms"
-	"github.com/graniticio/granitic/facility/runtimectl"
-	"github.com/graniticio/granitic/facility/serviceerror"
-	"github.com/graniticio/granitic/facility/taskscheduler"
-	"github.com/graniticio/granitic/facility/ws"
-	"github.com/graniticio/granitic/instance"
-	"github.com/graniticio/granitic/ioc"
-	"github.com/graniticio/granitic/logging"
+	"github.com/graniticio/granitic/v2/config"
+	"github.com/graniticio/granitic/v2/facility/httpserver"
+	"github.com/graniticio/granitic/v2/facility/logger"
+	"github.com/graniticio/granitic/v2/facility/querymanager"
+	"github.com/graniticio/granitic/v2/facility/rdbms"
+	"github.com/graniticio/granitic/v2/facility/runtimectl"
+	"github.com/graniticio/granitic/v2/facility/serviceerror"
+	"github.com/graniticio/granitic/v2/facility/taskscheduler"
+	"github.com/graniticio/granitic/v2/facility/ws"
+	"github.com/graniticio/granitic/v2/instance"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
 )
 
 const frameworkLoggingManagerName = instance.FrameworkPrefix + "FrameworkLoggingManager"

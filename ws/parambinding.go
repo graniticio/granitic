@@ -1,12 +1,12 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package ws
 
 import (
-	"github.com/graniticio/granitic/logging"
-	rt "github.com/graniticio/granitic/reflecttools"
-	"github.com/graniticio/granitic/types"
+	"github.com/graniticio/granitic/v2/logging"
+	rt "github.com/graniticio/granitic/v2/reflecttools"
+	"github.com/graniticio/granitic/v2/types"
 	"reflect"
 	"strconv"
 )

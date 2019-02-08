@@ -19,7 +19,7 @@ This means that any code that you want to use in your application must be availa
 `grnc-bind` is shipped with Granitic and can be built with:
 
 ```
-  go install github.com/graniticio/granitic/cmd/grnc-bind
+  go install github.com/graniticio/granitic/v2/cmd/grnc-bind
 ```
 
 As long as your `$GOPATH/bin` folder is in your `$PATH`, you will be able to run this tool from any folder

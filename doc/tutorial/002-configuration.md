@@ -9,7 +9,7 @@
  
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
  2. Read the [before you start](000-before-you-start.md) tutorial
  3. Either have completed [tutorial 1](001-fundamentals.md) or open a terminal and run
 
@@ -22,7 +22,7 @@ cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
 
 ## Related GoDoc
 
-https://godoc.org/github.com/graniticio/granitic/config
+https://godoc.org/github.com/graniticio/granitic/v2/config
 
 ## Configuration
 
@@ -89,7 +89,7 @@ The Go IoC container automatically injects configuration values into your compon
 package endpoint
 
 import (
-  "github.com/graniticio/granitic/ws"
+  "github.com/graniticio/granitic/v2/ws"
   "context"
 )
 
@@ -270,7 +270,7 @@ with the value in your <code>recordstore-1.json</code> or <code>recordstore-2.js
 
 ### Merging rules
 
-The rules by which configuration two files are merged together are specified in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic/config), but the following example 
+The rules by which configuration two files are merged together are specified in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/config), but the following example 
 illustrates the key rules (note the configuration items are an illustration and do not relate to any specific Granitic features)
 
 <code>a.json</code>

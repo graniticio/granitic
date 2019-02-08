@@ -1,17 +1,17 @@
-// Copyright 2016-2018 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package ws
 
 import (
-	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/instance"
-	"github.com/graniticio/granitic/ioc"
-	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/ws"
-	"github.com/graniticio/granitic/ws/json"
-	"fmt"
 	"errors"
+	"fmt"
+	"github.com/graniticio/granitic/v2/config"
+	"github.com/graniticio/granitic/v2/instance"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/ws"
+	"github.com/graniticio/granitic/v2/ws/json"
 )
 
 const jsonResponseWriterComponentName = instance.FrameworkPrefix + "JsonResponseWriter"
@@ -50,7 +50,7 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 		// User hasn't defined their own wrapper for JSON responses, use one of the defaults
 		if mode, err := ca.StringVal("JsonWs.WrapMode"); err != nil {
 			return err
-		} else{
+		} else {
 
 			var wrap ws.ResponseWrapper
 
@@ -69,7 +69,6 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 			rw.ResponseWrapper = wrap
 
 		}
-
 
 	}
 

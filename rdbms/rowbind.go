@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package rdbms
@@ -7,8 +7,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	rt "github.com/graniticio/granitic/reflecttools"
-	"github.com/graniticio/granitic/types"
+	rt "github.com/graniticio/granitic/v2/reflecttools"
+	"github.com/graniticio/granitic/v2/types"
 	"reflect"
 	"strconv"
 )

@@ -110,11 +110,11 @@ The new `TaskScheduler` facility allows processes to be run at predetermined int
  * Notification to other components when tasks end (successfully or not)
  * Control over overlapping task runs
  
-Refer to the [granitic.schedule GoDoc](https://godoc.org/github.com/graniticio/granitic/schedule) for more details.
+Refer to the [granitic.schedule GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/schedule) for more details.
 
 ### RDBMS
 
-Improved support for connecting to multiple databases using the `RdbmsAccess` facility. Refer to the [granitic.rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms) 
+Improved support for connecting to multiple databases using the `RdbmsAccess` facility. Refer to the [granitic.rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/rdbms) 
 for more information.
 
 ### JSON Web Services
@@ -146,17 +146,17 @@ __BREAKING CHANGE__
 
 ### RDBMS
 
- * Streamlined [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms) methods (xxxTagxxx methods removed, xxxParamxxx methods more flexible with the type of arguments they accept)
- * [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms) interface no longer requires DatabaseFromContext - implementations can now implement the optional ContextAwareDatabaseProvider interface
- * [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms) interface no longer requires InsertIDFunc - implementations can now implement the optional NonStandardInsertProvider interface
+ * Streamlined [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/v2/rdbms) methods (xxxTagxxx methods removed, xxxParamxxx methods more flexible with the type of arguments they accept)
+ * [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/v2/rdbms) interface no longer requires DatabaseFromContext - implementations can now implement the optional ContextAwareDatabaseProvider interface
+ * [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/v2/rdbms) interface no longer requires InsertIDFunc - implementations can now implement the optional NonStandardInsertProvider interface
  * If RdbmsClient was created with a context, all operations on the underlying [sql.Db](https://golang.org/pkg/database/sql/#Db) object use the Context variants of methods where possible
  * Transactions can now be opened with [sql.TxOptions](https://golang.org/pkg/database/sql/#TxOptions)
  * Proxy interfaces introduced in front of [sql.Db](https://golang.org/pkg/database/sql/#Db) and [sql.TxOptions](https://golang.org/pkg/database/sql/#TxOptions) to facilitate testing.
  
 ## QueryManager
  
- * Escaping of parameter values and handling of missing values now deferred to new [ParamValueProcessor](https://godoc.org/github.com/graniticio/granitic/dsquery#ParamValueProcessor) components.
- * Two built-in [ParamValueProcessor](https://godoc.org/github.com/graniticio/granitic/dsquery#ParamValueProcessor) components are available - select by setting QueryManager.ProcessorName to <code>configurable</code> or <code>sql</code>
+ * Escaping of parameter values and handling of missing values now deferred to new [ParamValueProcessor](https://godoc.org/github.com/graniticio/granitic/v2/dsquery#ParamValueProcessor) components.
+ * Two built-in [ParamValueProcessor](https://godoc.org/github.com/graniticio/granitic/v2/dsquery#ParamValueProcessor) components are available - select by setting QueryManager.ProcessorName to <code>configurable</code> or <code>sql</code>
  * Default is <code>configurable</code> which mimics Granitic 1.0 behaviour.
  * Choosing <code>sql</code> will set missing parameter values to <code>null</code> and map bools to configurable DB specific values.
  * Parameters in a query can now be marked as required by prefixing their name with <code>!</code> in the query template.
@@ -173,8 +173,8 @@ __BREAKING CHANGE__
  
 ### Fixes
 
- * [Issue 001](https://github.com/graniticio/granitic/issues/1) - Nilable fields on target objects now initialised if query binding in use
- * [Issue 002](https://github.com/graniticio/granitic/issues/2) - STOPALL validation operation now works as intended
+ * [Issue 001](https://github.com/graniticio/granitic/v2/issues/1) - Nilable fields on target objects now initialised if query binding in use
+ * [Issue 002](https://github.com/graniticio/granitic/v2/issues/2) - STOPALL validation operation now works as intended
  
 <hr/> 
 

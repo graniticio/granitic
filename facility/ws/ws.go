@@ -1,4 +1,4 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -58,13 +58,13 @@
 package ws
 
 import (
-	"github.com/graniticio/granitic/config"
-	"github.com/graniticio/granitic/facility/httpserver"
-	"github.com/graniticio/granitic/instance"
-	"github.com/graniticio/granitic/ioc"
-	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/ws"
-	"github.com/graniticio/granitic/ws/handler"
+	"github.com/graniticio/granitic/v2/config"
+	"github.com/graniticio/granitic/v2/facility/httpserver"
+	"github.com/graniticio/granitic/v2/instance"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/ws"
+	"github.com/graniticio/granitic/v2/ws/handler"
 )
 
 const wsHttpStatusDeterminerComponentName = instance.FrameworkPrefix + "HttpStatusDeterminer"

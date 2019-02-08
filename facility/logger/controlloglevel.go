@@ -1,15 +1,15 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package logger
 
 import (
 	"fmt"
-	"github.com/graniticio/granitic/ctl"
-	"github.com/graniticio/granitic/facility/runtimectl"
-	"github.com/graniticio/granitic/instance"
-	"github.com/graniticio/granitic/logging"
-	"github.com/graniticio/granitic/ws"
+	"github.com/graniticio/granitic/v2/ctl"
+	"github.com/graniticio/granitic/v2/facility/runtimectl"
+	"github.com/graniticio/granitic/v2/instance"
+	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/ws"
 	"sort"
 )
 

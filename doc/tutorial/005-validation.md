@@ -7,7 +7,7 @@
 
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
  2. Read the [before you start](000-before-you-start.md) tutorial
  3. Either have completed [tutorial 4](004-data-capture.md) or open a terminal and run
 
@@ -56,7 +56,7 @@ Open your <code>/resource/config/config.json</code> file and set its contents to
 }
 ```
 Rules are expressed as a JSON array of string arrays. Each entry in the top level array maps to the name of a field that we want to 
-validate on our web service endpoint's [unmarshalling target](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsUnmarshallTarget) in this
+validate on our web service endpoint's [unmarshalling target](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsUnmarshallTarget) in this
 case our target is the <code>SubmittedArtistRequest</code> which currently looks like:
 
 ```go
@@ -77,7 +77,7 @@ the validation _operations_ that should be applied to the field.
 
 In this cause we are stating that a single operation should be applied. <code>REQ</code> means the field is required and validation will fail if it is _not provided in the JSON body_ (this is different to the field being present but empty)
 
-We will cover many of the available operations throughout this tutorial, but if you'd like to skip ahead, the [validation GoDoc](https://godoc.org/github.com/graniticio/granitic/validate)
+We will cover many of the available operations throughout this tutorial, but if you'd like to skip ahead, the [validation GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/validate)
 provides a complete reference.
 
 
@@ -89,7 +89,7 @@ You might have noticed that we've enabled a new Granitic facility:
    "ServiceErrorManager": true
 ```
 
-this facility manages error messages for web service calls. We'll start using this shortly, but if you'd like to find out more, [refer to the GoDoc](https://godoc.org/github.com/graniticio/granitic/facility/serviceerror)
+this facility manages error messages for web service calls. We'll start using this shortly, but if you'd like to find out more, [refer to the GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/facility/serviceerror)
 
 ## Enabling validation
 
@@ -113,21 +113,21 @@ Validation is triggered by the handler component associated with your endpoint. 
 }
 ```
 
-We've created a new component <code>submitArtistValidator</code> of type [validate.RuleValidator](https://godoc.org/github.com/graniticio/granitic/validate#RuleValidator). 
+We've created a new component <code>submitArtistValidator</code> of type [validate.RuleValidator](https://godoc.org/github.com/graniticio/granitic/v2/validate#RuleValidator). 
 This is the code that will actually apply the validation rules. We've given it a reference to the validation rules we've defined in our config:
 
 <pre>"Rules": "conf:submitArtistRules"</pre>
 
 The <code>DefaultErrorCode</code> is used to lookup an error message to return if there isn't a specific error message defined for a particular validation operation.
 
-[validate.RuleValidator](https://godoc.org/github.com/graniticio/granitic/validate#RuleValidator) is in a package that we haven't referenced before in our <code>components.json</code> file,
+[validate.RuleValidator](https://godoc.org/github.com/graniticio/granitic/v2/validate#RuleValidator) is in a package that we haven't referenced before in our <code>components.json</code> file,
 so you'll have to amend the <code>packages</code> array at the top of the file to include:
 
-<pre>"github.com/graniticio/granitic/validate"</pre>
+<pre>"github.com/graniticio/granitic/v2/validate"</pre>
 
 ## Setting a default error message
 
-Earlier we enabled the [Service Error Manager](https://godoc.org/github.com/graniticio/granitic/facility/serviceerror) facility. This facility
+Earlier we enabled the [Service Error Manager](https://godoc.org/github.com/graniticio/granitic/v2/facility/serviceerror) facility. This facility
 will refuse to start if we haven't defined error messages for each error code in use by our code. We've defined the code <code>INVALID_ARTIST</code>, so
 open your <code>config.json</code> and add the following:
 
@@ -138,11 +138,11 @@ open your <code>config.json</code> and add the following:
 ```
 
 The "C" indicates that this type of error is a client error. The types of error found during a web service call affect the
-HTTP status code returned by the web service call. More information can be found [in the GoDoc](https://godoc.org/github.com/graniticio/granitic/ws)
+HTTP status code returned by the web service call. More information can be found [in the GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/ws)
 
 ### Service Errors config path
 
-<code>serviceErrors</code> is the config path where the [Service Error Manager](https://godoc.org/github.com/graniticio/granitic/facility/serviceerror) facility expects
+<code>serviceErrors</code> is the config path where the [Service Error Manager](https://godoc.org/github.com/graniticio/granitic/v2/facility/serviceerror) facility expects
 to find your error message defintions. If you want to use a different config path, you need to override the config value <code>ServiceErrorManager.ErrorDefinitions</code>
 
 ## Testing the first validation rule
@@ -182,7 +182,7 @@ You should see a response similar to:
 
 and the HTTP status code will be <code>400 Bad Request</code> You can see that Granitic shows you the names of the fields that errors were
 found on and a list of each error found on the field. If this is too verbose for your application, you can control how
-error responses are formatted by providing your own [ws.ErrorFormatter](https://godoc.org/github.com/graniticio/granitic/ws#ErrorFormatter)
+error responses are formatted by providing your own [ws.ErrorFormatter](https://godoc.org/github.com/graniticio/granitic/v2/ws#ErrorFormatter)
 
 
 ### Debugging validation
@@ -319,9 +319,9 @@ during validation. Refer to the _Further reading_ section below for links to the
  
 ## Further reading
 
- * [Validation GoDoc](https://godoc.org/github.com/graniticio/granitic/validate)
- * [WsPreValidateManipulator](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsPreValidateManipulator) optional callback invoked before auto validation
- * [WsRequestValidator](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsRequestValidator) optional callback invoked after auto validation has passed
+ * [Validation GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/validate)
+ * [WsPreValidateManipulator](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsPreValidateManipulator) optional callback invoked before auto validation
+ * [WsRequestValidator](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsRequestValidator) optional callback invoked after auto validation has passed
 
  
  

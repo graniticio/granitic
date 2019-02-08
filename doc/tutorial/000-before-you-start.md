@@ -1,6 +1,6 @@
 # Tutorial - Before you start
 
-Make sure you have followed the Granitic [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
+Make sure you have followed the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
 
 ## Using prepare-tutorial.sh to skip tutorials 
 

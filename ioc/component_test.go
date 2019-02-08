@@ -1,7 +1,7 @@
 package ioc
 
 import (
-	"github.com/graniticio/granitic/test"
+	"github.com/graniticio/granitic/v2/test"
 	"testing"
 )
 

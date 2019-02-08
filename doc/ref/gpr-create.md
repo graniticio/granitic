@@ -5,7 +5,7 @@
 Granitic includes a command line utility called `grnc-project` that automates the creation of new Granitic projects that can be immediately built and started. You can build this tool by running:
 
 ```
-  go install github.com/graniticio/granitic/cmd/grnc-project
+  go install github.com/graniticio/granitic/v2/cmd/grnc-project
 ```
 
 As long as your `$GOPATH/bin` folder is in your `$PATH`, you will be able to run this tool from any folder

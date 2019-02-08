@@ -7,7 +7,7 @@
 
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
  1. Read the [before you start](000-before-you-start.md) tutorial
  1. Followed the [setting up a test database](006-database-read.md) section of [tutorial 6](006-database-read.md)
  1. Either have completed [tutorial 6](006-database-read.md) or open a terminal and run:
@@ -58,7 +58,7 @@ so a new ID will be generated automatically. We'll show you how to capture that 
 ### Required parameters
 
 You might have noticed that the <code>Name</code> parameter is referenced in the template as <code>${!Name}</code>. The exclamation mark
-indicates that the parameter is required and the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) 
+indicates that the parameter is required and the [QueryManager](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager) 
 will return an error if this parameter is missing.
 
 As the <code>FirstYearActive</code> parameter maps to the nullable column:
@@ -68,8 +68,8 @@ As the <code>FirstYearActive</code> parameter maps to the nullable column:
 ```
 
 in the database, it is not marked as required. If the <code>FirstYearActive</code> parameter is missing (or set to <code>nil</code>),
-the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) will substitute the value <code>null</code> when generating 
-the query, because we configured the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) to run in <code>SQL</code> 
+the [QueryManager](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager) will substitute the value <code>null</code> when generating 
+the query, because we configured the [QueryManager](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager) to run in <code>SQL</code> 
 mode in the previous tutorial.
 
 
@@ -270,7 +270,7 @@ ERROR submitArtistLogic Error 1452: Cannot add or update a child row: a foreign 
 ```
 
 Although the integrity of the data in the database has been protected, this isn't very elegant. What we'd like to is
-have the submitted IDs checked during validation. We can do this by creating a component that implements the [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator)
+have the submitted IDs checked during validation. We can do this by creating a component that implements the [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalInt64Validator)
 interface.
 
 The [next tutorial](008-shared-validation.md) explains how to do this, but if you haven't followed the [validation tutorial](005-validation.md) now would be a good time to familiarise yourself with it.
@@ -278,13 +278,13 @@ The [next tutorial](008-shared-validation.md) explains how to do this, but if yo
 
 ## Recap
   * Parameters in query templates can be marked as required by prefixing the parameter name with !
-  * [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) provides the methods for managing transactions
+  * [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#RdbmsClient) provides the methods for managing transactions
   * It is good practice to <code>defer</code> a call to <code>Rollback()</code> to make sure transactions are explicitly rolled back if something goes wrong.
   
 ## Further reading
 
- * [RDBMS GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms)
- * [QueryManager GoDoc](https://godoc.org/github.com/graniticio/granitic/facility/querymanager)
+ * [RDBMS GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/rdbms)
+ * [QueryManager GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager)
  
 ## Next
 

@@ -1,11 +1,11 @@
-// Copyright 2016 Granitic. All rights reserved.
+// Copyright 2016-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package ws
 
 import (
 	"context"
-	"github.com/graniticio/granitic/iam"
+	"github.com/graniticio/granitic/v2/iam"
 	"net/http"
 )
 

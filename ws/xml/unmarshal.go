@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/xml"
-	"github.com/graniticio/granitic/ws"
+	"github.com/graniticio/granitic/v2/ws"
 	"net/http"
 )
 
