@@ -14,25 +14,25 @@ import (
 )
 
 const (
-	xmlResponseWriterName = instance.FrameworkPrefix + "XmlResponseWriter"
-	xmlUnmarshallerName   = instance.FrameworkPrefix + "XmlUnmarshaller"
+	xmlResponseWriterName = instance.FrameworkPrefix + "XMLResponseWriter"
+	xmlUnmarshallerName   = instance.FrameworkPrefix + "XMLUnmarshaller"
 	templateMode          = "TEMPLATE"
 	marshalMode           = "MARSHAL"
 )
 
 // Creates the components required to support the XmlWs facility and adds them the IoC container.
-type XmlWsFacilityBuilder struct {
+type XMLWsFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (fb *XmlWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
+func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
 
 	wc := buildAndRegisterWsCommon(lm, ca, cc)
 
-	um := new(xml.StandardXmlUnmarshaller)
+	um := new(xml.StandardXMLUnmarshaller)
 	cc.WrapAndAddProto(xmlUnmarshallerName, um)
 
-	mode, _ := ca.StringVal("XmlWs.ResponseMode")
+	mode, _ := ca.StringVal("XMLWs.ResponseMode")
 
 	var rw ws.WsResponseWriter
 
@@ -42,7 +42,7 @@ func (fb *XmlWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 	case marshalMode:
 		rw = fb.createMarshalComponents(ca, cc, wc)
 	default:
-		return errors.New("XmlWs.ResponseMode must be set to either TEMPLATE or MARSHAL")
+		return errors.New("XMLWs.ResponseMode must be set to either TEMPLATE or MARSHAL")
 	}
 
 	buildRegisterWsDecorator(cc, rw, um, wc, lm)
@@ -51,10 +51,10 @@ func (fb *XmlWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 	return nil
 }
 
-func (fb *XmlWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
+func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
 
-	rw := new(xml.TemplatedXmlResponseWriter)
-	ca.Populate("XmlWs.ResponseWriter", rw)
+	rw := new(xml.TemplatedXMLResponseWriter)
+	ca.Populate("XMLWs.ResponseWriter", rw)
 	cc.WrapAndAddProto(xmlResponseWriterName, rw)
 
 	rw.FrameworkErrors = wc.FrameworkErrors
@@ -64,28 +64,28 @@ func (fb *XmlWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccess
 
 }
 
-func (fb *XmlWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
+func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
 
 	rw := new(ws.MarshallingResponseWriter)
-	ca.Populate("XmlWs.ResponseWriter", rw)
+	ca.Populate("XMLWs.ResponseWriter", rw)
 	cc.WrapAndAddProto(xmlResponseWriterName, rw)
 
 	rw.StatusDeterminer = wc.StatusDeterminer
 	rw.FrameworkErrors = wc.FrameworkErrors
 
 	if !cc.ModifierExists(xmlResponseWriterName, "ErrorFormatter") {
-		rw.ErrorFormatter = new(xml.GraniticXmlErrorFormatter)
+		rw.ErrorFormatter = new(xml.GraniticXMLErrorFormatter)
 	}
 
 	if !cc.ModifierExists(xmlResponseWriterName, "ResponseWrapper") {
-		wrap := new(xml.GraniticXmlResponseWrapper)
+		wrap := new(xml.GraniticXMLResponseWrapper)
 		rw.ResponseWrapper = wrap
 	}
 
 	if !cc.ModifierExists(xmlResponseWriterName, "MarshalingWriter") {
 
-		mw := new(xml.XmlMarshalingWriter)
-		ca.Populate("XmlWs.Marshal", mw)
+		mw := new(xml.XMLMarshalingWriter)
+		ca.Populate("XMLWs.Marshal", mw)
 		rw.MarshalingWriter = mw
 	}
 
@@ -94,11 +94,11 @@ func (fb *XmlWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccesso
 }
 
 // See FacilityBuilder.FacilityName
-func (fb *XmlWsFacilityBuilder) FacilityName() string {
-	return "XmlWs"
+func (fb *XMLWsFacilityBuilder) FacilityName() string {
+	return "XMLWs"
 }
 
 // See FacilityBuilder.DependsOnFacilities
-func (fb *XmlWsFacilityBuilder) DependsOnFacilities() []string {
+func (fb *XMLWsFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

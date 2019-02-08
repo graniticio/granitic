@@ -91,7 +91,7 @@
 		  "FrameworkLogger":{
 		    "GlobalLogLevel": "FATAL",
 		    "ComponentLogLevels": {
-			  "grncHttpServer": "TRACE"
+			  "grncHTTPServer": "TRACE"
 		    }
 		  },
 		  "ApplicationLogger":{

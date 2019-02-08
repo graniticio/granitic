@@ -4,12 +4,12 @@
 /*
 Package httpendpoint provides types that allow web-service handlers to be registered with an HTTP server.
 
-Types in this package represent the interface between the HttpServer facility (which is a thin layer over Go's http.Server) and
+Types in this package represent the interface between the HTTPServer facility (which is a thin layer over Go's http.Server) and
 the Granitic ws and handler packages that define web-services.
 
 In most cases, user applications will not need to interact with the types in this package. Instead they will define
-components of type handler.WsHandler (which already implements the key HttpEndpointProvider interface below) and the
-framework will automatically register them with the HttpServer facility.
+components of type handler.WsHandler (which already implements the key HTTPEndpointProvider interface below) and the
+framework will automatically register them with the HTTPServer facility.
 
 */
 package httpendpoint
@@ -19,8 +19,8 @@ import (
 	"net/http"
 )
 
-// HttpEndPoint associates HTTP methods (GET, POST etc) and path-matching regular expressions with a handler.
-type HttpEndPoint struct {
+// HTTPEndPoint associates HTTP methods (GET, POST etc) and path-matching regular expressions with a handler.
+type HTTPEndPoint struct {
 	// A map of HTTP method names to a regular expression pattern (eg GET=^/health-check$)
 	MethodPatterns map[string]string
 
@@ -29,17 +29,17 @@ type HttpEndPoint struct {
 }
 
 // Implemented by a component that is able to support a web-service request with a particular path.
-type HttpEndpointProvider interface {
-	//SupportedHttpMethods returns the HTTP methods (GET, POST, PUT etc) that the endpoint supports.
-	SupportedHttpMethods() []string
+type HTTPEndpointProvider interface {
+	//SupportedHTTPMethods returns the HTTP methods (GET, POST, PUT etc) that the endpoint supports.
+	SupportedHTTPMethods() []string
 
 	// RegexPattern returns an un-compiled regular expression that will be applied to the path element (e.g excluding scheme, domain and query parameters)
 	// to potentially match the request to this endpoint.
 	RegexPattern() string
 
-	// ServeHttp handles an HTTP request, including writing normal and abnormal responses. Returns a context that may have
+	// ServeHTTP handles an HTTP request, including writing normal and abnormal responses. Returns a context that may have
 	// been modified.
-	ServeHttp(ctx context.Context, w *HttpResponseWriter, req *http.Request) context.Context
+	ServeHTTP(ctx context.Context, w *HTTPResponseWriter, req *http.Request) context.Context
 
 	// VersionAware returns true if this endpoint supports request version matching.
 	VersionAware() bool

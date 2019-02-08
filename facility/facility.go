@@ -21,7 +21,7 @@ which will look something like:
 
 	{
 	  "Facilities": {
-		"HttpServer": false,
+		"HTTPServer": false,
 		"JsonWs": false,
 		"XmlWs": false,
 		"FrameworkLogging": true,
@@ -35,11 +35,11 @@ which will look something like:
 	}
 
 This shows that the ApplicationLogging and FrameworkLogging facilities are enabled by default, but everything else is turned
-off. If you wanted to enable the HttpServer facility, you'd add the following to any of your application's configuration files:
+off. If you wanted to enable the HTTPServer facility, you'd add the following to any of your application's configuration files:
 
 	{
 	  "Facilities": {
-		"HttpServer": true
+		"HTTPServer": true
 	  }
 	}
 
@@ -49,10 +49,10 @@ Each facility has a number of default settings that can be found in the file:
 
 	$GRANITIC_HOME/resource/facility-config/facilityname.json
 
-For example, the default configuration for the HttpServer facility will look something like:
+For example, the default configuration for the HTTPServer facility will look something like:
 
   {
-    "HttpServer":{
+    "HTTPServer":{
       "Port": 8080,
 	  "AccessLogging": false,
 	  "TooBusyStatus": 503,
@@ -64,7 +64,7 @@ Any of these settings can be changed by overriding one or more of the fields in 
 change the port on which your application's HTTP server listens on, you could add the following to any of your application's configuration files:
 
   {
-    "HttpServer":{
+    "HTTPServer":{
       "Port": 9000
     }
   }

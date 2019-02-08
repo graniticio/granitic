@@ -77,7 +77,7 @@ func (b *Binder) Bind() {
 	ca := b.loadConfig(*confLocation)
 
 	if *mergedComponentsFile != "" {
-		if err := b.Loader.WriteMerged(ca.JsonData, *mergedComponentsFile); err != nil {
+		if err := b.Loader.WriteMerged(ca.JSONData, *mergedComponentsFile); err != nil {
 			b.exitError(err.Error())
 		}
 	}
@@ -98,7 +98,7 @@ func SerialiseBuiltinConfig() string {
 		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", gh, "GRANITIC_HOME", "GOPATH")
 		instance.ExitError()
 	} else {
-		jm := config.NewJsonMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JsonContentParser))
+		jm := config.NewJSONMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JSONContentParser))
 		jm.MergeArrays = true
 
 		if mc, err := jm.LoadAndMergeConfig(fcf); err != nil {
@@ -317,10 +317,10 @@ func (b *Binder) writeMapContents(w *bufio.Writer, iName string, fName string, c
 
 func (b *Binder) asGoInit(v interface{}) (string, bool) {
 
-	switch config.JsonType(v) {
-	case config.JsonMap:
+	switch config.JSONType(v) {
+	case config.JSONMap:
 		return b.asGoMapInit(v), true
-	case config.JsonArray:
+	case config.JSONArray:
 		return b.asGoArrayInit(v), false
 	default:
 		return fmt.Sprintf("%#v", v), false
@@ -373,10 +373,10 @@ func (b *Binder) assessMapValueType(a map[string]interface{}) string {
 
 	for _, v := range a {
 
-		newType := config.JsonType(v)
+		newType := config.JSONType(v)
 		sampleVal = v
 
-		if newType == config.JsonMap {
+		if newType == config.JSONMap {
 			b.exitError("This tool does not support nested maps/objects as component values.\n")
 		}
 
@@ -390,7 +390,7 @@ func (b *Binder) assessMapValueType(a map[string]interface{}) string {
 		}
 	}
 
-	if currentType == config.JsonArray {
+	if currentType == config.JSONArray {
 		return "[]" + b.assessArrayType(sampleVal.([]interface{}))
 	}
 
@@ -410,9 +410,9 @@ func (b *Binder) assessArrayType(a []interface{}) string {
 
 	for _, v := range a {
 
-		newType := config.JsonType(v)
+		newType := config.JSONType(v)
 
-		if newType == config.JsonMap || newType == config.JsonArray {
+		if newType == config.JSONMap || newType == config.JSONArray {
 			b.exitError("This tool does not support multi-dimensional arrays or object arrays as component values\n")
 		}
 
@@ -735,7 +735,7 @@ func (b *Binder) loadConfig(l string) *config.ConfigAccessor {
 	}
 
 	ca := new(config.ConfigAccessor)
-	ca.JsonData = mc
+	ca.JSONData = mc
 	ca.FrameworkLogger = new(logging.ConsoleErrorLogger)
 
 	if !ca.PathExists(packagesField) || !ca.PathExists(componentsField) {

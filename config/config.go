@@ -94,24 +94,24 @@ import (
 )
 
 // The character used to delimit paths to config values.
-const JsonPathSeparator string = "."
+const JSONPathSeparator string = "."
 
 // Used by code that needs to know what type of JSON data structure resides at a particular path
 // before operating on it.
 const (
 	Unset       = -2
-	JsonUnknown = -1
-	JsonString  = 1
-	JsonArray   = 2
-	JsonMap     = 3
-	JsonBool    = 4
+	JSONUnknown = -1
+	JSONString  = 1
+	JSONArray   = 2
+	JSONMap     = 3
+	JSONBool    = 4
 )
 
 // A ConfigAccessor provides access to a merged view of configuration files during the initialisation and
 // configuration of the Granitic IoC container.
 type ConfigAccessor struct {
 	// The merged JSON configuration in object form.
-	JsonData map[string]interface{}
+	JSONData map[string]interface{}
 
 	// Logger used by Granitic framework components. Automatically injected.
 	FrameworkLogger logging.Logger
@@ -120,7 +120,7 @@ type ConfigAccessor struct {
 // Flush removes internal references to the (potentially very large) merged JSON data so the associated
 // memory can be recovered during the next garbage collection.
 func (c *ConfigAccessor) Flush() {
-	c.JsonData = nil
+	c.JSONData = nil
 }
 
 // PathExists check to see whether the supplied dot-delimited path exists in the configuration and points to a non-null JSON value.
@@ -133,9 +133,9 @@ func (c *ConfigAccessor) PathExists(path string) bool {
 // Value returns the JSON value at the supplied path or nil if the path does not exist of points to a null JSON value.
 func (c *ConfigAccessor) Value(path string) interface{} {
 
-	splitPath := strings.Split(path, JsonPathSeparator)
+	splitPath := strings.Split(path, JSONPathSeparator)
 
-	return c.configVal(splitPath, c.JsonData)
+	return c.configVal(splitPath, c.JSONData)
 
 }
 
@@ -257,19 +257,19 @@ func (c *ConfigAccessor) BoolVal(path string) (bool, error) {
 }
 
 // Determines the apparent JSON type of the supplied Go interface.
-func JsonType(value interface{}) int {
+func JSONType(value interface{}) int {
 
 	switch value.(type) {
 	case string:
-		return JsonString
+		return JSONString
 	case map[string]interface{}:
-		return JsonMap
+		return JSONMap
 	case bool:
-		return JsonBool
+		return JSONBool
 	case []interface{}:
-		return JsonArray
+		return JSONArray
 	default:
-		return JsonUnknown
+		return JSONUnknown
 	}
 }
 

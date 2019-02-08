@@ -13,7 +13,7 @@ import (
 // Stores information about a web service request that has been either copied in or derived from an underlying HTTP request.
 type WsRequest struct {
 	// The HTTP method (GET, POST etc) of the underlying HTTP request.
-	HttpMethod string
+	HTTPMethod string
 
 	// If the HTTP request had a body and if the handler that generated this WsRequest implements WsUnmarshallTarget,
 	// then RequestBody will contain a struct representation of the request body.

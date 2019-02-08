@@ -98,17 +98,17 @@ const (
 // that should be displayed when generic HTTP status codes (404, 500, 503 etc) are set.
 type FrameworkErrorGenerator struct {
 	Messages        map[FrameworkErrorEvent][]string
-	HttpMessages    map[string]string
+	HTTPMessages    map[string]string
 	FrameworkLogger logging.Logger
 }
 
-// HttpError generates a message to be displayed to a caller when a generic HTTP status (404 etc) is encountered. If
+// HTTPError generates a message to be displayed to a caller when a generic HTTP status (404 etc) is encountered. If
 // an error message is not defined for the supplied status, the message "HTTP (code)" is returned, e.g. "HTTP 101"
-func (feg *FrameworkErrorGenerator) HttpError(status int, a ...interface{}) *CategorisedError {
+func (feg *FrameworkErrorGenerator) HTTPError(status int, a ...interface{}) *CategorisedError {
 
 	s := strconv.Itoa(status)
 
-	m := feg.HttpMessages[s]
+	m := feg.HTTPMessages[s]
 
 	if m == "" {
 		m = "HTTP " + s

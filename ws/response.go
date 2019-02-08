@@ -52,12 +52,12 @@
 
 	HTTP status code determination
 
-	Unless your application defines its own HttpStatusCodeDeterminer, the eventual HTTP status code set on the response
+	Unless your application defines its own HTTPStatusCodeDeterminer, the eventual HTTP status code set on the response
 	to a web service request it determined by examining the state of a WsResponse using the following logic:
 
-	1. If the WsResponse.HttpStatus field is non-zero, use that.
+	1. If the WsResponse.HTTPStatus field is non-zero, use that.
 
-	2. If the WsResponse.Errors.HttpStatus field is non-zero, use that.
+	2. If the WsResponse.Errors.HTTPStatus field is non-zero, use that.
 
 	3. If the WsResponse.Errors structure:
 
@@ -109,7 +109,7 @@ type WsProcessState struct {
 	WsResponse *WsResponse
 
 	// The HTTP output stream.
-	HttpResponseWriter *httpendpoint.HttpResponseWriter
+	HTTPResponseWriter *httpendpoint.HTTPResponseWriter
 
 	// Errors detected while processing the web service request. If set, supersedes the errors present in WsResponse field.
 	ServiceErrors *ServiceErrors
@@ -122,10 +122,10 @@ type WsProcessState struct {
 }
 
 // NewAbnormalState creates a new WsProcessState for a request that has resulted in an abnormal (HTTP 5xx) outcome).
-func NewAbnormalState(status int, w *httpendpoint.HttpResponseWriter) *WsProcessState {
+func NewAbnormalState(status int, w *httpendpoint.HTTPResponseWriter) *WsProcessState {
 	state := new(WsProcessState)
 	state.Status = status
-	state.HttpResponseWriter = w
+	state.HTTPResponseWriter = w
 
 	return state
 }
@@ -135,7 +135,7 @@ func NewAbnormalState(status int, w *httpendpoint.HttpResponseWriter) *WsProcess
 type WsResponse struct {
 	// An instruction that the HTTP status code should be set to this value (if the value is greater than 99). Generally
 	// not set - the response writer will determine the correct status to use.
-	HttpStatus int
+	HTTPStatus int
 
 	// If the web service call resulted in data that should be written as the body of the HTTP response is stored in this field.
 	// Application code must set this field explicitly.

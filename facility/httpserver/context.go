@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-// Components implementing this interface are called by the HttpServer facility before the request is matched to a handler.
+// Components implementing this interface are called by the HTTPServer facility before the request is matched to a handler.
 // It is an opportunity to extract information from the HTTP request to add an ID for this request to the context that
 // will be passed to the handler.
 //
@@ -25,7 +25,7 @@ type IdentifiedRequestContextBuilder interface {
 
 // Injects a component whose instance is an implementation of IdentifiedRequestContextBuilder into the HTTP Server
 type contextBuilderDecorator struct {
-	Server *HttpServer
+	Server *HTTPServer
 }
 
 func (cd *contextBuilderDecorator) OfInterest(subject *ioc.Component) bool {

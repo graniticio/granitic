@@ -14,8 +14,8 @@ import (
 	"github.com/graniticio/granitic/v2/ws/json"
 )
 
-const jsonResponseWriterComponentName = instance.FrameworkPrefix + "JsonResponseWriter"
-const jsonUnmarshallerComponentName = instance.FrameworkPrefix + "JsonUnmarshaller"
+const jsonResponseWriterComponentName = instance.FrameworkPrefix + "JSONResponseWriter"
+const jsonUnmarshallerComponentName = instance.FrameworkPrefix + "JSONUnmarshaller"
 
 const mode_wrap = "WRAP"
 const mode_body = "BODY"
@@ -74,7 +74,7 @@ func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMan
 
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "MarshalingWriter") {
 
-		mw := new(json.JsonMarshalingWriter)
+		mw := new(json.JSONMarshalingWriter)
 		ca.Populate("JsonWs.Marshal", mw)
 		rw.MarshalingWriter = mw
 	}

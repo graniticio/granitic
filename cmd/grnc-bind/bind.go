@@ -49,26 +49,26 @@ func main() {
 
 	b := new(binder.Binder)
 	b.ToolName = "grnc-bind"
-	b.Loader = new(JsonDefinitionLoader)
+	b.Loader = new(JSONDefinitionLoader)
 	b.Bind()
 
 }
 
 // Loads JSON files from local files and remote URLs and provides a mechanism for writing the resulting merged
 // file to disk
-type JsonDefinitionLoader struct {
+type JSONDefinitionLoader struct {
 }
 
 // LoadAndMerge reads one or more JSON from local files or HTTP URLs and merges them into a single data structure
-func (jdl *JsonDefinitionLoader) LoadAndMerge(files []string) (map[string]interface{}, error) {
-	jm := config.NewJsonMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JsonContentParser))
+func (jdl *JSONDefinitionLoader) LoadAndMerge(files []string) (map[string]interface{}, error) {
+	jm := config.NewJSONMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JSONContentParser))
 	jm.MergeArrays = true
 
 	return jm.LoadAndMergeConfig(files)
 }
 
 // WriteMerged converts the supplied data structure to JSON and writes to disk at the specified location
-func (jdl *JsonDefinitionLoader) WriteMerged(data map[string]interface{}, path string) error {
+func (jdl *JSONDefinitionLoader) WriteMerged(data map[string]interface{}, path string) error {
 
 	b, err := json.MarshalIndent(data, "", "\t")
 

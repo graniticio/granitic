@@ -15,7 +15,7 @@
 
 	Web service instrumentation
 
-	Grantic's HttpServer has support for instrumenting your web service requests. See the facility/httpserver package documentation for more details.
+	Grantic's HTTPServer has support for instrumenting your web service requests. See the facility/httpserver package documentation for more details.
 */
 package instrument
 
@@ -25,7 +25,7 @@ import (
 )
 
 // RequestInstrumentationManager is implemented by components that can instrument a web service request. This often involves recording
-// timing data at various points in a request's lifecycle. Implementations can be attached to an instance of the Granitic HttpServer.
+// timing data at various points in a request's lifecycle. Implementations can be attached to an instance of the Granitic HTTPServer.
 type RequestInstrumentationManager interface {
 
 	// Begin starts instrumentation and returns a Instrumentor that is able to instrument sub/child events of the request.

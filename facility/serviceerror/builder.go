@@ -81,7 +81,7 @@ func (fb *ServiceErrorManagerFacilityBuilder) loadMessagesFromConfig(dPath strin
 
 	i := ca.Value(dPath)
 
-	if config.JsonType(i) != config.JsonArray {
+	if config.JSONType(i) != config.JSONArray {
 		m := fmt.Sprintf("Couldn't load error messages from config path %s. Make sure the path exists in your configuration and that %s is an array of string arrays ([][]string)", dPath, dPath)
 		return nil, errors.New(m)
 	}

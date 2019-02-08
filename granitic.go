@@ -260,7 +260,7 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 
 	fl := flm.CreateLogger(configAccessorComponentName)
 
-	jm := config.NewJsonMergerWithManagedLogging(flm, new(config.JsonContentParser))
+	jm := config.NewJSONMergerWithManagedLogging(flm, new(config.JSONContentParser))
 
 	for _, cp := range is.ConfigParsers {
 
@@ -268,14 +268,14 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 
 	}
 
-	mergedJson, err := jm.LoadAndMergeConfigWithBase(builtIn, is.Configuration)
+	mergedJSON, err := jm.LoadAndMergeConfigWithBase(builtIn, is.Configuration)
 
 	if err != nil {
 		i.logger.LogFatalf(err.Error())
 		instance.ExitError()
 	}
 
-	return &config.ConfigAccessor{mergedJson, fl}
+	return &config.ConfigAccessor{mergedJSON, fl}
 }
 
 // Record the files and URLs used to create a merged configuration (in the order in which they will be merged)

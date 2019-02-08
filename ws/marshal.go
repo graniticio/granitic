@@ -25,7 +25,7 @@ type MarshallingResponseWriter struct {
 	FrameworkLogger logging.Logger
 
 	// Component able to calculate the HTTP status code that should be written to the HTTP response.
-	StatusDeterminer HttpStatusCodeDeterminer
+	StatusDeterminer HTTPStatusCodeDeterminer
 
 	// Component able to generate errors if a problem is encountered during marshalling.
 	FrameworkErrors *FrameworkErrorGenerator
@@ -57,17 +57,17 @@ func (rw *MarshallingResponseWriter) Write(ctx context.Context, state *WsProcess
 
 	switch outcome {
 	case Normal:
-		return rw.write(ctx, state.WsResponse, state.HttpResponseWriter, ch)
+		return rw.write(ctx, state.WsResponse, state.HTTPResponseWriter, ch)
 	case Error:
-		return rw.writeErrors(ctx, state.ServiceErrors, state.HttpResponseWriter, ch)
+		return rw.writeErrors(ctx, state.ServiceErrors, state.HTTPResponseWriter, ch)
 	case Abnormal:
-		return rw.writeAbnormalStatus(ctx, state.Status, state.HttpResponseWriter, ch)
+		return rw.writeAbnormalStatus(ctx, state.Status, state.HTTPResponseWriter, ch)
 	}
 
 	return errors.New("Unsuported WsOutcome value")
 }
 
-func (rw *MarshallingResponseWriter) write(ctx context.Context, res *WsResponse, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
+func (rw *MarshallingResponseWriter) write(ctx context.Context, res *WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -104,13 +104,13 @@ func (rw *MarshallingResponseWriter) WriteAbnormalStatus(ctx context.Context, st
 	return rw.Write(ctx, state, Abnormal)
 }
 
-func (rw *MarshallingResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
+func (rw *MarshallingResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	res := new(WsResponse)
-	res.HttpStatus = status
+	res.HTTPStatus = status
 	var errors ServiceErrors
 
-	e := rw.FrameworkErrors.HttpError(status)
+	e := rw.FrameworkErrors.HTTPError(status)
 	errors.AddError(e)
 
 	res.Errors = &errors
@@ -119,7 +119,7 @@ func (rw *MarshallingResponseWriter) writeAbnormalStatus(ctx context.Context, st
 
 }
 
-func (rw *MarshallingResponseWriter) writeErrors(ctx context.Context, errors *ServiceErrors, w *httpendpoint.HttpResponseWriter, ch map[string]string) error {
+func (rw *MarshallingResponseWriter) writeErrors(ctx context.Context, errors *ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	res := new(WsResponse)
 	res.Errors = errors

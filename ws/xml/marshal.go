@@ -38,13 +38,13 @@
 
 	Response wrapping
 
-	In MARSHAL mode, any data serialised to XML will first be wrapped with a containing data structure by an instance of GraniticXmlResponseWrapper. This
+	In MARSHAL mode, any data serialised to XML will first be wrapped with a containing data structure by an instance of GraniticXMLResponseWrapper. This
 	means that all responses share a common top level structure for finding the body of the response or errors if they exist.
 	For more information on this behaviour (and how to override it) see: http://granitic.io/1.0/ref/xml#wrapping
 
 	Error formatting
 
-	Any service errors found in a response are formatted by an instance of GraniticXmlErrorFormatter before being serialised to XML.
+	Any service errors found in a response are formatted by an instance of GraniticXMLErrorFormatter before being serialised to XML.
 	For more information on this behaviour (and how to override it) see: http://granitic.io/1.0/ref/xml#errors
 
 */
@@ -58,7 +58,7 @@ import (
 
 // Component wrapper over Go's xml.Marshalxx functions. Serialises a struct to XML and writes it to the HTTP response
 // output stream.
-type XmlMarshalingWriter struct {
+type XMLMarshalingWriter struct {
 	// Format generated XML in a human readable form.
 	PrettyPrint bool
 
@@ -70,7 +70,7 @@ type XmlMarshalingWriter struct {
 }
 
 // MarshalAndWrite serialises the supplied interface to XML and writes it to the HTTP response output stream.
-func (mw *XmlMarshalingWriter) MarshalAndWrite(data interface{}, w http.ResponseWriter) error {
+func (mw *XMLMarshalingWriter) MarshalAndWrite(data interface{}, w http.ResponseWriter) error {
 
 	var b []byte
 	var err error
@@ -92,13 +92,13 @@ func (mw *XmlMarshalingWriter) MarshalAndWrite(data interface{}, w http.Response
 }
 
 // Component for wrapping response data in a common strcuture before it is serialised.
-type GraniticXmlResponseWrapper struct {
+type GraniticXMLResponseWrapper struct {
 }
 
-// WrapResponse wraps the supplied data and errors with an XmlWrapper
-func (rw *GraniticXmlResponseWrapper) WrapResponse(body interface{}, errors interface{}) interface{} {
+// WrapResponse wraps the supplied data and errors with an XMLWrapper
+func (rw *GraniticXMLResponseWrapper) WrapResponse(body interface{}, errors interface{}) interface{} {
 
-	w := new(GraniticXmlWrapper)
+	w := new(GraniticXMLWrapper)
 
 	w.XMLName = xml.Name{"", "response"}
 	w.Body = body
@@ -109,30 +109,30 @@ func (rw *GraniticXmlResponseWrapper) WrapResponse(body interface{}, errors inte
 }
 
 // Wrapper for web service data and errors giving a consistent structure across all XML endpoints.
-type GraniticXmlWrapper struct {
+type GraniticXMLWrapper struct {
 	XMLName xml.Name
 	Errors  interface{}
 	Body    interface{} `xml:"body"`
 }
 
 // Converts service errors into a data structure for consistent serialisation to XML.
-type GraniticXmlErrorFormatter struct{}
+type GraniticXMLErrorFormatter struct{}
 
 // FormatErrors converts all of the errors present in the supplied objects into a structure suitable for serialisation.
-func (ef *GraniticXmlErrorFormatter) FormatErrors(errors *ws.ServiceErrors) interface{} {
+func (ef *GraniticXMLErrorFormatter) FormatErrors(errors *ws.ServiceErrors) interface{} {
 
 	if errors == nil || !errors.HasErrors() {
 		return nil
 	}
 
-	es := new(XmlErrors)
+	es := new(XMLErrors)
 	es.XMLName = xml.Name{"", "errors"}
 
-	fe := make([]*GraniticXmlError, len(errors.Errors))
+	fe := make([]*GraniticXMLError, len(errors.Errors))
 
 	for i, se := range errors.Errors {
 
-		e := new(GraniticXmlError)
+		e := new(GraniticXMLError)
 		e.XMLName = xml.Name{"", "error"}
 
 		fe[i] = e
@@ -149,13 +149,13 @@ func (ef *GraniticXmlErrorFormatter) FormatErrors(errors *ws.ServiceErrors) inte
 }
 
 //Wrapper to create an errors element in generated XML
-type XmlErrors struct {
+type XMLErrors struct {
 	XMLName xml.Name
 	Errors  interface{}
 }
 
 //Default XML representation of a service error. See ws.CategorisedError
-type GraniticXmlError struct {
+type GraniticXMLError struct {
 	XMLName  xml.Name
 	Error    string `xml:",chardata"`
 	Field    string `xml:"field,attr,omitempty"`

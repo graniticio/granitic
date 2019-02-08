@@ -27,23 +27,23 @@ type SimpleConfig struct {
 
 func TestTypeDetection(t *testing.T) {
 
-	if JsonType("") != JsonString {
+	if JSONType("") != JSONString {
 		t.FailNow()
 	}
 
-	if JsonType(true) != JsonBool {
+	if JSONType(true) != JSONBool {
 		t.FailNow()
 	}
 
-	if JsonType(make(map[string]interface{})) != JsonMap {
+	if JSONType(make(map[string]interface{})) != JSONMap {
 		t.FailNow()
 	}
 
-	if JsonType([]interface{}{}) != JsonArray {
+	if JSONType([]interface{}{}) != JSONArray {
 		t.FailNow()
 	}
 
-	if JsonType(1) != JsonUnknown {
+	if JSONType(1) != JSONUnknown {
 		t.FailNow()
 	}
 }
@@ -61,7 +61,7 @@ func LoadConfigFromFile(f string) *ConfigAccessor {
 
 	ca := new(ConfigAccessor)
 	ca.FrameworkLogger = l
-	ca.JsonData = d.(map[string]interface{})
+	ca.JSONData = d.(map[string]interface{})
 
 	return ca
 

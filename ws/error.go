@@ -73,7 +73,7 @@ type ServiceErrors struct {
 	Errors []CategorisedError
 
 	// An externally computed HTTP status code that reflects the mix of errors in this structure.
-	HttpStatus int
+	HTTPStatus int
 
 	// A component able to find additional information about error from that error's unique code.
 	ErrorFinder ServiceErrorFinder

@@ -15,7 +15,7 @@ import (
 	"strings"
 )
 
-const jsonMergerComponentName string = instance.FrameworkPrefix + "JsonMerger"
+const jsonMergerComponentName string = instance.FrameworkPrefix + "JSONMerger"
 
 // A ContentParser can take a []byte of some structured file type (e.g. YAML, JSON() and convert into a map[string]interface{} representation
 type ContentParser interface {
@@ -24,33 +24,33 @@ type ContentParser interface {
 	ContentTypes() []string
 }
 
-type JsonContentParser struct {
+type JSONContentParser struct {
 }
 
-func (jcp *JsonContentParser) ParseInto(data []byte, target interface{}) error {
+func (jcp *JSONContentParser) ParseInto(data []byte, target interface{}) error {
 	return json.Unmarshal(data, &target)
 }
 
-func (jcp *JsonContentParser) Extensions() []string {
+func (jcp *JSONContentParser) Extensions() []string {
 	return []string{"json"}
 }
 
-func (jcp *JsonContentParser) ContentTypes() []string {
+func (jcp *JSONContentParser) ContentTypes() []string {
 	return []string{"application/json", "application/x-javascript", "text/javascript", "text/x-javascript", "text/x-json"}
 }
 
-// NewJsonMerger creates a JsonMerger with a Logger
-func NewJsonMergerWithManagedLogging(flm *logging.ComponentLoggerManager, cp ContentParser) *JsonMerger {
+// NewJSONMerger creates a JSONMerger with a Logger
+func NewJSONMergerWithManagedLogging(flm *logging.ComponentLoggerManager, cp ContentParser) *JSONMerger {
 
 	l := flm.CreateLogger(jsonMergerComponentName)
 
-	return NewJsonMergerWithDirectLogging(l, cp)
+	return NewJSONMergerWithDirectLogging(l, cp)
 
 }
 
-func NewJsonMergerWithDirectLogging(l logging.Logger, cp ContentParser) *JsonMerger {
+func NewJSONMergerWithDirectLogging(l logging.Logger, cp ContentParser) *JSONMerger {
 
-	jm := new(JsonMerger)
+	jm := new(JSONMerger)
 	jm.Logger = l
 	jm.DefaultParser = cp
 
@@ -62,10 +62,10 @@ func NewJsonMergerWithDirectLogging(l logging.Logger, cp ContentParser) *JsonMer
 	return jm
 }
 
-// A JsonMerger can merge a sequence of JSON configuration files (from a filesystem or HTTP URL) into a single
+// A JSONMerger can merge a sequence of JSON configuration files (from a filesystem or HTTP URL) into a single
 // view of configuration that will be used to configure Grantic's facilities and the user's IoC components. See the top
 // of this page for a brief explanation of how merging works.
-type JsonMerger struct {
+type JSONMerger struct {
 	// Logger used by Granitic framework components. Automatically injected.
 	Logger logging.Logger
 
@@ -81,13 +81,13 @@ type JsonMerger struct {
 // LoadAndMergeConfig takes a list of file paths or URIs to JSON files and merges them into a single in-memory object representation.
 // See the top of this page for a brief explanation of how merging works. Returns an error if a remote URI returned a 4xx or 5xx response code,
 // a file or folder could not be accessed or if two files could not be merged dued to JSON parsing errors.
-func (jm *JsonMerger) LoadAndMergeConfig(files []string) (map[string]interface{}, error) {
+func (jm *JSONMerger) LoadAndMergeConfig(files []string) (map[string]interface{}, error) {
 	mergedConfig := make(map[string]interface{})
 
 	return jm.LoadAndMergeConfigWithBase(mergedConfig, files)
 }
 
-func (jm *JsonMerger) RegisterContentParser(cp ContentParser) {
+func (jm *JSONMerger) RegisterContentParser(cp ContentParser) {
 
 	for _, ct := range cp.ContentTypes() {
 
@@ -103,7 +103,7 @@ func (jm *JsonMerger) RegisterContentParser(cp ContentParser) {
 
 }
 
-func (jm *JsonMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, files []string) (map[string]interface{}, error) {
+func (jm *JSONMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, files []string) (map[string]interface{}, error) {
 
 	var jsonData []byte
 	var err error
@@ -158,7 +158,7 @@ func (jm *JsonMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, 
 	return config, nil
 }
 
-func (jm *JsonMerger) extractExtension(path string) string {
+func (jm *JSONMerger) extractExtension(path string) string {
 
 	c := strings.Split(path, ".")
 
@@ -169,7 +169,7 @@ func (jm *JsonMerger) extractExtension(path string) string {
 	}
 }
 
-func (jm *JsonMerger) loadFromURL(url string) ([]byte, ContentParser, error) {
+func (jm *JSONMerger) loadFromURL(url string) ([]byte, ContentParser, error) {
 
 	r, err := http.Get(url)
 
@@ -204,18 +204,18 @@ func (jm *JsonMerger) loadFromURL(url string) ([]byte, ContentParser, error) {
 	return b.Bytes(), cp, nil
 }
 
-func (jm *JsonMerger) merge(base, additional map[string]interface{}) map[string]interface{} {
+func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]interface{} {
 
 	for key, value := range additional {
 
 		if existingEntry, ok := base[key]; ok {
 
-			existingEntryType := JsonType(existingEntry)
-			newEntryType := JsonType(value)
+			existingEntryType := JSONType(existingEntry)
+			newEntryType := JSONType(value)
 
-			if existingEntryType == JsonMap && newEntryType == JsonMap {
+			if existingEntryType == JSONMap && newEntryType == JSONMap {
 				jm.merge(existingEntry.(map[string]interface{}), value.(map[string]interface{}))
-			} else if jm.MergeArrays && existingEntryType == JsonArray && newEntryType == JsonArray {
+			} else if jm.MergeArrays && existingEntryType == JSONArray && newEntryType == JSONArray {
 				base[key] = jm.mergeArrays(existingEntry.([]interface{}), value.([]interface{}))
 			} else {
 				base[key] = value
@@ -231,6 +231,6 @@ func (jm *JsonMerger) merge(base, additional map[string]interface{}) map[string]
 	return base
 }
 
-func (jm *JsonMerger) mergeArrays(a []interface{}, b []interface{}) []interface{} {
+func (jm *JSONMerger) mergeArrays(a []interface{}, b []interface{}) []interface{} {
 	return append(a, b...)
 }

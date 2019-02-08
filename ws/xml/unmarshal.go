@@ -12,11 +12,11 @@ import (
 )
 
 // Component wrapper over Go's xml.Unmarshal method
-type StandardXmlUnmarshaller struct {
+type StandardXMLUnmarshaller struct {
 }
 
 // Unmarshall decodes XML into a Go struct using Go's builtin xml.Unmarshal method.
-func (um *StandardXmlUnmarshaller) Unmarshall(ctx context.Context, req *http.Request, wsReq *ws.WsRequest) error {
+func (um *StandardXMLUnmarshaller) Unmarshall(ctx context.Context, req *http.Request, wsReq *ws.WsRequest) error {
 	defer req.Body.Close()
 
 	var b bytes.Buffer

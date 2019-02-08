@@ -15,7 +15,7 @@
 		{
 		  "artistHandler": {
 			"type": "handler.WsHandler",
-			"HttpMethod": "GET",
+			"HTTPMethod": "GET",
 			"Logic": "ref:artistLogic",
 			"PathPattern": "^/artist/([\\d]+)[/]?$"
 		  },
@@ -118,7 +118,7 @@ type ErrorTemplate interface {
 }
 
 //  WsHandler co-ordinates the processing of a web service request for a particular endpoint.
-// Implements ws.HttpEndpointProvider
+// Implements ws.HTTPEndpointProvider
 type WsHandler struct {
 
 	// A component able to examine a request and see if the caller is allowed to access this endpoint.
@@ -164,7 +164,7 @@ type WsHandler struct {
 	FrameworkErrors *ws.FrameworkErrorGenerator
 
 	// The HTTP method (GET, POST etc) that this handler supports.
-	HttpMethod string
+	HTTPMethod string
 
 	// A logger injected by the Granitic framework. Note this will be an application logger rather than a framework logger
 	// as instances of WsHandler are considered application components.
@@ -222,9 +222,9 @@ func (wh *WsHandler) ProvideErrorFinder(finder ws.ServiceErrorFinder) {
 	}
 }
 
-// ServeHttp is the entry point called by the HTTP server once it has been determined that this handler instance
+// ServeHTTP is the entry point called by the HTTP server once it has been determined that this handler instance
 // is the correct one to handle the incoming request.
-func (wh *WsHandler) ServeHttp(ctx context.Context, w *httpendpoint.HttpResponseWriter, req *http.Request) context.Context {
+func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request) context.Context {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -239,7 +239,7 @@ func (wh *WsHandler) ServeHttp(ctx context.Context, w *httpendpoint.HttpResponse
 	}
 
 	wsReq := new(ws.WsRequest)
-	wsReq.HttpMethod = req.Method
+	wsReq.HTTPMethod = req.Method
 	wsReq.ServingHandler = wh.ComponentName()
 
 	if wh.AllowDirectHTTPAccess {
@@ -323,7 +323,7 @@ func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.WsRequest, e
 
 				wh.Log.LogErrorfCtx(ctx, "Problem encountered during automatic body validation %v", err)
 
-				ce := wh.FrameworkErrors.HttpError(http.StatusInternalServerError)
+				ce := wh.FrameworkErrors.HTTPError(http.StatusInternalServerError)
 				errors.AddError(ce)
 				return
 			}
@@ -436,7 +436,7 @@ func (wh *WsHandler) processQueryParams(ctx context.Context, req *http.Request, 
 
 }
 
-func (wh *WsHandler) checkAccess(ctx context.Context, w *httpendpoint.HttpResponseWriter, wsReq *ws.WsRequest) bool {
+func (wh *WsHandler) checkAccess(ctx context.Context, w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) bool {
 
 	ac := wh.AccessChecker
 
@@ -459,7 +459,7 @@ func (wh *WsHandler) checkAccess(ctx context.Context, w *httpendpoint.HttpRespon
 	}
 }
 
-func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoint.HttpResponseWriter, req *http.Request, wsReq *ws.WsRequest) (bool, context.Context) {
+func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request, wsReq *ws.WsRequest) (bool, context.Context) {
 
 	var i iam.ClientIdentity
 
@@ -488,13 +488,13 @@ func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoin
 
 }
 
-// SupportedHttpMethods returns the HTTP method that this handler supports. Returns an array in order to
-// implement HttpEndpointProvider, but will always be a single element array.
-func (wh *WsHandler) SupportedHttpMethods() []string {
+// SupportedHTTPMethods returns the HTTP method that this handler supports. Returns an array in order to
+// implement HTTPEndpointProvider, but will always be a single element array.
+func (wh *WsHandler) SupportedHTTPMethods() []string {
 	if len(wh.httpMethods) > 0 {
 		return wh.httpMethods
 	} else {
-		return []string{wh.HttpMethod}
+		return []string{wh.HTTPMethod}
 	}
 }
 
@@ -521,10 +521,10 @@ func (wh *WsHandler) AutoWireable() bool {
 	return !wh.PreventAutoWiring
 }
 
-func (wh *WsHandler) handleFrameworkErrors(ctx context.Context, w *httpendpoint.HttpResponseWriter, wsReq *ws.WsRequest) {
+func (wh *WsHandler) handleFrameworkErrors(ctx context.Context, w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) {
 
 	var se ws.ServiceErrors
-	se.HttpStatus = http.StatusBadRequest
+	se.HTTPStatus = http.StatusBadRequest
 
 	for _, fe := range wsReq.FrameworkErrors {
 		se.AddNewError(ws.Client, fe.Code, fe.Message)
@@ -534,7 +534,7 @@ func (wh *WsHandler) handleFrameworkErrors(ctx context.Context, w *httpendpoint.
 
 }
 
-func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *httpendpoint.HttpResponseWriter) {
+func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *httpendpoint.HTTPResponseWriter) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -564,10 +564,10 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 
 	state := new(ws.WsProcessState)
 	state.Identity = request.UserIdentity
-	state.HttpResponseWriter = w
+	state.HTTPResponseWriter = w
 	state.WsResponse = wsRes
 	state.WsRequest = request
-	state.Status = wsRes.HttpStatus
+	state.Status = wsRes.HTTPStatus
 
 	// Template based response writing
 	if tr, found := wh.Logic.(Templated); found {
@@ -576,7 +576,7 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 
 	var err error
 
-	if wsRes.HttpStatus < 300 {
+	if wsRes.HTTPStatus < 300 {
 		err = wh.ResponseWriter.Write(ctx, state, ws.Normal)
 	} else {
 		err = wh.ResponseWriter.Write(ctx, state, ws.Abnormal)
@@ -588,7 +588,7 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 
 }
 
-func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceErrors, w *httpendpoint.HttpResponseWriter, wsReq *ws.WsRequest) {
+func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) {
 
 	l := wh.Log
 
@@ -601,7 +601,7 @@ func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceE
 	state := new(ws.WsProcessState)
 	state.ServiceErrors = errors
 	state.WsRequest = wsReq
-	state.HttpResponseWriter = w
+	state.HTTPResponseWriter = w
 
 	// Template based response writing
 	if tr, found := wh.Logic.(Templated); found {
@@ -627,7 +627,7 @@ func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceE
 
 }
 
-func (wh *WsHandler) writePanicResponse(ctx context.Context, r interface{}, w *httpendpoint.HttpResponseWriter) {
+func (wh *WsHandler) writePanicResponse(ctx context.Context, r interface{}, w *httpendpoint.HTTPResponseWriter) {
 
 	state := ws.NewAbnormalState(http.StatusInternalServerError, w)
 
@@ -647,8 +647,8 @@ func (wh *WsHandler) StartComponent() error {
 
 	wh.state = ioc.StartingState
 
-	if wh.PathPattern == "" || wh.HttpMethod == "" || wh.Logic == nil {
-		return errors.New("Handlers must have at least a PathPattern string, HttpMethod string and Logic component set.")
+	if wh.PathPattern == "" || wh.HTTPMethod == "" || wh.Logic == nil {
+		return errors.New("Handlers must have at least a PathPattern string, HTTPMethod string and Logic component set.")
 	}
 
 	if wh.AutoValidator != nil && wh.ErrorFinder == nil {

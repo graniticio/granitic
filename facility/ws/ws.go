@@ -67,23 +67,23 @@ import (
 	"github.com/graniticio/granitic/v2/ws/handler"
 )
 
-const wsHttpStatusDeterminerComponentName = instance.FrameworkPrefix + "HttpStatusDeterminer"
+const wsHTTPStatusDeterminerComponentName = instance.FrameworkPrefix + "HTTPStatusDeterminer"
 const wsParamBinderComponentName = instance.FrameworkPrefix + "ParamBinder"
 const wsFrameworkErrorGenerator = instance.FrameworkPrefix + "FrameworkErrorGenerator"
 const wsHandlerDecoratorName = instance.FrameworkPrefix + "WsHandlerDecorator"
 
 func offerAbnormalStatusWriter(arw ws.AbnormalStatusWriter, cc *ioc.ComponentContainer, name string) {
 
-	if !cc.ModifierExists(httpserver.HttpServerComponentName, httpserver.HttpServerAbnormalStatusFieldName) {
+	if !cc.ModifierExists(httpserver.HTTPServerComponentName, httpserver.HTTPServerAbnormalStatusFieldName) {
 		//The HTTP server does not have an AbnormalStatusWriter defined
-		cc.AddModifier(httpserver.HttpServerComponentName, httpserver.HttpServerAbnormalStatusFieldName, name)
+		cc.AddModifier(httpserver.HTTPServerComponentName, httpserver.HTTPServerAbnormalStatusFieldName, name)
 	}
 }
 
 func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) *wsCommon {
 
-	scd := new(ws.GraniticHttpStatusCodeDeterminer)
-	cn.WrapAndAddProto(wsHttpStatusDeterminerComponentName, scd)
+	scd := new(ws.GraniticHTTPStatusCodeDeterminer)
+	cn.WrapAndAddProto(wsHTTPStatusDeterminerComponentName, scd)
 
 	pb := new(ws.ParamBinder)
 	cn.WrapAndAddProto(wsParamBinderComponentName, pb)
@@ -98,7 +98,7 @@ func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.Con
 
 }
 
-func newWsCommon(pb *ws.ParamBinder, feg *ws.FrameworkErrorGenerator, sd *ws.GraniticHttpStatusCodeDeterminer) *wsCommon {
+func newWsCommon(pb *ws.ParamBinder, feg *ws.FrameworkErrorGenerator, sd *ws.GraniticHTTPStatusCodeDeterminer) *wsCommon {
 
 	wc := new(wsCommon)
 	wc.ParamBinder = pb
@@ -112,7 +112,7 @@ func newWsCommon(pb *ws.ParamBinder, feg *ws.FrameworkErrorGenerator, sd *ws.Gra
 type wsCommon struct {
 	ParamBinder      *ws.ParamBinder
 	FrameworkErrors  *ws.FrameworkErrorGenerator
-	StatusDeterminer *ws.GraniticHttpStatusCodeDeterminer
+	StatusDeterminer *ws.GraniticHTTPStatusCodeDeterminer
 }
 
 func buildRegisterWsDecorator(cc *ioc.ComponentContainer, rw ws.WsResponseWriter, um ws.WsUnmarshaller, wc *wsCommon, lm *logging.ComponentLoggerManager) {

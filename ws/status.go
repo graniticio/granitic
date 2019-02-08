@@ -9,23 +9,23 @@ import (
 )
 
 // Implemented by a component able to choose the most appropriate HTTP status code to set given the state of a WsResponse
-type HttpStatusCodeDeterminer interface {
+type HTTPStatusCodeDeterminer interface {
 	// DetermineCode returns the HTTP status code that should be set on the response.
 	DetermineCode(response *WsResponse) int
 }
 
 /*
-	The default HttpStatusCodeDeterminer used by Granitic's XXXWs facilities. See the top of this page for
+	The default HTTPStatusCodeDeterminer used by Granitic's XXXWs facilities. See the top of this page for
 	rules on how this code is determined.
 */
-type GraniticHttpStatusCodeDeterminer struct {
+type GraniticHTTPStatusCodeDeterminer struct {
 }
 
 // DetermineCode examines the response and returns an HTTP status code according to the rules defined at the top of this
 // GoDoc page.
-func (dhscd *GraniticHttpStatusCodeDeterminer) DetermineCode(response *WsResponse) int {
-	if response.HttpStatus != 0 {
-		return response.HttpStatus
+func (dhscd *GraniticHTTPStatusCodeDeterminer) DetermineCode(response *WsResponse) int {
+	if response.HTTPStatus != 0 {
+		return response.HTTPStatus
 
 	} else if response.Errors.HasErrors() {
 		return dhscd.determineCodeFromErrors(response.Errors)
@@ -35,10 +35,10 @@ func (dhscd *GraniticHttpStatusCodeDeterminer) DetermineCode(response *WsRespons
 	}
 }
 
-func (dhscd *GraniticHttpStatusCodeDeterminer) determineCodeFromErrors(errors *ServiceErrors) int {
+func (dhscd *GraniticHTTPStatusCodeDeterminer) determineCodeFromErrors(errors *ServiceErrors) int {
 
-	if errors.HttpStatus != 0 {
-		return errors.HttpStatus
+	if errors.HTTPStatus != 0 {
+		return errors.HTTPStatus
 	}
 
 	sCount := 0

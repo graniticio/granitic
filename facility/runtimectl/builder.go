@@ -86,7 +86,7 @@ type RuntimeCtlFacilityBuilder struct {
 
 func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
 
-	sv := new(httpserver.HttpServer)
+	sv := new(httpserver.HTTPServer)
 	ca.Populate("RuntimeCtl.Server", sv)
 
 	cc.WrapAndAddProto(RuntimeCtlServer, sv)
@@ -96,7 +96,7 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 	rw.FrameworkLogger = lm.CreateLogger(runtimeCtlResponseWriter)
 	sv.AbnormalStatusWriter = rw
 
-	mw := new(json.JsonMarshalingWriter)
+	mw := new(json.JSONMarshalingWriter)
 	ca.Populate("RuntimeCtl.Marshal", mw)
 	rw.MarshalingWriter = mw
 
@@ -106,7 +106,7 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 
 	rw.ErrorFormatter = new(json.GraniticJSONErrorFormatter)
 
-	rw.StatusDeterminer = new(ws.GraniticHttpStatusCodeDeterminer)
+	rw.StatusDeterminer = new(ws.GraniticHTTPStatusCodeDeterminer)
 
 	feg := new(ws.FrameworkErrorGenerator)
 	feg.FrameworkLogger = lm.CreateLogger(runtimeCtlFrameworkErrors)
@@ -130,7 +130,7 @@ func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLogge
 
 	h.Unmarshaller = um
 
-	handlers := make(map[string]httpendpoint.HttpEndpointProvider)
+	handlers := make(map[string]httpendpoint.HTTPEndpointProvider)
 	handlers[runtimeCtlCommandHandler] = h
 	sv.SetProvidersManually(handlers)
 

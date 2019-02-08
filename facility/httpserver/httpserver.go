@@ -2,12 +2,12 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package httpserver provides the HttpServer facility which defines a configurable HTTP server for processing web-service requests.
+	Package httpserver provides the HTTPServer facility which defines a configurable HTTP server for processing web-service requests.
 
-	The HttpServer facility provides a server that will listen for HTTP web-service requests and map them to the web-service
+	The HTTPServer facility provides a server that will listen for HTTP web-service requests and map them to the web-service
 	endpoints defined by your application. A full description of how to configure this facility can be found at http://granitic.io/1.0/ref/http-server
 
-	This package defines two main types HttpServer and AccessLogWriter. HttpServer is a layer over Go's built-in http.Server adding runtime control (suspension, resumption)
+	This package defines two main types HTTPServer and AccessLogWriter. HTTPServer is a layer over Go's built-in http.Server adding runtime control (suspension, resumption)
 	and mapping of requests to instances of ws.Handler. AccessLogWriter supports Apache/Tomcat style access log formatting and writing.
 
 	Most applications will only need to enable this facility (probably changing the listen Port) and define mappings between incoming paths and application logic in their
@@ -33,13 +33,13 @@ import (
 )
 
 type registeredProvider struct {
-	Provider httpendpoint.HttpEndpointProvider
+	Provider httpendpoint.HTTPEndpointProvider
 	Pattern  *regexp.Regexp
 }
 
-type HttpServer struct {
+type HTTPServer struct {
 	registeredProvidersByMethod map[string][]*registeredProvider
-	unregisteredProviders       map[string]httpendpoint.HttpEndpointProvider
+	unregisteredProviders       map[string]httpendpoint.HTTPEndpointProvider
 	componentContainer          *ioc.ComponentContainer
 
 	// Logger used by Granitic framework components. Automatically injected.
@@ -51,7 +51,7 @@ type HttpServer struct {
 	// Whether or not access logging should be enabled.
 	AccessLogging bool
 
-	// Whether or not instances of httpendpoint.HttpEndpointProvider found in the IoC container should be automatically
+	// Whether or not instances of httpendpoint.HTTPEndpointProvider found in the IoC container should be automatically
 	// registered with this server
 	AutoFindHandlers bool
 
@@ -96,13 +96,13 @@ type HttpServer struct {
 }
 
 // Implements ioc.ContainerAccessor
-func (h *HttpServer) Container(container *ioc.ComponentContainer) {
+func (h *HTTPServer) Container(container *ioc.ComponentContainer) {
 	h.componentContainer = container
 }
 
-func (h *HttpServer) registerProvider(endPointProvider httpendpoint.HttpEndpointProvider) {
+func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HTTPEndpointProvider) {
 
-	for _, method := range endPointProvider.SupportedHttpMethods() {
+	for _, method := range endPointProvider.SupportedHTTPMethods() {
 		var compiledRegex *regexp.Regexp
 		var err error
 
@@ -129,10 +129,10 @@ func (h *HttpServer) registerProvider(endPointProvider httpendpoint.HttpEndpoint
 
 }
 
-// StartComponent Finds and registers any available components that implement httpendpoint.HttpEndpointProvider (normally instances of
+// StartComponent Finds and registers any available components that implement httpendpoint.HTTPEndpointProvider (normally instances of
 // handler.WsHandler) unless auto finding of handlers is disabled. The server does not actually start listening for
 // requests until the IoC container calls AllowAccess.
-func (h *HttpServer) StartComponent() error {
+func (h *HTTPServer) StartComponent() error {
 
 	if h.state != ioc.StoppedState {
 		return nil
@@ -146,8 +146,8 @@ func (h *HttpServer) StartComponent() error {
 
 			name := component.Name
 
-			if provider, found := component.Instance.(httpendpoint.HttpEndpointProvider); found && provider.AutoWireable() {
-				h.FrameworkLogger.LogDebugf("Found HttpEndpointProvider %s", name)
+			if provider, found := component.Instance.(httpendpoint.HTTPEndpointProvider); found && provider.AutoWireable() {
+				h.FrameworkLogger.LogDebugf("Found HTTPEndpointProvider %s", name)
 				h.registerProvider(provider)
 			}
 		}
@@ -192,7 +192,7 @@ func (h *HttpServer) StartComponent() error {
 }
 
 // Suspend causes all subsequent new HTTP requests to receive a 'too busy' response until Resume is called.
-func (h *HttpServer) Suspend() error {
+func (h *HTTPServer) Suspend() error {
 
 	if h.state != ioc.RunningState {
 		return nil
@@ -204,7 +204,7 @@ func (h *HttpServer) Suspend() error {
 }
 
 // Resume allows subsequent requests to be processed normally (reserves the effect of calling Suspend).
-func (h *HttpServer) Resume() error {
+func (h *HTTPServer) Resume() error {
 
 	if h.state != ioc.SuspendedState {
 		return nil
@@ -216,7 +216,7 @@ func (h *HttpServer) Resume() error {
 }
 
 // AllowAccess starts the server listening on the configured address and port. Returns an error if the port is already in use.
-func (h *HttpServer) AllowAccess() error {
+func (h *HTTPServer) AllowAccess() error {
 
 	if h.state != ioc.AwaitingAccessState {
 		return nil
@@ -250,12 +250,12 @@ func (h *HttpServer) AllowAccess() error {
 	return nil
 }
 
-// SetProvidersManually manually injects a set of httpendpoint.HttpEndpointProviders when auto finding is disabled.
-func (h *HttpServer) SetProvidersManually(p map[string]httpendpoint.HttpEndpointProvider) {
+// SetProvidersManually manually injects a set of httpendpoint.HTTPEndpointProviders when auto finding is disabled.
+func (h *HTTPServer) SetProvidersManually(p map[string]httpendpoint.HTTPEndpointProvider) {
 	h.unregisteredProviders = p
 }
 
-func (h *HttpServer) writeAbnormal(ctx context.Context, status int, wrw *httpendpoint.HttpResponseWriter, err ...error) {
+func (h *HTTPServer) writeAbnormal(ctx context.Context, status int, wrw *httpendpoint.HTTPResponseWriter, err ...error) {
 
 	if len(err) > 0 {
 		h.FrameworkLogger.LogErrorf(err[0].Error())
@@ -268,7 +268,7 @@ func (h *HttpServer) writeAbnormal(ctx context.Context, status int, wrw *httpend
 
 }
 
-func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
+func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	var instrumentor instrument.Instrumentor
 	var endInstrumentation func()
@@ -280,7 +280,7 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 		defer endInstrumentation()
 	}
 
-	wrw := httpendpoint.NewHttpResponseWriter(res)
+	wrw := httpendpoint.NewHTTPResponseWriter(res)
 
 	if h.state != ioc.RunningState {
 		// The HTTP server is suspended - reject the request
@@ -344,7 +344,7 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 		if pattern.MatchString(path) && h.versionMatch(instrumentor, req, handlerPattern.Provider) {
 			h.FrameworkLogger.LogTracef("Matches %s", pattern.String())
 			matched = true
-			ctx = handlerPattern.Provider.ServeHttp(ctx, wrw, req)
+			ctx = handlerPattern.Provider.ServeHTTP(ctx, wrw, req)
 		}
 	}
 
@@ -363,7 +363,7 @@ func (h *HttpServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func (h *HttpServer) versionMatch(ri instrument.Instrumentor, r *http.Request, p httpendpoint.HttpEndpointProvider) bool {
+func (h *HTTPServer) versionMatch(ri instrument.Instrumentor, r *http.Request, p httpendpoint.HTTPEndpointProvider) bool {
 
 	if h.VersionExtractor == nil || !p.VersionAware() {
 		return true
@@ -378,7 +378,7 @@ func (h *HttpServer) versionMatch(ri instrument.Instrumentor, r *http.Request, p
 }
 
 // PrepareToStop sets state to Stopping. Any subsequent requests will receive a 'too busy response'
-func (h *HttpServer) PrepareToStop() {
+func (h *HTTPServer) PrepareToStop() {
 	h.state = ioc.StoppingState
 
 	if h.server != nil {
@@ -388,7 +388,7 @@ func (h *HttpServer) PrepareToStop() {
 }
 
 // ReadyToStop returns false is the server is currently handling any requests.
-func (h *HttpServer) ReadyToStop() (bool, error) {
+func (h *HTTPServer) ReadyToStop() (bool, error) {
 	a := h.ActiveRequests
 	ready := a <= 0
 
@@ -404,7 +404,7 @@ func (h *HttpServer) ReadyToStop() (bool, error) {
 
 // Stop sets state to Stopped. Any subsequent requests will receive a 'too busy response'. Note that the HTTP
 // server is still listening on its configured port and address.
-func (h *HttpServer) Stop() error {
+func (h *HTTPServer) Stop() error {
 
 	h.state = ioc.StoppedState
 
