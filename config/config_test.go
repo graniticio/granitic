@@ -48,7 +48,7 @@ func TestTypeDetection(t *testing.T) {
 	}
 }
 
-func LoadConfigFromFile(f string) *ConfigAccessor {
+func LoadConfigFromFile(f string) *Accessor {
 
 	osp := filepath.Join("config", f)
 
@@ -59,7 +59,7 @@ func LoadConfigFromFile(f string) *ConfigAccessor {
 	b, _ := ioutil.ReadFile(p)
 	json.Unmarshal(b, &d)
 
-	ca := new(ConfigAccessor)
+	ca := new(Accessor)
 	ca.FrameworkLogger = l
 	ca.JSONData = d.(map[string]interface{})
 

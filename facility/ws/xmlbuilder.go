@@ -25,7 +25,7 @@ type XMLWsFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
+func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
 
 	wc := buildAndRegisterWsCommon(lm, ca, cc)
 
@@ -51,7 +51,7 @@ func (fb *XMLWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 	return nil
 }
 
-func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
+func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.Accessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
 
 	rw := new(xml.TemplatedXMLResponseWriter)
 	ca.Populate("XMLWs.ResponseWriter", rw)
@@ -64,7 +64,7 @@ func (fb *XMLWsFacilityBuilder) createTemplateComponents(ca *config.ConfigAccess
 
 }
 
-func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.ConfigAccessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
+func (fb *XMLWsFacilityBuilder) createMarshalComponents(ca *config.Accessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.WsResponseWriter {
 
 	rw := new(ws.MarshallingResponseWriter)
 	ca.Populate("XMLWs.ResponseWriter", rw)

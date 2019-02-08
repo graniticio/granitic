@@ -82,7 +82,7 @@ import (
 const (
 	initiatorComponentName      string = instance.FrameworkPrefix + "Init"
 	systemPath                         = "System"
-	configAccessorComponentName string = instance.FrameworkPrefix + "ConfigAccessor"
+	configAccessorComponentName string = instance.FrameworkPrefix + "Accessor"
 	instanceIdDecoratorName            = instance.FrameworkPrefix + "InstanceIdDecorator"
 )
 
@@ -228,9 +228,9 @@ func (i *initiator) shutdown(cc *ioc.ComponentContainer) {
 	cc.Lifecycle.StopAll()
 }
 
-// Merge together all of the local and remote JSON configuration files and wrap them in a *config.ConfigAccessor
+// Merge together all of the local and remote JSON configuration files and wrap them in a *config.Accessor
 // which allows programmatic access to the merged config.
-func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *logging.ComponentLoggerManager) *config.ConfigAccessor {
+func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *logging.ComponentLoggerManager) *config.Accessor {
 
 	builtIn := map[string]interface{}{}
 
@@ -275,7 +275,7 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 		instance.ExitError()
 	}
 
-	return &config.ConfigAccessor{mergedJSON, fl}
+	return &config.Accessor{mergedJSON, fl}
 }
 
 // Record the files and URLs used to create a merged configuration (in the order in which they will be merged)
@@ -291,7 +291,7 @@ func (i *initiator) logConfigLocations(configPaths []string) {
 }
 
 // Load system settings covering memory management and start/stop behaviour from configuration
-func (i *initiator) loadSystemsSettings(ca *config.ConfigAccessor) *instance.System {
+func (i *initiator) loadSystemsSettings(ca *config.Accessor) *instance.System {
 
 	s := new(instance.System)
 	l := i.logger

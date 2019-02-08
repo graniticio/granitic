@@ -34,7 +34,7 @@ func TestPathParsing(t *testing.T) {
 
 }
 
-func LoadTestConfig() *config.ConfigAccessor {
+func LoadTestConfig() *config.Accessor {
 
 	cfp := filepath.Join("validate", "validation.json")
 
@@ -43,7 +43,7 @@ func LoadTestConfig() *config.ConfigAccessor {
 
 	mergedJSON, _ := jsonMerger.LoadAndMergeConfig([]string{cFile})
 
-	return &config.ConfigAccessor{mergedJSON, new(logging.ConsoleErrorLogger)}
+	return &config.Accessor{mergedJSON, new(logging.ConsoleErrorLogger)}
 }
 
 func TestConfigParsing(t *testing.T) {

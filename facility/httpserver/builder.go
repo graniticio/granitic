@@ -28,7 +28,7 @@ type HTTPServerFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (hsfb *HTTPServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (hsfb *HTTPServerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	httpServer := new(HTTPServer)
 	ca.Populate("HTTPServer", httpServer)

@@ -83,7 +83,7 @@ import (
 type FacilityBuilder interface {
 	//BuildAndRegister constructs the components that together constitute the facility and stores them in the IoC
 	// container.
-	BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error
+	BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error
 
 	//FacilityName returns the facility's unique name. Used to check whether the facility is enabled in configuration.
 	FacilityName() string

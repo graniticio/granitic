@@ -129,7 +129,7 @@ func SerialiseBuiltinConfig() string {
 	return ""
 }
 
-func (b *Binder) writeBindings(w *bufio.Writer, ca *config.ConfigAccessor) {
+func (b *Binder) writeBindings(w *bufio.Writer, ca *config.Accessor) {
 	b.writePackage(w)
 	b.writeImports(w, ca)
 
@@ -161,7 +161,7 @@ func (b *Binder) writePackage(w *bufio.Writer) {
 	w.WriteString(l)
 }
 
-func (b *Binder) writeImports(w *bufio.Writer, configAccessor *config.ConfigAccessor) {
+func (b *Binder) writeImports(w *bufio.Writer, configAccessor *config.Accessor) {
 	packages, err := configAccessor.Array(packagesField)
 	b.checkErr(err)
 
@@ -564,7 +564,7 @@ func (b *Binder) openOutputFile(p string) *os.File {
 	return f
 }
 
-func (b *Binder) parseTemplates(ca *config.ConfigAccessor) map[string]interface{} {
+func (b *Binder) parseTemplates(ca *config.Accessor) map[string]interface{} {
 
 	flattened := make(map[string]interface{})
 
@@ -606,7 +606,7 @@ func (b *Binder) writeSerialisedConfig(w *bufio.Writer) {
 
 }
 
-func (b *Binder) writeFrameworkModifiers(w *bufio.Writer, ca *config.ConfigAccessor) {
+func (b *Binder) writeFrameworkModifiers(w *bufio.Writer, ca *config.Accessor) {
 
 	tabs := 1
 
@@ -717,7 +717,7 @@ func (b *Binder) contains(a []string, c string) bool {
 	return false
 }
 
-func (b *Binder) loadConfig(l string) *config.ConfigAccessor {
+func (b *Binder) loadConfig(l string) *config.Accessor {
 
 	s := strings.Split(l, ",")
 	fl, err := config.ExpandToFilesAndURLs(s)
@@ -734,7 +734,7 @@ func (b *Binder) loadConfig(l string) *config.ConfigAccessor {
 		b.exitError(m)
 	}
 
-	ca := new(config.ConfigAccessor)
+	ca := new(config.Accessor)
 	ca.JSONData = mc
 	ca.FrameworkLogger = new(logging.ConsoleErrorLogger)
 

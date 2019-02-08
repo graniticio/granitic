@@ -52,7 +52,7 @@ func NewFacilitiesInitialisor(cc *ioc.ComponentContainer, flm *logging.Component
 // corresponding FacilityBuilder to initialise and configure them.
 type FacilitiesInitialisor struct {
 	// Access to the merged view of application configuration.
-	ConfigAccessor *config.ConfigAccessor
+	ConfigAccessor *config.Accessor
 
 	//A ComponentLoggerManager able to create Loggers for built-in Granitic components.
 	FrameworkLoggingManager *logging.ComponentLoggerManager
@@ -106,7 +106,7 @@ func (fi *FacilitiesInitialisor) buildEnabledFacilities() error {
 
 // Initialise creates a FacilityBuilder for each of the built-in Granitic facilities and then
 // builds those facilities that have been enabled by the user.
-func (fi *FacilitiesInitialisor) Initialise(ca *config.ConfigAccessor) error {
+func (fi *FacilitiesInitialisor) Initialise(ca *config.Accessor) error {
 	fi.ConfigAccessor = ca
 
 	fc, err := ca.ObjectVal("Facilities")

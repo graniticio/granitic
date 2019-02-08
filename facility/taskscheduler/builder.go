@@ -20,7 +20,7 @@ type TaskSchedulerFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (fb *TaskSchedulerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (fb *TaskSchedulerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	ts := new(schedule.TaskScheduler)
 	ts.FrameworkLogManager = lm

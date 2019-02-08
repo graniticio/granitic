@@ -105,7 +105,7 @@ type QueryManagerFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (qmfb *QueryManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	queryManager := new(dsquery.TemplatedQueryManager)
 	ca.Populate("QueryManager", queryManager)

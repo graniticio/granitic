@@ -25,7 +25,7 @@ type ComponentByNameFinder interface {
 }
 
 // Create a new instance of a Granitic IoC container.
-func NewComponentContainer(logm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, sys *instance.System) *ComponentContainer {
+func NewComponentContainer(logm *logging.ComponentLoggerManager, ca *config.Accessor, sys *instance.System) *ComponentContainer {
 
 	cc := new(ComponentContainer)
 	cc.protoComponents = make(map[string]*ProtoComponent)
@@ -54,7 +54,7 @@ type ComponentContainer struct {
 	allComponents      map[string]*Component
 	protoComponents    map[string]*ProtoComponent
 	FrameworkLogger    logging.Logger
-	configAccessor     *config.ConfigAccessor
+	configAccessor     *config.Accessor
 	byLifecycleSupport map[LifecycleSupport][]*Component
 	modifiers          map[string]map[string]string
 	Lifecycle          *LifecycleManager

@@ -24,7 +24,7 @@ type ServiceErrorManagerFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (fb *ServiceErrorManagerFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	manager := new(ge.ServiceErrorManager)
 	manager.FrameworkLogger = lm.CreateLogger(serviceErrorManagerComponentName)
@@ -72,7 +72,7 @@ func (fb *ServiceErrorManagerFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
 
-func (fb *ServiceErrorManagerFacilityBuilder) loadMessagesFromConfig(dPath string, ca *config.ConfigAccessor) ([]interface{}, error) {
+func (fb *ServiceErrorManagerFacilityBuilder) loadMessagesFromConfig(dPath string, ca *config.Accessor) ([]interface{}, error) {
 
 	if !ca.PathExists(dPath) {
 		m := fmt.Sprintf("No error definitions found at config path %s", dPath)

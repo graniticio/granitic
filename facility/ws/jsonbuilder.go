@@ -25,7 +25,7 @@ type JsonWsFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (fb *JsonWsFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	wc := buildAndRegisterWsCommon(lm, ca, cn)
 

@@ -28,7 +28,7 @@ type ApplicationLoggingFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 	globalLogLevelLabel, err := ca.StringVal("ApplicationLogger.GlobalLogLevel")
 
 	if err != nil {
@@ -71,7 +71,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) BuildAndRegister(lm *logging.Comp
 	return nil
 }
 
-func (alfb *ApplicationLoggingFacilityBuilder) addRuntimeCommands(ca *config.ConfigAccessor, alm *logging.ComponentLoggerManager, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
+func (alfb *ApplicationLoggingFacilityBuilder) addRuntimeCommands(ca *config.Accessor, alm *logging.ComponentLoggerManager, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
 
 	if !runtimectl.RuntimeCtlEnabled(ca) {
 		return
@@ -91,7 +91,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) addRuntimeCommands(ca *config.Con
 
 }
 
-func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.ConfigAccessor) (*logging.LogMessageFormatter, error) {
+func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.Accessor) (*logging.LogMessageFormatter, error) {
 
 	lmf := new(logging.LogMessageFormatter)
 
@@ -107,7 +107,7 @@ func (alfb *ApplicationLoggingFacilityBuilder) buildFormatter(ca *config.ConfigA
 
 }
 
-func (alfb *ApplicationLoggingFacilityBuilder) buildWriters(ca *config.ConfigAccessor) ([]logging.LogWriter, error) {
+func (alfb *ApplicationLoggingFacilityBuilder) buildWriters(ca *config.Accessor) ([]logging.LogWriter, error) {
 	writers := make([]logging.LogWriter, 0)
 
 	if console, err := ca.BoolVal("LogWriting.EnableConsoleLogging"); err != nil {

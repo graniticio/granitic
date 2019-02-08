@@ -36,7 +36,7 @@ type RdbmsAccessFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) error {
+func (rafb *RdbmsAccessFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	log := lm.CreateLogger(instance.FrameworkPrefix + "RdbmsAccessFacilityBuilder")
 	rafb.Log = log

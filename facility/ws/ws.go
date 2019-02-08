@@ -80,7 +80,7 @@ func offerAbnormalStatusWriter(arw ws.AbnormalStatusWriter, cc *ioc.ComponentCon
 	}
 }
 
-func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cn *ioc.ComponentContainer) *wsCommon {
+func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) *wsCommon {
 
 	scd := new(ws.GraniticHTTPStatusCodeDeterminer)
 	cn.WrapAndAddProto(wsHTTPStatusDeterminerComponentName, scd)

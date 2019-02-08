@@ -84,7 +84,7 @@ const (
 type RuntimeCtlFacilityBuilder struct {
 }
 
-func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.ConfigAccessor, cc *ioc.ComponentContainer) error {
+func (fb *RuntimeCtlFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
 
 	sv := new(httpserver.HTTPServer)
 	ca.Populate("RuntimeCtl.Server", sv)

@@ -107,9 +107,9 @@ const (
 	JSONBool    = 4
 )
 
-// A ConfigAccessor provides access to a merged view of configuration files during the initialisation and
+// A Accessor provides access to a merged view of configuration files during the initialisation and
 // configuration of the Granitic IoC container.
-type ConfigAccessor struct {
+type Accessor struct {
 	// The merged JSON configuration in object form.
 	JSONData map[string]interface{}
 
@@ -119,19 +119,19 @@ type ConfigAccessor struct {
 
 // Flush removes internal references to the (potentially very large) merged JSON data so the associated
 // memory can be recovered during the next garbage collection.
-func (c *ConfigAccessor) Flush() {
+func (c *Accessor) Flush() {
 	c.JSONData = nil
 }
 
 // PathExists check to see whether the supplied dot-delimited path exists in the configuration and points to a non-null JSON value.
-func (c *ConfigAccessor) PathExists(path string) bool {
+func (c *Accessor) PathExists(path string) bool {
 	value := c.Value(path)
 
 	return value != nil
 }
 
 // Value returns the JSON value at the supplied path or nil if the path does not exist of points to a null JSON value.
-func (c *ConfigAccessor) Value(path string) interface{} {
+func (c *Accessor) Value(path string) interface{} {
 
 	splitPath := strings.Split(path, JSONPathSeparator)
 
@@ -141,7 +141,7 @@ func (c *ConfigAccessor) Value(path string) interface{} {
 
 // ObjectVal returns a map representing a JSON object or nil if the path does not exist of points to a null JSON value. An error
 // is returned if the value cannot be interpreted as a JSON object.
-func (c *ConfigAccessor) ObjectVal(path string) (map[string]interface{}, error) {
+func (c *Accessor) ObjectVal(path string) (map[string]interface{}, error) {
 
 	value := c.Value(path)
 
@@ -159,7 +159,7 @@ func (c *ConfigAccessor) ObjectVal(path string) (map[string]interface{}, error) 
 
 // ObjectVal returns the string value of the JSON string at the supplied path. Does not convert other types to
 // a string, so will return an error if the value is not a JSON string.
-func (c *ConfigAccessor) StringVal(path string) (string, error) {
+func (c *Accessor) StringVal(path string) (string, error) {
 
 	v := c.Value(path)
 
@@ -182,7 +182,7 @@ func (c *ConfigAccessor) StringVal(path string) (string, error) {
 // are internally represented by Go as a float64, so no error will be returned, but data might be lost
 // if the JSON number does not actually represent an int. An error will be returned if the value is not a JSON number
 // or cannot be converted to an int.
-func (c *ConfigAccessor) IntVal(path string) (int, error) {
+func (c *Accessor) IntVal(path string) (int, error) {
 
 	v := c.Value(path)
 
@@ -200,7 +200,7 @@ func (c *ConfigAccessor) IntVal(path string) (int, error) {
 }
 
 // IntVal returns the float64 value of the JSON number at the supplied path. An error will be returned if the value is not a JSON number.
-func (c *ConfigAccessor) Float64Val(path string) (float64, error) {
+func (c *Accessor) Float64Val(path string) (float64, error) {
 
 	v := c.Value(path)
 
@@ -219,7 +219,7 @@ func (c *ConfigAccessor) Float64Val(path string) (float64, error) {
 
 // Array returns the value of an array of JSON obects at the supplied path. Caution should be used when calling this method
 // as behaviour is undefined for JSON arrays of JSON types other than object.
-func (c *ConfigAccessor) Array(path string) ([]interface{}, error) {
+func (c *Accessor) Array(path string) ([]interface{}, error) {
 
 	value := c.Value(path)
 
@@ -238,7 +238,7 @@ func (c *ConfigAccessor) Array(path string) ([]interface{}, error) {
 
 // BoolVal returns the bool value of the JSON bool at the supplied path. An error will be returned if the value is not a JSON bool.
 // Note this method only suports the JSON definition of bools (true, false) not the Go definition (true, false, 1, 0 etc).
-func (c *ConfigAccessor) BoolVal(path string) (bool, error) {
+func (c *Accessor) BoolVal(path string) (bool, error) {
 
 	v := c.Value(path)
 
@@ -273,7 +273,7 @@ func JSONType(value interface{}) int {
 	}
 }
 
-func (c *ConfigAccessor) configVal(path []string, jsonMap map[string]interface{}) interface{} {
+func (c *Accessor) configVal(path []string, jsonMap map[string]interface{}) interface{} {
 
 	var result interface{}
 	result = jsonMap[path[0]]
@@ -294,7 +294,7 @@ func (c *ConfigAccessor) configVal(path []string, jsonMap map[string]interface{}
 // target. The target must be a pointer to a struct. The field must be a string, bool, int, float63, string[interface{}] map
 // or a slice of one of those types. An eror will be returned if the target field, is missing, not settable or incompatiable
 // with the JSON value at the supplied path.
-func (ca *ConfigAccessor) SetField(fieldName string, path string, target interface{}) error {
+func (ca *Accessor) SetField(fieldName string, path string, target interface{}) error {
 
 	if !ca.PathExists(path) {
 		return errors.New("No value found at " + path)
@@ -340,7 +340,7 @@ func (ca *ConfigAccessor) SetField(fieldName string, path string, target interfa
 	return nil
 }
 
-func (ca *ConfigAccessor) populateSlice(targetField reflect.Value, path string, target interface{}) {
+func (ca *Accessor) populateSlice(targetField reflect.Value, path string, target interface{}) {
 
 	v := ca.Value(path)
 
@@ -357,7 +357,7 @@ func (ca *ConfigAccessor) populateSlice(targetField reflect.Value, path string, 
 
 }
 
-func (ca *ConfigAccessor) populateMapField(targetField reflect.Value, contents map[string]interface{}) error {
+func (ca *Accessor) populateMapField(targetField reflect.Value, contents map[string]interface{}) error {
 	var err error
 
 	m := reflect.MakeMap(targetField.Type())
@@ -383,7 +383,7 @@ func (ca *ConfigAccessor) populateMapField(targetField reflect.Value, contents m
 	return nil
 }
 
-func (ca *ConfigAccessor) arrayVal(a reflect.Value) (reflect.Value, error) {
+func (ca *Accessor) arrayVal(a reflect.Value) (reflect.Value, error) {
 
 	v := a.Interface().([]interface{})
 	l := len(v)
@@ -416,7 +416,7 @@ func (ca *ConfigAccessor) arrayVal(a reflect.Value) (reflect.Value, error) {
 // Populate sets the fields on the supplied target object using the JSON data
 // at the supplied path. This is acheived using Go's json.Marshal to convert the data
 // back into text JSON and then json.Unmarshal to unmarshal back into the target.
-func (ca *ConfigAccessor) Populate(path string, target interface{}) error {
+func (ca *Accessor) Populate(path string, target interface{}) error {
 	exists := ca.PathExists(path)
 
 	if !exists {
