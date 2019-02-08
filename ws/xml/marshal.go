@@ -31,7 +31,7 @@
 
 	in your application configuration file.
 
-	In MARSHAL mode the data and errors in your endpoint's WsResponse objects are serialised using Go's built-in XML
+	In MARSHAL mode the data and errors in your endpoint's Response objects are serialised using Go's built-in XML
 	marshalling techniques. See https://golang.org/pkg/encoding/xml/#Marshal. In TEMPLATE mode each endpoint is
 	associated with the name of a template file which is populated with the data and errors in your response. See
 	http://granitic.io/1.0/ref/xml#templates for more details.
@@ -58,7 +58,7 @@ import (
 
 // Component wrapper over Go's xml.Marshalxx functions. Serialises a struct to XML and writes it to the HTTP response
 // output stream.
-type XMLMarshalingWriter struct {
+type MarshalingWriter struct {
 	// Format generated XML in a human readable form.
 	PrettyPrint bool
 
@@ -70,7 +70,7 @@ type XMLMarshalingWriter struct {
 }
 
 // MarshalAndWrite serialises the supplied interface to XML and writes it to the HTTP response output stream.
-func (mw *XMLMarshalingWriter) MarshalAndWrite(data interface{}, w http.ResponseWriter) error {
+func (mw *MarshalingWriter) MarshalAndWrite(data interface{}, w http.ResponseWriter) error {
 
 	var b []byte
 	var err error
@@ -125,14 +125,14 @@ func (ef *GraniticXMLErrorFormatter) FormatErrors(errors *ws.ServiceErrors) inte
 		return nil
 	}
 
-	es := new(XMLErrors)
+	es := new(Errors)
 	es.XMLName = xml.Name{"", "errors"}
 
-	fe := make([]*GraniticXMLError, len(errors.Errors))
+	fe := make([]*GraniticError, len(errors.Errors))
 
 	for i, se := range errors.Errors {
 
-		e := new(GraniticXMLError)
+		e := new(GraniticError)
 		e.XMLName = xml.Name{"", "error"}
 
 		fe[i] = e
@@ -149,13 +149,13 @@ func (ef *GraniticXMLErrorFormatter) FormatErrors(errors *ws.ServiceErrors) inte
 }
 
 //Wrapper to create an errors element in generated XML
-type XMLErrors struct {
+type Errors struct {
 	XMLName xml.Name
 	Errors  interface{}
 }
 
 //Default XML representation of a service error. See ws.CategorisedError
-type GraniticXMLError struct {
+type GraniticError struct {
 	XMLName  xml.Name
 	Error    string `xml:",chardata"`
 	Field    string `xml:"field,attr,omitempty"`

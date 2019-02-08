@@ -115,7 +115,7 @@ type wsCommon struct {
 	StatusDeterminer *ws.GraniticHTTPStatusCodeDeterminer
 }
 
-func buildRegisterWsDecorator(cc *ioc.ComponentContainer, rw ws.WsResponseWriter, um ws.WsUnmarshaller, wc *wsCommon, lm *logging.ComponentLoggerManager) {
+func buildRegisterWsDecorator(cc *ioc.ComponentContainer, rw ws.ResponseWriter, um ws.Unmarshaller, wc *wsCommon, lm *logging.ComponentLoggerManager) {
 
 	decoratorLogger := lm.CreateLogger(wsHandlerDecoratorName)
 	decorator := wsHandlerDecorator{decoratorLogger, rw, um, wc.ParamBinder, wc.FrameworkErrors}
@@ -124,8 +124,8 @@ func buildRegisterWsDecorator(cc *ioc.ComponentContainer, rw ws.WsResponseWriter
 
 type wsHandlerDecorator struct {
 	FrameworkLogger logging.Logger
-	ResponseWriter  ws.WsResponseWriter
-	Unmarshaller    ws.WsUnmarshaller
+	ResponseWriter  ws.ResponseWriter
+	Unmarshaller    ws.Unmarshaller
 	QueryBinder     *ws.ParamBinder
 	FrameworkErrors *ws.FrameworkErrorGenerator
 }

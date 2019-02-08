@@ -96,7 +96,7 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 	rw.FrameworkLogger = lm.CreateLogger(runtimeCtlResponseWriter)
 	sv.AbnormalStatusWriter = rw
 
-	mw := new(json.JSONMarshalingWriter)
+	mw := new(json.MarshalingWriter)
 	ca.Populate("RuntimeCtl.Marshal", mw)
 	rw.MarshalingWriter = mw
 
@@ -125,7 +125,7 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 	h.ResponseWriter = rw
 	h.FrameworkErrors = feg
 
-	um := new(json.StandardJSONUnmarshaller)
+	um := new(json.Unmarshaller)
 	um.FrameworkLogger = lm.CreateLogger(runtimeCtlUnmarshaller)
 
 	h.Unmarshaller = um

@@ -11,10 +11,10 @@ import (
 	"strconv"
 )
 
-type bindError func(string, string, string, *WsParams) *WsFrameworkError
+type bindError func(string, string, string, *Params) *FrameworkError
 
 // Takes string parameters extracted from an HTTP request, converts them to Go native or Granitic nilable types and
-// injects them into the RequestBody on a WsRequest.
+// injects them into the RequestBody on a Request.
 type ParamBinder struct {
 	// Injected by Granitic
 	FrameworkLogger logging.Logger
@@ -24,9 +24,9 @@ type ParamBinder struct {
 }
 
 // BindPathParameters takes strings extracted from an HTTP's request path (using regular expression groups) and
-// injects them into fields on the WsRequest.RequestBody. Any errors encountered are recorded as framework errors in
-// the WsRequest.
-func (pb *ParamBinder) BindPathParameters(wsReq *WsRequest, p *WsParams) {
+// injects them into fields on the Request.RequestBody. Any errors encountered are recorded as framework errors in
+// the Request.
+func (pb *ParamBinder) BindPathParameters(wsReq *Request, p *Params) {
 
 	t := wsReq.RequestBody
 
@@ -51,9 +51,9 @@ func (pb *ParamBinder) BindPathParameters(wsReq *WsRequest, p *WsParams) {
 }
 
 // BindPathParameters takes the query parameters from an HTTP request and
-// injects them into fields on the WsRequest.RequestBody using the keys of the supplied map as the name of the target fields.
-// Any errors encountered are recorded as framework errors in the WsRequest.
-func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]string) {
+// injects them into fields on the Request.RequestBody using the keys of the supplied map as the name of the target fields.
+// Any errors encountered are recorded as framework errors in the Request.
+func (pb *ParamBinder) BindQueryParameters(wsReq *Request, targets map[string]string) {
 
 	t := wsReq.RequestBody
 	p := wsReq.QueryParams
@@ -86,9 +86,9 @@ func (pb *ParamBinder) BindQueryParameters(wsReq *WsRequest, targets map[string]
 }
 
 // BindPathParameters takes the query parameters from an HTTP request and
-// injects them into fields on the WsRequest.RequestBody assuming the parameters have exactly the same name as the target
-// fields. Any errors encountered are recorded as framework errors in the WsRequest.
-func (pb *ParamBinder) AutoBindQueryParameters(wsReq *WsRequest) {
+// injects them into fields on the Request.RequestBody assuming the parameters have exactly the same name as the target
+// fields. Any errors encountered are recorded as framework errors in the Request.
+func (pb *ParamBinder) AutoBindQueryParameters(wsReq *Request) {
 
 	t := wsReq.RequestBody
 	p := wsReq.QueryParams
@@ -150,7 +150,7 @@ FieldLoop:
 
 }
 
-func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeName string, p *WsParams) *WsFrameworkError {
+func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeName string, p *Params) *FrameworkError {
 
 	var v = ""
 
@@ -163,7 +163,7 @@ func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeN
 
 }
 
-func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeName string, p *WsParams) *WsFrameworkError {
+func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeName string, p *Params) *FrameworkError {
 
 	var v = ""
 
@@ -176,7 +176,7 @@ func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeNa
 
 }
 
-func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *WsParams, t interface{}, errorFn bindError) *WsFrameworkError {
+func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *Params, t interface{}, errorFn bindError) *FrameworkError {
 
 	if !rt.TargetFieldIsArray(t, fieldName) && p.MultipleValues(paramName) {
 		m, c := pb.FrameworkErrors.MessageCode(QueryTargetNotArray, fieldName)
@@ -219,7 +219,7 @@ func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *W
 
 }
 
-func (pb *ParamBinder) considerStructField(paramName string, fieldName string, qp *WsParams, t interface{}, errorFn bindError) *WsFrameworkError {
+func (pb *ParamBinder) considerStructField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) *FrameworkError {
 
 	tf := reflect.ValueOf(t).Elem().FieldByName(fieldName)
 	tv := tf.Interface()
@@ -233,10 +233,10 @@ func (pb *ParamBinder) considerStructField(paramName string, fieldName string, q
 	return nil
 }
 
-func (pb *ParamBinder) setNilableField(paramName string, fieldName string, p *WsParams, tf reflect.Value, tv interface{}, errorFn bindError, parent interface{}) *WsFrameworkError {
+func (pb *ParamBinder) setNilableField(paramName string, fieldName string, p *Params, tf reflect.Value, tv interface{}, errorFn bindError, parent interface{}) *FrameworkError {
 	np := new(nillableProxy)
 
-	var e *WsFrameworkError
+	var e *FrameworkError
 	var nv interface{}
 
 	switch tv.(type) {
@@ -273,7 +273,7 @@ func (pb *ParamBinder) setNilableField(paramName string, fieldName string, p *Ws
 	return e
 }
 
-func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *WsParams, t interface{}, errorFn bindError) *WsFrameworkError {
+func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) *FrameworkError {
 	s, err := qp.StringValue(paramName)
 
 	if err != nil {
@@ -285,7 +285,7 @@ func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *Ws
 	return nil
 }
 
-func (pb *ParamBinder) setBoolField(paramName string, fieldName string, qp *WsParams, t interface{}, errorFn bindError) *WsFrameworkError {
+func (pb *ParamBinder) setBoolField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) *FrameworkError {
 	b, err := qp.BoolValue(paramName)
 
 	if err != nil {
@@ -296,7 +296,7 @@ func (pb *ParamBinder) setBoolField(paramName string, fieldName string, qp *WsPa
 	return nil
 }
 
-func (pb *ParamBinder) setIntNField(paramName string, fieldName string, qp *WsParams, t interface{}, bits int, errorFn bindError) *WsFrameworkError {
+func (pb *ParamBinder) setIntNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) *FrameworkError {
 	i, err := qp.IntNValue(paramName, bits)
 
 	if err != nil {
@@ -307,7 +307,7 @@ func (pb *ParamBinder) setIntNField(paramName string, fieldName string, qp *WsPa
 	return nil
 }
 
-func (pb *ParamBinder) setFloatNField(paramName string, fieldName string, qp *WsParams, t interface{}, bits int, errorFn bindError) *WsFrameworkError {
+func (pb *ParamBinder) setFloatNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) *FrameworkError {
 	i, err := qp.FloatNValue(paramName, bits)
 
 	if err != nil {
@@ -318,7 +318,7 @@ func (pb *ParamBinder) setFloatNField(paramName string, fieldName string, qp *Ws
 	return nil
 }
 
-func (pb *ParamBinder) setUintNField(paramName string, fieldName string, qp *WsParams, t interface{}, bits int, errorFn bindError) *WsFrameworkError {
+func (pb *ParamBinder) setUintNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) *FrameworkError {
 	i, err := qp.UIntNValue(paramName, bits)
 
 	if err != nil {

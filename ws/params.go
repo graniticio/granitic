@@ -10,9 +10,9 @@ import (
 	"strconv"
 )
 
-// NewWsParamsForPath creates a WsParams used to store the elements of a request
+// NewWsParamsForPath creates a Params used to store the elements of a request
 // path extracted using regular expression groups.
-func NewWsParamsForPath(targets []string, values []string) *WsParams {
+func NewWsParamsForPath(targets []string, values []string) *Params {
 
 	contents := make(url.Values)
 	v := len(values)
@@ -27,7 +27,7 @@ func NewWsParamsForPath(targets []string, values []string) *WsParams {
 
 	}
 
-	p := new(WsParams)
+	p := new(Params)
 	p.values = contents
 	p.paramNames = names
 
@@ -35,10 +35,10 @@ func NewWsParamsForPath(targets []string, values []string) *WsParams {
 
 }
 
-// NewWsParamsForQuery creates a WsParams storing the HTTP query parameters from a request.
-func NewWsParamsForQuery(values url.Values) *WsParams {
+// NewParamsForQuery creates a Params storing the HTTP query parameters from a request.
+func NewParamsForQuery(values url.Values) *Params {
 
-	wp := new(WsParams)
+	wp := new(Params)
 	wp.values = values
 
 	var names []string
@@ -54,18 +54,18 @@ func NewWsParamsForQuery(values url.Values) *WsParams {
 }
 
 // An abstraction of the HTTP query parameters or path parameters with type-safe accessors.
-type WsParams struct {
+type Params struct {
 	values     url.Values
 	paramNames []string
 }
 
 // ParamNames returns the names of all of the parameters stored
-func (wp *WsParams) ParamNames() []string {
+func (wp *Params) ParamNames() []string {
 	return wp.paramNames
 }
 
 // NotEmpty returns true if a parameter with the supplied name exists and has a non-empty string representation.
-func (wp *WsParams) NotEmpty(key string) bool {
+func (wp *Params) NotEmpty(key string) bool {
 
 	if !wp.Exists(key) {
 		return false
@@ -78,12 +78,12 @@ func (wp *WsParams) NotEmpty(key string) bool {
 }
 
 // Exists returns true if a parameter with the supplied name exists, even if that parameter's value is an empty string.
-func (wp *WsParams) Exists(key string) bool {
+func (wp *Params) Exists(key string) bool {
 	return wp.values[key] != nil
 }
 
 // MultipleValues returns true if the parameter with the supplied name was set more than once (allowed for HTTP query parameters).
-func (wp *WsParams) MultipleValues(key string) bool {
+func (wp *Params) MultipleValues(key string) bool {
 
 	value := wp.values[key]
 
@@ -92,7 +92,7 @@ func (wp *WsParams) MultipleValues(key string) bool {
 }
 
 // StringValue returns the string representation of the specified parameter or an error if no value exists for that parameter.
-func (wp *WsParams) StringValue(key string) (string, error) {
+func (wp *Params) StringValue(key string) (string, error) {
 
 	s := wp.values[key]
 
@@ -105,7 +105,7 @@ func (wp *WsParams) StringValue(key string) (string, error) {
 }
 
 // BoolValue returns the bool representation of the specified parameter (using Go's bool conversion rules) or an error if no value exists for that parameter.
-func (wp *WsParams) BoolValue(key string) (bool, error) {
+func (wp *Params) BoolValue(key string) (bool, error) {
 
 	v := wp.values[key]
 
@@ -121,7 +121,7 @@ func (wp *WsParams) BoolValue(key string) (bool, error) {
 
 // FloatNValue returns a float representation of the specified parameter with the specified bit size, or an error if no value exists for that parameter or
 // if the value could not be converted to a float.
-func (wp *WsParams) FloatNValue(key string, bits int) (float64, error) {
+func (wp *Params) FloatNValue(key string, bits int) (float64, error) {
 
 	v := wp.values[key]
 
@@ -137,7 +137,7 @@ func (wp *WsParams) FloatNValue(key string, bits int) (float64, error) {
 
 // IntNValue returns a signed int representation of the specified parameter with the specified bit size, or an error if no value exists for that parameter or
 // if the value could not be converted to an int.
-func (wp *WsParams) IntNValue(key string, bits int) (int64, error) {
+func (wp *Params) IntNValue(key string, bits int) (int64, error) {
 
 	v := wp.values[key]
 
@@ -153,7 +153,7 @@ func (wp *WsParams) IntNValue(key string, bits int) (int64, error) {
 
 // UIntNValue returns an unsigned int representation of the specified parameter with the specified bit size, or an error if no value exists for that parameter or
 // if the value could not be converted to an unsigned int.
-func (wp *WsParams) UIntNValue(key string, bits int) (uint64, error) {
+func (wp *Params) UIntNValue(key string, bits int) (uint64, error) {
 
 	v := wp.values[key]
 
@@ -167,7 +167,7 @@ func (wp *WsParams) UIntNValue(key string, bits int) (uint64, error) {
 
 }
 
-func (wp *WsParams) noVal(key string) error {
+func (wp *Params) noVal(key string) error {
 	message := fmt.Sprintf("No value available for key %s", key)
 	return errors.New(message)
 }

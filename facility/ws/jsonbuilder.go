@@ -29,7 +29,7 @@ func (fb *JsonFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 
 	wc := buildAndRegisterWsCommon(lm, ca, cn)
 
-	um := new(json.StandardJSONUnmarshaller)
+	um := new(json.Unmarshaller)
 	cn.WrapAndAddProto(jsonUnmarshallerComponentName, um)
 
 	rw := new(ws.MarshallingResponseWriter)
@@ -74,7 +74,7 @@ func (fb *JsonFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "MarshalingWriter") {
 
-		mw := new(json.JSONMarshalingWriter)
+		mw := new(json.MarshalingWriter)
 		ca.Populate("JsonWs.Marshal", mw)
 		rw.MarshalingWriter = mw
 	}

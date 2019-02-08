@@ -49,7 +49,7 @@ import (
 
 // Component wrapper over Go's json.Marshalxx functions. Serialises a struct to JSON and writes it to the HTTP response
 // output stream.
-type JSONMarshalingWriter struct {
+type MarshalingWriter struct {
 	// Format generated JSON in a human readable form.
 	PrettyPrint bool
 
@@ -61,7 +61,7 @@ type JSONMarshalingWriter struct {
 }
 
 // MarshalAndWrite serialises the supplied interface to JSON and writes it to the HTTP response output stream.
-func (mw *JSONMarshalingWriter) MarshalAndWrite(data interface{}, w http.ResponseWriter) error {
+func (mw *MarshalingWriter) MarshalAndWrite(data interface{}, w http.ResponseWriter) error {
 
 	var b []byte
 	var err error

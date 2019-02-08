@@ -17,12 +17,12 @@ func TestQueryAutoBinding(t *testing.T) {
 	q := "S=s&I=1&I8=8&I16=16&I32=32&I64=64&F32=32.0&F64=64.0&B=true&NS=ns&NI=-64&NF=-10.0E2&NB=false"
 
 	v, _ := url.ParseQuery(q)
-	qp := NewWsParamsForQuery(v)
+	qp := NewParamsForQuery(v)
 	bt := new(BindingTarget)
 
 	pb := createParamBinder()
 
-	req := new(WsRequest)
+	req := new(Request)
 	req.QueryParams = qp
 	req.RequestBody = bt
 
@@ -59,12 +59,12 @@ func TestInvalidTargetObjectsAutoBinding(t *testing.T) {
 	q := "ITP=0&ITV=1&ITI2"
 
 	v, _ := url.ParseQuery(q)
-	qp := NewWsParamsForQuery(v)
+	qp := NewParamsForQuery(v)
 	it := new(InvalidTargets)
 
 	pb := createParamBinder()
 
-	req := new(WsRequest)
+	req := new(Request)
 	req.QueryParams = qp
 	req.RequestBody = it
 
@@ -77,12 +77,12 @@ func TestInvalidValuesQueryAutoBinding(t *testing.T) {
 	q := "I=A&I8=B&I16=C6&I32=D&I64=F&F32=G&F64=H&B=10&NI=J&NF=K&NB=11"
 
 	v, _ := url.ParseQuery(q)
-	qp := NewWsParamsForQuery(v)
+	qp := NewParamsForQuery(v)
 	bt := new(BindingTarget)
 
 	pb := createParamBinder()
 
-	req := new(WsRequest)
+	req := new(Request)
 	req.QueryParams = qp
 	req.RequestBody = bt
 
@@ -101,12 +101,12 @@ func TestManualBinding(t *testing.T) {
 	q := "SX=s&IX=1&I8X=8&I16X=16&I32X=32&I64X=64&F32X=32.0&F64X=64.0&BX=true&NSX=ns&NIX=-64&NFX=-10.0E2&NBX=false"
 
 	v, _ := url.ParseQuery(q)
-	qp := NewWsParamsForQuery(v)
+	qp := NewParamsForQuery(v)
 	bt := new(BindingTarget)
 
 	pb := createParamBinder()
 
-	req := new(WsRequest)
+	req := new(Request)
 	req.QueryParams = qp
 	req.RequestBody = bt
 
@@ -157,12 +157,12 @@ func TestMissingFieldManualBinding(t *testing.T) {
 	q := "S=s"
 
 	v, _ := url.ParseQuery(q)
-	qp := NewWsParamsForQuery(v)
+	qp := NewParamsForQuery(v)
 	bt := new(BindingTarget)
 
 	pb := createParamBinder()
 
-	req := new(WsRequest)
+	req := new(Request)
 	req.QueryParams = qp
 	req.RequestBody = bt
 
@@ -182,12 +182,12 @@ func TestWrongTypeManualBinding(t *testing.T) {
 	q := "S=s"
 
 	v, _ := url.ParseQuery(q)
-	qp := NewWsParamsForQuery(v)
+	qp := NewParamsForQuery(v)
 	bt := new(BindingTarget)
 
 	pb := createParamBinder()
 
-	req := new(WsRequest)
+	req := new(Request)
 	req.QueryParams = qp
 	req.RequestBody = bt
 
@@ -208,12 +208,12 @@ func TestSetToNilNillable(t *testing.T) {
 	q := "NS=&NI=&NF=&NB="
 
 	v, _ := url.ParseQuery(q)
-	qp := NewWsParamsForQuery(v)
+	qp := NewParamsForQuery(v)
 	bt := new(BindingTarget)
 
 	pb := createParamBinder()
 
-	req := new(WsRequest)
+	req := new(Request)
 	req.QueryParams = qp
 	req.RequestBody = bt
 
@@ -255,7 +255,7 @@ func TestPathBinding(t *testing.T) {
 
 	pb := createParamBinder()
 
-	req := new(WsRequest)
+	req := new(Request)
 	req.RequestBody = bt
 
 	pb.BindPathParameters(req, p)
@@ -294,7 +294,7 @@ func TestMorePathTargetsThanValues(t *testing.T) {
 
 	pb := createParamBinder()
 
-	req := new(WsRequest)
+	req := new(Request)
 	req.RequestBody = bt
 
 	pb.BindPathParameters(req, p)
@@ -320,7 +320,7 @@ func TestMorePathValuesThanTargets(t *testing.T) {
 
 	pb := createParamBinder()
 
-	req := new(WsRequest)
+	req := new(Request)
 	req.RequestBody = bt
 
 	pb.BindPathParameters(req, p)
@@ -336,7 +336,7 @@ func TestMorePathValuesThanTargets(t *testing.T) {
 
 }
 
-func printErrs(errs []*WsFrameworkError) {
+func printErrs(errs []*FrameworkError) {
 
 	for _, e := range errs {
 		fmt.Printf("%s->%s %s\n", e.ClientField, e.TargetField, e.Message)

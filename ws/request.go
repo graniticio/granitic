@@ -11,48 +11,48 @@ import (
 )
 
 // Stores information about a web service request that has been either copied in or derived from an underlying HTTP request.
-type WsRequest struct {
+type Request struct {
 	// The HTTP method (GET, POST etc) of the underlying HTTP request.
 	HTTPMethod string
 
-	// If the HTTP request had a body and if the handler that generated this WsRequest implements WsUnmarshallTarget,
+	// If the HTTP request had a body and if the handler that generated this Request implements WsUnmarshallTarget,
 	// then RequestBody will contain a struct representation of the request body.
 	RequestBody interface{}
 
 	// A copy of the HTTP query parameters from the underlying HTTP request with type-safe accessors.
-	QueryParams *WsParams
+	QueryParams *Params
 
 	// Information extracted from the path portion of the HTTP request using regular expression groups with type-safe accessors.
 	PathParams []string
 
 	// Problems encountered during the parsing and binding phases of request processing.
-	FrameworkErrors []*WsFrameworkError
+	FrameworkErrors []*FrameworkError
 	populatedFields types.StringSet
 
-	// Information about the web service caller (if the handler has a WsIdentifier).
+	// Information about the web service caller (if the handler has a Identifier).
 	UserIdentity iam.ClientIdentity
 
 	//The underlying HTTP request and response  (if the handler was configured to pass
 	// this information on).
 	UnderlyingHTTP *DirectHTTPAccess
 
-	//The component name of the handler that generated this WsRequest.
+	//The component name of the handler that generated this Request.
 	ServingHandler string
 }
 
 // HasFrameworkErrors returns true if one or more framework errors have been recorded.
-func (wsr *WsRequest) HasFrameworkErrors() bool {
+func (wsr *Request) HasFrameworkErrors() bool {
 	return len(wsr.FrameworkErrors) > 0
 }
 
 // AddFrameworkError records a framework error.
-func (wsr *WsRequest) AddFrameworkError(f *WsFrameworkError) {
+func (wsr *Request) AddFrameworkError(f *FrameworkError) {
 	wsr.FrameworkErrors = append(wsr.FrameworkErrors, f)
 }
 
 // RecordFieldAsBound is used to record the fact that a field on the RequestBody was explicitly set
 // by the query/path parameter binding process.
-func (wsr *WsRequest) RecordFieldAsBound(fieldName string) {
+func (wsr *Request) RecordFieldAsBound(fieldName string) {
 	if wsr.populatedFields == nil {
 		wsr.populatedFields = new(types.OrderedStringSet)
 	}
@@ -62,13 +62,13 @@ func (wsr *WsRequest) RecordFieldAsBound(fieldName string) {
 
 // WasFieldBound returns true if a field on the RequestBody was explicitly set
 // by the query/path parameter binding process.
-func (wsr *WsRequest) WasFieldBound(fieldName string) bool {
+func (wsr *Request) WasFieldBound(fieldName string) bool {
 	return wsr.populatedFields.Contains(fieldName)
 }
 
 // BoundFields returns the name of all of the names on the RequestBody that were explicitly set
 // by the query/path parameter binding process.
-func (wsr *WsRequest) BoundFields() types.StringSet {
+func (wsr *Request) BoundFields() types.StringSet {
 
 	if wsr.populatedFields == nil {
 		return types.NewOrderedStringSet([]string{})
@@ -79,9 +79,9 @@ func (wsr *WsRequest) BoundFields() types.StringSet {
 }
 
 // Implement by components that are able to convert an HTTP request body into a struct.
-type WsUnmarshaller interface {
+type Unmarshaller interface {
 	// Unmarshall deserialises an HTTP request body and converts it to a struct.
-	Unmarshall(ctx context.Context, req *http.Request, wsReq *WsRequest) error
+	Unmarshall(ctx context.Context, req *http.Request, wsReq *Request) error
 }
 
 // Wraps the underlying low-level HTTP request and response writing objects.

@@ -9,16 +9,16 @@
 
 	Requests and responses
 
-	WsRequest and WsResponse are abstractions of the HTTP request and response associated with a call to a web service
+	Request and Response are abstractions of the HTTP request and response associated with a call to a web service
 	endpoint. By default your application logic will not have access to the underlying HTTP objects (this can be overridden
 	on a per-endpoint basis by setting AllowDirectHTTPAccess to true on your handler - see the package documentation for
 	ws/handler for more information).
 
-	Your application code will not directly control how data is parsed into a WsRequest or how the data and/or errors
-	in a WsResponse are rendered to the caller. This is instead handled by the JsonWs or XmlWs facility.
+	Your application code will not directly control how data is parsed into a Request or how the data and/or errors
+	in a Response are rendered to the caller. This is instead handled by the JsonWs or XmlWs facility.
 
-	HTTP status codes are determined automatically based on the type (or lack of) errors in the WsResponse object, but
-	this behaviour can be overridden by setting an HTTP status code manually on the WsResponse.
+	HTTP status codes are determined automatically based on the type (or lack of) errors in the Response object, but
+	this behaviour can be overridden by setting an HTTP status code manually on the Response.
 
 	Errors
 
@@ -35,31 +35,31 @@
 
 	Response writing
 
-	The serialisation of the data in a WsResponse to an HTTP response is handled by a component implementing WsResponseWriter.
+	The serialisation of the data in a Response to an HTTP response is handled by a component implementing ResponseWriter.
 	A component of this type will be automatically created for you when you enable the JsonWs or XmlWs facility.
 
 	Parameter binding
 
 	Parameter binding refers to the process of automatically capturing request query parameters and injecting them into fields
-	on the WsRequest Body. It also refers to a similar process for extracting information from a request's path using regular expressions.
+	on the Request Body. It also refers to a similar process for extracting information from a request's path using regular expressions.
 	See http://granitic.io/1.0/ref/parameter-binding for more details.
 
 	IAM and versioning
 
 	Granitic does not provide implementations of Identity Access Management or request versioning, but instead provides
 	highly generic types to allow your application's implementations of these concepts to be integrated with Grantic's web
-	service request processing. See the GoDoc for WsIdentifier, WsAccessChecker and handler/WsVersionAssessor and the iam package for more details.
+	service request processing. See the GoDoc for Identifier, AccessChecker and handler/WsVersionAssessor and the iam package for more details.
 
 	HTTP status code determination
 
 	Unless your application defines its own HTTPStatusCodeDeterminer, the eventual HTTP status code set on the response
-	to a web service request it determined by examining the state of a WsResponse using the following logic:
+	to a web service request it determined by examining the state of a Response using the following logic:
 
-	1. If the WsResponse.HTTPStatus field is non-zero, use that.
+	1. If the Response.HTTPStatus field is non-zero, use that.
 
-	2. If the WsResponse.Errors.HTTPStatus field is non-zero, use that.
+	2. If the Response.Errors.HTTPStatus field is non-zero, use that.
 
-	3. If the WsResponse.Errors structure:
+	3. If the Response.Errors structure:
 
 	a) Contains one or more 'Unexpected' errors, use HTTP 500.
 
@@ -84,7 +84,7 @@ import (
 )
 
 // An enumeration of the high-level result of processing a request. Used internally.
-type WsOutcome uint
+type Outcome uint
 
 const (
 	// A normal outcome resulting in an HTTP 200 response.
@@ -97,21 +97,21 @@ const (
 	Abnormal
 )
 
-// WsProcessState is wrapper for current state of request processing. This type is used by
-// components implementing WsResponseWriter. Because a request may fail at many points during processing,
+// ProcessState is wrapper for current state of request processing. This type is used by
+// components implementing ResponseWriter. Because a request may fail at many points during processing,
 // there is no guarantee that any of the fields in this type are set, valid or complete, so this type must be used
 // with caution.
-type WsProcessState struct {
+type ProcessState struct {
 	// The representation of the incoming request at the time processing completed or failed.
-	WsRequest *WsRequest
+	WsRequest *Request
 
 	// The representation of the data to be sent to the caller at the time processing completed or failed.
-	WsResponse *WsResponse
+	WsResponse *Response
 
 	// The HTTP output stream.
 	HTTPResponseWriter *httpendpoint.HTTPResponseWriter
 
-	// Errors detected while processing the web service request. If set, supersedes the errors present in WsResponse field.
+	// Errors detected while processing the web service request. If set, supersedes the errors present in Response field.
 	ServiceErrors *ServiceErrors
 
 	// Information about the caller or user of the web service.
@@ -121,9 +121,9 @@ type WsProcessState struct {
 	Status int
 }
 
-// NewAbnormalState creates a new WsProcessState for a request that has resulted in an abnormal (HTTP 5xx) outcome).
-func NewAbnormalState(status int, w *httpendpoint.HTTPResponseWriter) *WsProcessState {
-	state := new(WsProcessState)
+// NewAbnormalState creates a new ProcessState for a request that has resulted in an abnormal (HTTP 5xx) outcome).
+func NewAbnormalState(status int, w *httpendpoint.HTTPResponseWriter) *ProcessState {
+	state := new(ProcessState)
 	state.Status = status
 	state.HTTPResponseWriter = w
 
@@ -132,7 +132,7 @@ func NewAbnormalState(status int, w *httpendpoint.HTTPResponseWriter) *WsProcess
 
 // Contains data that is relevant to the rendering of the result of a web service request to an HTTP response. This
 // type is agnostic of the format (JSON, XML etc) that is to be used to render the response.
-type WsResponse struct {
+type Response struct {
 	// An instruction that the HTTP status code should be set to this value (if the value is greater than 99). Generally
 	// not set - the response writer will determine the correct status to use.
 	HTTPStatus int
@@ -152,9 +152,9 @@ type WsResponse struct {
 	Template string
 }
 
-// NewWsResponse creates a valid but empty WsReponse with Errors structure initialised.
-func NewWsResponse(errorFinder ServiceErrorFinder) *WsResponse {
-	r := new(WsResponse)
+// NewResponse creates a valid but empty WsReponse with Errors structure initialised.
+func NewResponse(errorFinder ServiceErrorFinder) *Response {
+	r := new(Response)
 	r.Errors = new(ServiceErrors)
 	r.Errors.ErrorFinder = errorFinder
 
@@ -164,24 +164,24 @@ func NewWsResponse(errorFinder ServiceErrorFinder) *WsResponse {
 }
 
 // Implemented by components able write the result of a web service call to an HTTP response.
-type WsResponseWriter interface {
+type ResponseWriter interface {
 	// Write converts whatever data is present in the supplied state object to the HTTP output stream associated
 	// with the current web service request.
-	Write(ctx context.Context, state *WsProcessState, outcome WsOutcome) error
+	Write(ctx context.Context, state *ProcessState, outcome Outcome) error
 }
 
 // Implemented by components able to write a valid response even if the request resulted in an abnormal (5xx) outcome.
 type AbnormalStatusWriter interface {
 	// Write converts whatever data is present in the supplied state object to the HTTP output stream associated
 	// with the current web service request.
-	WriteAbnormalStatus(ctx context.Context, state *WsProcessState) error
+	WriteAbnormalStatus(ctx context.Context, state *ProcessState) error
 }
 
 // An object that constructs response headers that are common to all web service requests. These may typically be
 // caching instructions or 'processing server' records. Implementations must be extremely cautious when using
 // the information in the supplied WsProcess state as some values may be nil.
-type WsCommonResponseHeaderBuilder interface {
-	BuildHeaders(ctx context.Context, state *WsProcessState) map[string]string
+type CommonResponseHeaderBuilder interface {
+	BuildHeaders(ctx context.Context, state *ProcessState) map[string]string
 }
 
 // Interface for components able to convert a set of service errors into a structure suitable for serialisation.
@@ -199,17 +199,17 @@ func WriteHeaders(w http.ResponseWriter, headers map[string]string) {
 	}
 }
 
-// Implemented by components able to take the body from an WsResponse and wrap it inside a container that will
+// Implemented by components able to take the body from an Response and wrap it inside a container that will
 // allow all responses to share a common structure.
 type ResponseWrapper interface {
 	// WrapResponse takes the supplied body and errors and wraps them in a standardised data structure.
 	WrapResponse(body interface{}, errors interface{}) interface{}
 }
 
-// Merges together the headers that have been defined on the WsResponse, the static default headers attache to this writer
-// and (optionally) those constructed by the  ws.WsCommonResponseHeaderBuilder attached to this writer. The order of precedence,
-// from lowest to highest, is static headers, constructed headers, headers in the WsResponse.
-func MergeHeaders(res *WsResponse, ch map[string]string, dh map[string]string) map[string]string {
+// Merges together the headers that have been defined on the Response, the static default headers attache to this writer
+// and (optionally) those constructed by the  ws.CommonResponseHeaderBuilder attached to this writer. The order of precedence,
+// from lowest to highest, is static headers, constructed headers, headers in the Response.
+func MergeHeaders(res *Response, ch map[string]string, dh map[string]string) map[string]string {
 
 	merged := make(map[string]string)
 

@@ -8,10 +8,10 @@ import (
 	"strconv"
 )
 
-// Implemented by a component able to choose the most appropriate HTTP status code to set given the state of a WsResponse
+// Implemented by a component able to choose the most appropriate HTTP status code to set given the state of a Response
 type HTTPStatusCodeDeterminer interface {
 	// DetermineCode returns the HTTP status code that should be set on the response.
-	DetermineCode(response *WsResponse) int
+	DetermineCode(response *Response) int
 }
 
 /*
@@ -23,7 +23,7 @@ type GraniticHTTPStatusCodeDeterminer struct {
 
 // DetermineCode examines the response and returns an HTTP status code according to the rules defined at the top of this
 // GoDoc page.
-func (dhscd *GraniticHTTPStatusCodeDeterminer) DetermineCode(response *WsResponse) int {
+func (dhscd *GraniticHTTPStatusCodeDeterminer) DetermineCode(response *Response) int {
 	if response.HTTPStatus != 0 {
 		return response.HTTPStatus
 

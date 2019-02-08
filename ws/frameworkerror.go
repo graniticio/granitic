@@ -10,7 +10,7 @@ import (
 )
 
 // The phase of the request processing during which an error was encountered.
-type WsFrameworkPhase int
+type FrameworkPhase int
 
 const (
 	// Error encountered while trying to parse an HTTP request body into a struct
@@ -24,9 +24,9 @@ const (
 )
 
 // An error encountered in early phases of request processing, before application code is invoked.
-type WsFrameworkError struct {
+type FrameworkError struct {
 	// The phase of the request processing during which an error was encountered.
-	Phase WsFrameworkPhase
+	Phase FrameworkPhase
 
 	// The name of the field or parameter in the HTTP request with a problem
 	ClientField string
@@ -47,10 +47,10 @@ type WsFrameworkError struct {
 	Code string
 }
 
-// NewUnmarshallWsFrameworkError creates a WsFrameworkError with fields set appropriate for an error
+// NewUnmarshallFrameworkError creates a FrameworkError with fields set appropriate for an error
 // encountered during parsing of the HTTP request body.
-func NewUnmarshallWsFrameworkError(message, code string) *WsFrameworkError {
-	f := new(WsFrameworkError)
+func NewUnmarshallFrameworkError(message, code string) *FrameworkError {
+	f := new(FrameworkError)
 	f.Phase = Unmarshall
 	f.Message = message
 	f.Code = code
@@ -58,10 +58,10 @@ func NewUnmarshallWsFrameworkError(message, code string) *WsFrameworkError {
 	return f
 }
 
-// NewQueryBindFrameworkError creates a WsFrameworkError with fields set appropriate for an error
-// encountered during mapping of HTTP query parameters to fields on a WsRequest's Body
-func NewQueryBindFrameworkError(message, code, param, target string) *WsFrameworkError {
-	f := new(WsFrameworkError)
+// NewQueryBindFrameworkError creates a FrameworkError with fields set appropriate for an error
+// encountered during mapping of HTTP query parameters to fields on a Request's Body
+func NewQueryBindFrameworkError(message, code, param, target string) *FrameworkError {
+	f := new(FrameworkError)
 	f.Phase = QueryBind
 	f.Message = message
 	f.ClientField = param
@@ -71,10 +71,10 @@ func NewQueryBindFrameworkError(message, code, param, target string) *WsFramewor
 	return f
 }
 
-// NewPathBindFrameworkError creates a WsFrameworkError with fields set appropriate for an error
-// encountered during mapping elements of the HTTP request's path to fields on a WsRequest's Body.
-func NewPathBindFrameworkError(message, code, target string) *WsFrameworkError {
-	f := new(WsFrameworkError)
+// NewPathBindFrameworkError creates a FrameworkError with fields set appropriate for an error
+// encountered during mapping elements of the HTTP request's path to fields on a Request's Body.
+func NewPathBindFrameworkError(message, code, target string) *FrameworkError {
+	f := new(FrameworkError)
 	f.Phase = PathBind
 	f.Message = message
 	f.TargetField = target

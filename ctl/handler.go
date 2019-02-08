@@ -35,7 +35,7 @@ type CommandLogic struct {
 
 // Implements handler.WsRequestProcessor. Whenever a valid request is handled, the name of the invoked command is logged at INFO level
 // to assist with auditing.
-func (cl *CommandLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
+func (cl *CommandLogic) Process(ctx context.Context, req *ws.Request, res *ws.Response) {
 
 	cr := req.RequestBody.(*ctlCommandRequest)
 
@@ -57,7 +57,7 @@ func (cl *CommandLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.
 }
 
 // Implements handler.WsRequestValidator.
-func (cl *CommandLogic) Validate(ctx context.Context, se *ws.ServiceErrors, request *ws.WsRequest) {
+func (cl *CommandLogic) Validate(ctx context.Context, se *ws.ServiceErrors, request *ws.Request) {
 
 	sub := request.RequestBody.(*ctlCommandRequest)
 

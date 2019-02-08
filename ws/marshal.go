@@ -37,7 +37,7 @@ type MarshallingResponseWriter struct {
 	ResponseWrapper ResponseWrapper
 
 	// Component able to dynamically generate additional headers to be written to the response.
-	HeaderBuilder WsCommonResponseHeaderBuilder
+	HeaderBuilder CommonResponseHeaderBuilder
 
 	// Component able to format services errors in an application specific manner.
 	ErrorFormatter ErrorFormatter
@@ -46,8 +46,8 @@ type MarshallingResponseWriter struct {
 	MarshalingWriter MarshalingWriter
 }
 
-// See WsResponseWriter.Write
-func (rw *MarshallingResponseWriter) Write(ctx context.Context, state *WsProcessState, outcome WsOutcome) error {
+// See ResponseWriter.Write
+func (rw *MarshallingResponseWriter) Write(ctx context.Context, state *ProcessState, outcome Outcome) error {
 
 	var ch map[string]string
 
@@ -64,10 +64,10 @@ func (rw *MarshallingResponseWriter) Write(ctx context.Context, state *WsProcess
 		return rw.writeAbnormalStatus(ctx, state.Status, state.HTTPResponseWriter, ch)
 	}
 
-	return errors.New("Unsuported WsOutcome value")
+	return errors.New("Unsuported Outcome value")
 }
 
-func (rw *MarshallingResponseWriter) write(ctx context.Context, res *WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *MarshallingResponseWriter) write(ctx context.Context, res *Response, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -100,13 +100,13 @@ func (rw *MarshallingResponseWriter) write(ctx context.Context, res *WsResponse,
 }
 
 // See AbnormalStatusWriter.WriteAbnormalStatus
-func (rw *MarshallingResponseWriter) WriteAbnormalStatus(ctx context.Context, state *WsProcessState) error {
+func (rw *MarshallingResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ProcessState) error {
 	return rw.Write(ctx, state, Abnormal)
 }
 
 func (rw *MarshallingResponseWriter) writeAbnormalStatus(ctx context.Context, status int, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
-	res := new(WsResponse)
+	res := new(Response)
 	res.HTTPStatus = status
 	var errors ServiceErrors
 
@@ -121,7 +121,7 @@ func (rw *MarshallingResponseWriter) writeAbnormalStatus(ctx context.Context, st
 
 func (rw *MarshallingResponseWriter) writeErrors(ctx context.Context, errors *ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
-	res := new(WsResponse)
+	res := new(Response)
 	res.Errors = errors
 
 	return rw.write(ctx, res, w, ch)

@@ -18,7 +18,7 @@ import (
 	"text/template"
 )
 
-// Serialises the body of a ws.WsResponse to XML using Go templates. See https://golang.org/pkg/text/template/
+// Serialises the body of a ws.Response to XML using Go templates. See https://golang.org/pkg/text/template/
 type TemplatedXMLResponseWriter struct {
 	// Injected by the framework to allow this component to write log messages
 	FrameworkLogger logging.Logger
@@ -40,7 +40,7 @@ type TemplatedXMLResponseWriter struct {
 	templates       *template.Template
 
 	// Component able to dynamically generate additional headers to be written to the response.
-	HeaderBuilder ws.WsCommonResponseHeaderBuilder
+	HeaderBuilder ws.CommonResponseHeaderBuilder
 
 	//The name of a template to be used if the response has an abnormal (5xx) outcome.
 	AbnormalTemplate string
@@ -50,8 +50,8 @@ type TemplatedXMLResponseWriter struct {
 	state         ioc.ComponentState
 }
 
-// See WsResponseWriter.Write
-func (rw *TemplatedXMLResponseWriter) Write(ctx context.Context, state *ws.WsProcessState, outcome ws.WsOutcome) error {
+// See ResponseWriter.Write
+func (rw *TemplatedXMLResponseWriter) Write(ctx context.Context, state *ws.ProcessState, outcome ws.Outcome) error {
 	var ch map[string]string
 
 	if rw.HeaderBuilder != nil {
@@ -67,10 +67,10 @@ func (rw *TemplatedXMLResponseWriter) Write(ctx context.Context, state *ws.WsPro
 		return rw.writeAbnormalStatus(ctx, state.Status, state.HTTPResponseWriter, ch)
 	}
 
-	return errors.New("Unsuported ws.WsOutcome value")
+	return errors.New("Unsuported ws.Outcome value")
 }
 
-func (rw *TemplatedXMLResponseWriter) writeNormal(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXMLResponseWriter) writeNormal(ctx context.Context, res *ws.Response, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string
@@ -86,7 +86,7 @@ func (rw *TemplatedXMLResponseWriter) writeNormal(ctx context.Context, res *ws.W
 	return rw.write(ctx, res, w, ch, t)
 }
 
-func (rw *TemplatedXMLResponseWriter) write(ctx context.Context, res *ws.WsResponse, w *httpendpoint.HTTPResponseWriter, ch map[string]string, t *template.Template) error {
+func (rw *TemplatedXMLResponseWriter) write(ctx context.Context, res *ws.Response, w *httpendpoint.HTTPResponseWriter, ch map[string]string, t *template.Template) error {
 
 	if w.DataSent {
 		//This HTTP response has already been written to by another component - not safe to continue
@@ -113,7 +113,7 @@ func (rw *TemplatedXMLResponseWriter) write(ctx context.Context, res *ws.WsRespo
 
 }
 
-func (rw *TemplatedXMLResponseWriter) writeErrors(ctx context.Context, res *ws.WsResponse, se *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
+func (rw *TemplatedXMLResponseWriter) writeErrors(ctx context.Context, res *ws.Response, se *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, ch map[string]string) error {
 
 	var t *template.Template
 	var tn string
@@ -136,7 +136,7 @@ func (rw *TemplatedXMLResponseWriter) writeErrors(ctx context.Context, res *ws.W
 }
 
 // See AbnormalStatusWriter.WriteAbnormalStatus
-func (rw *TemplatedXMLResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.WsProcessState) error {
+func (rw *TemplatedXMLResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.ProcessState) error {
 
 	return rw.Write(ctx, state, ws.Abnormal)
 }
@@ -154,7 +154,7 @@ func (rw *TemplatedXMLResponseWriter) writeAbnormalStatus(ctx context.Context, s
 		return errors.New("No such template " + tn)
 	}
 
-	res := new(ws.WsResponse)
+	res := new(ws.Response)
 	res.HTTPStatus = status
 	var errors ws.ServiceErrors
 

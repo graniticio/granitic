@@ -12,12 +12,12 @@ import (
 )
 
 // Component wrapper over Go's JSON decoder.
-type StandardJSONUnmarshaller struct {
+type Unmarshaller struct {
 	FrameworkLogger logging.Logger
 }
 
 // Unmarshall uses Go's JSON decoder to parse a HTTP request body into a struct.
-func (ju *StandardJSONUnmarshaller) Unmarshall(ctx context.Context, req *http.Request, wsReq *ws.WsRequest) error {
+func (ju *Unmarshaller) Unmarshall(ctx context.Context, req *http.Request, wsReq *ws.Request) error {
 	defer req.Body.Close()
 
 	err := json.NewDecoder(req.Body).Decode(&wsReq.RequestBody)

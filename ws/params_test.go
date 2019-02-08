@@ -13,7 +13,7 @@ func TestDetectValues(t *testing.T) {
 	q := "a=b"
 
 	v, _ := url.ParseQuery(q)
-	qp := NewWsParamsForQuery(v)
+	qp := NewParamsForQuery(v)
 
 	if !qp.Exists("a") {
 		t.Errorf("Expected key 'a' to be present")
@@ -30,7 +30,7 @@ func TestDetectMultiple(t *testing.T) {
 	q := "a=b&a=c&x=y"
 
 	v, _ := url.ParseQuery(q)
-	qp := NewWsParamsForQuery(v)
+	qp := NewParamsForQuery(v)
 
 	if !qp.Exists("a") {
 		t.Errorf("Expected key 'a' to be present")
@@ -51,7 +51,7 @@ func TestStringValues(t *testing.T) {
 	q := "a=b&a=c&x=y"
 
 	v, _ := url.ParseQuery(q)
-	qp := NewWsParamsForQuery(v)
+	qp := NewParamsForQuery(v)
 
 	a, err := qp.StringValue("a")
 

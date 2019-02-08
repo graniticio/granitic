@@ -33,7 +33,7 @@
 	standard or custom HTTP method can be used.
 
 	3. A 'logic' component that implements at least WsRequestProcessor (additional WsXXX interfaces can be implemented
-	to support advanced behaviour) OR has a method with the signature ProcessPayload(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse, payload *YourStruct)
+	to support advanced behaviour) OR has a method with the signature ProcessPayload(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)
 
 */
 package handler
@@ -61,7 +61,7 @@ const processPayloadFunc = "ProcessPayload"
 type WsRequestProcessor interface {
 	// Process performs the actual 'work' of a web service request. The reponse parameter will be modified according to
 	// the output or errors that the web service caller should see.
-	Process(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse)
+	Process(ctx context.Context, request *ws.Request, response *ws.Response)
 }
 
 // Indicates that an object is interested in observing/modifying a web service request after processing has been completed,
@@ -70,21 +70,21 @@ type WsRequestProcessor interface {
 // It is expected that WsPostProcessors may be shared between multiple instances of WsHandler
 type WsPostProcessor interface {
 	//PostProcess may modify the supplied response object if required.
-	PostProcess(ctx context.Context, handlerName string, request *ws.WsRequest, response *ws.WsResponse)
+	PostProcess(ctx context.Context, handlerName string, request *ws.Request, response *ws.Response)
 }
 
 // Indicates that an object is interested in observing/modifying a web service request after it has been unmarshalled and parsed, but before automatic and
 // application-defined validation takes place.
 type WsPreValidateManipulator interface {
 	// PreValidate returns true if the supplied request is in a suitable state for processing to continue.
-	PreValidate(ctx context.Context, request *ws.WsRequest, errors *ws.ServiceErrors) (proceed bool)
+	PreValidate(ctx context.Context, request *ws.Request, errors *ws.ServiceErrors) (proceed bool)
 }
 
 // If implemented by the same object that is used as a handler's WsRequestProcessor, the Validate method will be called
 // to determine whether or not a request should proceed to processing.
 type WsRequestValidator interface {
 	// Validate will add one or more CategorisedServiceError objects to the supplied errors parameter if the request is not suitable for further processing.
-	Validate(ctx context.Context, errors *ws.ServiceErrors, request *ws.WsRequest)
+	Validate(ctx context.Context, errors *ws.ServiceErrors, request *ws.Request)
 }
 
 // Implemented by logic components that are able to create target objects for data from a web service request to be parsed into. For example,
@@ -122,7 +122,7 @@ type ErrorTemplate interface {
 type WsHandler struct {
 
 	// A component able to examine a request and see if the caller is allowed to access this endpoint.
-	AccessChecker ws.WsAccessChecker
+	AccessChecker ws.AccessChecker
 
 	// Whether or not the underlying HTTP request and response writer should be made available to request Logic.
 	AllowDirectHTTPAccess bool
@@ -190,16 +190,16 @@ type WsHandler struct {
 	PreventAutoWiring bool
 
 	// A component injected by the Granitic framework that writes the response from this handler to an HTTP response.
-	ResponseWriter ws.WsResponseWriter
+	ResponseWriter ws.ResponseWriter
 
-	// Whether on not the caller needs to be authenticated (using a ws.WsIdentifier) in order to access the logic behind this handler.
+	// Whether on not the caller needs to be authenticated (using a ws.Identifier) in order to access the logic behind this handler.
 	RequireAuthentication bool
 
 	// A component injected by the Granitic framework that can extract the body of the incoming HTTP request into a Go struct.
-	Unmarshaller ws.WsUnmarshaller
+	Unmarshaller ws.Unmarshaller
 
 	// A component that can examine a request to determine the calling user/service's identity.
-	UserIdentifier ws.WsIdentifier
+	UserIdentifier ws.Identifier
 
 	// A component that can check if this handler supports the version of functionality required by the caller.
 	VersionAssessor   WsVersionAssessor
@@ -238,7 +238,7 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 		ri.Amend(instrument.HANDLER, wh)
 	}
 
-	wsReq := new(ws.WsRequest)
+	wsReq := new(ws.Request)
 	wsReq.HTTPMethod = req.Method
 	wsReq.ServingHandler = wh.ComponentName()
 
@@ -296,7 +296,7 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 	return ctx
 }
 
-func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.WsRequest, errors *ws.ServiceErrors) {
+func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.Request, errors *ws.ServiceErrors) {
 	if wh.validationEnabled {
 		proceed := true
 
@@ -358,7 +358,7 @@ func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.WsRequest, e
 
 }
 
-func (wh *WsHandler) unmarshall(ctx context.Context, req *http.Request, wsReq *ws.WsRequest) {
+func (wh *WsHandler) unmarshall(ctx context.Context, req *http.Request, wsReq *ws.Request) {
 
 	var uf ioc.StructFactory
 
@@ -388,13 +388,13 @@ func (wh *WsHandler) unmarshall(ctx context.Context, req *http.Request, wsReq *w
 
 		m, c := wh.FrameworkErrors.MessageCode(ws.UnableToParseRequest)
 
-		f := ws.NewUnmarshallWsFrameworkError(m, c)
+		f := ws.NewUnmarshallFrameworkError(m, c)
 		wsReq.AddFrameworkError(f)
 	}
 
 }
 
-func (wh *WsHandler) processPathParams(req *http.Request, wsReq *ws.WsRequest) {
+func (wh *WsHandler) processPathParams(req *http.Request, wsReq *ws.Request) {
 
 	if wh.DisablePathParsing {
 		return
@@ -411,14 +411,14 @@ func (wh *WsHandler) processPathParams(req *http.Request, wsReq *ws.WsRequest) {
 
 }
 
-func (wh *WsHandler) processQueryParams(ctx context.Context, req *http.Request, wsReq *ws.WsRequest) {
+func (wh *WsHandler) processQueryParams(ctx context.Context, req *http.Request, wsReq *ws.Request) {
 
 	if wh.DisableQueryParsing {
 		return
 	}
 
 	values := req.URL.Query()
-	wsReq.QueryParams = ws.NewWsParamsForQuery(values)
+	wsReq.QueryParams = ws.NewParamsForQuery(values)
 
 	if wh.bindQuery {
 		if wsReq.RequestBody == nil {
@@ -436,7 +436,7 @@ func (wh *WsHandler) processQueryParams(ctx context.Context, req *http.Request, 
 
 }
 
-func (wh *WsHandler) checkAccess(ctx context.Context, w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) bool {
+func (wh *WsHandler) checkAccess(ctx context.Context, w *httpendpoint.HTTPResponseWriter, wsReq *ws.Request) bool {
 
 	ac := wh.AccessChecker
 
@@ -459,7 +459,7 @@ func (wh *WsHandler) checkAccess(ctx context.Context, w *httpendpoint.HTTPRespon
 	}
 }
 
-func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request, wsReq *ws.WsRequest) (bool, context.Context) {
+func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request, wsReq *ws.Request) (bool, context.Context) {
 
 	var i iam.ClientIdentity
 
@@ -521,7 +521,7 @@ func (wh *WsHandler) AutoWireable() bool {
 	return !wh.PreventAutoWiring
 }
 
-func (wh *WsHandler) handleFrameworkErrors(ctx context.Context, w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) {
+func (wh *WsHandler) handleFrameworkErrors(ctx context.Context, w *httpendpoint.HTTPResponseWriter, wsReq *ws.Request) {
 
 	var se ws.ServiceErrors
 	se.HTTPStatus = http.StatusBadRequest
@@ -534,7 +534,7 @@ func (wh *WsHandler) handleFrameworkErrors(ctx context.Context, w *httpendpoint.
 
 }
 
-func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *httpendpoint.HTTPResponseWriter) {
+func (wh *WsHandler) process(ctx context.Context, request *ws.Request, w *httpendpoint.HTTPResponseWriter) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -543,7 +543,7 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 		}
 	}()
 
-	wsRes := ws.NewWsResponse(wh.ErrorFinder)
+	wsRes := ws.NewResponse(wh.ErrorFinder)
 
 	if wh.genericProcessor != nil {
 		//Logic component implements WsRequestProcessor
@@ -562,7 +562,7 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 		wh.PostProcessor.PostProcess(ctx, wh.ComponentName(), request, wsRes)
 	}
 
-	state := new(ws.WsProcessState)
+	state := new(ws.ProcessState)
 	state.Identity = request.UserIdentity
 	state.HTTPResponseWriter = w
 	state.WsResponse = wsRes
@@ -588,7 +588,7 @@ func (wh *WsHandler) process(ctx context.Context, request *ws.WsRequest, w *http
 
 }
 
-func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, wsReq *ws.WsRequest) {
+func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceErrors, w *httpendpoint.HTTPResponseWriter, wsReq *ws.Request) {
 
 	l := wh.Log
 
@@ -598,7 +598,7 @@ func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceE
 		}
 	}()
 
-	state := new(ws.WsProcessState)
+	state := new(ws.ProcessState)
 	state.ServiceErrors = errors
 	state.WsRequest = wsReq
 	state.HTTPResponseWriter = w
@@ -606,7 +606,7 @@ func (wh *WsHandler) writeErrorResponse(ctx context.Context, errors *ws.ServiceE
 	// Template based response writing
 	if tr, found := wh.Logic.(Templated); found {
 
-		res := new(ws.WsResponse)
+		res := new(ws.Response)
 		state.WsResponse = res
 
 		if tr.UseWhenError() {
@@ -700,7 +700,7 @@ func (wh *WsHandler) checkLogicComponent() error {
 
 	} else {
 
-		message := fmt.Sprintf("Logic compoonent must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse, payload *YourStruct)", processPayloadFunc)
+		message := fmt.Sprintf("Logic compoonent must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)", processPayloadFunc)
 
 		//Logic component doesn't implement WsRequestProcessor - must instead have a method called ProcessPayload
 		method := reflect.ValueOf(wh.Logic).MethodByName(processPayloadFunc)
@@ -721,13 +721,13 @@ func (wh *WsHandler) checkLogicComponent() error {
 			return errors.New(message)
 		}
 
-		//Check second arg is *ws.WsRequest
-		if t.In(1) != reflect.TypeOf(new(ws.WsRequest)) {
+		//Check second arg is *ws.Request
+		if t.In(1) != reflect.TypeOf(new(ws.Request)) {
 			return errors.New(message)
 		}
 
-		//Check third arg is *ws.WsResponse
-		if t.In(2) != reflect.TypeOf(new(ws.WsResponse)) {
+		//Check third arg is *ws.Response
+		if t.In(2) != reflect.TypeOf(new(ws.Response)) {
 			return errors.New(message)
 		}
 
