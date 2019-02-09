@@ -239,10 +239,9 @@ func (qm *TemplatedQueryManager) StartComponent() error {
 
 		return nil
 
-	} else {
-		message := fmt.Sprintf("Unable to start QueryManager due to problem loading query files: %s", err.Error())
-		return errors.New(message)
 	}
+
+	return fmt.Errorf("Unable to start QueryManager due to problem loading query files: %s", err.Error())
 
 }
 
@@ -354,9 +353,9 @@ func (qm *TemplatedQueryManager) scanAndParse(scanner *bufio.Scanner, tokenisedT
 func intMax(x, y int) int {
 	if x > y {
 		return x
-	} else {
-		return y
 	}
+
+	return y
 }
 
 func (qm *TemplatedQueryManager) addVar(token string, currentTemplate *queryTemplate) {
@@ -382,9 +381,10 @@ func (qm *TemplatedQueryManager) isIdLine(line string) (bool, string) {
 
 		return true, newId
 
-	} else {
-		return false, ""
 	}
+
+	return false, ""
+
 }
 
 func (qm *TemplatedQueryManager) isBlankLine(line string) bool {
