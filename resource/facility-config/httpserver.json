@@ -1,5 +1,5 @@
 {
-  "HttpServer":{
+  "HTTPServer":{
     "Port": 8080,
     "AccessLogging": false,
     "TooBusyStatus": 503,

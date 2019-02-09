@@ -53,7 +53,7 @@ To see this in action, edit your <code>ArtistLogic</code> struct in <code>endpoi
 so the <code>Process</code> and change the two lines that look like:
 
 ```go
-  res.HttpStatus = http.StatusInternalServerError
+  res.HTTPStatus = http.StatusInternalServerError
 ```
 
 to
@@ -89,7 +89,7 @@ We need to add another entry to that list:
 ```
 
 The type of error in this case is "U" or <code>unexpected</code>. If Granitic finds an 'unexpected' error in the response, it will set the HTTP status
-code to <code>500 - Internal server error</code>. Determining which HTTP status code is set follows the rules defined here under [Http status code determination](https://godoc.org/github.com/graniticio/granitic/v2/ws)
+code to <code>500 - Internal server error</code>. Determining which HTTP status code is set follows the rules defined here under [HTTP status code determination](https://godoc.org/github.com/graniticio/granitic/v2/ws)
 
 ## Building and testing
 

@@ -176,8 +176,8 @@ and [RdbmsAccess](https://godoc.org/github.com/graniticio/granitic/v2/facility/r
 
 ```json
 "Facilities": {
-  "HttpServer": true,
-  "JsonWs": true,
+  "HTTPServer": true,
+  "JSONWs": true,
   "RuntimeCtl": true,
   "ServiceErrorManager": true,
   "QueryManager": true,
@@ -239,11 +239,11 @@ func (al *ArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, re
   } else if err != nil{
     // Something went wrong when communicating with the database - return HTTP 500
     al.Log.LogErrorf(err.Error())
-    res.HttpStatus = http.StatusInternalServerError
+    res.HTTPStatus = http.StatusInternalServerError
 
   } else {
     // No results were returned by the database call - return HTTP 404
-    res.HttpStatus = http.StatusNotFound
+    res.HTTPStatus = http.StatusNotFound
   }
 }
 

@@ -3,7 +3,7 @@
 
 /*
 	Package json defines types that are specific to handling web service requests and responses as JSON. Components
-	implementing this type will be created when you enable the JsonWs facility. For more information on JSON web services
+	implementing this type will be created when you enable the JSONWs facility. For more information on JSON web services
 	in Granitic, see http://granitic.io/1.0/ref/json.
 
 	Marshalling and unmarshalling

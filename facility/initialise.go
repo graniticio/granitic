@@ -124,7 +124,7 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.Accessor) error {
 
 	fi.addFacility(new(querymanager.FacilityBuilder))
 	fi.addFacility(new(httpserver.FacilityBuilder))
-	fi.addFacility(new(ws.JsonFacilityBuilder))
+	fi.addFacility(new(ws.JSONFacilityBuilder))
 	fi.addFacility(new(ws.XMLFacilityBuilder))
 	fi.addFacility(new(serviceerror.FacilityBuilder))
 	fi.addFacility(new(rdbms.FacilityBuilder))

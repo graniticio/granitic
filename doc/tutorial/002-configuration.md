@@ -198,8 +198,8 @@ your <pre>resource/config/config.json</pre> file so that it looks like:
 ```json
 {
     "Facilities": {
-        "HttpServer": true,
-        "JsonWs": true
+        "HTTPServer": true,
+        "JSONWs": true
     },
     "environment": {
         "label": "UNSET"
@@ -221,7 +221,7 @@ Create two new files:
 
 ```javascript
 {
-  "HttpServer": {
+  "HTTPServer": {
     "Port": 8081
   }
 }
@@ -231,7 +231,7 @@ Create two new files:
 
 ```javascript
 {
-  "HttpServer": {
+  "HTTPServer": {
     "Port": 8082
   }
 }
@@ -265,7 +265,7 @@ built-in configuration files that can be found under <code>$GRANITIC_HOME/resour
 
 You can see the order in which Granitic is merging configuration files together by starting an application with the <code>-l TRACE</code>
 parameter, which sets Granitic's initial log-level to <code>TRACE</code>. Your application's configuration files take precedence over
-the built-in facility configuration files, so in this example the value of <code>HttpServer.Port</code> in <code>facility-config/httpserver.json</code> is replaced
+the built-in facility configuration files, so in this example the value of <code>HTTPServer.Port</code> in <code>facility-config/httpserver.json</code> is replaced
 with the value in your <code>recordstore-1.json</code> or <code>recordstore-2.json</code> file.
 
 ### Merging rules

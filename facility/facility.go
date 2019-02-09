@@ -22,8 +22,8 @@ which will look something like:
 	{
 	  "Facilities": {
 		"HTTPServer": false,
-		"JsonWs": false,
-		"XmlWs": false,
+		"JSONWs": false,
+		"XMLWs": false,
 		"FrameworkLogging": true,
 		"ApplicationLogging": true,
 		"QueryManager": false,

@@ -137,8 +137,8 @@ so it looks like:
 ```json
 {
     "Facilities": {
-            "HttpServer": true,
-            "JsonWs": true
+            "HTTPServer": true,
+            "JSONWs": true
     },
     
     "ApplicationLogger":{
@@ -198,8 +198,8 @@ section looks like:
 
 ```json
 "Facilities": {
-    "HttpServer": true,
-    "JsonWs": true,
+    "HTTPServer": true,
+    "JSONWs": true,
     "RuntimeCtl": true
 }
 ```

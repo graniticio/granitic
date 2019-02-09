@@ -13,7 +13,7 @@
 	any component in the IoC container which implements the ctl.Command interface from the grnc-ctl command line tool.
 	See http://granitic.io/1.0/ref/runtime-ctl#builtin for documentation on Granitic's built-in commands.
 
-	The HTTP server that listens for commands is separate to the HTTP server created by the XmlWs and JsonWs facilities and runs on a
+	The HTTP server that listens for commands is separate to the HTTP server created by the XMLWs and JSONWs facilities and runs on a
 	different port. The listen port defaults to 9099 but can be changed with the following configuration:
 
 		{

@@ -15,7 +15,7 @@
 	ws/handler for more information).
 
 	Your application code will not directly control how data is parsed into a Request or how the data and/or errors
-	in a Response are rendered to the caller. This is instead handled by the JsonWs or XmlWs facility.
+	in a Response are rendered to the caller. This is instead handled by the JSONWs or XMLWs facility.
 
 	HTTP status codes are determined automatically based on the type (or lack of) errors in the Response object, but
 	this behaviour can be overridden by setting an HTTP status code manually on the Response.
@@ -36,7 +36,7 @@
 	Response writing
 
 	The serialisation of the data in a Response to an HTTP response is handled by a component implementing ResponseWriter.
-	A component of this type will be automatically created for you when you enable the JsonWs or XmlWs facility.
+	A component of this type will be automatically created for you when you enable the JSONWs or XMLWs facility.
 
 	Parameter binding
 
@@ -147,7 +147,7 @@ type Response struct {
 	// Headers that should be set on the HTTP response.
 	Headers map[string]string
 
-	// If the type of response rendering is template based (e.g. using the XmlWs facility in template mode), this field
+	// If the type of response rendering is template based (e.g. using the XMLWs facility in template mode), this field
 	// can be used to override any default templates or the template associated with the handler that created this response.
 	Template string
 }

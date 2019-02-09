@@ -11,7 +11,7 @@
       "QueryNoTargetField": ["QUERYBIND", "No field named %s exists to bind query parameter %s into."],
       "PathWrongType": ["PATHBIND", "Unable to convert the value of a path parameter (group %s) to type %s. Please check the format of your request path. Value provided was \"%s\""]
     },
-    "HttpMessages": {
+    "HTTPMessages": {
       "401": "Access to this resource requires authorization.",
       "403": "You do not have permission to interact with that resource.",
       "404": "No such resource.",

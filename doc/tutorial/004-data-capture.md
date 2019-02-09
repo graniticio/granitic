@@ -93,7 +93,7 @@ If you open the file <code>resource/components/components.json</code> you will s
 ```json
 "artistHandler": {
   "type": "handler.WsHandler",
-  "HttpMethod": "GET",
+  "HTTPMethod": "GET",
   "Logic": "ref:artistLogic",
   "PathPattern": "^/artist"
 }
@@ -106,7 +106,7 @@ can define how path binding will work through configuration. Change the definiti
 ```json
 "artistHandler": {
   "type": "handler.WsHandler",
-  "HttpMethod": "GET",
+  "HTTPMethod": "GET",
   "Logic": "ref:artistLogic",
   "PathPattern": "^/artist/([\\d]+)[/]?$",
   "BindPathParams": ["Id"],
@@ -243,7 +243,7 @@ In order to have this code invoked, we will need to add the following to the <co
 
 "submitArtistHandler": {
   "type": "handler.WsHandler",
-  "HttpMethod": "POST",
+  "HTTPMethod": "POST",
   "Logic": "ref:submitArtistLogic",
   "PathPattern": "^/artist[/]?$",
   "CreateTarget": "es:endpoint.SubmittedArtistRequest"

@@ -15,7 +15,7 @@ const HTTPServerComponentName = instance.FrameworkPrefix + "HTTPServer"
 const contextIdDecoratorName = instance.FrameworkPrefix + "RequestIdContextDecorator"
 
 // The field on the HTTPServer component into which a ws.AbnormalStatusWriter can be injected. Most applications will use either
-// the JsonWs or XmlWs facility, in which case a AbnormalStatusWriter that will respond to requests with an abnormal result
+// the JSONWs or XMLWs facility, in which case a AbnormalStatusWriter that will respond to requests with an abnormal result
 // (404, 503 etc) by sending a JSON or XML response respectively.
 //
 // If this behaviour is undesirable, an alternative AbnormalStatusWriter can set by using the frameworkModifiers mechanism

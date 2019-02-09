@@ -62,7 +62,7 @@ type HTTPServer struct {
 	Address string
 
 	// A component able to write valid HTTP responses in the event a user request results in an abnormal result
-	// (not found, server too busy, panic in application logic). If you use the JsonWs or XmlWs facility, this is automatically injected.
+	// (not found, server too busy, panic in application logic). If you use the JSONWs or XMLWs facility, this is automatically injected.
 	AbnormalStatusWriter ws.AbnormalStatusWriter
 
 	// The name of a component in the IoC container that should be used as an AbnormalStatusWriter if one is not being auto-injected.

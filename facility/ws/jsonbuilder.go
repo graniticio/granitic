@@ -20,12 +20,12 @@ const jsonUnmarshallerComponentName = instance.FrameworkPrefix + "JSONUnmarshall
 const mode_wrap = "WRAP"
 const mode_body = "BODY"
 
-// Creates the components required to support the JsonWs facility and adds them the IoC container.
-type JsonFacilityBuilder struct {
+// Creates the components required to support the JSONWs facility and adds them the IoC container.
+type JSONFacilityBuilder struct {
 }
 
 // See FacilityBuilder.BuildAndRegister
-func (fb *JsonFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	wc := buildAndRegisterWsCommon(lm, ca, cn)
 
@@ -33,7 +33,7 @@ func (fb *JsonFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 	cn.WrapAndAddProto(jsonUnmarshallerComponentName, um)
 
 	rw := new(ws.MarshallingResponseWriter)
-	ca.Populate("JsonWs.ResponseWriter", rw)
+	ca.Populate("JSONWs.ResponseWriter", rw)
 	cn.WrapAndAddProto(jsonResponseWriterComponentName, rw)
 
 	rw.StatusDeterminer = wc.StatusDeterminer
@@ -48,7 +48,7 @@ func (fb *JsonFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "ResponseWrapper") {
 
 		// User hasn't defined their own wrapper for JSON responses, use one of the defaults
-		if mode, err := ca.StringVal("JsonWs.WrapMode"); err != nil {
+		if mode, err := ca.StringVal("JSONWs.WrapMode"); err != nil {
 			return err
 		} else {
 
@@ -60,12 +60,12 @@ func (fb *JsonFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 			case mode_wrap:
 				wrap = new(json.GraniticJSONResponseWrapper)
 			default:
-				m := fmt.Sprintf("JsonWs.WrapMode must be either %s or %s", mode_wrap, mode_body)
+				m := fmt.Sprintf("JSONWs.WrapMode must be either %s or %s", mode_wrap, mode_body)
 
 				return errors.New(m)
 			}
 
-			ca.Populate("JsonWs.ResponseWrapper", wrap)
+			ca.Populate("JSONWs.ResponseWrapper", wrap)
 			rw.ResponseWrapper = wrap
 
 		}
@@ -75,7 +75,7 @@ func (fb *JsonFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "MarshalingWriter") {
 
 		mw := new(json.MarshalingWriter)
-		ca.Populate("JsonWs.Marshal", mw)
+		ca.Populate("JSONWs.Marshal", mw)
 		rw.MarshalingWriter = mw
 	}
 
@@ -85,11 +85,11 @@ func (fb *JsonFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 }
 
 // See FacilityBuilder.FacilityName
-func (fb *JsonFacilityBuilder) FacilityName() string {
-	return "JsonWs"
+func (fb *JSONFacilityBuilder) FacilityName() string {
+	return "JSONWs"
 }
 
 // See FacilityBuilder.DependsOnFacilities
-func (fb *JsonFacilityBuilder) DependsOnFacilities() []string {
+func (fb *JSONFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

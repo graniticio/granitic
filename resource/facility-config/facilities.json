@@ -1,8 +1,8 @@
 {
   "Facilities": {
-    "HttpServer": false,
-    "JsonWs": false,
-    "XmlWs": false,
+    "HTTPServer": false,
+    "JSONWs": false,
+    "XMLWs": false,
     "FrameworkLogging": true,
     "ApplicationLogging": true,
     "QueryManager": false,

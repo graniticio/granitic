@@ -96,9 +96,9 @@ by inspecting the file <code>$GRANITIC_HOME/resource/facility-config/facilities.
 ```json
 {
   "Facilities": {
-    "HttpServer": false,
-    "JsonWs": false,
-    "XmlWs": false,
+    "HTTPServer": false,
+    "JSONWs": false,
+    "XMLWs": false,
     "FrameworkLogging": true,
     "ApplicationLogging": true,
     "QueryManager": false,
@@ -110,7 +110,7 @@ by inspecting the file <code>$GRANITIC_HOME/resource/facility-config/facilities.
 }
 ```
 
-In order to build a JSON web service, you will need to enable two facilities: <code>HttpServer</code> and <code>JsonWs</code> (JSON Web Services).
+In order to build a JSON web service, you will need to enable two facilities: <code>HTTPServer</code> and <code>JSONWs</code> (JSON Web Services).
 
 We do this by <i>overriding</i> the default setting for each facility. To do this, open the JSON <code>/grnc-tutorial/resource/config/config.json</code> 
 that was generated for you and change it so it looks like:
@@ -118,8 +118,8 @@ that was generated for you and change it so it looks like:
 ```json
 {
   "Facilities": {
-    "HttpServer": true,
-    "JsonWs": true
+    "HTTPServer": true,
+    "JSONWs": true
   }
 }
 ```
@@ -136,7 +136,7 @@ go build
 You'll see an additional line of logging on startup similar to:
 
 <pre>
-04/Jan/2017:16:34:27 Z INFO  [grncHttpServer] Listening on 8080
+04/Jan/2017:16:34:27 Z INFO  [grncHTTPServer] Listening on 8080
 </pre>
 
 Which shows that a HTTP server is listening on the default port of 8080. Stop the runnning service with <code>CTRL+C</code>
@@ -208,7 +208,7 @@ Open the file <code>recordstore/resource/components/components.json</code> and s
 
     "artistHandler": {
       "type": "handler.WsHandler",
-      "HttpMethod": "GET",
+      "HTTPMethod": "GET",
       "Logic": "ref:artistLogic",
       "PathPattern": "^/artist"
     }

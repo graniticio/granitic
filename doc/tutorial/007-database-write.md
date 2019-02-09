@@ -95,7 +95,7 @@ func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequ
   if err := dbc.InsertCaptureQIdParams("CREATE_ARTIST", &id, sar); err != nil {
     // Something went wrong when communicating with the database - return HTTP 500
     sal.Log.LogErrorf(err.Error())
-    res.HttpStatus = http.StatusInternalServerError
+    res.HTTPStatus = http.StatusInternalServerError
   }
 
   // Use the new ID as the HTTP response, wrapped in a struct
@@ -200,7 +200,7 @@ func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequ
   if err := dbc.InsertCaptureQIdParams("CREATE_ARTIST", &id, sar); err != nil {
     // Something went wrong when communicating with the database - return HTTP 500
     sal.Log.LogErrorf(err.Error())
-    res.HttpStatus = http.StatusInternalServerError
+    res.HTTPStatus = http.StatusInternalServerError
 
     return
 
@@ -216,7 +216,7 @@ func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequ
     if _, err := dbc.InsertQIdParams("RELATE_ARTIST", params); err != nil {
       // Something went wrong inserting the relationship
       sal.Log.LogErrorf(err.Error())
-      res.HttpStatus = http.StatusInternalServerError
+      res.HTTPStatus = http.StatusInternalServerError
 
       return
     }

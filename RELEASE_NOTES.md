@@ -121,7 +121,7 @@ for more information.
 
 __BREAKING CHANGE__
 
- By default, the JsonWs facility now no longer wraps response objects in a wrapper with 'response' and 'errors' sections.
+ By default, the JSONWs facility now no longer wraps response objects in a wrapper with 'response' and 'errors' sections.
  Instead the object returned by the WsHandler is serialised as the HTTP response body unless errors are present, in which case
  the errors structure is used as the response body.
  
@@ -129,7 +129,7 @@ __BREAKING CHANGE__
  
  ```json
  {
-   "JsonWs": {
+   "JSONWs": {
      "WrapMode": "WRAP"
    }
  }
@@ -141,7 +141,7 @@ __BREAKING CHANGE__
 
 ### General
  * Various internal changes to make use of updated libraries in Go 1.8
- * Various changes of all-caps abbreviations (e.g. ID, HTTP) to  Mixed Caps (Id, Http) improve readability of method and
+ * Various changes of all-caps abbreviations (e.g. ID, HTTP) to  Mixed Caps (Id, HTTP) improve readability of method and
  type names
 
 ### RDBMS
@@ -161,7 +161,7 @@ __BREAKING CHANGE__
  * Choosing <code>sql</code> will set missing parameter values to <code>null</code> and map bools to configurable DB specific values.
  * Parameters in a query can now be marked as required by prefixing their name with <code>!</code> in the query template.
 
-### HttpServer
+### HTTPServer
 
  * Contexts passed to WsHandler are now inherited from the context on http.Request
  * Server makes use of new Shutdown and Close http.Server methods during framework shutdown

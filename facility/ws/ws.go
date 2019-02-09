@@ -2,13 +2,13 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package ws provides the JsonWs and XmlWs facilities which support JSON and XML web services.
+	Package ws provides the JSONWs and XMLWs facilities which support JSON and XML web services.
 
 	This facility is documented in detail at http://granitic.io/1.0/ref/web-services
 
 	Web-services
 
-	Enabling the JsonWs or XmlWs facility allows the creation of web service endpoints where inbound and outbound data is automatically converted from and to JSON/XML.
+	Enabling the JSONWs or XMLWs facility allows the creation of web service endpoints where inbound and outbound data is automatically converted from and to JSON/XML.
 
 	An endpoint is created by adding an instance of handler.WsHandler with a corresponding implementation of handler.WsPostProcessor
 	(generally referred to as handler logic) to your component definition file. For example:
@@ -29,7 +29,7 @@
 
 	JSON
 
-	If JsonWs is enabled, any requests to a registered endpoint will have their request body parsed as JSON and any response rendered as JSON.
+	If JSONWs is enabled, any requests to a registered endpoint will have their request body parsed as JSON and any response rendered as JSON.
 	This is handled with Go's built-in json package.
 
 	Many aspects of the parsing and rendering process (including content types, formatting of errors, pretty-printing and
@@ -37,14 +37,14 @@
 
 	XML
 
-	Once the XmlWs facility is enabled, requests to an endpoint will, by default, be parsed as XML and rendered using
+	Once the XMLWs facility is enabled, requests to an endpoint will, by default, be parsed as XML and rendered using
 	user defined templates. Refer to http://granitic.io/1.0/ref/xml#templates for more details.
 
-	Alternatively, the XmlWs facility can be configured to automatically render responses as XML using Go's built-in
+	Alternatively, the XMLWs facility can be configured to automatically render responses as XML using Go's built-in
 	XML marshalling components by setting the following configuration in your application's configuration files:
 
 		{
-		  "XmlWs": {
+		  "XMLWs": {
 			"ResponseMode": "MARSHAL"
 		  }
 		}

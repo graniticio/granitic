@@ -38,7 +38,7 @@ This example file provides a `main` function for Go and passes control to Granit
  ```json
   "artistHandler": {
       "type": "handler.WsHandler",
-      "HttpMethod": "GET",
+      "HTTPMethod": "GET",
       "Logic": "ref:artistLogic",
       "PathPattern": "^/artist"
     }

@@ -20,7 +20,7 @@ const (
 	marshalMode           = "MARSHAL"
 )
 
-// Creates the components required to support the XmlWs facility and adds them the IoC container.
+// Creates the components required to support the XMLWs facility and adds them the IoC container.
 type XMLFacilityBuilder struct {
 }
 

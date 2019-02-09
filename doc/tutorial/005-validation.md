@@ -36,8 +36,8 @@ Open your <code>/resource/config/config.json</code> file and set its contents to
 ```json
 {
   "Facilities": {
-    "HttpServer": true,
-    "JsonWs": true,
+    "HTTPServer": true,
+    "JSONWs": true,
     "RuntimeCtl": true,
     "ServiceErrorManager": true
   },
@@ -99,7 +99,7 @@ Validation is triggered by the handler component associated with your endpoint. 
 ```json
 "submitArtistHandler": {
   "type": "handler.WsHandler",
-  "HttpMethod": "POST",
+  "HTTPMethod": "POST",
   "Logic": "ref:submitArtistLogic",
   "PathPattern": "^/artist[/]?$",
   "CreateTarget": "es:endpoint.SubmittedArtistRequest",
