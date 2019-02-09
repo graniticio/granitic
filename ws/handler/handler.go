@@ -118,7 +118,7 @@ type ErrorTemplate interface {
 }
 
 //  WsHandler co-ordinates the processing of a web service request for a particular endpoint.
-// Implements ws.HTTPEndpointProvider
+// Implements ws.Provider
 type WsHandler struct {
 
 	// A component able to examine a request and see if the caller is allowed to access this endpoint.
@@ -489,7 +489,7 @@ func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoin
 }
 
 // SupportedHTTPMethods returns the HTTP method that this handler supports. Returns an array in order to
-// implement HTTPEndpointProvider, but will always be a single element array.
+// implement Provider, but will always be a single element array.
 func (wh *WsHandler) SupportedHTTPMethods() []string {
 	if len(wh.httpMethods) > 0 {
 		return wh.httpMethods

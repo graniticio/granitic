@@ -26,7 +26,7 @@
 
 	Components and types
 
-	Enabling these facilities creates the QueryManager and RdbmsClientManager components. Your application must provide
+	Enabling these facilities creates the QueryManager and ClientManager components. Your application must provide
 	a DatabaseProvider (see below)
 
 
@@ -36,9 +36,9 @@
 		QueryManager        A component that loads files containing template queries from a filesystem
 		                    and can populate than with provided variables to create a complete SQL query.
 
-		RdbmsClient         A type providing methods to execute templated queries against an RDBMS.
+		Client         A type providing methods to execute templated queries against an RDBMS.
 
-		RdbmsClientManager  A component able to create RdbmsClient objects.
+		ClientManager  A component able to create Client objects.
 
 		RowBinder           A type able to map SQL query results into Go structs.
 
@@ -63,26 +63,26 @@
 		}
 
 	As long as you only have one implementation of DatabaseProvider registered as a component, it will automatically
-	be injected into the RdbmsClientManager component.
+	be injected into the ClientManager component.
 
 	QueryManager
 
 	Refer to the dsquery package for more details on how QueryManagers work.5
 
-	RdbmsClientManager
+	ClientManager
 
 	Granitic applications are discouraged from directly interacting with sql.DB objects (although of course they are
-	free to do so). Instead, they use instances of RdbmsClient. RdbmsClient objects are not reusable across goroutines,
+	free to do so). Instead, they use instances of Client. Client objects are not reusable across goroutines,
 	instead your application will need to ask for a new one to be created for each new goroutine (e.g. for each request in
 	a web services application).
 
-	The component that is able to provide these clients is RdbmsClientManager.
+	The component that is able to provide these clients is ClientManager.
 
-	Auto-injection of an RdbmsClientManager
+	Auto-injection of an ClientManager
 
-	Any component that needs an RdbmsClient should have a field:
+	Any component that needs an Client should have a field:
 
-		DbClientManager rdbms.RdbmsClientManager
+		DbClientManager rdbms.ClientManager
 
 	The name DbClientManager is a default. You can change the field that Granitic looks for by setting the following in
 	your application configuration.
@@ -93,17 +93,17 @@
 		  }
 		}
 
-	Your code then obtains an RdbmsClient in a manner similar to:
+	Your code then obtains an Client in a manner similar to:
 
 		if rc, err := id.DBClientManager.Client(); err != nil {
 		  return err
 		}
 
-	RdbmsClient
+	Client
 
 	Application code executes SQL (either directly or via a templated query) and interacts with transactions via an
-	instance of RdbmsClient. Refer to the GoDoc for RdbmsClient for information on the methods available, but the general pattern
-	for the methods available on RdbmsClient is:
+	instance of Client. Refer to the GoDoc for Client for information on the methods available, but the general pattern
+	for the methods available on Client is:
 
 		SQLVerb[BindingType]QID[ParameterSource]
 
@@ -124,8 +124,8 @@
 
 	Binding
 
-	RdbmsClient provides a mechanism for automatically copying result data into structs or slices of structs. If the
-	RdbmsClient method name contains BindSingle, you will pass a pointer to a struct into the method and its fields will be populated:
+	Client provides a mechanism for automatically copying result data into structs or slices of structs. If the
+	Client method name contains BindSingle, you will pass a pointer to a struct into the method and its fields will be populated:
 
 	ad := new(ArtistDetail)
 
@@ -163,7 +163,7 @@
 
 	Direct access to Go DB methods
 
-	RdbmsClient provides pass-through access to sql.DB's Exec, Query and QueryRow methods. Note that these methods are compatible
+	Client provides pass-through access to sql.DB's Exec, Query and QueryRow methods. Note that these methods are compatible
 	with Granitic's transaction pattern as described above.
 
 
@@ -215,15 +215,15 @@ type ContextAwareDatabaseProvider interface {
 }
 
 /*
-Implemented by a component that can create RdbmsClient objects that application code will use to execute SQL statements.
+Implemented by a component that can create Client objects that application code will use to execute SQL statements.
 */
-type RdbmsClientManager interface {
-	// Client returns an RdbmsClient that is ready to use.
-	Client() (*RdbmsClient, error)
+type ClientManager interface {
+	// Client returns an Client that is ready to use.
+	Client() (*Client, error)
 
-	// ClientFromContext returns an RdbmsClient that is ready to use. Providing a context allows the underlying DatabaseProvider
+	// ClientFromContext returns an Client that is ready to use. Providing a context allows the underlying DatabaseProvider
 	// to modify the connection to the RDBMS.
-	ClientFromContext(ctx context.Context) (*RdbmsClient, error)
+	ClientFromContext(ctx context.Context) (*Client, error)
 }
 
 // Implemented by components that are interested in having visibility of all DatabaseProvider implementations available
@@ -232,26 +232,26 @@ type ProviderComponentReceiver interface {
 	RegisterProvider(p *ioc.Component)
 }
 
-// RdbmsClientManagerConfig is used to organise the various components that interact to manage a database connection when your
+// ClientManagerConfig is used to organise the various components that interact to manage a database connection when your
 // application needs to connect to more that one database simultaneously.
-type RdbmsClientManagerConfig struct {
+type ClientManagerConfig struct {
 	Provider DatabaseProvider
 
-	// The names of fields on a component that should have a reference to this component's associated RdbmsClientManager
+	// The names of fields on a component that should have a reference to this component's associated ClientManager
 	// automatically injected into them.
 	InjectFieldNames []string
 
 	BlockUntilConnected bool
 
-	// A name that will be shared by any instances of RdbmsClient created by this manager - this is used for logging purposes
+	// A name that will be shared by any instances of Client created by this manager - this is used for logging purposes
 	ClientName string
 
-	// Name that will be given to the RdbmsClientManager component that will be created. If not set, it will be set the value of ClientName + "Manager"
+	// Name that will be given to the ClientManager component that will be created. If not set, it will be set the value of ClientName + "Manager"
 	ManagerName string
 }
 
 /*
-	Granitic's default implementation of RdbmsClientManager. An instance of this will be created when you enable the
+	Granitic's default implementation of ClientManager. An instance of this will be created when you enable the
 
 	RdbmsAccess access facility and will be injected into any component that needs database access - see the package
 	documentation for facilty/rdbms for more details.
@@ -263,7 +263,7 @@ type GraniticRdbmsClientManager struct {
 	// Auto-injected if the QueryManager facility is enabled
 	QueryManager dsquery.QueryManager
 
-	Configuration *RdbmsClientManagerConfig
+	Configuration *ClientManagerConfig
 
 	// Injected by Granitic.
 	FrameworkLogger logging.Logger
@@ -297,8 +297,8 @@ func (cm *GraniticRdbmsClientManager) BlockAccess() (bool, error) {
 
 }
 
-// See RdbmsClientManager.Client
-func (cm *GraniticRdbmsClientManager) Client() (*RdbmsClient, error) {
+// See ClientManager.Client
+func (cm *GraniticRdbmsClientManager) Client() (*Client, error) {
 
 	if cm.state != ioc.RunningState {
 		return nil, errors.New("No Client will be created because ClientManager is not running. Application shutting down?")
@@ -316,8 +316,8 @@ func (cm *GraniticRdbmsClientManager) Client() (*RdbmsClient, error) {
 	return newRdbmsClient(db, cm.QueryManager, cm.chooseInsertFunction(), cm.SharedLog), nil
 }
 
-// See RdbmsClientManager.ClientFromContext
-func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*RdbmsClient, error) {
+// See ClientManager.ClientFromContext
+func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*Client, error) {
 
 	if cm.state != ioc.RunningState {
 		return nil, errors.New("No Client will be created because ClientManager is not running. Application shutting down?")

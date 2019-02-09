@@ -69,17 +69,17 @@ type System struct {
 }
 
 // The name of the component in the IoC container holding an instance Id.
-const InstanceIdComponent = FrameworkPrefix + "InstanceIdentifier"
+const IdComponent = FrameworkPrefix + "InstanceIdentifier"
 
 // A structure used to store the Id of a particular instance of a Granitic application. See the granitic package
 // documentation for instructions on how to define the Id at application start time.
-type InstanceIdentifier struct {
+type Identifier struct {
 	// A identifier for this instance application.
 	Id string
 }
 
 // Implemented by any component that needs to be aware of the Id of the current application instance.
-type InstanceIdentifierReceiver interface {
+type Receiver interface {
 	// RegisterInstanceId is automatically called by the IoC container to inject the instance Id.
-	RegisterInstanceId(*InstanceIdentifier)
+	RegisterInstanceId(*Identifier)
 }

@@ -28,8 +28,8 @@ const (
 	goPathEnvVar       = "GOPATH"
 )
 
-// TestFilePath finds the absolute path of a file that is provided relative to the resource/test directory.
-func TestFilePath(file string) string {
+// FilePath finds the absolute path of a file that is provided relative to the resource/test directory.
+func FilePath(file string) string {
 
 	//Check if GRANITIC_HOME explicitly set
 	graniticPath := os.Getenv(graniticHomeEnvVar)

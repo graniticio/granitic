@@ -8,28 +8,28 @@ import (
 	"github.com/graniticio/granitic/v2/ioc"
 )
 
-// Decorator to inject an InstanceIdentifier into components that need to be aware of the current application instance's
+// Decorator to inject an Identifier into components that need to be aware of the current application instance's
 // ID.
 type InstanceIdDecorator struct {
 	// The instance identity that will be injected into components.
-	InstanceId *instance.InstanceIdentifier
+	InstanceId *instance.Identifier
 }
 
-// OfInterest returns true if the supplied component implements instance.InstanceIdentifierReceiver
+// OfInterest returns true if the supplied component implements instance.Receiver
 func (id *InstanceIdDecorator) OfInterest(subject *ioc.Component) bool {
 
 	i := subject.Instance
 
-	_, found := i.(instance.InstanceIdentifierReceiver)
+	_, found := i.(instance.Receiver)
 
 	return found
 
 }
 
-// DecorateComponent injects the InstanceIdentifier in to the subject component.
+// DecorateComponent injects the Identifier in to the subject component.
 func (id *InstanceIdDecorator) DecorateComponent(subject *ioc.Component, container *ioc.ComponentContainer) {
 
-	r := subject.Instance.(instance.InstanceIdentifierReceiver)
+	r := subject.Instance.(instance.Receiver)
 
 	r.RegisterInstanceId(id.InstanceId)
 }

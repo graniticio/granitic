@@ -33,13 +33,13 @@ import (
 )
 
 type registeredProvider struct {
-	Provider httpendpoint.HTTPEndpointProvider
+	Provider httpendpoint.Provider
 	Pattern  *regexp.Regexp
 }
 
 type HTTPServer struct {
 	registeredProvidersByMethod map[string][]*registeredProvider
-	unregisteredProviders       map[string]httpendpoint.HTTPEndpointProvider
+	unregisteredProviders       map[string]httpendpoint.Provider
 	componentContainer          *ioc.ComponentContainer
 
 	// Logger used by Granitic framework components. Automatically injected.
@@ -51,7 +51,7 @@ type HTTPServer struct {
 	// Whether or not access logging should be enabled.
 	AccessLogging bool
 
-	// Whether or not instances of httpendpoint.HTTPEndpointProvider found in the IoC container should be automatically
+	// Whether or not instances of httpendpoint.Provider found in the IoC container should be automatically
 	// registered with this server
 	AutoFindHandlers bool
 
@@ -100,7 +100,7 @@ func (h *HTTPServer) Container(container *ioc.ComponentContainer) {
 	h.componentContainer = container
 }
 
-func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HTTPEndpointProvider) {
+func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.Provider) {
 
 	for _, method := range endPointProvider.SupportedHTTPMethods() {
 		var compiledRegex *regexp.Regexp
@@ -129,7 +129,7 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.HTTPEndpoint
 
 }
 
-// StartComponent Finds and registers any available components that implement httpendpoint.HTTPEndpointProvider (normally instances of
+// StartComponent Finds and registers any available components that implement httpendpoint.Provider (normally instances of
 // handler.WsHandler) unless auto finding of handlers is disabled. The server does not actually start listening for
 // requests until the IoC container calls AllowAccess.
 func (h *HTTPServer) StartComponent() error {
@@ -146,8 +146,8 @@ func (h *HTTPServer) StartComponent() error {
 
 			name := component.Name
 
-			if provider, found := component.Instance.(httpendpoint.HTTPEndpointProvider); found && provider.AutoWireable() {
-				h.FrameworkLogger.LogDebugf("Found HTTPEndpointProvider %s", name)
+			if provider, found := component.Instance.(httpendpoint.Provider); found && provider.AutoWireable() {
+				h.FrameworkLogger.LogDebugf("Found Provider %s", name)
 				h.registerProvider(provider)
 			}
 		}
@@ -251,7 +251,7 @@ func (h *HTTPServer) AllowAccess() error {
 }
 
 // SetProvidersManually manually injects a set of httpendpoint.HTTPEndpointProviders when auto finding is disabled.
-func (h *HTTPServer) SetProvidersManually(p map[string]httpendpoint.HTTPEndpointProvider) {
+func (h *HTTPServer) SetProvidersManually(p map[string]httpendpoint.Provider) {
 	h.unregisteredProviders = p
 }
 
@@ -363,7 +363,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func (h *HTTPServer) versionMatch(ri instrument.Instrumentor, r *http.Request, p httpendpoint.HTTPEndpointProvider) bool {
+func (h *HTTPServer) versionMatch(ri instrument.Instrumentor, r *http.Request, p httpendpoint.Provider) bool {
 
 	if h.VersionExtractor == nil || !p.VersionAware() {
 		return true

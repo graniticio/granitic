@@ -66,7 +66,7 @@ func GetHandler(t *testing.T) (*WsHandler, *http.Request) {
 
 	gf := filepath.Join("ws", "get")
 
-	getFilePath := test.TestFilePath(gf)
+	getFilePath := test.FilePath(gf)
 	fr, err := os.Open(getFilePath)
 	test.ExpectNil(t, err)
 

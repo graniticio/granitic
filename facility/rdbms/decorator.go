@@ -12,7 +12,7 @@ import (
 )
 
 type clientManagerDecorator struct {
-	fieldNameManager map[string]rdbms.RdbmsClientManager
+	fieldNameManager map[string]rdbms.ClientManager
 	log              logging.Logger
 }
 

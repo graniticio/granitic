@@ -52,7 +52,7 @@ func LoadConfigFromFile(f string) *Accessor {
 
 	osp := filepath.Join("config", f)
 
-	p := test.TestFilePath(osp)
+	p := test.FilePath(osp)
 	l := logging.CreateAnonymousLogger("config_test", 0)
 
 	var d interface{}
@@ -69,7 +69,7 @@ func LoadConfigFromFile(f string) *Accessor {
 
 func TestFindConfigFiles(t *testing.T) {
 
-	p := test.TestFilePath("folders")
+	p := test.FilePath("folders")
 
 	r, err := FindConfigFilesInDir(p)
 

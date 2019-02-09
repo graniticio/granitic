@@ -39,7 +39,7 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 
 	cn.WrapAndAddProto(serviceErrorManagerComponentName, manager)
 
-	errorDecorator := new(ServiceErrorConsumerDecorator)
+	errorDecorator := new(ConsumerDecorator)
 	errorDecorator.ErrorSource = manager
 	cn.WrapAndAddProto(serviceErrorDecoratorComponentName, errorDecorator)
 

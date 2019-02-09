@@ -130,7 +130,7 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 
 	h.Unmarshaller = um
 
-	handlers := make(map[string]httpendpoint.HTTPEndpointProvider)
+	handlers := make(map[string]httpendpoint.Provider)
 	handlers[runtimeCtlCommandHandler] = h
 	sv.SetProvidersManually(handlers)
 

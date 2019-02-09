@@ -11,7 +11,7 @@ import (
 
 func TestExpandToFilesAndURLs(t *testing.T) {
 
-	p := test.TestFilePath("folders")
+	p := test.FilePath("folders")
 	u := "http://www.example.com/json"
 
 	r, err := ExpandToFilesAndURLs([]string{u, p})

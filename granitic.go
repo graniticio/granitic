@@ -195,9 +195,9 @@ func (i *initiator) createInstanceIdentifier(is *config.InitialSettings, cc *ioc
 	id := is.InstanceId
 
 	if id != "" {
-		ii := new(instance.InstanceIdentifier)
+		ii := new(instance.Identifier)
 		ii.Id = id
-		cc.WrapAndAddProto(instance.InstanceIdComponent, ii)
+		cc.WrapAndAddProto(instance.IdComponent, ii)
 
 		iidd := new(facility.InstanceIdDecorator)
 		iidd.InstanceId = ii

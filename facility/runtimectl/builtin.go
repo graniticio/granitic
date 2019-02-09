@@ -33,8 +33,8 @@ func findLifecycleFilter(args map[string]string) (ioc.LifecycleSupport, error) {
 
 }
 
-// RuntimeCtlEnabled checks to see if the RuntimeCtl facility is enabled in configuration.
-func RuntimeCtlEnabled(ca *config.Accessor) bool {
+// Enabled checks to see if the RuntimeCtl facility is enabled in configuration.
+func Enabled(ca *config.Accessor) bool {
 
 	p := "Facilities.RuntimeCtl"
 

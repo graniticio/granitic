@@ -62,17 +62,17 @@ import (
 	"github.com/graniticio/granitic/v2/ws"
 )
 
-type ServiceErrorConsumerDecorator struct {
+type ConsumerDecorator struct {
 	ErrorSource *grncerror.ServiceErrorManager
 }
 
-func (secd *ServiceErrorConsumerDecorator) OfInterest(component *ioc.Component) bool {
+func (secd *ConsumerDecorator) OfInterest(component *ioc.Component) bool {
 	_, found := component.Instance.(ws.ServiceErrorConsumer)
 
 	return found
 }
 
-func (secd *ServiceErrorConsumerDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+func (secd *ConsumerDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
 	c := component.Instance.(ws.ServiceErrorConsumer)
 	c.ProvideErrorFinder(secd.ErrorSource)
 }

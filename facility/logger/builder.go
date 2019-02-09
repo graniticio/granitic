@@ -73,7 +73,7 @@ func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 func (alfb *FacilityBuilder) addRuntimeCommands(ca *config.Accessor, alm *logging.ComponentLoggerManager, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
 
-	if !runtimectl.RuntimeCtlEnabled(ca) {
+	if !runtimectl.Enabled(ca) {
 		return
 	}
 

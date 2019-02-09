@@ -7,8 +7,8 @@
 	The RdbmsAccess facility is described in detail at http://granitic.io/1.0/ref/rdbms-access and the programmatic
 	interface that applications will use for executing SQL is described in the rdbms package documentation.
 
-	The purpose of this facility is to create an rdbms.RdbmsClientManager that will be injected into your application
-	components. In turn, the rdbms.RdbmsClientManager will be used by your application to create instances of rdbms.RDBMSClient
+	The purpose of this facility is to create an rdbms.ClientManager that will be injected into your application
+	components. In turn, the rdbms.ClientManager will be used by your application to create instances of rdbms.RDBMSClient
 	which provide the interface for executing SQL queries and managing transactions.
 
 */
@@ -26,7 +26,7 @@ import (
 	"github.com/graniticio/granitic/v2/types"
 )
 
-const rdbmsClientManagerConfigName = instance.FrameworkPrefix + "RdbmsClientManagerConfig"
+const rdbmsClientManagerConfigName = instance.FrameworkPrefix + "ClientManagerConfig"
 
 const managerDecorator = instance.FrameworkPrefix + "DbClientManagerDecorator"
 
@@ -50,20 +50,20 @@ func (rafb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 		return errors.New("You must define a component that implements rdbms.DatabaseProvider if you want to use the RdbmsAccess facility")
 	}
 
-	managerConfigs := make(map[string]*rdbms.RdbmsClientManagerConfig)
+	managerConfigs := make(map[string]*rdbms.ClientManagerConfig)
 
 	//See if client manager configs have been explicitly defined
 	rafb.findConfigurations(cn, managerConfigs)
 
 	if len(managerConfigs) == 0 {
 
-		log.LogTracef("Provider found but no explicit rdbms.RdbmsClientManagerConfig components. Creating default configuration")
+		log.LogTracef("Provider found but no explicit rdbms.ClientManagerConfig components. Creating default configuration")
 
 		//We have a provider
 		providerName := pn[0]
 
 		// Create config for a default ClientManager
-		mc := new(rdbms.RdbmsClientManagerConfig)
+		mc := new(rdbms.ClientManagerConfig)
 		ca.Populate("RdbmsAccess.Default", mc)
 
 		proto := ioc.CreateProtoComponent(mc, mc.ClientName+"ManagerConfig")
@@ -79,7 +79,7 @@ func (rafb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 }
 
-func (rafb *FacilityBuilder) createManagers(cn *ioc.ComponentContainer, conf map[string]*rdbms.RdbmsClientManagerConfig, lm *logging.ComponentLoggerManager) error {
+func (rafb *FacilityBuilder) createManagers(cn *ioc.ComponentContainer, conf map[string]*rdbms.ClientManagerConfig, lm *logging.ComponentLoggerManager) error {
 
 	mn := types.NewEmptyUnorderedStringSet()
 
@@ -87,7 +87,7 @@ func (rafb *FacilityBuilder) createManagers(cn *ioc.ComponentContainer, conf map
 		for _, method := range v.InjectFieldNames {
 
 			if mn.Contains(method) {
-				message := fmt.Sprintf("More than one rdbms.RdbmsClientManagerConfig component is configured to inject into the field name %s", method)
+				message := fmt.Sprintf("More than one rdbms.ClientManagerConfig component is configured to inject into the field name %s", method)
 				return errors.New(message)
 			} else {
 				mn.Add(method)
@@ -96,7 +96,7 @@ func (rafb *FacilityBuilder) createManagers(cn *ioc.ComponentContainer, conf map
 		}
 	}
 
-	fieldsToManager := make(map[string]rdbms.RdbmsClientManager)
+	fieldsToManager := make(map[string]rdbms.ClientManager)
 
 	for k, managerConf := range conf {
 		manager := new(rdbms.GraniticRdbmsClientManager)
@@ -128,19 +128,19 @@ func (rafb *FacilityBuilder) createManagers(cn *ioc.ComponentContainer, conf map
 
 }
 
-func (rafb *FacilityBuilder) findConfigurations(cn *ioc.ComponentContainer, c map[string]*rdbms.RdbmsClientManagerConfig) {
+func (rafb *FacilityBuilder) findConfigurations(cn *ioc.ComponentContainer, c map[string]*rdbms.ClientManagerConfig) {
 
 	matcher := func(i interface{}) (okay bool) {
-		_, okay = i.(*rdbms.RdbmsClientManagerConfig)
+		_, okay = i.(*rdbms.ClientManagerConfig)
 		return
 	}
 
 	for _, comp := range cn.ProtoComponentsByType(matcher) {
 		name := comp.Component.Name
 
-		rafb.Log.LogTracef("Found instance of dbms.RdbmsClientManagerConfig: %s", name)
+		rafb.Log.LogTracef("Found instance of dbms.ClientManagerConfig: %s", name)
 
-		config, _ := comp.Component.Instance.(*rdbms.RdbmsClientManagerConfig)
+		config, _ := comp.Component.Instance.(*rdbms.ClientManagerConfig)
 
 		if config.ClientName == "" {
 			config.ClientName = name + "Client"
