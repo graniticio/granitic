@@ -164,9 +164,9 @@ func (jm *JSONMerger) extractExtension(path string) string {
 
 	if len(c) == 1 {
 		return ""
-	} else {
-		return strings.ToLower(c[len(c)-1])
 	}
+
+	return strings.ToLower(c[len(c)-1])
 }
 
 func (jm *JSONMerger) loadFromURL(url string) ([]byte, ContentParser, error) {

@@ -34,10 +34,10 @@ func FindConfigFilesInDir(dirPath string) ([]string, error) {
 
 			fmt.Println(dp)
 
-			if sub, err := FindConfigFilesInDir(dp); err != nil {
-				return nil, err
-			} else {
+			if sub, err := FindConfigFilesInDir(dp); err == nil {
 				files = append(files, sub...)
+			} else {
+				return nil, err
 			}
 
 		} else if filepath.Ext(fileName) == ".json" {
@@ -62,8 +62,7 @@ func FileListFromPath(path string) ([]string, error) {
 	file, err := os.Open(path)
 
 	if err != nil {
-		err := errors.New("Unable to open file/dir " + path)
-		return files, err
+		return files, fmt.Errorf("unable to open file/dir %s", path)
 	}
 
 	defer file.Close()
@@ -90,10 +89,10 @@ func FileListFromPath(path string) ([]string, error) {
 
 			if info.IsDir() {
 
-				if sf, err := FileListFromPath(p); err != nil {
-					return nil, err
-				} else {
+				if sf, err := FileListFromPath(p); err == nil {
 					files = append(files, sf...)
+				} else {
+					return nil, err
 				}
 			} else {
 				files = append(files, p)

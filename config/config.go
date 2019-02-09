@@ -147,14 +147,12 @@ func (c *Accessor) ObjectVal(path string) (map[string]interface{}, error) {
 
 	if value == nil {
 		return nil, nil
-	} else {
-		if v, found := value.(map[string]interface{}); found {
-			return v, nil
-		} else {
-			m := fmt.Sprintf("Unable to convert the value at %s to a JSON map/object.", path)
-			return nil, errors.New(m)
-		}
+	} else if v, found := value.(map[string]interface{}); found {
+		return v, nil
 	}
+
+	return nil, fmt.Errorf("Unable to convert the value at %s to a JSON map/object.", path)
+
 }
 
 // ObjectVal returns the string value of the JSON string at the supplied path. Does not convert other types to
@@ -171,10 +169,9 @@ func (c *Accessor) StringVal(path string) (string, error) {
 
 	if found {
 		return s, nil
-	} else {
-		message := fmt.Sprintf("Value at %s is %q and cannot be converted to a string", path, v)
-		return "", errors.New(message)
 	}
+
+	return "", fmt.Errorf("Value at %s is %q and cannot be converted to a string", path, v)
 
 }
 
@@ -188,15 +185,12 @@ func (c *Accessor) IntVal(path string) (int, error) {
 
 	if v == nil {
 		return 0, errors.New("No such path " + path)
-	}
-
-	if f, found := v.(float64); found {
+	} else if f, found := v.(float64); found {
 		return int(f), nil
-	} else {
-		message := fmt.Sprintf("Value at %s is %q and cannot be converted to an int", path, v)
-		return 0, errors.New(message)
-
 	}
+
+	return 0, fmt.Errorf("alue at %s is %q and cannot be converted to an int", path, v)
+
 }
 
 // IntVal returns the float64 value of the JSON number at the supplied path. An error will be returned if the value is not a JSON number.
@@ -206,15 +200,11 @@ func (c *Accessor) Float64Val(path string) (float64, error) {
 
 	if v == nil {
 		return 0, errors.New("No such path " + path)
-	}
-
-	if f, found := v.(float64); found {
+	} else if f, found := v.(float64); found {
 		return f, nil
-	} else {
-		message := fmt.Sprintf("Value at %s is %q and cannot be converted to a float64", path, v)
-		return 0, errors.New(message)
-
 	}
+
+	return 0, fmt.Errorf("value at %s is %q and cannot be converted to a float64", path, v)
 }
 
 // Array returns the value of an array of JSON obects at the supplied path. Caution should be used when calling this method
@@ -225,15 +215,12 @@ func (c *Accessor) Array(path string) ([]interface{}, error) {
 
 	if value == nil {
 		return nil, nil
-	} else {
-
-		if v, found := value.([]interface{}); found {
-			return v, nil
-		} else {
-			m := fmt.Sprintf("Unable to convert the value at %s to a JSON array.", path)
-			return nil, errors.New(m)
-		}
+	} else if v, found := value.([]interface{}); found {
+		return v, nil
 	}
+
+	return nil, fmt.Errorf("unable to convert the value at %s to a JSON array", path)
+
 }
 
 // BoolVal returns the bool value of the JSON bool at the supplied path. An error will be returned if the value is not a JSON bool.
@@ -248,11 +235,9 @@ func (c *Accessor) BoolVal(path string) (bool, error) {
 
 	if b, found := v.(bool); found {
 		return b, nil
-	} else {
-		message := fmt.Sprintf("Value at %s is %q and cannot be converted to a bool", path, v)
-		return false, errors.New(message)
-
 	}
+
+	return false, fmt.Errorf("Value at %s is %q and cannot be converted to a bool", path, v)
 
 }
 
@@ -284,10 +269,10 @@ func (c *Accessor) configVal(path []string, jsonMap map[string]interface{}) inte
 
 	if len(path) == 1 {
 		return result
-	} else {
-		remainPath := path[1:len(path)]
-		return c.configVal(remainPath, result.(map[string]interface{}))
 	}
+
+	remainPath := path[1:len(path)]
+	return c.configVal(remainPath, result.(map[string]interface{}))
 }
 
 // SetField takes a target Go interface and uses the data a the supplied path to populated the named field on the
@@ -429,12 +414,8 @@ func (ca *Accessor) Populate(path string, target interface{}) error {
 	if data, err := json.Marshal(object); err != nil {
 		m := fmt.Sprintf("%T cannot be marshalled to JSON", object)
 		return errors.New(m)
-	} else {
-
-		if json.Unmarshal(data, target); err != nil {
-			m := fmt.Sprintf("%T cannot be populated with %v to JSON", object, data)
-			return errors.New(m)
-		}
+	} else if json.Unmarshal(data, target); err != nil {
+		return fmt.Errorf("%T cannot be populated with %v to JSON", object, data)
 	}
 
 	return nil
