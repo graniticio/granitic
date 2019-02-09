@@ -250,7 +250,7 @@ func TestPathBinding(t *testing.T) {
 	targets := []string{"S", "I", "I8", "I16", "I32", "I64", "F32", "F64", "B", "NS", "NI", "NF", "NB"}
 	values := []string{"s", "1", "8", "16", "32", "64", "32.0", "64.0", "true", "ns", "-1", "-64.0", "false"}
 
-	p := NewWsParamsForPath(targets, values)
+	p := NewParamsForPath(targets, values)
 	bt := new(BindingTarget)
 
 	pb := createParamBinder()
@@ -289,7 +289,7 @@ func TestMorePathTargetsThanValues(t *testing.T) {
 	targets := []string{"S", "I", "I8"}
 	values := []string{"s", "1"}
 
-	p := NewWsParamsForPath(targets, values)
+	p := NewParamsForPath(targets, values)
 	bt := new(BindingTarget)
 
 	pb := createParamBinder()
@@ -315,7 +315,7 @@ func TestMorePathValuesThanTargets(t *testing.T) {
 	targets := []string{"S", "I"}
 	values := []string{"s", "1", "8"}
 
-	p := NewWsParamsForPath(targets, values)
+	p := NewParamsForPath(targets, values)
 	bt := new(BindingTarget)
 
 	pb := createParamBinder()

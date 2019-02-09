@@ -10,9 +10,9 @@ import (
 	"strconv"
 )
 
-// NewWsParamsForPath creates a Params used to store the elements of a request
+// NewParamsForPath creates a Params used to store the elements of a request
 // path extracted using regular expression groups.
-func NewWsParamsForPath(targets []string, values []string) *Params {
+func NewParamsForPath(targets []string, values []string) *Params {
 
 	contents := make(url.Values)
 	v := len(values)
