@@ -188,10 +188,11 @@ func (lm *LifecycleManager) waitForBlockers(retestInterval time.Duration, maxTri
 		notReady, cNames := lm.countBlocking(i > warnAfterTries)
 		names = cNames
 
-		if notReady == 0 {
-			return nil
-		} else {
+		if notReady != 0 {
 			time.Sleep(retestInterval)
+
+		} else {
+			return nil
 		}
 	}
 
@@ -271,10 +272,10 @@ func (lm *LifecycleManager) waitForReadyToStop(retestInterval time.Duration, max
 
 		notReady := lm.countNotReady(i > warnAfterTries)
 
-		if notReady == 0 {
-			return
-		} else {
+		if notReady != 0 {
 			time.Sleep(retestInterval)
+		} else {
+			return
 		}
 	}
 
