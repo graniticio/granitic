@@ -63,9 +63,10 @@ func ExpectString(t *testing.T, check, expected string) bool {
 		l := determineLine()
 		t.Fatalf("%s Expected %s, actual %s", l, expected, check)
 		return false
-	} else {
-		return true
 	}
+
+	return true
+
 }
 
 // ExpectBool stops a test and logs an error if the bool to be checked does not have the expected value.
@@ -74,9 +75,10 @@ func ExpectBool(t *testing.T, check, expected bool) bool {
 		l := determineLine()
 		t.Fatalf("%s Expected %t, actual %t", l, expected, check)
 		return false
-	} else {
-		return true
 	}
+
+	return true
+
 }
 
 // ExpectInt stops a test and logs an error if the int to be checked does not have the expected value.
@@ -85,9 +87,9 @@ func ExpectInt(t *testing.T, check, expected int) bool {
 		l := determineLine()
 		t.Fatalf("%s Expected %d, actual %d", l, expected, check)
 		return false
-	} else {
-		return true
 	}
+
+	return true
 }
 
 // ExpectFloat stops a test and logs an error if the float to be checked does not have the expected value.
@@ -96,34 +98,34 @@ func ExpectFloat(t *testing.T, check, expected float64) bool {
 		l := determineLine()
 		t.Fatalf("%s Expected %e, actual %e", l, expected, check)
 		return false
-	} else {
-		return true
 	}
+
+	return true
 }
 
 // ExpectNil stops a test and logs an error if the value to check is not nil
 func ExpectNil(t *testing.T, check interface{}) bool {
 	if check == nil {
 		return true
-	} else {
-		l := determineLine()
-
-		t.Fatalf("%s Expected nil, actual %q", l, check)
-		return false
 	}
+
+	l := determineLine()
+
+	t.Fatalf("%s Expected nil, actual %q", l, check)
+	return false
 }
 
 // ExpectNil stops a test and logs an error if the value to check is nil
 func ExpectNotNil(t *testing.T, check interface{}) bool {
 	if check != nil {
 		return true
-	} else {
-
-		l := determineLine()
-
-		t.Fatalf("%s: Expected not nil", l)
-		return false
 	}
+
+	l := determineLine()
+
+	t.Fatalf("%s: Expected not nil", l)
+	return false
+
 }
 
 func determineLine() string {
