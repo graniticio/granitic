@@ -35,9 +35,9 @@ func (c *logLevelCommand) ExecuteCommand(qualifiers []string, args map[string]st
 
 	if len(qualifiers) == 0 {
 		return c.showCurrentLevel(args)
-	} else {
-		return c.setLevel(qualifiers)
 	}
+
+	return c.setLevel(qualifiers)
 }
 
 func (c *logLevelCommand) setLevel(qualifiers []string) (*ctl.CommandOutput, []*ws.CategorisedError) {
