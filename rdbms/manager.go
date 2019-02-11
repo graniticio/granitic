@@ -291,9 +291,9 @@ func (cm *GraniticRdbmsClientManager) BlockAccess() (bool, error) {
 
 	if err = db.Ping(); err == nil {
 		return false, nil
-	} else {
-		return true, errors.New("Unable to connect to database: " + err.Error())
 	}
+
+	return true, errors.New("Unable to connect to database: " + err.Error())
 
 }
 
@@ -350,10 +350,9 @@ func (cm *GraniticRdbmsClientManager) chooseInsertFunction() InsertWithReturnedI
 
 	if iwi, found := cm.Configuration.Provider.(NonStandardInsertProvider); found {
 		return iwi.InsertIDFunc()
-	} else {
-		return DefaultInsertWithReturnedId
 	}
 
+	return DefaultInsertWithReturnedId
 }
 
 // StartComponent selects a DatabaseProvider to use
