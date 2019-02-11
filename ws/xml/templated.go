@@ -202,13 +202,9 @@ func (rw *TemplatedXMLResponseWriter) preLoadTemplates(baseDir string) error {
 	if tp, err := rw.templatePaths(rw.TemplateDir); err != nil {
 		m := fmt.Sprintf("Problem converting template directory into a list of file paths %s: %s", baseDir, err)
 		return errors.New(m)
-	} else {
-
-		if rw.templates, err = template.ParseFiles(tp...); err != nil {
-			m := fmt.Sprintf("Problem parsing template files: %s", err)
-			return errors.New(m)
-		}
-
+	} else if rw.templates, err = template.ParseFiles(tp...); err != nil {
+		m := fmt.Sprintf("Problem parsing template files: %s", err)
+		return errors.New(m)
 	}
 
 	return nil

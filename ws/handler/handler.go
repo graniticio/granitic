@@ -448,15 +448,15 @@ func (wh *WsHandler) checkAccess(ctx context.Context, w *httpendpoint.HTTPRespon
 
 	if allowed {
 		return true
-	} else {
-
-		state := ws.NewAbnormalState(http.StatusForbidden, w)
-		state.Identity = wsReq.UserIdentity
-		state.WsRequest = wsReq
-
-		wh.ResponseWriter.Write(ctx, state, ws.Abnormal)
-		return false
 	}
+
+	state := ws.NewAbnormalState(http.StatusForbidden, w)
+	state.Identity = wsReq.UserIdentity
+	state.WsRequest = wsReq
+
+	wh.ResponseWriter.Write(ctx, state, ws.Abnormal)
+	return false
+
 }
 
 func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoint.HTTPResponseWriter, req *http.Request, wsReq *ws.Request) (bool, context.Context) {
@@ -493,9 +493,9 @@ func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoin
 func (wh *WsHandler) SupportedHTTPMethods() []string {
 	if len(wh.httpMethods) > 0 {
 		return wh.httpMethods
-	} else {
-		return []string{wh.HTTPMethod}
 	}
+
+	return []string{wh.HTTPMethod}
 }
 
 // RegexPattern returns the unparsed regex pattern that should be applicaed to the path of incoming requests to
@@ -677,10 +677,9 @@ func (wh *WsHandler) StartComponent() error {
 
 		if err != nil {
 			return err
-		} else {
-			wh.pathRegex = r
 		}
 
+		wh.pathRegex = r
 	}
 
 	if wh.DeferAutoErrors && wh.validator == nil {

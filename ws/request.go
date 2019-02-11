@@ -72,10 +72,9 @@ func (wsr *Request) BoundFields() types.StringSet {
 
 	if wsr.populatedFields == nil {
 		return types.NewOrderedStringSet([]string{})
-	} else {
-		return wsr.populatedFields
 	}
 
+	return wsr.populatedFields
 }
 
 // Implement by components that are able to convert an HTTP request body into a struct.

@@ -332,9 +332,9 @@ func (pb *ParamBinder) setUintNField(paramName string, fieldName string, qp *Par
 func (pb *ParamBinder) intTypeName(prefix string, bits int) string {
 	if bits == 0 {
 		return prefix
-	} else {
-		return prefix + strconv.Itoa(bits)
 	}
+
+	return prefix + strconv.Itoa(bits)
 }
 
 type nillableProxy struct {
