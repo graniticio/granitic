@@ -330,10 +330,10 @@ func (alw *AccessLogWriter) addPlaceholder(ph string, re *regexp.Regexp) error {
 		if lfph == unsupported {
 			message := fmt.Sprintf("%s is not a supported field for formatting access log lines", ph)
 			return errors.New(message)
-		} else {
-			e := newPlaceholderLineElement(lfph)
-			alw.elements = append(alw.elements, e)
 		}
+
+		e := newPlaceholderLineElement(lfph)
+		alw.elements = append(alw.elements, e)
 
 	} else {
 
@@ -346,10 +346,10 @@ func (alw *AccessLogWriter) addPlaceholder(ph string, re *regexp.Regexp) error {
 		if lfph == unsupported {
 			message := fmt.Sprintf("%s is not a supported field for formatting access log lines", ph)
 			return errors.New(message)
-		} else {
-			e := newPlaceholderWithVarLineElement(lfph, arg)
-			alw.elements = append(alw.elements, e)
 		}
+
+		e := newPlaceholderWithVarLineElement(lfph, arg)
+		alw.elements = append(alw.elements, e)
 
 	}
 
@@ -359,9 +359,10 @@ func (alw *AccessLogWriter) addPlaceholder(ph string, re *regexp.Regexp) error {
 func intMax(x, y int) int {
 	if x > y {
 		return x
-	} else {
-		return y
 	}
+
+	return y
+
 }
 
 func (alw *AccessLogWriter) mapPlaceholder(ph string) logFormatPlaceHolder {
@@ -441,9 +442,9 @@ func (alw *AccessLogWriter) findValue(element *logLineToken, req *http.Request, 
 	case bytesReturnedClf:
 		if res.BytesServed == 0 {
 			return hyphen
-		} else {
-			return (strconv.Itoa(res.BytesServed))
 		}
+
+		return (strconv.Itoa(res.BytesServed))
 
 	case bytesReturned:
 		return (strconv.Itoa(res.BytesServed))
@@ -500,10 +501,9 @@ func (alw *AccessLogWriter) query(req *http.Request) string {
 
 	if q == "" {
 		return q
-	} else {
-
-		return "?" + q
 	}
+
+	return "?" + q
 
 }
 
@@ -514,10 +514,9 @@ func (alw *AccessLogWriter) requestHeader(name string, req *http.Request) string
 	if value == "" {
 		return hyphen
 
-	} else {
-		return value
 	}
 
+	return value
 }
 
 func (alw *AccessLogWriter) requestLine(req *http.Request) string {
