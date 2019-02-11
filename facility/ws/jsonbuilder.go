@@ -48,10 +48,7 @@ func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "ResponseWrapper") {
 
 		// User hasn't defined their own wrapper for JSON responses, use one of the defaults
-		if mode, err := ca.StringVal("JSONWs.WrapMode"); err != nil {
-			return err
-		} else {
-
+		if mode, err := ca.StringVal("JSONWs.WrapMode"); err == nil {
 			var wrap ws.ResponseWrapper
 
 			switch mode {
@@ -67,7 +64,8 @@ func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 
 			ca.Populate("JSONWs.ResponseWrapper", wrap)
 			rw.ResponseWrapper = wrap
-
+		} else {
+			return err
 		}
 
 	}

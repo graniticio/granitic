@@ -53,10 +53,11 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 		return errors.New("Unable to load service error messages from configuration: " + err.Error())
 	}
 
-	if messages, err := fb.loadMessagesFromConfig(definitionsPath, ca); err != nil {
-		return err
-	} else {
+	if messages, err := fb.loadMessagesFromConfig(definitionsPath, ca); err == nil {
 		manager.LoadErrors(messages)
+
+	} else {
+		return err
 	}
 
 	return nil
@@ -75,21 +76,16 @@ func (fb *FacilityBuilder) DependsOnFacilities() []string {
 func (fb *FacilityBuilder) loadMessagesFromConfig(dPath string, ca *config.Accessor) ([]interface{}, error) {
 
 	if !ca.PathExists(dPath) {
-		m := fmt.Sprintf("No error definitions found at config path %s", dPath)
-		return nil, errors.New(m)
+		return nil, fmt.Errorf("no error definitions found at config path %s", dPath)
 	}
 
 	i := ca.Value(dPath)
 
 	if config.JSONType(i) != config.JSONArray {
-		m := fmt.Sprintf("Couldn't load error messages from config path %s. Make sure the path exists in your configuration and that %s is an array of string arrays ([][]string)", dPath, dPath)
-		return nil, errors.New(m)
+		e := fmt.Errorf("couldn't load error messages from config path %s. Make sure the path exists in your configuration and that %s is an array of string arrays ([][]string)", dPath, dPath)
+		return nil, e
 	}
 
-	if v, err := ca.Array(dPath); err == nil {
-		return v, nil
-	} else {
-		return nil, err
-	}
+	return ca.Array(dPath)
 
 }
