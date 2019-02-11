@@ -40,16 +40,13 @@ func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 			}
 
 			return false, nil
-		} else {
-			m := fmt.Sprintf("Target must be a pointer to a struct or pointer. Is %T", t)
-			return false, errors.New(m)
 		}
+
+		return false, fmt.Errorf("target must be a pointer to a struct or pointer. Is %T", t)
+
 	}
 
-	if results, err := rb.BindRows(r, t); err != nil {
-		return false, err
-	} else {
-
+	if results, err := rb.BindRows(r, t); err == nil {
 		rs := len(results)
 
 		if rs == 0 {
@@ -57,8 +54,7 @@ func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 		}
 
 		if rs != 1 {
-			m := fmt.Sprintf("BindRow: query returned %d rows, expected zero or one row.", rs)
-			return false, errors.New(m)
+			return false, fmt.Errorf("BindRow: query returned %d rows, expected zero or one row.", rs)
 		}
 
 		tr := reflect.ValueOf(t).Elem()
@@ -70,6 +66,9 @@ func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 			tr.Field(i).Set(rr.Field(i))
 
 		}
+	} else {
+
+		return false, err
 
 	}
 
@@ -125,9 +124,7 @@ func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error)
 		scanner := targetScanners[cn]
 
 		if scanner == nil {
-
-			m := fmt.Sprintf("No field available to receive column %s (no matching field name or 'column:' tag)", cn)
-			return nil, errors.New(m)
+			return nil, fmt.Errorf("no field available to receive column %s (no matching field name or 'column:' tag)", cn)
 		}
 
 		scanners[i] = scanner
@@ -146,10 +143,10 @@ func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error)
 			return nil, err
 		}
 
-		if built, err := rb.buildAndPopulate(t, scanners); err != nil {
-			return nil, err
-		} else {
+		if built, err := rb.buildAndPopulate(t, scanners); err == nil {
 			results = append(results, built)
+		} else {
+			return nil, err
 		}
 
 	}
@@ -266,9 +263,9 @@ func (s *scanner) Scan(src interface{}) error {
 
 		if s.kind != reflect.String {
 			return s.convert(sv)
-		} else {
-			s.val = sv
 		}
+
+		s.val = sv
 
 	} else {
 		s.val = src
@@ -307,10 +304,10 @@ func (s *scanner) convert(sv string) error {
 	case reflect.Float64:
 		return s.toFloatVal(sv, 64)
 	case reflect.Bool:
-		if b, err := strconv.ParseBool(sv); err != nil {
-			return err
-		} else {
+		if b, err := strconv.ParseBool(sv); err == nil {
 			s.val = b
+		} else {
+			return err
 		}
 
 	default:
@@ -328,26 +325,26 @@ func (s *scanner) supportedStruct(sv string) error {
 
 	case NilBool:
 
-		if b, err := strconv.ParseBool(sv); err != nil {
-			return err
-		} else {
+		if b, err := strconv.ParseBool(sv); err == nil {
 			s.val = types.NewNilableBool(b)
+		} else {
+			return err
 		}
 
 	case NilInt:
 
-		if err := s.toIntVal(sv, 64); err != nil {
-			return err
-		} else {
+		if err := s.toIntVal(sv, 64); err == nil {
 			s.val = types.NewNilableInt64(s.val.(int64))
+		} else {
+			return err
 		}
 
 	case NilFloat:
 
-		if err := s.toFloatVal(sv, 64); err != nil {
-			return err
-		} else {
+		if err := s.toFloatVal(sv, 64); err == nil {
 			s.val = types.NewNilableFloat64(s.val.(float64))
+		} else {
+			return err
 		}
 
 	case NilString:
@@ -360,16 +357,16 @@ func (s *scanner) supportedStruct(sv string) error {
 }
 
 func (s *scanner) toFloatVal(sv string, size int) error {
-	if i, err := strconv.ParseFloat(sv, size); err != nil {
-		return err
-	} else {
-
+	if i, err := strconv.ParseFloat(sv, size); err == nil {
 		switch size {
 		case 32:
 			s.val = float32(i)
 		case 64:
 			s.val = float64(i)
 		}
+	} else {
+
+		return err
 
 	}
 
@@ -378,10 +375,7 @@ func (s *scanner) toFloatVal(sv string, size int) error {
 
 func (s *scanner) toIntVal(sv string, size int) error {
 
-	if i, err := strconv.ParseInt(sv, 10, size); err != nil {
-		return err
-	} else {
-
+	if i, err := strconv.ParseInt(sv, 10, size); err == nil {
 		switch size {
 		case 0:
 			s.val = int(i)
@@ -394,7 +388,9 @@ func (s *scanner) toIntVal(sv string, size int) error {
 		case 64:
 			s.val = int64(i)
 		}
+	} else {
 
+		return err
 	}
 
 	return nil
@@ -402,9 +398,7 @@ func (s *scanner) toIntVal(sv string, size int) error {
 
 func (s *scanner) toUintVal(sv string, size int) error {
 
-	if i, err := strconv.ParseUint(sv, 10, size); err != nil {
-		return err
-	} else {
+	if i, err := strconv.ParseUint(sv, 10, size); err == nil {
 
 		switch size {
 		case 0:
@@ -419,6 +413,8 @@ func (s *scanner) toUintVal(sv string, size int) error {
 			s.val = uint16(i)
 		}
 
+	} else {
+		return err
 	}
 
 	return nil
