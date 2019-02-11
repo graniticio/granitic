@@ -387,7 +387,7 @@ func (grl *GraniticLogger) SetLocalThreshold(threshold LogLevel) {
 }
 
 // CreateAnonymousLogger creates a new Logger without attaching it to a LogManager. Useful for tests.
-func CreateAnonymousLogger(componentId string, threshold LogLevel) Logger {
+func CreateAnonymousLogger(componentID string, threshold LogLevel) Logger {
 	logger := new(GraniticLogger)
 
 	gls := new(globalLogSource)
@@ -395,7 +395,7 @@ func CreateAnonymousLogger(componentId string, threshold LogLevel) Logger {
 
 	logger.global = gls
 	logger.localLogThreshhold = threshold
-	logger.loggerName = componentId
+	logger.loggerName = componentID
 
 	return logger
 }

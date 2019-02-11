@@ -17,13 +17,13 @@ import (
 //
 // It is recommended that only the request meta data (headers, path, parameters) are accessed by implementations, as
 // loading the request body will interfere with later phases of the request processing.
-type IdentifiedRequestContextBuilder interface {
+type IDentifiedRequestContextBuilder interface {
 	// WithIdentity uses information in the supplied request to assign an ID to this context
 	WithIdentity(ctx context.Context, req *http.Request) (context.Context, error)
-	Id(ctx context.Context) string
+	ID(ctx context.Context) string
 }
 
-// Injects a component whose instance is an implementation of IdentifiedRequestContextBuilder into the HTTP Server
+// Injects a component whose instance is an implementation of IDentifiedRequestContextBuilder into the HTTP Server
 type contextBuilderDecorator struct {
 	Server *HTTPServer
 }
@@ -32,7 +32,7 @@ func (cd *contextBuilderDecorator) OfInterest(subject *ioc.Component) bool {
 	result := false
 
 	switch subject.Instance.(type) {
-	case IdentifiedRequestContextBuilder:
+	case IDentifiedRequestContextBuilder:
 		result = true
 	}
 
@@ -41,6 +41,6 @@ func (cd *contextBuilderDecorator) OfInterest(subject *ioc.Component) bool {
 
 func (cd *contextBuilderDecorator) DecorateComponent(subject *ioc.Component, cc *ioc.ComponentContainer) {
 
-	idBuilder := subject.Instance.(IdentifiedRequestContextBuilder)
-	cd.Server.IdContextBuilder = idBuilder
+	idBuilder := subject.Instance.(IDentifiedRequestContextBuilder)
+	cd.Server.IDContextBuilder = idBuilder
 }

@@ -44,8 +44,8 @@ type logFormatPlaceHolder int
 const (
 	unsupported = iota
 	remoteHost
-	clientId
-	userId
+	clientID
+	userID
 	receivedTime
 	requestLine
 	statusCode
@@ -383,7 +383,7 @@ func (alw *AccessLogWriter) mapPlaceholder(ph string) logFormatPlaceHolder {
 	case "i":
 		return requestHeader
 	case "l":
-		return clientId
+		return clientID
 	case "m":
 		return method
 	case "q":
@@ -397,7 +397,7 @@ func (alw *AccessLogWriter) mapPlaceholder(ph string) logFormatPlaceHolder {
 	case "T":
 		return processTime
 	case "u":
-		return userId
+		return userID
 	case "U":
 		return path
 	}
@@ -452,11 +452,11 @@ func (alw *AccessLogWriter) findValue(element *logLineToken, req *http.Request, 
 	case remoteHost:
 		return req.RemoteAddr
 
-	case clientId:
+	case clientID:
 		return hyphen
 
-	case userId:
-		return alw.userId(ctx)
+	case userID:
+		return alw.userID(ctx)
 
 	case method:
 		return req.Method
@@ -523,7 +523,7 @@ func (alw *AccessLogWriter) requestLine(req *http.Request) string {
 	return fmt.Sprintf("%s %s %s", req.Method, req.RequestURI, req.Proto)
 }
 
-func (alw *AccessLogWriter) userId(ctx context.Context) string {
+func (alw *AccessLogWriter) userID(ctx context.Context) string {
 	return hyphen
 }
 

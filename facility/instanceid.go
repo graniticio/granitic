@@ -10,13 +10,13 @@ import (
 
 // Decorator to inject an Identifier into components that need to be aware of the current application instance's
 // ID.
-type InstanceIdDecorator struct {
+type InstanceIDDecorator struct {
 	// The instance identity that will be injected into components.
-	InstanceId *instance.Identifier
+	InstanceID *instance.Identifier
 }
 
 // OfInterest returns true if the supplied component implements instance.Receiver
-func (id *InstanceIdDecorator) OfInterest(subject *ioc.Component) bool {
+func (id *InstanceIDDecorator) OfInterest(subject *ioc.Component) bool {
 
 	i := subject.Instance
 
@@ -27,9 +27,9 @@ func (id *InstanceIdDecorator) OfInterest(subject *ioc.Component) bool {
 }
 
 // DecorateComponent injects the Identifier in to the subject component.
-func (id *InstanceIdDecorator) DecorateComponent(subject *ioc.Component, container *ioc.ComponentContainer) {
+func (id *InstanceIDDecorator) DecorateComponent(subject *ioc.Component, container *ioc.ComponentContainer) {
 
 	r := subject.Instance.(instance.Receiver)
 
-	r.RegisterInstanceId(id.InstanceId)
+	r.RegisterInstanceID(id.InstanceID)
 }

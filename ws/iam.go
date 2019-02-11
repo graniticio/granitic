@@ -12,8 +12,8 @@ import (
 // Identifier is implemented by components that are able to identify a caller based on a raw HTTP request (normally from
 // headers and cookies). Implementations of this interface may return a new Context that supersedes the supplied Context.
 type Identifier interface {
-	// Identify returns information about the caller derived request and a Context that might be different from the supplied Context.
-	Identify(ctx context.Context, req *http.Request) (iam.ClientIdentity, context.Context)
+	// IDentify returns information about the caller derived request and a Context that might be different from the supplied Context.
+	IDentify(ctx context.Context, req *http.Request) (iam.ClientIdentity, context.Context)
 }
 
 // Identifier is implemented by components that are able to determine if a caller is allowed to have a request processed.

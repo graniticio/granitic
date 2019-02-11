@@ -198,7 +198,7 @@ func (b *Binder) writeEntryFunctionOpen(w *bufio.Writer, t int) {
 }
 
 func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[string]interface{}, templates map[string]interface{}, index int) {
-	baseIdent := 1
+	baseIndent := 1
 
 	values := make(map[string]interface{})
 	refs := make(map[string]interface{})
@@ -208,9 +208,9 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 	b.mergeValueSources(component, templates)
 	b.validateHasTypeField(component, name)
 
-	b.writeComponentNameComment(w, name, baseIdent)
-	b.writeInstanceVar(w, name, component[typeField].(string), baseIdent)
-	b.writeProto(w, name, index, baseIdent)
+	b.writeComponentNameComment(w, name, baseIndent)
+	b.writeInstanceVar(w, name, component[typeField].(string), baseIndent)
+	b.writeProto(w, name, index, baseIndent)
 
 	for field, value := range component {
 
@@ -228,10 +228,10 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 
 	}
 
-	b.writeValues(w, name, values, baseIdent)
-	b.writeDeferred(w, name, confPromises, baseIdent, "AddConfigPromise")
-	b.writeDeferred(w, name, refs, baseIdent, "AddDependency")
-	b.writeEmptyStructFunctions(w, name, emptyStructs, baseIdent)
+	b.writeValues(w, name, values, baseIndent)
+	b.writeDeferred(w, name, confPromises, baseIndent, "AddConfigPromise")
+	b.writeDeferred(w, name, refs, baseIndent, "AddDependency")
+	b.writeEmptyStructFunctions(w, name, emptyStructs, baseIndent)
 
 	w.WriteString(newline)
 	w.WriteString(newline)

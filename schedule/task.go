@@ -15,7 +15,7 @@ type Task struct {
 	// A human-readable name for the task
 	Name string
 	// An optional unique ID for the task (the IoC component name for this task will be used if not specified)
-	Id string
+	ID string
 	// The name of the IoC component implementing TaskLogic that actually performs this task
 	Component string
 	// The maximum number of overlapping instances of the task that are allowed to run. Zero means only one instance of this task can run at a time
@@ -50,12 +50,12 @@ type Task struct {
 
 func (t *Task) FullName() string {
 
-	if t.Id == "" {
+	if t.ID == "" {
 		return t.Name
 	} else if t.Name == "" {
-		return t.Id
+		return t.ID
 	} else {
-		return fmt.Sprintf("%s (%s)", t.Name, t.Id)
+		return fmt.Sprintf("%s (%s)", t.Name, t.ID)
 	}
 
 }
@@ -84,7 +84,7 @@ type TaskStatusUpdateReceiver interface {
 
 type TaskInvocationSummary struct {
 	TaskName        string
-	TaskId          string
+	TaskID          string
 	StartedAt       time.Time
 	InvocationCount uint64
 }

@@ -142,9 +142,9 @@ func ToString(tokens []*queryTemplateToken) string {
 func buildQueryManager() *TemplatedQueryManager {
 
 	qm := new(TemplatedQueryManager)
-	qm.QueryIdPrefix = "ID:"
+	qm.QueryIDPrefix = "ID:"
 	qm.ValueProcessor = new(SqlProcessor)
-	qm.TrimIdWhiteSpace = true
+	qm.TrimIDWhiteSpace = true
 	qm.VarMatchRegEx = "\\$\\{([^\\}]*)\\}"
 	qm.NewLine = "\n"
 	qm.FrameworkLogger = new(logging.ConsoleErrorLogger)

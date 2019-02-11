@@ -169,7 +169,7 @@ func (im *invocationManager) listenForStatusUpdates(i *invocation, ch chan TaskS
 	ts := TaskInvocationSummary{
 		InvocationCount: i.counter,
 		StartedAt:       i.startedAt,
-		TaskId:          task.Id,
+		TaskID:          task.ID,
 		TaskName:        task.Name,
 	}
 

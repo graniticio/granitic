@@ -129,7 +129,7 @@
 
 	ad := new(ArtistDetail)
 
-		if found, err := rc.SelectBindSingleQIdParams("ARTIST_DETAIL", rid, ad); found {
+		if found, err := rc.SelectBindSingleQIDParams("ARTIST_DETAIL", rid, ad); found {
 		  return ad, err
 		} else {
 		  return nil, err
@@ -139,7 +139,7 @@
 
 		ar := new(ArtistSearchResult)
 
-		if r, err := rc.SelectBindQIdParams("ARTIST_SEARCH_BASE", make(map[string]interface{}), ar); err != nil {
+		if r, err := rc.SelectBindQIDParams("ARTIST_SEARCH_BASE", make(map[string]interface{}), ar); err != nil {
 		  return nil, err
 		} else {
 		  return id.artistResults(r), nil
@@ -204,7 +204,7 @@ type DatabaseProvider interface {
 // Optional interface for DatabaseProvider implementations when the prepared statement->exec->insert pattern does not yield
 // the last inserted ID as part of its result.
 type NonStandardInsertProvider interface {
-	InsertIDFunc() InsertWithReturnedId
+	InsertIDFunc() InsertWithReturnedID
 }
 
 /*
@@ -346,13 +346,13 @@ func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*C
 	return rc, nil
 }
 
-func (cm *GraniticRdbmsClientManager) chooseInsertFunction() InsertWithReturnedId {
+func (cm *GraniticRdbmsClientManager) chooseInsertFunction() InsertWithReturnedID {
 
 	if iwi, found := cm.Configuration.Provider.(NonStandardInsertProvider); found {
 		return iwi.InsertIDFunc()
 	}
 
-	return DefaultInsertWithReturnedId
+	return DefaultInsertWithReturnedID
 }
 
 // StartComponent selects a DatabaseProvider to use

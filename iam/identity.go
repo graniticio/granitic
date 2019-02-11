@@ -21,15 +21,15 @@ package iam
 
 const authenticated = "Authenticated"
 const anonymous = "Anonymous"
-const loggableUserId = "LoggableUserId"
+const loggableUserID = "LoggableUserID"
 
 // Create a new ClientIdentity with the supplied log-friendly version of a user ID. The ClientIdentity will be marked
 // as Authenticated and not anonymous
-func NewAuthenticatedIdentity(loggableUserId string) ClientIdentity {
+func NewAuthenticatedIdentity(loggableUserID string) ClientIdentity {
 	i := make(ClientIdentity)
 	i.SetAnonymous(false)
 	i.SetAuthenticated(true)
-	i.SetLoggableUserId(loggableUserId)
+	i.SetLoggableUserID(loggableUserID)
 
 	return i
 }
@@ -40,7 +40,7 @@ func NewAnonymousIdentity() ClientIdentity {
 	i := make(ClientIdentity)
 	i.SetAnonymous(true)
 	i.SetAuthenticated(false)
-	i.SetLoggableUserId("-")
+	i.SetLoggableUserID("-")
 
 	return i
 }
@@ -76,15 +76,15 @@ func (ci ClientIdentity) Anonymous() bool {
 
 }
 
-// SetLoggableUserId records a string representation of the Identity that is suitable for recording in log files (e.g. a user name or real name).
-func (ci ClientIdentity) SetLoggableUserId(s string) {
-	ci[loggableUserId] = s
+// SetLoggableUserID records a string representation of the Identity that is suitable for recording in log files (e.g. a user name or real name).
+func (ci ClientIdentity) SetLoggableUserID(s string) {
+	ci[loggableUserID] = s
 }
 
-// LoggableUserId returns a string representation of the Identity that is suitable for recording in log files.
-func (ci ClientIdentity) LoggableUserId() string {
+// LoggableUserID returns a string representation of the Identity that is suitable for recording in log files.
+func (ci ClientIdentity) LoggableUserID() string {
 
-	a := ci[loggableUserId]
+	a := ci[loggableUserID]
 
 	if a == nil {
 		return ""

@@ -83,7 +83,7 @@ const (
 	initiatorComponentName      string = instance.FrameworkPrefix + "Init"
 	systemPath                         = "System"
 	configAccessorComponentName string = instance.FrameworkPrefix + "Accessor"
-	instanceIdDecoratorName            = instance.FrameworkPrefix + "InstanceIdDecorator"
+	instanceIDDecoratorName            = instance.FrameworkPrefix + "InstanceIDDecorator"
 )
 
 // StartGranitic starts the IoC container and populates it with the supplied list of prototype components. Any settings
@@ -192,18 +192,18 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 }
 
 func (i *initiator) createInstanceIdentifier(is *config.InitialSettings, cc *ioc.ComponentContainer) {
-	id := is.InstanceId
+	id := is.InstanceID
 
 	if id != "" {
 		ii := new(instance.Identifier)
-		ii.Id = id
-		cc.WrapAndAddProto(instance.IdComponent, ii)
+		ii.ID = id
+		cc.WrapAndAddProto(instance.IDComponent, ii)
 
-		iidd := new(facility.InstanceIdDecorator)
-		iidd.InstanceId = ii
-		cc.WrapAndAddProto(instanceIdDecoratorName, iidd)
+		iidd := new(facility.InstanceIDDecorator)
+		iidd.InstanceID = ii
+		cc.WrapAndAddProto(instanceIDDecoratorName, iidd)
 
-		i.logger.LogInfof("Instance Id: %s", id)
+		i.logger.LogInfof("Instance ID: %s", id)
 	}
 
 }

@@ -12,7 +12,7 @@ import (
 
 // The name of the HTTPServer component as stored in the IoC framework.
 const HTTPServerComponentName = instance.FrameworkPrefix + "HTTPServer"
-const contextIdDecoratorName = instance.FrameworkPrefix + "RequestIdContextDecorator"
+const contextIDDecoratorName = instance.FrameworkPrefix + "RequestIDContextDecorator"
 
 // The field on the HTTPServer component into which a ws.AbnormalStatusWriter can be injected. Most applications will use either
 // the JSONWs or XMLWs facility, in which case a AbnormalStatusWriter that will respond to requests with an abnormal result
@@ -46,7 +46,7 @@ func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 	idbd := new(contextBuilderDecorator)
 	idbd.Server = httpServer
-	cn.WrapAndAddProto(contextIdDecoratorName, idbd)
+	cn.WrapAndAddProto(contextIDDecoratorName, idbd)
 
 	return nil
 

@@ -92,7 +92,7 @@ func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequ
   var id int64
 
   // Execute the insert, storing the generated ID in our variable
-  if err := dbc.InsertCaptureQIdParams("CREATE_ARTIST", &id, sar); err != nil {
+  if err := dbc.InsertCaptureQIDParams("CREATE_ARTIST", &id, sar); err != nil {
     // Something went wrong when communicating with the database - return HTTP 500
     sal.Log.LogErrorf(err.Error())
     res.HTTPStatus = http.StatusInternalServerError
@@ -100,7 +100,7 @@ func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequ
 
   // Use the new ID as the HTTP response, wrapped in a struct
   res.Body = struct {
-    Id int64
+    ID int64
   }{id}
 
 }
@@ -130,7 +130,7 @@ You should see a response like:
 
 ```json
 {
-  "Id": 10
+  "ID": 10
 }
 ```
 
@@ -174,8 +174,8 @@ INSERT INTO related_artist(
   artist_id,
   related_artist_id
 ) VALUES (
-  ${!ArtistId},
-  ${!RelatedArtistId}
+  ${!ArtistID},
+  ${!RelatedArtistID}
 )
 ```
 
@@ -197,7 +197,7 @@ func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequ
   var id int64
 
   // Execute the insert, storing the generated ID in our variable
-  if err := dbc.InsertCaptureQIdParams("CREATE_ARTIST", &id, sar); err != nil {
+  if err := dbc.InsertCaptureQIDParams("CREATE_ARTIST", &id, sar); err != nil {
     // Something went wrong when communicating with the database - return HTTP 500
     sal.Log.LogErrorf(err.Error())
     res.HTTPStatus = http.StatusInternalServerError
@@ -208,12 +208,12 @@ func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequ
 
   // Insert a row for each related artist
   params := make(map[string]interface{})
-  params["ArtistId"] = id
+  params["ArtistID"] = id
 
-  for _, raId := range sar.RelatedArtists {
-    params["RelatedArtistId"] = raId
+  for _, raID := range sar.RelatedArtists {
+    params["RelatedArtistID"] = raID
 
-    if _, err := dbc.InsertQIdParams("RELATE_ARTIST", params); err != nil {
+    if _, err := dbc.InsertQIDParams("RELATE_ARTIST", params); err != nil {
       // Something went wrong inserting the relationship
       sal.Log.LogErrorf(err.Error())
       res.HTTPStatus = http.StatusInternalServerError
@@ -228,7 +228,7 @@ func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequ
 
   // Use the new ID as the HTTP response, wrapped in a struct
   res.Body = struct {
-    Id int64
+    ID int64
   }{id}
 
 }

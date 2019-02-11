@@ -61,7 +61,7 @@ add the following struct to the end of the file.
 
 ```go
 type ArtistRequest struct {
-  Id int
+  ID int
   NormaliseName *types.NilableBool
 }
 ```
@@ -83,7 +83,7 @@ or was an automatic zero value.
 
 A common REST-like technique is to allow a caller to specify the ID of the required resource (in this case a recording artist)
 into the _path_ of the request. E.g. <code>/artist/1234</code>. We will configure Granitic to extract that ID and inject it
-into the Id field of the <code>ArtistRequest</code> struct you defined above.
+into the ID field of the <code>ArtistRequest</code> struct you defined above.
 
 All of the automated tasks associated with a Granitic web service endpoint are handled by the [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
 struct.
@@ -109,7 +109,7 @@ can define how path binding will work through configuration. Change the definiti
   "HTTPMethod": "GET",
   "Logic": "ref:artistLogic",
   "PathPattern": "^/artist/([\\d]+)[/]?$",
-  "BindPathParams": ["Id"],
+  "BindPathParams": ["ID"],
   "CreateTarget": "es:endpoint.ArtistRequest"
 }
 ```
@@ -126,7 +126,7 @@ will be considered as representing the requested ID.
 
 We've also added a new field <code>BindPathParams</code> and set it to an array of strings. The number of strings in this
 array should match the number of groups in the <code>PathPattern</code> regex. Here we are saying that the value of the first regex group
-should be injected into a field called 'Id'.
+should be injected into a field called 'ID'.
 
 ### Parsing data into a struct
 
@@ -156,7 +156,7 @@ func (al *ArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, re
   res.Body = a
 
   l := al.Log
-  l.LogTracef("Request for artist with ID %d", ar.Id)
+  l.LogTracef("Request for artist with ID %d", ar.ID)
 
 }
 ```
@@ -220,7 +220,7 @@ func (sal *SubmitArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequ
 
   //Hardcoded 'ID' of newly created artist - just a placeholder
   res.Body = struct {
-   Id int
+   ID int
   }{0} 
 
 }
@@ -274,7 +274,7 @@ instructions are based on [Advanced Rest Client (ARC) for Chrome](https://chrome
 1. Click on *Body* and set *Body content type* to <code>application/json</code>
 1. Enter the 'test JSON' below into the large grey text area
 1. Press <code>SEND</code>
-1. You should receive a JSON formatted response with an Id of 0 and see a log line similar to: <code>09/Oct/2017:14:11:15 Z INFO  [submitArtistLogic] New artist Another Artist</code>
+1. You should receive a JSON formatted response with an ID of 0 and see a log line similar to: <code>09/Oct/2017:14:11:15 Z INFO  [submitArtistLogic] New artist Another Artist</code>
 
 
 ### Test JSON

@@ -1,8 +1,8 @@
 {
   "QueryManager":{
     "TemplateLocation": "resource/queries",
-    "QueryIdPrefix": "ID:",
-    "TrimIdWhiteSpace": true,
+    "QueryIDPrefix": "ID:",
+    "TrimIDWhiteSpace": true,
     "VarMatchRegEx": "\\$\\{([^\\}]*)\\}",
     "NewLine": "\n",
     "CreateDefaultValueProcessor": true,

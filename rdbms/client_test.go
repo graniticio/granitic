@@ -41,18 +41,18 @@ func TestMain(m *testing.M) {
 
 func TestPassthroughs(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	passthroughChecks(t, c)
 
-	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.StartTransaction()
 
 	passthroughChecks(t, c)
 
 	c.CommitTransaction()
 
-	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	passthroughChecks(t, c)
@@ -67,17 +67,17 @@ func TestPassthroughs(t *testing.T) {
 
 func TestTempQueries(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.RegisterTempQuery("QT", "123")
 
 	qm.reset()
-	_, err := c.DeleteQIdParams("QT")
+	_, err := c.DeleteQIDParams("QT")
 
 	test.ExpectNil(t, err)
 
 	test.ExpectString(t, qm.lastQueryReturned, "")
 
-	q, err := c.BuildQueryFromQIdParams("NQ")
+	q, err := c.BuildQueryFromQIDParams("NQ")
 	test.ExpectNil(t, err)
 
 	test.ExpectString(t, q, "NQ")
@@ -86,13 +86,13 @@ func TestTempQueries(t *testing.T) {
 
 func TestFindOrCreate(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	p1, p2 := testStandardParams()
 
 	var id int64
 
-	err := c.ExistingIdOrInsertParams("CQ", "IQ", &id, p1, p2)
+	err := c.ExistingIDOrInsertParams("CQ", "IQ", &id, p1, p2)
 
 	if !paramMergedCorrectly(qm.lastParams) {
 		t.FailNow()
@@ -105,7 +105,7 @@ func TestFindOrCreate(t *testing.T) {
 	drv.colNames = []string{"Int64Result"}
 	drv.rowData = [][]driver.Value{{int64(8)}}
 
-	err = c.ExistingIdOrInsertParams("CQ", "IQ", &id, p1, p2)
+	err = c.ExistingIDOrInsertParams("CQ", "IQ", &id, p1, p2)
 
 	test.ExpectNil(t, err)
 
@@ -134,7 +134,7 @@ func passthroughChecks(t *testing.T, c *Client) {
 
 func TestNonTxSelectMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	testSelectMethods(t, c)
@@ -143,7 +143,7 @@ func TestNonTxSelectMethodsWithCtx(t *testing.T) {
 
 func TestNonTxSelectMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	testSelectMethods(t, c)
 
@@ -151,7 +151,7 @@ func TestNonTxSelectMethods(t *testing.T) {
 
 func TestTxSelectMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.StartTransaction()
 	testSelectMethods(t, c)
 	c.CommitTransaction()
@@ -160,7 +160,7 @@ func TestTxSelectMethods(t *testing.T) {
 
 func TestTxSelectMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 	c.StartTransaction()
 	testSelectMethods(t, c)
@@ -170,7 +170,7 @@ func TestTxSelectMethodsWithCtx(t *testing.T) {
 
 func TestNonTxDeleteMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	testDeleteMethods(t, c)
 
@@ -178,7 +178,7 @@ func TestNonTxDeleteMethods(t *testing.T) {
 
 func TestNonTxDeleteMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	testDeleteMethods(t, c)
@@ -187,7 +187,7 @@ func TestNonTxDeleteMethodsWithCtx(t *testing.T) {
 
 func TestTxDeleteMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.StartTransaction()
 	testDeleteMethods(t, c)
 	c.CommitTransaction()
@@ -196,7 +196,7 @@ func TestTxDeleteMethods(t *testing.T) {
 
 func TestNonTxUpdateMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	testUpdateMethods(t, c)
 
@@ -204,7 +204,7 @@ func TestNonTxUpdateMethods(t *testing.T) {
 
 func TestNonTxUpdateMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	testUpdateMethods(t, c)
@@ -213,7 +213,7 @@ func TestNonTxUpdateMethodsWithCtx(t *testing.T) {
 
 func TestTxUpdateMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.StartTransaction()
 	testUpdateMethods(t, c)
 	c.CommitTransaction()
@@ -222,7 +222,7 @@ func TestTxUpdateMethods(t *testing.T) {
 
 func TestTxUpdateMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 	c.StartTransaction()
 	testUpdateMethods(t, c)
@@ -232,7 +232,7 @@ func TestTxUpdateMethodsWithCtx(t *testing.T) {
 
 func TestTxInsertMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	c.StartTransaction()
@@ -243,7 +243,7 @@ func TestTxInsertMethodsWithCtx(t *testing.T) {
 
 func TestNonTxInsertMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	testInsertMethods(t, c)
 
@@ -251,7 +251,7 @@ func TestNonTxInsertMethods(t *testing.T) {
 
 func TestNonTxInsertMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	testInsertMethods(t, c)
@@ -260,7 +260,7 @@ func TestNonTxInsertMethodsWithCtx(t *testing.T) {
 
 func TestTxInsertMethods(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.StartTransaction()
 	testInsertMethods(t, c)
 	c.CommitTransaction()
@@ -269,7 +269,7 @@ func TestTxInsertMethods(t *testing.T) {
 
 func TestTxDeleteMethodsWithCtx(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	c.StartTransaction()
@@ -280,7 +280,7 @@ func TestTxDeleteMethodsWithCtx(t *testing.T) {
 
 func TestTransactionBehaviour(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	err := c.CommitTransaction()
 
@@ -298,7 +298,7 @@ func TestTransactionBehaviour(t *testing.T) {
 	err = c.StartTransaction()
 	test.ExpectNotNil(t, err)
 
-	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	err = c.StartTransactionWithOptions(new(sql.TxOptions))
 	test.ExpectNil(t, err)
@@ -315,7 +315,7 @@ func TestTransactionBehaviour(t *testing.T) {
 	err = c.StartTransactionWithOptions(new(sql.TxOptions))
 	test.ExpectNotNil(t, err)
 
-	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c = newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 	c.ctx = context.Background()
 
 	err = c.CommitTransaction()
@@ -338,22 +338,22 @@ func TestTransactionBehaviour(t *testing.T) {
 
 func TestFragmentFinding(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
-	v, err := c.FindFragment("AAA")
+	v, err := c.FindFragment("Identity")
 
 	test.ExpectNil(t, err)
-	test.ExpectString(t, v, "AAA")
+	test.ExpectString(t, v, "Identity")
 
 }
 
 func TestBuildQuery(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
 	p1, p2 := testStandardParams()
 
-	q, err := c.BuildQueryFromQIdParams("OK", p1, p2)
+	q, err := c.BuildQueryFromQIDParams("OK", p1, p2)
 
 	if !paramMergedCorrectly(qm.lastParams) {
 		t.FailNow()
@@ -362,7 +362,7 @@ func TestBuildQuery(t *testing.T) {
 	test.ExpectNil(t, err)
 	test.ExpectString(t, q, "OK")
 
-	q, err = c.BuildQueryFromQIdParams("ERROR", p1, p2)
+	q, err = c.BuildQueryFromQIDParams("ERROR", p1, p2)
 
 	test.ExpectNotNil(t, err)
 	test.ExpectString(t, q, "")
@@ -370,16 +370,16 @@ func TestBuildQuery(t *testing.T) {
 
 func TestIllegalResultContents(t *testing.T) {
 
-	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedId, logging.CreateAnonymousLogger("testLog", logging.Fatal))
+	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
 
-	//SelectBindSingleQId
+	//SelectBindSingleQID
 	drv.colNames = []string{"TimeResult"}
 
 	drv.rowData = [][]driver.Value{{types.NewNilableString("AA")}}
 
 	bt := new(testTarget)
 
-	found, err := c.SelectBindSingleQId("SBSQ", bt)
+	found, err := c.SelectBindSingleQID("SBSQ", bt)
 
 	test.ExpectBool(t, found, false)
 	test.ExpectNotNil(t, err)
@@ -390,25 +390,25 @@ func testInsertMethods(t *testing.T, c *Client) {
 
 	p1, p2 := testStandardParams()
 
-	var newId int64
+	var newID int64
 
-	err := c.InsertCaptureQIdParams("ICQPs", &newId, p1, p2)
+	err := c.InsertCaptureQIDParams("ICQPs", &newID, p1, p2)
 
 	test.ExpectNil(t, err)
-	test.ExpectInt(t, int(newId), 1)
+	test.ExpectInt(t, int(newID), 1)
 
 	if !paramMergedCorrectly(qm.lastParams) {
 		t.FailNow()
 	}
 
-	r, err := c.InsertQIdParams("IQPs", p1, p2)
+	r, err := c.InsertQIDParams("IQPs", p1, p2)
 
 	ra, _ := r.RowsAffected()
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, int(ra), 1)
 
-	r, err = c.InsertQIdParams("IQPs")
+	r, err = c.InsertQIDParams("IQPs")
 
 	test.ExpectNil(t, err)
 }
@@ -417,7 +417,7 @@ func testDeleteMethods(t *testing.T, c *Client) {
 
 	p1, p2 := testStandardParams()
 
-	r, err := c.DeleteQIdParam("DQP", "p1", "v1")
+	r, err := c.DeleteQIDParam("DQP", "p1", "v1")
 	test.ExpectNil(t, err)
 
 	ra, _ := r.RowsAffected()
@@ -425,11 +425,11 @@ func testDeleteMethods(t *testing.T, c *Client) {
 	test.ExpectInt(t, int(ra), 1)
 
 	drv.forceError = true
-	r, err = c.DeleteQIdParam("DQP", "p1", "v1")
+	r, err = c.DeleteQIDParam("DQP", "p1", "v1")
 	test.ExpectNotNil(t, err)
 	test.ExpectNil(t, r)
 
-	r, err = c.DeleteQIdParams("DQPs", p1, p2)
+	r, err = c.DeleteQIDParams("DQPs", p1, p2)
 	test.ExpectNil(t, err)
 	ra, _ = r.RowsAffected()
 
@@ -440,7 +440,7 @@ func testDeleteMethods(t *testing.T, c *Client) {
 	}
 
 	drv.forceError = true
-	r, err = c.DeleteQIdParams("DQPs", p1, p2)
+	r, err = c.DeleteQIDParams("DQPs", p1, p2)
 	test.ExpectNotNil(t, err)
 	test.ExpectNil(t, r)
 
@@ -450,7 +450,7 @@ func testUpdateMethods(t *testing.T, c *Client) {
 
 	p1, p2 := testStandardParams()
 
-	r, err := c.UpdateQIdParam("DQP", "p1", "v1")
+	r, err := c.UpdateQIDParam("DQP", "p1", "v1")
 	test.ExpectNil(t, err)
 
 	ra, _ := r.RowsAffected()
@@ -458,11 +458,11 @@ func testUpdateMethods(t *testing.T, c *Client) {
 	test.ExpectInt(t, int(ra), 1)
 
 	drv.forceError = true
-	r, err = c.UpdateQIdParam("DQP", "p1", "v1")
+	r, err = c.UpdateQIDParam("DQP", "p1", "v1")
 	test.ExpectNotNil(t, err)
 	test.ExpectNil(t, r)
 
-	r, err = c.UpdateQIdParams("DQPs", p1, p2)
+	r, err = c.UpdateQIDParams("DQPs", p1, p2)
 	test.ExpectNil(t, err)
 	ra, _ = r.RowsAffected()
 
@@ -473,7 +473,7 @@ func testUpdateMethods(t *testing.T, c *Client) {
 	}
 
 	drv.forceError = true
-	r, err = c.UpdateQIdParams("DQPs", p1, p2)
+	r, err = c.UpdateQIDParams("DQPs", p1, p2)
 	test.ExpectNotNil(t, err)
 	test.ExpectNil(t, r)
 
@@ -483,12 +483,12 @@ func testSelectMethods(t *testing.T, c *Client) {
 
 	p1, p2 := testStandardParams()
 
-	//SelectBindQId
+	//SelectBindQID
 	drv.colNames = []string{"Int64Result"}
 	drv.rowData = [][]driver.Value{{int64(45)}, {int64(32)}}
 
 	bt := new(testTarget)
-	results, err := c.SelectBindQId("SBQ", bt)
+	results, err := c.SelectBindQID("SBQ", bt)
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(results), 2)
@@ -496,20 +496,20 @@ func testSelectMethods(t *testing.T, c *Client) {
 	test.ExpectInt(t, int(results[0].(*testTarget).Int64Result), 45)
 	test.ExpectInt(t, int(results[1].(*testTarget).Int64Result), 32)
 
-	results, err = c.SelectBindQId("SBQ", bt)
+	results, err = c.SelectBindQID("SBQ", bt)
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(results), 0)
 
 	drv.forceError = true
-	results, err = c.SelectBindQId("SBQ", bt)
+	results, err = c.SelectBindQID("SBQ", bt)
 	test.ExpectNotNil(t, err)
 
-	//SelectBindQIdParam
+	//SelectBindQIDParam
 	drv.colNames = []string{"Float64Result"}
 	drv.rowData = [][]driver.Value{{float64(123.1)}}
 
-	results, err = c.SelectBindQIdParam("SBQP", "p1", "v1", bt)
+	results, err = c.SelectBindQIDParam("SBQP", "p1", "v1", bt)
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(results), 1)
@@ -519,19 +519,19 @@ func testSelectMethods(t *testing.T, c *Client) {
 	test.ExpectInt(t, len(qm.lastParams), 1)
 	test.ExpectString(t, qm.lastParams["p1"].(string), "v1")
 
-	results, err = c.SelectBindQIdParam("SBQP", "p1", "v1", bt)
+	results, err = c.SelectBindQIDParam("SBQP", "p1", "v1", bt)
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(results), 0)
 
 	drv.forceError = true
-	results, err = c.SelectBindQIdParam("SBQP", "p1", "v1", bt)
+	results, err = c.SelectBindQIDParam("SBQP", "p1", "v1", bt)
 	test.ExpectNotNil(t, err)
 
-	//SelectBindQIdParams
+	//SelectBindQIDParams
 	drv.colNames = []string{"BoolResult"}
 	drv.rowData = [][]driver.Value{{true}, {false}, {true}}
 
-	results, err = c.SelectBindQIdParams("SBQPs", bt, p1, p2)
+	results, err = c.SelectBindQIDParams("SBQPs", bt, p1, p2)
 
 	test.ExpectNil(t, err)
 	test.ExpectInt(t, len(results), 3)
@@ -543,17 +543,17 @@ func testSelectMethods(t *testing.T, c *Client) {
 	}
 
 	drv.forceError = true
-	results, err = c.SelectBindQIdParams("SBQPs", bt, p1, p2)
+	results, err = c.SelectBindQIDParams("SBQPs", bt, p1, p2)
 	test.ExpectNotNil(t, err)
 
-	//SelectBindSingleQId
+	//SelectBindSingleQID
 	drv.colNames = []string{"TimeResult"}
 
 	drv.rowData = [][]driver.Value{{time.Now()}}
 
 	bt = new(testTarget)
 
-	found, err := c.SelectBindSingleQId("SBSQ", bt)
+	found, err := c.SelectBindSingleQID("SBSQ", bt)
 
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, found, true)
@@ -561,22 +561,22 @@ func testSelectMethods(t *testing.T, c *Client) {
 
 	bt = new(testTarget)
 
-	found, err = c.SelectBindSingleQId("SBSQ", bt)
+	found, err = c.SelectBindSingleQID("SBSQ", bt)
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, found, false)
 	test.ExpectBool(t, reflecttools.IsZero(bt.TimeResult), true)
 
 	drv.forceError = true
-	found, err = c.SelectBindSingleQId("SBSQ", bt)
+	found, err = c.SelectBindSingleQID("SBSQ", bt)
 	test.ExpectNotNil(t, err)
 
-	//SelectBindSingleQIdParam
+	//SelectBindSingleQIDParam
 	drv.colNames = []string{"StrResult", "Int64Result"}
 	drv.rowData = [][]driver.Value{{"okay", int64(1)}, {"not", int64(2)}}
 
 	bt = new(testTarget)
 
-	found, err = c.SelectBindSingleQIdParam("SBSQ", "p1", "v1", bt)
+	found, err = c.SelectBindSingleQIDParam("SBSQ", "p1", "v1", bt)
 	test.ExpectNotNil(t, err)
 	test.ExpectInt(t, len(qm.lastParams), 1)
 	test.ExpectString(t, qm.lastParams["p1"].(string), "v1")
@@ -584,7 +584,7 @@ func testSelectMethods(t *testing.T, c *Client) {
 	drv.colNames = []string{"StrResult", "Int64Result"}
 	drv.rowData = [][]driver.Value{{"okay", int64(1)}}
 
-	found, err = c.SelectBindSingleQIdParam("SBSQ", "p1", "v1", bt)
+	found, err = c.SelectBindSingleQIDParam("SBSQ", "p1", "v1", bt)
 
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, found, true)
@@ -593,15 +593,15 @@ func testSelectMethods(t *testing.T, c *Client) {
 	test.ExpectString(t, bt.StrResult, "okay")
 
 	drv.forceError = true
-	found, err = c.SelectBindSingleQIdParam("SBSQ", "p1", "v1", bt)
+	found, err = c.SelectBindSingleQIDParam("SBSQ", "p1", "v1", bt)
 	test.ExpectNotNil(t, err)
 
-	//SelectBindSingleQIdParams
+	//SelectBindSingleQIDParams
 	drv.colNames = []string{"StrResult"}
 	drv.rowData = [][]driver.Value{{"okay"}}
 
 	bt = new(testTarget)
-	found, err = c.SelectBindSingleQIdParams("SBSQP", bt, p1, p2)
+	found, err = c.SelectBindSingleQIDParams("SBSQP", bt, p1, p2)
 
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, found, true)
@@ -611,51 +611,51 @@ func testSelectMethods(t *testing.T, c *Client) {
 		t.FailNow()
 	}
 
-	found, err = c.SelectBindSingleQIdParams("SBSQP", bt, p1, p2)
+	found, err = c.SelectBindSingleQIDParams("SBSQP", bt, p1, p2)
 
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, found, false)
 
 	drv.forceError = true
-	found, err = c.SelectBindSingleQIdParams("SBSQP", bt, p1, p2)
+	found, err = c.SelectBindSingleQIDParams("SBSQP", bt, p1, p2)
 	test.ExpectNotNil(t, err)
 
-	//SelectQId
+	//SelectQID
 	drv.colNames = []string{"StrResult"}
 	drv.rowData = [][]driver.Value{{"okay"}}
 
-	r, err := c.SelectQId("SQ")
+	r, err := c.SelectQID("SQ")
 
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, r.Next(), true)
 
 	drv.forceError = true
-	r, err = c.SelectQId("SQ")
+	r, err = c.SelectQID("SQ")
 	test.ExpectNotNil(t, err)
 
-	//SelectQIdParam
+	//SelectQIDParam
 	drv.colNames = []string{"StrResult"}
 	drv.rowData = [][]driver.Value{{"okay"}, {"not"}}
-	r, err = c.SelectQIdParam("SQP", "p1", "v1")
+	r, err = c.SelectQIDParam("SQP", "p1", "v1")
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, r.Next(), true)
 	test.ExpectBool(t, r.Next(), true)
 
 	drv.forceError = true
-	r, err = c.SelectQIdParam("SQP", "p1", "v1")
+	r, err = c.SelectQIDParam("SQP", "p1", "v1")
 	test.ExpectNotNil(t, err)
 
-	//SelectQIdParams
+	//SelectQIDParams
 	drv.colNames = []string{"StrResult"}
 	drv.rowData = [][]driver.Value{{"okay"}, {"not"}}
 
-	r, err = c.SelectQIdParams("SQPs", p1, p2)
+	r, err = c.SelectQIDParams("SQPs", p1, p2)
 	test.ExpectNil(t, err)
 	test.ExpectBool(t, r.Next(), true)
 	test.ExpectBool(t, r.Next(), true)
 
 	drv.forceError = true
-	r, err = c.SelectQIdParams("SQPs", p1, p2)
+	r, err = c.SelectQIDParams("SQPs", p1, p2)
 	test.ExpectNotNil(t, err)
 }
 
@@ -712,7 +712,7 @@ func (tqm *testQueryManagerProxy) reset() {
 	tqm.lastQueryReturned = ""
 }
 
-func (tqm *testQueryManagerProxy) BuildQueryFromId(qid string, params map[string]interface{}) (string, error) {
+func (tqm *testQueryManagerProxy) BuildQueryFromID(qid string, params map[string]interface{}) (string, error) {
 	tqm.lastParams = params
 
 	if qid == "ERROR" {
@@ -726,7 +726,7 @@ func (tqm *testQueryManagerProxy) BuildQueryFromId(qid string, params map[string
 
 }
 
-func (tqm *testQueryManagerProxy) FragmentFromId(qid string) (string, error) {
+func (tqm *testQueryManagerProxy) FragmentFromID(qid string) (string, error) {
 
 	tqm.lastQueryReturned = qid
 

@@ -110,7 +110,7 @@ func (aec *ArtistExistsChecker) ValidInt64(id int64) (bool, error) {
 
   var count int64
 
-  if _, err := dbc.SelectBindSingleQIdParam("CHECK_ARTIST", "Id", id, &count); err != nil {
+  if _, err := dbc.SelectBindSingleQIDParam("CHECK_ARTIST", "ID", id, &count); err != nil {
     return false, err
   } else {
     return count > 0, nil
@@ -128,7 +128,7 @@ SELECT
 FROM
     artist
 WHERE
-    id = ${Id}
+    id = ${ID}
 ```
 
 The last step is to add the following to your <code>components.json</code> file:
@@ -144,7 +144,7 @@ The last step is to add the following to your <code>components.json</code> file:
 Previous examples have shown how to bind database results into a struct or slice of structs. In the above
 
 ```go
-  dbc.SelectBindSingleQIdParam("CHECK_ARTIST", "Id", id, &count)
+  dbc.SelectBindSingleQIDParam("CHECK_ARTIST", "ID", id, &count)
 ```
 
 we are binding the results of the database call to an int64. You may supply a basic type (string, int etc) instead of a

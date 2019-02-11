@@ -94,10 +94,10 @@ func (clm *ComponentLoggerManager) SetInitialLogLevels(ll map[string]interface{}
 }
 
 // Create a new Logger for the supplied component name
-func (clm *ComponentLoggerManager) CreateLogger(componentId string) Logger {
+func (clm *ComponentLoggerManager) CreateLogger(componentID string) Logger {
 
-	if clm.created[componentId] != nil {
-		return clm.created[componentId]
+	if clm.created[componentID] != nil {
+		return clm.created[componentID]
 	}
 
 	var threshold LogLevel
@@ -106,7 +106,7 @@ func (clm *ComponentLoggerManager) CreateLogger(componentId string) Logger {
 
 	if clm.initialLevels != nil {
 
-		if levelLabel, ok := clm.initialLevels[componentId]; ok {
+		if levelLabel, ok := clm.initialLevels[componentID]; ok {
 			t, _ := LogLevelFromLabel(levelLabel.(string))
 
 			threshold = t
@@ -114,17 +114,17 @@ func (clm *ComponentLoggerManager) CreateLogger(componentId string) Logger {
 
 	}
 
-	return clm.CreateLoggerAtLevel(componentId, threshold)
+	return clm.CreateLoggerAtLevel(componentID, threshold)
 }
 
 // Create a new Logger for the supplied component name with the local log threshold set to the supplied level.
-func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentId string, threshold LogLevel) Logger {
+func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentID string, threshold LogLevel) Logger {
 	l := new(GraniticLogger)
 	l.global = clm
 	l.localLogThreshhold = threshold
-	l.loggerName = componentId
+	l.loggerName = componentID
 
-	clm.created[componentId] = l
+	clm.created[componentID] = l
 
 	l.writers = clm.writers
 	l.formatter = clm.formatter

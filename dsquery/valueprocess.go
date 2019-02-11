@@ -15,7 +15,7 @@ type ParamValueProcessor interface {
 type ParamValueContext struct {
 	Key     string
 	Value   interface{}
-	QueryId string
+	QueryID string
 	Escaped bool
 }
 
@@ -69,7 +69,7 @@ func (cp *ConfigurableProcessor) SubstituteUnset(v *ParamValueContext) error {
 		v.Escaped = !cp.EscapeDefaultValues
 	} else {
 		//Substitution of missing parameters not supported
-		m := fmt.Sprintf("Parameter %s must be supplied for query %s", v.Key, v.QueryId)
+		m := fmt.Sprintf("Parameter %s must be supplied for query %s", v.Key, v.QueryID)
 		return errors.New(m)
 	}
 

@@ -85,7 +85,7 @@ type HTTPServer struct {
 	VersionExtractor httpendpoint.RequestedVersionExtractor
 
 	// A component able to use data in an HTTP request's headers to populate a context
-	IdContextBuilder IdentifiedRequestContextBuilder
+	IDContextBuilder IDentifiedRequestContextBuilder
 
 	// ID of a component that implements instrument.RequestInstrumentationManager
 	RequestInstrumentationManagerName string
@@ -302,19 +302,19 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 		defer endInstrumentation()
 	}
 
-	var requestId string
+	var requestID string
 	received := time.Now()
 
-	if h.IdContextBuilder != nil {
+	if h.IDContextBuilder != nil {
 
-		if idCtx, err := h.IdContextBuilder.WithIdentity(ctx, req); err == nil {
+		if idCtx, err := h.IDContextBuilder.WithIdentity(ctx, req); err == nil {
 			ctx = idCtx.(context.Context)
-			requestId = h.IdContextBuilder.Id(idCtx)
+			requestID = h.IDContextBuilder.ID(idCtx)
 
-			instrumentor.Amend(instrument.REQUEST_ID, requestId)
+			instrumentor.Amend(instrument.REQUEST_ID, requestID)
 
 			if h.FrameworkLogger.IsLevelEnabled(logging.Trace) {
-				h.FrameworkLogger.LogTracef("Request ID: %s\n", requestId)
+				h.FrameworkLogger.LogTracef("Request ID: %s\n", requestID)
 			}
 
 		} else {

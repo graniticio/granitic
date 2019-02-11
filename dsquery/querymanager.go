@@ -36,15 +36,15 @@ const requiredPrefix = "!"
 // A QueryManager is a type that is able to populate a pre-defined template query given a set of named parameters
 // and return a complete query ready for execution against some data source.
 type QueryManager interface {
-	// BuildQueryFromId finds a template with the supplied query ID and uses the supplied named parameters to populate
+	// BuildQueryFromID finds a template with the supplied query ID and uses the supplied named parameters to populate
 	// that template. Returns the populated query or an error if the template could not be found or there was a problem
 	// populating the query.
-	BuildQueryFromId(qid string, params map[string]interface{}) (string, error)
+	BuildQueryFromID(qid string, params map[string]interface{}) (string, error)
 
-	// FragmentFromId is used to recover a template which does not have any parameters to populate (a fragment). This is most commonly
+	// FragmentFromID is used to recover a template which does not have any parameters to populate (a fragment). This is most commonly
 	// used when code needs to dynamically construct a query from several fragments and templates. Returns the fragment
 	// or an error if the fragment could not be found.
-	FragmentFromId(qid string) (string, error)
+	FragmentFromID(qid string) (string, error)
 }
 
 // NewTemplatedQueryManager creates a new, empty TemplatedQueryManager.
@@ -71,10 +71,10 @@ type TemplatedQueryManager struct {
 
 	// Lines in a template file starting with this string are considered to indicate the start of a new query template. The remainder
 	// of the line will be used as the ID of that query template.
-	QueryIdPrefix string
+	QueryIDPrefix string
 
 	// Whether or not query IDs should have leading and trailing whitespace removed.
-	TrimIdWhiteSpace bool
+	TrimIDWhiteSpace bool
 
 	// A component able to handle missing parameter values and the escaping of supplied parameters
 	ValueProcessor ParamValueProcessor
@@ -89,8 +89,8 @@ type TemplatedQueryManager struct {
 	state              ioc.ComponentState
 }
 
-// See QueryManager.FragmentFromId
-func (qm *TemplatedQueryManager) FragmentFromId(qid string) (string, error) {
+// See QueryManager.FragmentFromID
+func (qm *TemplatedQueryManager) FragmentFromID(qid string) (string, error) {
 
 	f := qm.fragments[qid]
 
@@ -100,7 +100,7 @@ func (qm *TemplatedQueryManager) FragmentFromId(qid string) (string, error) {
 
 	p := make(map[string]interface{})
 
-	f, err := qm.BuildQueryFromId(qid, p)
+	f, err := qm.BuildQueryFromID(qid, p)
 
 	if err != nil {
 		qm.fragments[qid] = f
@@ -110,8 +110,8 @@ func (qm *TemplatedQueryManager) FragmentFromId(qid string) (string, error) {
 
 }
 
-// See QueryManager.BuildQueryFromId
-func (qm *TemplatedQueryManager) BuildQueryFromId(qid string, params map[string]interface{}) (string, error) {
+// See QueryManager.BuildQueryFromID
+func (qm *TemplatedQueryManager) BuildQueryFromID(qid string, params map[string]interface{}) (string, error) {
 	template := qm.tokenisedTemplates[qid]
 
 	if template == nil {
@@ -152,7 +152,7 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 			vc := ParamValueContext{
 				Value:   paramValue,
 				Key:     key,
-				QueryId: qid,
+				QueryID: qid,
 			}
 
 			if paramValue == nil {
@@ -278,7 +278,7 @@ func (qm *TemplatedQueryManager) scanAndParse(scanner *bufio.Scanner, tokenisedT
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		idLine, id := qm.isIdLine(line)
+		idLine, id := qm.isIDLine(line)
 
 		if idLine {
 
@@ -369,17 +369,17 @@ func (qm *TemplatedQueryManager) addVar(token string, currentTemplate *queryTemp
 	}
 }
 
-func (qm *TemplatedQueryManager) isIdLine(line string) (bool, string) {
-	idPrefix := qm.QueryIdPrefix
+func (qm *TemplatedQueryManager) isIDLine(line string) (bool, string) {
+	idPrefix := qm.QueryIDPrefix
 
 	if strings.HasPrefix(line, idPrefix) {
-		newId := strings.TrimPrefix(line, idPrefix)
+		newID := strings.TrimPrefix(line, idPrefix)
 
-		if qm.TrimIdWhiteSpace {
-			newId = strings.TrimSpace(newId)
+		if qm.TrimIDWhiteSpace {
+			newID = strings.TrimSpace(newID)
 		}
 
-		return true, newId
+		return true, newID
 
 	}
 
@@ -401,7 +401,7 @@ const (
 
 type queryTemplate struct {
 	Tokens         []*queryTemplateToken
-	Id             string
+	ID             string
 	currentToken   *queryTemplateToken
 	fragmentBuffer *bytes.Buffer
 }
@@ -464,7 +464,7 @@ func (qt *queryTemplate) EndLine() {
 
 func newQueryTemplate(id string, buffer *bytes.Buffer) *queryTemplate {
 	t := new(queryTemplate)
-	t.Id = id
+	t.ID = id
 	t.currentToken = nil
 	t.fragmentBuffer = buffer
 

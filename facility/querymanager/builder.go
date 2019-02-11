@@ -2,10 +2,10 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package querymanager provides the QueryManager facility which allows database queries to be stored away from code and looked up by Id.
+	Package querymanager provides the QueryManager facility which allows database queries to be stored away from code and looked up by ID.
 
 	The facility adds a component of type dsquery.QueryManager to the IoC container that other components may use to
-	lookup templated queries by an Id and have those queries populated with supplied parameters.
+	lookup templated queries by an ID and have those queries populated with supplied parameters.
 
 	A full description of this facility and how to configure it can be found at http://granitic.io/1.0/ref/query-manager . Also refer to the GoDoc for the
 	GoDoc for the dsquery package.
@@ -24,7 +24,7 @@
 	On startup, any files in the the TemplateLocation will be treated as containing query templates. The name of each file
 	is not significant. A typical file might look like:
 
-		Id:ARTIST_ID_SELECT
+		ID:ARTIST_ID_SELECT
 
 		SELECT
 			id
@@ -33,7 +33,7 @@
 		WHERE
 			name = '${artistName}'
 
-		Id:ARTIST_INSERT
+		ID:ARTIST_INSERT
 
 		INSERT INTO artist (
 			name
@@ -42,7 +42,7 @@
 		)
 
 
-		Id:RECORD_INSERT
+		ID:RECORD_INSERT
 
 		INSERT INTO record (
 			cat_ref,
@@ -56,14 +56,14 @@
 
 	This file defines three query templates. A new template is signified by a line starting
 
-		Id:QUERY_ID
+		ID:QUERY_ID
 
-	In this example, an application would use the query Id ARTIST_ID_SELECT to recover the first query.
+	In this example, an application would use the query ID ARTIST_ID_SELECT to recover the first query.
 
 	Parameters
 
 	A query template may optionally include parameters. Any string inside a ${} structure is considered a parameter name. In the example
-	above, query Id RECORD_INSERT defines three parameters catRef, recordName, artistID. The query manager can be supplied with a map
+	above, query ID RECORD_INSERT defines three parameters catRef, recordName, artistID. The query manager can be supplied with a map
 	containing keys that match those parameter names and will populate the template with the values associated with those keys.
 
 	Required parameters

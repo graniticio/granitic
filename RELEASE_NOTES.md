@@ -141,7 +141,7 @@ __BREAKING CHANGE__
 
 ### General
  * Various internal changes to make use of updated libraries in Go 1.8
- * Various changes of all-caps abbreviations (e.g. ID, HTTP) to  Mixed Caps (Id, HTTP) improve readability of method and
+ * Various changes of all-caps abbreviations (e.g. ID, HTTP) to  Mixed Caps (ID, HTTP) improve readability of method and
  type names
 
 ### RDBMS

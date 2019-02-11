@@ -232,7 +232,7 @@ func (al *ArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, re
   result := new(ArtistDetail)
 
   // Call the database and populate our object
-  if found, err := dbc.SelectBindSingleQIdParams("ARTIST_BY_ID", result, ar); found {
+  if found, err := dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, ar); found {
     // Make our result object the body of the HTTP response we'll send
     res.Body = result
   
@@ -271,7 +271,7 @@ The methods on [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/v2
 
  * Select - You are executing a SELECT-type SQL query
  * BindSingle - You expect zero or one results and want the result bound into a supplied object (the *ArtistDetail*)
- * QId - You are supplying the Query ID of a previously templated query to execute
+ * QID - You are supplying the Query ID of a previously templated query to execute
  * Params - You are supplying one or more objects that can be used to inject values into your templated queries (the *ArtistRequest*)
 
 There are a number of variations on these methods, including binding multi-row queries into a slice of objects of your choice. Refer to the [rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/rdbms)
@@ -292,7 +292,7 @@ SELECT
 FROM
   artist
 WHERE
-  id = ${Id}
+  id = ${ID}
   
 ```  
 
@@ -302,18 +302,18 @@ the following query (in this case <code>ARTIST_BY_ID</code>). Variables are surr
 
 ### Parameters to queries
 
-Values for parameters are injected into the query template when you call a method on <code>RdbmsClient</code>. In the case of this query the <code>${Id}</code> parameter will be populated when we call:
+Values for parameters are injected into the query template when you call a method on <code>RdbmsClient</code>. In the case of this query the <code>${ID}</code> parameter will be populated when we call:
 
 ```go
   dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, ar)
 ```
 
-because the <code>ArtistRequest</code> object we are passing as the 'parameter source' has a field named Id. If you want to use a different parameter name in 
+because the <code>ArtistRequest</code> object we are passing as the 'parameter source' has a field named ID. If you want to use a different parameter name in 
 your query, you can use the <code>dbparam</code> struct tag like:
 
 ```go
 type ArtistRequest struct {
-  Id  int `dbparam:"artist-id"`
+  ID  int `dbparam:"artist-id"`
 }
 ```
 
@@ -373,7 +373,7 @@ If you add the following to your config:
 
 ```json
 "QueryManager": {
-  "QueryIdPrefix": "--ID:"
+  "QueryIDPrefix": "--ID:"
 }
 ``` 
 

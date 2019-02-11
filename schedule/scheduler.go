@@ -42,9 +42,9 @@ func (ts *TaskScheduler) StartComponent() error {
 		ts.FrameworkLogger.LogTracef("Considering %s", component.Name)
 
 		if task, found := component.Instance.(*Task); found {
-			if task.Id == "" {
+			if task.ID == "" {
 				//Use the name of the component to be run as ID for the task if it isn't explicitly set
-				task.Id = task.Component
+				task.ID = task.Component
 			}
 
 			ts.FrameworkLogger.LogDebugf("Found Task %s", task.FullName())
