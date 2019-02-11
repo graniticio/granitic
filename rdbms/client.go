@@ -50,11 +50,14 @@ func (rc *Client) FindFragment(qid string) (string, error) {
 // BuildQueryFromQIdParams returns a populated SQL query that can be manually executed later.
 func (rc *Client) BuildQueryFromQIdParams(qid string, p ...interface{}) (string, error) {
 
-	if pm, err := ParamsFromFieldsOrTags(p...); err != nil {
-		return "", err
-	} else {
+	var pm map[string]interface{}
+	var err error
+
+	if pm, err = ParamsFromFieldsOrTags(p...); err == nil {
 		return rc.queryManager.BuildQueryFromId(qid, pm)
 	}
+
+	return "", err
 }
 
 // DeleteQIdParams executes the supplied query with the expectation that it is a 'DELETE' query.
@@ -109,13 +112,14 @@ func (rc *Client) InsertQIdParams(qid string, params ...interface{}) (sql.Result
 // the new row's server generated ID in the target int64
 func (rc *Client) InsertCaptureQIdParams(qid string, target *int64, params ...interface{}) error {
 
-	if query, err := rc.buildQuery(qid, params...); err != nil {
-		return err
-	} else {
+	var query string
+	var err error
 
-		return rc.lastId(query, rc, target)
+	if query, err = rc.buildQuery(qid, params...); err != nil {
+		return err
 	}
 
+	return rc.lastId(query, rc, target)
 }
 
 // SelectBindSingleQId executes the supplied query with the expectation that it is a 'SELECT' query that returns 0 or 1 rows.
@@ -168,17 +172,16 @@ func (rc *Client) SelectBindQIdParam(qid string, name string, value interface{},
 // SelectBindQIdParams executes the supplied query with the expectation that it is a 'SELECT' query. Results of the query
 // are returned in a slice of the same type as the supplied template struct.
 func (rc *Client) SelectBindQIdParams(qid string, template interface{}, params ...interface{}) ([]interface{}, error) {
+	var r *sql.Rows
+	var err error
 
-	if r, err := rc.SelectQIdParams(qid, params...); err != nil {
+	if r, err = rc.SelectQIdParams(qid, params...); err != nil {
 		return nil, err
-	} else {
-
-		defer r.Close()
-
-		return rc.binder.BindRows(r, template)
-
 	}
 
+	defer r.Close()
+
+	return rc.binder.BindRows(r, template)
 }
 
 // SelectQId executes the supplied query with the expectation that it is a 'SELECT' query.
@@ -226,13 +229,14 @@ func (rc *Client) UpdateQIdParam(qid string, name string, value interface{}) (sq
 
 func (rc *Client) execQIdParams(qid string, params ...interface{}) (sql.Result, error) {
 
-	if query, err := rc.buildQuery(qid, params...); err != nil {
-		return nil, err
-	} else {
+	var query string
+	var err error
 
-		return rc.Exec(query)
+	if query, err = rc.buildQuery(qid, params...); err != nil {
+		return nil, err
 	}
 
+	return rc.Exec(query)
 }
 
 func (rc *Client) buildQuery(qid string, p ...interface{}) (string, error) {
@@ -241,20 +245,21 @@ func (rc *Client) buildQuery(qid string, p ...interface{}) (string, error) {
 
 	if tq != "" {
 		return tq, nil
-	} else {
-
-		if pm, err := ParamsFromFieldsOrTags(p...); err != nil {
-			return "", err
-		} else {
-
-			if rc.FrameworkLogger.IsLevelEnabled(logging.Trace) {
-				//Log the parameters to be injected into the query
-				rc.FrameworkLogger.LogTracef("Parameters: %v", pm)
-			}
-
-			return rc.queryManager.BuildQueryFromId(qid, pm)
-		}
 	}
+
+	var pm map[string]interface{}
+	var err error
+
+	if pm, err = ParamsFromFieldsOrTags(p...); err != nil {
+		return "", err
+	}
+
+	if rc.FrameworkLogger.IsLevelEnabled(logging.Trace) {
+		//Log the parameters to be injected into the query
+		rc.FrameworkLogger.LogTracef("Parameters: %v", pm)
+	}
+
+	return rc.queryManager.BuildQueryFromId(qid, pm)
 
 }
 
@@ -264,17 +269,16 @@ func (rc *Client) StartTransaction() error {
 
 	if rc.tx != nil {
 		return errors.New("Transaction already open")
-	} else {
-
-		tx, err := rc.db.Begin()
-
-		if err != nil {
-			return err
-		} else {
-			rc.tx = tx
-			return nil
-		}
 	}
+
+	tx, err := rc.db.Begin()
+
+	if err != nil {
+		return err
+	}
+
+	rc.tx = tx
+	return nil
 }
 
 // StartTransactionWithOptions opens a transaction on the underlying sql.DB object and re-maps all calls to non-transactional
@@ -283,25 +287,25 @@ func (rc *Client) StartTransactionWithOptions(opts *sql.TxOptions) error {
 
 	if rc.tx != nil {
 		return errors.New("Transaction already open")
-	} else {
-
-		var ctx context.Context
-
-		if rc.contextAware() {
-			ctx = rc.ctx
-		} else {
-			ctx = context.Background()
-		}
-
-		tx, err := rc.db.BeginTx(ctx, opts)
-
-		if err != nil {
-			return err
-		} else {
-			rc.tx = tx
-			return nil
-		}
 	}
+
+	var ctx context.Context
+
+	if rc.contextAware() {
+		ctx = rc.ctx
+	} else {
+		ctx = context.Background()
+	}
+
+	tx, err := rc.db.BeginTx(ctx, opts)
+
+	if err != nil {
+		return err
+	}
+
+	rc.tx = tx
+	return nil
+
 }
 
 // Rollback rolls the open transaction back - does nothing if no transaction is open.
@@ -317,13 +321,13 @@ func (rc *Client) CommitTransaction() error {
 
 	if rc.tx == nil {
 		return errors.New("No open transaction to commit")
-	} else {
-
-		err := rc.tx.Commit()
-		rc.tx = nil
-
-		return err
 	}
+
+	err := rc.tx.Commit()
+	rc.tx = nil
+
+	return err
+
 }
 
 // Exec is a pass-through to its sql.DB equivalent (or sql.Tx equivalent is a transaction is open)
@@ -334,17 +338,17 @@ func (rc *Client) Exec(query string, args ...interface{}) (sql.Result, error) {
 	if rc.contextAware() {
 		if tx != nil {
 			return tx.ExecContext(rc.ctx, query, args...)
-		} else {
-			return rc.db.ExecContext(rc.ctx, query, args...)
 		}
-	} else {
-		if tx != nil {
-			return tx.Exec(query, args...)
-		} else {
-			return rc.db.Exec(query, args...)
-		}
+
+		return rc.db.ExecContext(rc.ctx, query, args...)
+
 	}
 
+	if tx != nil {
+		return tx.Exec(query, args...)
+	}
+
+	return rc.db.Exec(query, args...)
 }
 
 // Query is a pass-through to its sql.DB equivalent (or sql.Tx equivalent is a transaction is open)
@@ -354,16 +358,17 @@ func (rc *Client) Query(query string, args ...interface{}) (*sql.Rows, error) {
 	if rc.contextAware() {
 		if tx != nil {
 			return tx.QueryContext(rc.ctx, query, args...)
-		} else {
-			return rc.db.QueryContext(rc.ctx, query, args...)
 		}
-	} else {
-		if tx != nil {
-			return tx.Query(query, args...)
-		} else {
-			return rc.db.Query(query, args...)
-		}
+
+		return rc.db.QueryContext(rc.ctx, query, args...)
+
 	}
+
+	if tx != nil {
+		return tx.Query(query, args...)
+	}
+
+	return rc.db.Query(query, args...)
 }
 
 // QueryRow is a pass-through to its sql.DB equivalent (or sql.Tx equivalent is a transaction is open)
@@ -373,17 +378,17 @@ func (rc *Client) QueryRow(query string, args ...interface{}) *sql.Row {
 	if rc.contextAware() {
 		if tx != nil {
 			return tx.QueryRowContext(rc.ctx, query, args...)
-		} else {
-			return rc.db.QueryRowContext(rc.ctx, query, args...)
 		}
-	} else {
-		if tx != nil {
-			return tx.QueryRow(query, args...)
-		} else {
-			return rc.db.QueryRow(query, args...)
-		}
+
+		return rc.db.QueryRowContext(rc.ctx, query, args...)
+
 	}
 
+	if tx != nil {
+		return tx.QueryRow(query, args...)
+	}
+
+	return rc.db.QueryRow(query, args...)
 }
 
 func (rc *Client) contextAware() bool {
