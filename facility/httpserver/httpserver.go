@@ -172,17 +172,17 @@ func (h *HTTPServer) StartComponent() error {
 		h.reqInstManager = new(noopRequestInstrumentationManager)
 	} else {
 
-		if c := h.componentContainer.ComponentByName(rid); c == nil {
+		var c *ioc.Component
+
+		if c = h.componentContainer.ComponentByName(rid); c == nil {
 			return fmt.Errorf("No component named %s exists - was specified in the RequestInstrumentationManagerName field", rid)
-		} else {
-
-			if rim, found := c.Instance.(instrument.RequestInstrumentationManager); found {
-				h.reqInstManager = rim
-			} else {
-				return fmt.Errorf("Component %s exists, but does not implement instrument.RequestInstrumentationManager. Was specified in the RequestInstrumentationManagerName field", rid)
-			}
-
 		}
+
+		if rim, found := c.Instance.(instrument.RequestInstrumentationManager); found {
+			h.reqInstManager = rim
+		}
+
+		return fmt.Errorf("component %s exists, but does not implement instrument.RequestInstrumentationManager. Was specified in the RequestInstrumentationManagerName field", rid)
 
 	}
 
@@ -307,14 +307,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	if h.IdContextBuilder != nil {
 
-		if idCtx, err := h.IdContextBuilder.WithIdentity(ctx, req); err != nil {
-
-			//Something went wrong trying to use HTTP data to identify a context - treat as a bad request (400)
-			h.writeAbnormal(ctx, http.StatusBadRequest, wrw, err)
-
-			return
-		} else {
-
+		if idCtx, err := h.IdContextBuilder.WithIdentity(ctx, req); err == nil {
 			ctx = idCtx.(context.Context)
 			requestId = h.IdContextBuilder.Id(idCtx)
 
@@ -323,6 +316,13 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 			if h.FrameworkLogger.IsLevelEnabled(logging.Trace) {
 				h.FrameworkLogger.LogTracef("Request ID: %s\n", requestId)
 			}
+
+		} else {
+
+			//Something went wrong trying to use HTTP data to identify a context - treat as a bad request (400)
+			h.writeAbnormal(ctx, http.StatusBadRequest, wrw, err)
+
+			return
 
 		}
 	}
@@ -394,12 +394,10 @@ func (h *HTTPServer) ReadyToStop() (bool, error) {
 
 	if ready {
 		return true, nil
-	} else {
-
-		message := fmt.Sprintf("HTTP server listening on %d is still serving %d request(s)", h.Port, a)
-
-		return false, errors.New(message)
 	}
+
+	return false, fmt.Errorf("HTTP server listening on %d is still serving %d request(s)", h.Port, a)
+
 }
 
 // Stop sets state to Stopped. Any subsequent requests will receive a 'too busy response'. Note that the HTTP
