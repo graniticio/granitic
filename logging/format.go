@@ -164,10 +164,9 @@ func (alw *LogMessageFormatter) ctxValue(ctx context.Context, key string) string
 
 		return fmt.Sprintf("%v", v)
 
-	} else {
-		return alw.Unset
 	}
 
+	return alw.Unset
 }
 
 func (alw *LogMessageFormatter) findValue(element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
@@ -210,17 +209,14 @@ func (lmf *LogMessageFormatter) Init() error {
 
 	if f != "" {
 		return lmf.parseFormat(f)
-	} else {
+	}
 
-		if pre == FrameworkPresetPrefix {
-			return lmf.parseFormat(PresetFormatFramework)
-
-		} else {
-			message := fmt.Sprintf("%s is not a supported preset for log prefixes", pre)
-			return errors.New(message)
-		}
+	if pre == FrameworkPresetPrefix {
+		return lmf.parseFormat(PresetFormatFramework)
 
 	}
+
+	return fmt.Errorf("%s is not a supported preset for log prefixes", pre)
 
 }
 
@@ -300,10 +296,10 @@ func (lmf *LogMessageFormatter) addPlaceholder(ph string, re *regexp.Regexp) err
 		if lfph == unsupportedPH {
 			message := fmt.Sprintf("%s is not a supported field for formatting the prefix to log lines", ph)
 			return errors.New(message)
-		} else {
-			e := newPlaceholderLineElement(lfph)
-			lmf.elements = append(lmf.elements, e)
 		}
+
+		e := newPlaceholderLineElement(lfph)
+		lmf.elements = append(lmf.elements, e)
 
 	} else {
 
@@ -314,12 +310,11 @@ func (lmf *LogMessageFormatter) addPlaceholder(ph string, re *regexp.Regexp) err
 		lfph := lmf.mapPlaceholder(formatTypeCode)
 
 		if lfph == unsupportedPH {
-			message := fmt.Sprintf("%s is not a supported field for formatting the prefix to log lines", ph)
-			return errors.New(message)
-		} else {
-			e := newPlaceholderWithVarLineElement(lfph, arg)
-			lmf.elements = append(lmf.elements, e)
+			return fmt.Errorf("%s is not a supported field for formatting the prefix to log lines", ph)
 		}
+
+		e := newPlaceholderWithVarLineElement(lfph, arg)
+		lmf.elements = append(lmf.elements, e)
 
 	}
 
@@ -329,9 +324,9 @@ func (lmf *LogMessageFormatter) addPlaceholder(ph string, re *regexp.Regexp) err
 func intMax(x, y int) int {
 	if x > y {
 		return x
-	} else {
-		return y
 	}
+
+	return y
 }
 
 func truncOrPad(s string, sp string) string {
@@ -344,10 +339,9 @@ func truncOrPad(s string, sp string) string {
 
 	if len(s) > p {
 		return s[0:p]
-	} else {
-		return padRightTo(s, p)
 	}
 
+	return padRightTo(s, p)
 }
 
 func padRightTo(s string, p int) string {
