@@ -84,10 +84,9 @@ func (ns *NilableString) MarshalJSON() ([]byte, error) {
 
 	if ns.set {
 		return json.Marshal(ns.val)
-	} else {
-		return nil, nil
 	}
 
+	return nil, nil
 }
 
 // See Nilable.UnmarshalJSON
@@ -126,10 +125,9 @@ func (nb *NilableBool) MarshalJSON() ([]byte, error) {
 
 	if nb.set {
 		return []byte(strconv.FormatBool(nb.val)), nil
-	} else {
-		return nil, nil
 	}
 
+	return nil, nil
 }
 
 // See Nilable.UnmarshalJSON
@@ -182,10 +180,9 @@ func (ni *NilableInt64) MarshalJSON() ([]byte, error) {
 
 	if ni.set {
 		return []byte(strconv.FormatInt(ni.val, 10)), nil
-	} else {
-		return nil, nil
 	}
 
+	return nil, nil
 }
 
 // See Nilable.UnmarshalJSON
@@ -232,10 +229,9 @@ func (nf *NilableFloat64) MarshalJSON() ([]byte, error) {
 
 	if nf.set {
 		return json.Marshal(nf.val)
-	} else {
-		return nil, nil
 	}
 
+	return nil, nil
 }
 
 // See Nilable.UnmarshalJSON
