@@ -88,7 +88,7 @@ func (ci ClientIdentity) LoggableUserId() string {
 
 	if a == nil {
 		return ""
-	} else {
-		return a.(string)
 	}
+
+	return a.(string)
 }
