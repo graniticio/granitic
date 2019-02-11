@@ -2,56 +2,56 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package serviceerror provides the ServiceErrorManager facility which provides error message management.
+Package serviceerror provides the ServiceErrorManager facility which provides error message management.
 
-	This facility is documented in detail at http://granitic.io/1.0/ref/service-errors
+This facility is documented in detail at http://granitic.io/1.0/ref/service-errors
 
-	Error definitions
+Error definitions
 
-	The purpose of the ServiceErrorManager is to allow error messages to be defined in a single place rather than be embedded in code.
-	When application code needs to raise or work with an error, a short code is used to refer to the error and is used to lookup its related message.
+The purpose of the ServiceErrorManager is to allow error messages to be defined in a single place rather than be embedded in code.
+When application code needs to raise or work with an error, a short code is used to refer to the error and is used to lookup its related message.
 
-	Error definitions are stored in your application's configuration files and will look something like:
+Error definitions are stored in your application's configuration files and will look something like:
 
-		{
-		  "serviceErrors": [
-			["C", "CREATE_RECORD", "Cannot create a record with the information provided."],
-			["C", "RECORD_NAME", "Record names must be 1-128 characters long."],
-			["C", "ARTIST_NAME", "Artist names must be 1-64 characters long."]
-		  ]
-		}
+	{
+	  "serviceErrors": [
+		["C", "CREATE_RECORD", "Cannot create a record with the information provided."],
+		["C", "RECORD_NAME", "Record names must be 1-128 characters long."],
+		["C", "ARTIST_NAME", "Artist names must be 1-64 characters long."]
+	  ]
+	}
 
-	This example defines three errors with three parts that correspond to the fields in a ws.CategorisedError. The first element
-	of each definition is the short-hand form of the error category (see ws.ServiceErrorCategory), the second is a unique code for the error
-	and the third is a (normally human readable) error message.
+This example defines three errors with three parts that correspond to the fields in a ws.CategorisedError. The first element
+of each definition is the short-hand form of the error category (see ws.ServiceErrorCategory), the second is a unique code for the error
+and the third is a (normally human readable) error message.
 
-	Changing config location
+Changing config location
 
-	By default, the ServiceErrorManager expects definitions to be available at the config path
+By default, the ServiceErrorManager expects definitions to be available at the config path
 
-		serviceErrors
+	serviceErrors
 
-	as in the example above. This can be overridden by modifying the ServiceErrorManager facility configuration like:
+as in the example above. This can be overridden by modifying the ServiceErrorManager facility configuration like:
 
-		{
-		  "ServiceErrorManager":{
-		    "ErrorDefinitions": "my.errors.path"
-		  }
-		}
+	{
+	  "ServiceErrorManager":{
+		"ErrorDefinitions": "my.errors.path"
+	  }
+	}
 
-	Panic on missing
+Panic on missing
 
-	If your application code uses an error code that has no corresponding definition, you can choose how the ServiceErrorManager will
-	react. By default, the ServiceErrorManager will panic -  this should be a development/test phase failure. If for some reason your
-	application might reach production with error codes with missing definitions, you can set:
+If your application code uses an error code that has no corresponding definition, you can choose how the ServiceErrorManager will
+react. By default, the ServiceErrorManager will panic -  this should be a development/test phase failure. If for some reason your
+application might reach production with error codes with missing definitions, you can set:
 
-		{
-		  "ServiceErrorManager":{
-		    "PanicOnMissing": false
-		  }
-		}
+	{
+	  "ServiceErrorManager":{
+		"PanicOnMissing": false
+	  }
+	}
 
-	In this case, ServiceErrorManager will return nil when asked for the definition of an unknown code.
+In this case, ServiceErrorManager will return nil when asked for the definition of an unknown code.
 
 */
 package serviceerror

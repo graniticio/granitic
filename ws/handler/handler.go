@@ -2,38 +2,38 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package handler provides the types used to coordinate the processing of a web service request.
+Package handler provides the types used to coordinate the processing of a web service request.
 
-	The core type in this package is WsHandler. A handler (an instance of WsHandler) must be created for every logical web service
-	endpoint in your application. The behaviour and configuration of handlers is described in detail at
-	http://granitic.io/1.0/ref/web-service-handlers but a brief description follows.
+The core type in this package is WsHandler. A handler (an instance of WsHandler) must be created for every logical web service
+endpoint in your application. The behaviour and configuration of handlers is described in detail at
+http://granitic.io/1.0/ref/web-service-handlers but a brief description follows.
 
-	Declaring handlers
+Declaring handlers
 
-	A handler is declared in your component definition file like:
+A handler is declared in your component definition file like:
 
-		{
-		  "artistHandler": {
-			"type": "handler.WsHandler",
-			"HTTPMethod": "GET",
-			"Logic": "ref:artistLogic",
-			"PathPattern": "^/artist/([\\d]+)[/]?$"
-		  },
+	{
+	  "artistHandler": {
+		"type": "handler.WsHandler",
+		"HTTPMethod": "GET",
+		"Logic": "ref:artistLogic",
+		"PathPattern": "^/artist/([\\d]+)[/]?$"
+	  },
 
-		  "artistLogic": {
-			"type": "inventory.ArtistLogic"
-		  }
-		}
+	  "artistLogic": {
+		"type": "inventory.ArtistLogic"
+	  }
+	}
 
-	Each handler must have the following before it is considered a valid web service endpoint.
+Each handler must have the following before it is considered a valid web service endpoint.
 
-	1. A regular expression that will be matched against the path component of incoming HTTP requests.
+1. A regular expression that will be matched against the path component of incoming HTTP requests.
 
-	2. A single HTTP method that it will be responsible for handling. This is generally GET, POST, PUT or DELETE but any
-	standard or custom HTTP method can be used.
+2. A single HTTP method that it will be responsible for handling. This is generally GET, POST, PUT or DELETE but any
+standard or custom HTTP method can be used.
 
-	3. A 'logic' component that implements at least WsRequestProcessor (additional WsXXX interfaces can be implemented
-	to support advanced behaviour) OR has a method with the signature ProcessPayload(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)
+3. A 'logic' component that implements at least WsRequestProcessor (additional WsXXX interfaces can be implemented
+to support advanced behaviour) OR has a method with the signature ProcessPayload(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)
 
 */
 package handler

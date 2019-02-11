@@ -2,15 +2,14 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package rdbms provides the RdbmsAccess facility which gives application code access to an RDBMS (SQL database).
+Package rdbms provides the RdbmsAccess facility which gives application code access to an RDBMS (SQL database).
 
-	The RdbmsAccess facility is described in detail at http://granitic.io/1.0/ref/rdbms-access and the programmatic
-	interface that applications will use for executing SQL is described in the rdbms package documentation.
+The RdbmsAccess facility is described in detail at http://granitic.io/1.0/ref/rdbms-access and the programmatic
+interface that applications will use for executing SQL is described in the rdbms package documentation.
 
-	The purpose of this facility is to create an rdbms.ClientManager that will be injected into your application
-	components. In turn, the rdbms.ClientManager will be used by your application to create instances of rdbms.RDBMSClient
-	which provide the interface for executing SQL queries and managing transactions.
-
+The purpose of this facility is to create an rdbms.ClientManager that will be injected into your application
+components. In turn, the rdbms.ClientManager will be used by your application to create instances of rdbms.RDBMSClient
+which provide the interface for executing SQL queries and managing transactions.
 */
 package rdbms
 

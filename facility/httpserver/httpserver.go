@@ -2,16 +2,16 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package httpserver provides the HTTPServer facility which defines a configurable HTTP server for processing web-service requests.
+Package httpserver provides the HTTPServer facility which defines a configurable HTTP server for processing web-service requests.
 
-	The HTTPServer facility provides a server that will listen for HTTP web-service requests and map them to the web-service
-	endpoints defined by your application. A full description of how to configure this facility can be found at http://granitic.io/1.0/ref/http-server
+The HTTPServer facility provides a server that will listen for HTTP web-service requests and map them to the web-service
+endpoints defined by your application. A full description of how to configure this facility can be found at http://granitic.io/1.0/ref/http-server
 
-	This package defines two main types HTTPServer and AccessLogWriter. HTTPServer is a layer over Go's built-in http.Server adding runtime control (suspension, resumption)
-	and mapping of requests to instances of ws.Handler. AccessLogWriter supports Apache/Tomcat style access log formatting and writing.
+This package defines two main types HTTPServer and AccessLogWriter. HTTPServer is a layer over Go's built-in http.Server adding runtime control (suspension, resumption)
+and mapping of requests to instances of ws.Handler. AccessLogWriter supports Apache/Tomcat style access log formatting and writing.
 
-	Most applications will only need to enable this facility (probably changing the listen Port) and define mappings between incoming paths and application logic in their
-	component definition files. See handler.WsHandler for more details.
+Most applications will only need to enable this facility (probably changing the listen Port) and define mappings between incoming paths and application logic in their
+component definition files. See handler.WsHandler for more details.
 
 */
 package httpserver

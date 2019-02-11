@@ -2,20 +2,20 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package instrument provides patterns and helper functions for instrumenting some flow of control (typically a web service request or scheduled activity).
+Package instrument provides patterns and helper functions for instrumenting some flow of control (typically a web service request or scheduled activity).
 
-	This instrumentation is often the capture of timing data for the purposes of monitoring performance, but the type of instrumentation depends on the implementation of the
-	interfaces in this package.
+This instrumentation is often the capture of timing data for the purposes of monitoring performance, but the type of instrumentation depends on the implementation of the
+interfaces in this package.
 
-	Instrumentor
+Instrumentor
 
-	The key concept in this package is that of the Instrumentor, which is a common interface to instrumentation that is shared by your code and the
-	Granitic framework. It is expected that an instance of Instrumentator will be stored in the context.Context that is passed through your code. This
-	allows your code to use the helper functions in this package to either gain access to the Instrumentor or use one-line method calls to initiate instrumentation of a method
+The key concept in this package is that of the Instrumentor, which is a common interface to instrumentation that is shared by your code and the
+Granitic framework. It is expected that an instance of Instrumentator will be stored in the context.Context that is passed through your code. This
+allows your code to use the helper functions in this package to either gain access to the Instrumentor or use one-line method calls to initiate instrumentation of a method
 
-	Web service instrumentation
+Web service instrumentation
 
-	Grantic's HTTPServer has support for instrumenting your web service requests. See the facility/httpserver package documentation for more details.
+Grantic's HTTPServer has support for instrumenting your web service requests. See the facility/httpserver package documentation for more details.
 */
 package instrument
 

@@ -2,45 +2,45 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package runtimectl provides the RuntimeCtl facility which allows external runtime control of Granitic applications.
+Package runtimectl provides the RuntimeCtl facility which allows external runtime control of Granitic applications.
 
-	This facility is described in detail at http://granitic.io/1.0/ref/runtime-ctl. Refer to the ctl package documentation
-	for information on how to implement your own commands.
+This facility is described in detail at http://granitic.io/1.0/ref/runtime-ctl. Refer to the ctl package documentation
+for information on how to implement your own commands.
 
-	Enabling runtime control
+Enabling runtime control
 
-	Enabling the RuntimeCtl facility creates an HTTP server that allows instructions to be issued to
-	any component in the IoC container which implements the ctl.Command interface from the grnc-ctl command line tool.
-	See http://granitic.io/1.0/ref/runtime-ctl#builtin for documentation on Granitic's built-in commands.
+Enabling the RuntimeCtl facility creates an HTTP server that allows instructions to be issued to
+any component in the IoC container which implements the ctl.Command interface from the grnc-ctl command line tool.
+See http://granitic.io/1.0/ref/runtime-ctl#builtin for documentation on Granitic's built-in commands.
 
-	The HTTP server that listens for commands is separate to the HTTP server created by the XMLWs and JSONWs facilities and runs on a
-	different port. The listen port defaults to 9099 but can be changed with the following configuration:
-
-		{
-		  "RuntimeCtl": {
-			"Server":{
-			  "Port": 9099,
-			  "Address": "127.0.0.1"
-			}
-		  }
-		}
-
-	Note that by default the server only listens on the IPV4 localhost. To listen on all interfaces, change address to ""
-
-	Disabling individual commands
-
-	You can disable individual commands (either builtin commands or your own application commands) with configuration. For
-	example:
+The HTTP server that listens for commands is separate to the HTTP server created by the XMLWs and JSONWs facilities and runs on a
+different port. The listen port defaults to 9099 but can be changed with the following configuration:
 
 	{
 	  "RuntimeCtl": {
-	    "Manager":{
-	      "Disabled": ["shutdown"]
-	    }
+		"Server":{
+		  "Port": 9099,
+		  "Address": "127.0.0.1"
+		}
 	  }
 	}
 
-	Disables the shutdown command, preventing your application being stopped remotely.
+Note that by default the server only listens on the IPV4 localhost. To listen on all interfaces, change address to ""
+
+Disabling individual commands
+
+You can disable individual commands (either builtin commands or your own application commands) with configuration. For
+example:
+
+{
+  "RuntimeCtl": {
+	"Manager":{
+	  "Disabled": ["shutdown"]
+	}
+  }
+}
+
+Disables the shutdown command, preventing your application being stopped remotely.
 
 */
 package runtimectl

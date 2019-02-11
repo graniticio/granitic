@@ -2,58 +2,58 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package ws provides the JSONWs and XMLWs facilities which support JSON and XML web services.
+Package ws provides the JSONWs and XMLWs facilities which support JSON and XML web services.
 
-	This facility is documented in detail at http://granitic.io/1.0/ref/web-services
+This facility is documented in detail at http://granitic.io/1.0/ref/web-services
 
-	Web-services
+Web-services
 
-	Enabling the JSONWs or XMLWs facility allows the creation of web service endpoints where inbound and outbound data is automatically converted from and to JSON/XML.
+Enabling the JSONWs or XMLWs facility allows the creation of web service endpoints where inbound and outbound data is automatically converted from and to JSON/XML.
 
-	An endpoint is created by adding an instance of handler.WsHandler with a corresponding implementation of handler.WsPostProcessor
-	(generally referred to as handler logic) to your component definition file. For example:
+An endpoint is created by adding an instance of handler.WsHandler with a corresponding implementation of handler.WsPostProcessor
+(generally referred to as handler logic) to your component definition file. For example:
 
-		"createRecordLogic": {
-		  "type": "inventory.CreateRecordLogic"
-		},
+	"createRecordLogic": {
+	  "type": "inventory.CreateRecordLogic"
+	},
 
-		"createRecordHandler": {
-		  "type": "handler.WsHandler",
-		  "HTTPMethod": "POST",
-		  "Logic": "ref:createRecordLogic",
-		  "PathPattern": "^/record$",
-		}
+	"createRecordHandler": {
+	  "type": "handler.WsHandler",
+	  "HTTPMethod": "POST",
+	  "Logic": "ref:createRecordLogic",
+	  "PathPattern": "^/record$",
+	}
 
-	See the ws and ws/handler package documentation for more information.
-
-
-	JSON
-
-	If JSONWs is enabled, any requests to a registered endpoint will have their request body parsed as JSON and any response rendered as JSON.
-	This is handled with Go's built-in json package.
-
-	Many aspects of the parsing and rendering process (including content types, formatting of errors, pretty-printing and
-	camel-case mapping) is configurable. Refer to http://granitic.io/1.0/ref/json for more details.
-
-	XML
-
-	Once the XMLWs facility is enabled, requests to an endpoint will, by default, be parsed as XML and rendered using
-	user defined templates. Refer to http://granitic.io/1.0/ref/xml#templates for more details.
-
-	Alternatively, the XMLWs facility can be configured to automatically render responses as XML using Go's built-in
-	XML marshalling components by setting the following configuration in your application's configuration files:
-
-		{
-		  "XMLWs": {
-			"ResponseMode": "MARSHAL"
-		  }
-		}
+See the ws and ws/handler package documentation for more information.
 
 
-	Refer to http://granitic.io/1.0/ref/xml#marshalled for more information.
+JSON
 
-	Many aspects of the parsing and rendering process (including content types and formatting of errors) is configurable.
-	Refer to http://granitic.io/1.0/ref/xml for more details.
+If JSONWs is enabled, any requests to a registered endpoint will have their request body parsed as JSON and any response rendered as JSON.
+This is handled with Go's built-in json package.
+
+Many aspects of the parsing and rendering process (including content types, formatting of errors, pretty-printing and
+camel-case mapping) is configurable. Refer to http://granitic.io/1.0/ref/json for more details.
+
+XML
+
+Once the XMLWs facility is enabled, requests to an endpoint will, by default, be parsed as XML and rendered using
+user defined templates. Refer to http://granitic.io/1.0/ref/xml#templates for more details.
+
+Alternatively, the XMLWs facility can be configured to automatically render responses as XML using Go's built-in
+XML marshalling components by setting the following configuration in your application's configuration files:
+
+	{
+	  "XMLWs": {
+		"ResponseMode": "MARSHAL"
+	  }
+	}
+
+
+Refer to http://granitic.io/1.0/ref/xml#marshalled for more information.
+
+Many aspects of the parsing and rendering process (including content types and formatting of errors) is configurable.
+Refer to http://granitic.io/1.0/ref/xml for more details.
 */
 package ws
 

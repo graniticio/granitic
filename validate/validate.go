@@ -2,127 +2,123 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package validate provides a declarative, rules-based validation framework for validating user-supplied data.
+Package validate provides a declarative, rules-based validation framework for validating user-supplied data.
 
-	The types in this package are designed to be used in conjunction with the handler.WsHandler type which your application
-	will use to represent web service endpoints (see the package documentation for ws, ws/handler and http://granitic.io/1.0/ref/web-service-handlers )
+The types in this package are designed to be used in conjunction with the handler.WsHandler type which your application
+will use to represent web service endpoints (see the package documentation for ws, ws/handler and http://granitic.io/1.0/ref/web-service-handlers )
 
-	The purpose of Granitic's validation framework is to automate as much of the 'boiler-plate' validation from validated the data
-	supplied with the a web service call. Simple checks for ensuring a field is present, well-formed and within an allowed range
-	can clutter application code.
+The purpose of Granitic's validation framework is to automate as much of the 'boiler-plate' validation from validated the data
+supplied with the a web service call. Simple checks for ensuring a field is present, well-formed and within an allowed range
+can clutter application code.
 
-	Granitic's validation framework and patterns are covered in detail at http://granitic.io/1.0/ref/validation but a brief overview of
-	the key types and concepts follows.
+Granitic's validation framework and patterns are covered in detail at http://granitic.io/1.0/ref/validation but a brief overview of
+the key types and concepts follows.
 
-	RuleValidator
+RuleValidator
 
-	Each instance of handler.WsHandler in your application has an optional field
+Each instance of handler.WsHandler in your application has an optional field
 
-			RuleValidator *validate.RuleValidator
+		RuleValidator *validate.RuleValidator
 
-	If an AutoValidator is provided, its Validate method will be invoked before your handler's Logic.Process method is called. If errors
-	are detected by the RuleValidator, processing stops and an error response will be served to the web service caller.
+If an AutoValidator is provided, its Validate method will be invoked before your handler's Logic.Process method is called. If errors
+are detected by the RuleValidator, processing stops and an error response will be served to the web service caller.
 
-	A RuleValidator is declared in your component definition file in manner similar to:
+A RuleValidator is declared in your component definition file in manner similar to:
 
-		{
-		  "createRecordHandler": {
-		    "type": "handler.WsHandler",
-		    "HTTPMethod": "POST",
-		    "Logic": "ref:createRecordLogic",
-		    "PathPattern": "^/record$",
-		    "AutoValidator": "ref:createRecordValidator"
-		  },
+	{
+	  "createRecordHandler": {
+		"type": "handler.WsHandler",
+		"HTTPMethod": "POST",
+		"Logic": "ref:createRecordLogic",
+		"PathPattern": "^/record$",
+		"AutoValidator": "ref:createRecordValidator"
+	  },
 
-		  "createRecordValidator": {
-		    "type": "validate.RuleValidator",
-		    "DefaultErrorCode": "CREATE_RECORD",
-		    "Rules": "conf:createRecordRules"
-		  }
-		}
+	  "createRecordValidator": {
+		"type": "validate.RuleValidator",
+		"DefaultErrorCode": "CREATE_RECORD",
+		"Rules": "conf:createRecordRules"
+	  }
+	}
 
-	Each RuleValidator requires a set of rules, which must be defined in your application's configuration file like:
+Each RuleValidator requires a set of rules, which must be defined in your application's configuration file like:
 
-		{
-		  "createRecordRules": [
-		    ["CatalogRef",  "STR",               "REQ:CATALOG_REF_MISSING", "HARDTRIM",        "BREAK",     "REG:^[A-Z]{3}-[\\d]{6}$:CATALOG_REF"],
-		    ["Name",        "STR:RECORD_NAME",   "REQ",                     "HARDTRIM",        "LEN:1-128"],
-		    ["Artist",      "STR:ARTIST_NAME",   "REQ",                     "HARDTRIM",        "LEN:1-64"],
-		    ["Tracks",      "SLICE:TRACK_COUNT", "LEN:1-100",               "ELEM:trackName"]
-		  ]
-		}
+	{
+	  "createRecordRules": [
+		["CatalogRef",  "STR",               "REQ:CATALOG_REF_MISSING", "HARDTRIM",        "BREAK",     "REG:^[A-Z]{3}-[\\d]{6}$:CATALOG_REF"],
+		["Name",        "STR:RECORD_NAME",   "REQ",                     "HARDTRIM",        "LEN:1-128"],
+		["Artist",      "STR:ARTIST_NAME",   "REQ",                     "HARDTRIM",        "LEN:1-64"],
+		["Tracks",      "SLICE:TRACK_COUNT", "LEN:1-100",               "ELEM:trackName"]
+	  ]
+	}
 
-	(The spacing in the example above is to illustrate the components of a rule and has no effect on behaviour.)
+(The spacing in the example above is to illustrate the components of a rule and has no effect on behaviour.)
 
-	Rule structure
+Rule structure
 
-	Rules consist of three components: a field name, type and one or more operations.
+Rules consist of three components: a field name, type and one or more operations.
 
-	The field name is a field in the WsRequest.Body object that is to be validated.
+The field name is a field in the WsRequest.Body object that is to be validated.
 
-	The type is a shorthand for the the type of the field to be validated (see http://granitic.io/1.0/ref/validation#types)
+The type is a shorthand for the the type of the field to be validated (see http://granitic.io/1.0/ref/validation#types)
 
-	The operations are either checks that should be performed against the field (length checks, regexs etc), processing
-	instructions (break processing if the previous check failed) or manipulations of the data to be validated (trim a string, etc). See
-	http://granitic.io/1.0/ref/validation#operations for more detail.
+The operations are either checks that should be performed against the field (length checks, regexs etc), processing
+instructions (break processing if the previous check failed) or manipulations of the data to be validated (trim a string, etc). See
+http://granitic.io/1.0/ref/validation#operations for more detail.
 
-	For checks and processing instructions, the order in which they appear in the rule is significant as checks are made from left to right.
+For checks and processing instructions, the order in which they appear in the rule is significant as checks are made from left to right.
 
-	Error codes
+Error codes
 
-	Error codes determine what error is sent to a web service caller if a check fails. Error codes can be defined in three
-	levels of granularity - on an operation, on a rule or on a RuleValidator. The most specific error available is always used.
+Error codes determine what error is sent to a web service caller if a check fails. Error codes can be defined in three
+levels of granularity - on an operation, on a rule or on a RuleValidator. The most specific error available is always used.
 
-	Using the validation framework requires the ServiceErrorManager facility to be enabled (see http://granitic.io/1.0/ref/service-errors)
+Using the validation framework requires the ServiceErrorManager facility to be enabled (see http://granitic.io/1.0/ref/service-errors)
 
-	Sharing rules
+Sharing rules
 
-	Sometimes it is useful for a rule to be defined once and re-used by multiple RuleValidators. This is also required
-	to use some advanced techniques for deep validation of the elements of a slice. This technique is described in detail at
-	http://granitic.io/1.0/ref/validation rule manager.
+Sometimes it is useful for a rule to be defined once and re-used by multiple RuleValidators. This is also required
+to use some advanced techniques for deep validation of the elements of a slice. This technique is described in detail at
+http://granitic.io/1.0/ref/validation rule manager.
 
-	Decomposing the application of a rule
+Decomposing the application of a rule
 
-	The first rule in the example above is:
+The first rule in the example above is:
 
-		["CatalogRef",  "STR",  "REQ:CATALOG_REF_MISSING",  "HARDTRIM", "BREAK", "REG:^[A-Z]{3}-[\\d]{6}$:CATALOG_REF"]
+	["CatalogRef",  "STR",  "REQ:CATALOG_REF_MISSING",  "HARDTRIM", "BREAK", "REG:^[A-Z]{3}-[\\d]{6}$:CATALOG_REF"]
 
-	It is a very typical example of a string validation rule and breaks down as follows.
+It is a very typical example of a string validation rule and breaks down as follows.
 
-	1. The field CatalogRef on the web service's WsRequest.Body will be validated.
+1. The field CatalogRef on the web service's WsRequest.Body will be validated.
 
-	2. The field will be treated as a string. Note, no error code is defined with the type so the RuleValidator's DefaultErrorCode will be used.
+2. The field will be treated as a string. Note, no error code is defined with the type so the RuleValidator's DefaultErrorCode will be used.
 
-	3. The field is REQuired. If the field is not set, the error CATALOG_REF_MISSING will be included in the eventual response to the web service call.
+3. The field is REQuired. If the field is not set, the error CATALOG_REF_MISSING will be included in the eventual response to the web service call.
 
-	4. The field will be HARDTRIMmed - the actual value of CatalogRef will be permanently modified to remove leading and trailing spaces before
-	further validation checks are applied (an alternative TRIM will mean validation occurs on a trimmed copy of the string, but the underlying data
-	is not permanently modified.
+4. The field will be HARDTRIMmed - the actual value of CatalogRef will be permanently modified to remove leading and trailing spaces before
+further validation checks are applied (an alternative TRIM will mean validation occurs on a trimmed copy of the string, but the underlying data
+is not permanently modified.
 
-	5. If previous checks, in this case the REQ check, failed, processing will BREAK and the next validation rule will be processed.
+5. If previous checks, in this case the REQ check, failed, processing will BREAK and the next validation rule will be processed.
 
-	6. The value of CatalogRef is compared to the regex ^[A-Z]{3}-[\\d]{6}$ If there is no match, the error CATALOG_REF will be included
-	in the eventual response to the web service call.
+6. The value of CatalogRef is compared to the regex ^[A-Z]{3}-[\\d]{6}$ If there is no match, the error CATALOG_REF will be included
+in the eventual response to the web service call.
 
-	Advanced techniques
+Advanced techniques
 
-	The Granitic validation framework is deep and flexible and you are encouraged to read the reference at http://granitic.io/1.0/ref/validation
-	Advanced techniques include cross field mutual exclusivity, deep validation of slice elements and cross-field dependencies.
+The Granitic validation framework is deep and flexible and you are encouraged to read the reference at http://granitic.io/1.0/ref/validation
+Advanced techniques include cross field mutual exclusivity, deep validation of slice elements and cross-field dependencies.
 
-	Programmatic creation of rules
+Programmatic creation of rules
 
-	It is possible to define rules in your application code. Each type of rule supports a fluent-style interface to make application code more readable in this case. The rule
-	above could be expressed as
+It is possible to define rules in your application code. Each type of rule supports a fluent-style interface to make application code more readable in this case. The rule
+above could be expressed as
 
-		sv := NewStringValidator("CatalogRef", "CREATE_RECORD").
-			Required("CATALOG_REF_MISSING").
-			HardTrim().
-			Break().
-			Regex("^[A-Z]{3}-[\\d]{6}$", "CATALOG_REF")
-
-
-
-
+	sv := NewStringValidator("CatalogRef", "CREATE_RECORD").
+		Required("CATALOG_REF_MISSING").
+		HardTrim().
+		Break().
+		Regex("^[A-Z]{3}-[\\d]{6}$", "CATALOG_REF")
 */
 package validate
 

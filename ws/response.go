@@ -2,76 +2,76 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package ws defines types used by framework and application components involved in web service processing. For more information
-	on how web services work in Granitic, see http://granitic.io/1.0/ref/web-services
+Package ws defines types used by framework and application components involved in web service processing. For more information
+on how web services work in Granitic, see http://granitic.io/1.0/ref/web-services
 
-	A brief explanation of the key types and concepts follows.
+A brief explanation of the key types and concepts follows.
 
-	Requests and responses
+Requests and responses
 
-	Request and Response are abstractions of the HTTP request and response associated with a call to a web service
-	endpoint. By default your application logic will not have access to the underlying HTTP objects (this can be overridden
-	on a per-endpoint basis by setting AllowDirectHTTPAccess to true on your handler - see the package documentation for
-	ws/handler for more information).
+Request and Response are abstractions of the HTTP request and response associated with a call to a web service
+endpoint. By default your application logic will not have access to the underlying HTTP objects (this can be overridden
+on a per-endpoint basis by setting AllowDirectHTTPAccess to true on your handler - see the package documentation for
+ws/handler for more information).
 
-	Your application code will not directly control how data is parsed into a Request or how the data and/or errors
-	in a Response are rendered to the caller. This is instead handled by the JSONWs or XMLWs facility.
+Your application code will not directly control how data is parsed into a Request or how the data and/or errors
+in a Response are rendered to the caller. This is instead handled by the JSONWs or XMLWs facility.
 
-	HTTP status codes are determined automatically based on the type (or lack of) errors in the Response object, but
-	this behaviour can be overridden by setting an HTTP status code manually on the Response.
+HTTP status codes are determined automatically based on the type (or lack of) errors in the Response object, but
+this behaviour can be overridden by setting an HTTP status code manually on the Response.
 
-	Errors
+Errors
 
-	Errors can be detected or occur during all the phases of request processing (see http://granitic.io/1.0/ref/request-processing-phases).
-	If errors are encountered during the parsing
-	and binding phases of request processing, they are referred to as 'framework errors' as they are handled outside of
-	application code. Framework errors result in one of small number of generic error messages being sent to a caller. See
-	http://granitic.io/1.0/ref/errors-and-messages for information on how to override these messages or how to allow your
-	application to have visibility of framework errors.
+Errors can be detected or occur during all the phases of request processing (see http://granitic.io/1.0/ref/request-processing-phases).
+If errors are encountered during the parsing
+and binding phases of request processing, they are referred to as 'framework errors' as they are handled outside of
+application code. Framework errors result in one of small number of generic error messages being sent to a caller. See
+http://granitic.io/1.0/ref/errors-and-messages for information on how to override these messages or how to allow your
+application to have visibility of framework errors.
 
-	If an error occurs during or after parsing and binding is complete, it will be recorded in the WsReponse.Errors
-	field. These types of errors are called service errors. For more information on service errors, refer to the GoDoc for
-	CategorisedError below or http://granitic.io/1.0/ref/errors-and-messages.
+If an error occurs during or after parsing and binding is complete, it will be recorded in the WsReponse.Errors
+field. These types of errors are called service errors. For more information on service errors, refer to the GoDoc for
+CategorisedError below or http://granitic.io/1.0/ref/errors-and-messages.
 
-	Response writing
+Response writing
 
-	The serialisation of the data in a Response to an HTTP response is handled by a component implementing ResponseWriter.
-	A component of this type will be automatically created for you when you enable the JSONWs or XMLWs facility.
+The serialisation of the data in a Response to an HTTP response is handled by a component implementing ResponseWriter.
+A component of this type will be automatically created for you when you enable the JSONWs or XMLWs facility.
 
-	Parameter binding
+Parameter binding
 
-	Parameter binding refers to the process of automatically capturing request query parameters and injecting them into fields
-	on the Request Body. It also refers to a similar process for extracting information from a request's path using regular expressions.
-	See http://granitic.io/1.0/ref/parameter-binding for more details.
+Parameter binding refers to the process of automatically capturing request query parameters and injecting them into fields
+on the Request Body. It also refers to a similar process for extracting information from a request's path using regular expressions.
+See http://granitic.io/1.0/ref/parameter-binding for more details.
 
-	IAM and versioning
+IAM and versioning
 
-	Granitic does not provide implementations of Identity Access Management or request versioning, but instead provides
-	highly generic types to allow your application's implementations of these concepts to be integrated with Grantic's web
-	service request processing. See the GoDoc for Identifier, AccessChecker and handler/WsVersionAssessor and the iam package for more details.
+Granitic does not provide implementations of Identity Access Management or request versioning, but instead provides
+highly generic types to allow your application's implementations of these concepts to be integrated with Grantic's web
+service request processing. See the GoDoc for Identifier, AccessChecker and handler/WsVersionAssessor and the iam package for more details.
 
-	HTTP status code determination
+HTTP status code determination
 
-	Unless your application defines its own HTTPStatusCodeDeterminer, the eventual HTTP status code set on the response
-	to a web service request it determined by examining the state of a Response using the following logic:
+Unless your application defines its own HTTPStatusCodeDeterminer, the eventual HTTP status code set on the response
+to a web service request it determined by examining the state of a Response using the following logic:
 
-	1. If the Response.HTTPStatus field is non-zero, use that.
+1. If the Response.HTTPStatus field is non-zero, use that.
 
-	2. If the Response.Errors.HTTPStatus field is non-zero, use that.
+2. If the Response.Errors.HTTPStatus field is non-zero, use that.
 
-	3. If the Response.Errors structure:
+3. If the Response.Errors structure:
 
-	a) Contains one or more 'Unexpected' errors, use HTTP 500.
+a) Contains one or more 'Unexpected' errors, use HTTP 500.
 
-	b) Contains an 'HTTP' error, convert that error's code to a number and use that.
+b) Contains an 'HTTP' error, convert that error's code to a number and use that.
 
-	c) Contains one or more 'Security' errors, use HTTP 401.
+c) Contains one or more 'Security' errors, use HTTP 401.
 
-	d) Contains one or more 'Client' errors, use HTTP 400.
+d) Contains one or more 'Client' errors, use HTTP 400.
 
-	e) Contains one or more 'Logic' errors, use HTTP 409.
+e) Contains one or more 'Logic' errors, use HTTP 409.
 
-	4. Return HTTP 200.
+4. Return HTTP 200.
 
 */
 package ws

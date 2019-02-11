@@ -2,14 +2,14 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-	Package grncerror defines error-message management types and error handling functions.
+Package grncerror defines error-message management types and error handling functions.
 
-	The primary type in this package is ServiceErrorManager, which allows an application to manage error definitions (messages and categories)
-	in a single location and have them looked up and referred to by error codes throughout the application.
+The primary type in this package is ServiceErrorManager, which allows an application to manage error definitions (messages and categories)
+in a single location and have them looked up and referred to by error codes throughout the application.
 
-	A ServiceErrorManager is made available to applications by enabling the ServiceErrorManager facility. This facility is
-	documented in detail here: http://granitic.io/1.0/ref/service-errors the package documentation for facility/serviceerror
-	gives a brief example of how to define errors in your application.
+A ServiceErrorManager is made available to applications by enabling the ServiceErrorManager facility. This facility is
+documented in detail here: http://granitic.io/1.0/ref/service-errors the package documentation for facility/serviceerror
+gives a brief example of how to define errors in your application.
 */
 package grncerror
 
