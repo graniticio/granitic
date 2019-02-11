@@ -95,9 +95,9 @@ func (fv *FloatValidationRule) IsSet(field string, subject interface{}) (bool, e
 
 	if nf == nil || !nf.IsSet() {
 		return false, nil
-	} else {
-		return true, nil
 	}
+
+	return true, nil
 }
 
 // See ValidationRule.Validate
@@ -375,10 +375,9 @@ func (fv *FloatValidationRule) chooseErrorCode(v []string) string {
 	if len(v) > 0 {
 		fv.codesInUse.Add(v[0])
 		return v[0]
-	} else {
-		return fv.defaultErrorCode
 	}
 
+	return fv.defaultErrorCode
 }
 
 func (fv *FloatValidationRule) operation(c string) (boolValidationOperation, error) {

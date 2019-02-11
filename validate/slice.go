@@ -365,10 +365,9 @@ func (bv *SliceValidationRule) chooseErrorCode(v []string) string {
 	if len(v) > 0 {
 		bv.codesInUse.Add(v[0])
 		return v[0]
-	} else {
-		return bv.defaultErrorCode
 	}
 
+	return bv.defaultErrorCode
 }
 
 func (bv *SliceValidationRule) operation(c string) (sliceValidationOperation, error) {

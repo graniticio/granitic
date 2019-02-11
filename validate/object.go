@@ -72,22 +72,22 @@ func (ov *ObjectValidationRule) IsSet(field string, subject interface{}) (bool, 
 
 	if rt.NilPointer(fv) || rt.NilMap(fv) {
 		return false, nil
-	} else {
-
-		k := fv.Kind()
-
-		if k == reflect.Invalid {
-			m := fmt.Sprintf("Field %s is not a valid type. Does the field exist?", field)
-			return false, errors.New(m)
-		}
-
-		if !rt.IsPointerToStruct(fv.Interface()) && k != reflect.Map && k != reflect.Struct {
-			m := fmt.Sprintf("Field %s is not a pointer to a struct, a struct or a map.", field)
-			return false, errors.New(m)
-		}
-
-		return true, nil
 	}
+
+	k := fv.Kind()
+
+	if k == reflect.Invalid {
+		m := fmt.Sprintf("Field %s is not a valid type. Does the field exist?", field)
+		return false, errors.New(m)
+	}
+
+	if !rt.IsPointerToStruct(fv.Interface()) && k != reflect.Map && k != reflect.Struct {
+		m := fmt.Sprintf("Field %s is not a pointer to a struct, a struct or a map.", field)
+		return false, errors.New(m)
+	}
+
+	return true, nil
+
 }
 
 // See ValidationRule.Validate
@@ -197,10 +197,9 @@ func (ov *ObjectValidationRule) chooseErrorCode(v []string) string {
 	if len(v) > 0 {
 		ov.codesInUse.Add(v[0])
 		return v[0]
-	} else {
-		return ov.defaultErrorCode
 	}
 
+	return ov.defaultErrorCode
 }
 
 func (ov *ObjectValidationRule) addOperation(o *objectOperation) {

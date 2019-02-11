@@ -94,9 +94,9 @@ func (iv *IntValidationRule) IsSet(field string, subject interface{}) (bool, err
 
 	if nf == nil || !nf.IsSet() {
 		return false, nil
-	} else {
-		return true, nil
 	}
+
+	return true, nil
 }
 
 // See ValidationRule.Validate
@@ -382,10 +382,9 @@ func (iv *IntValidationRule) chooseErrorCode(v []string) string {
 	if len(v) > 0 {
 		iv.codesInUse.Add(v[0])
 		return v[0]
-	} else {
-		return iv.defaultErrorCode
 	}
 
+	return iv.defaultErrorCode
 }
 
 func (iv *IntValidationRule) operation(c string) (boolValidationOperation, error) {

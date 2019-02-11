@@ -77,9 +77,9 @@ func (bv *BoolValidationRule) IsSet(field string, subject interface{}) (bool, er
 
 	if value == nil || !value.IsSet() {
 		return false, nil
-	} else {
-		return true, nil
 	}
+
+	return true, nil
 }
 
 // See ValidationRule.Validate
@@ -250,10 +250,9 @@ func (bv *BoolValidationRule) chooseErrorCode(v []string) string {
 	if len(v) > 0 {
 		bv.codesInUse.Add(v[0])
 		return v[0]
-	} else {
-		return bv.defaultErrorCode
 	}
 
+	return bv.defaultErrorCode
 }
 
 func (bv *BoolValidationRule) operation(c string) (boolValidationOperation, error) {

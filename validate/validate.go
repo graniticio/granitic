@@ -636,9 +636,9 @@ func (ov *RuleValidator) parse(field string, rule []string, pf parseAndBuild) (V
 
 	if err != nil {
 		return nil, err
-	} else {
-		return v, nil
 	}
+
+	return v, nil
 }
 
 func (ov *RuleValidator) extractType(field string, rule []string) (validationRuleType, error) {
@@ -770,10 +770,9 @@ func extractVargs(ops []string, l int) []string {
 
 	if len(ops) == l {
 		return []string{ops[l-1]}
-	} else {
-		return []string{}
 	}
 
+	return []string{}
 }
 
 func extractLengthParams(field string, vals string, pattern *regexp.Regexp) (min, max int, err error) {

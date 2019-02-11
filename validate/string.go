@@ -108,9 +108,9 @@ func (sv *StringValidationRule) IsSet(field string, subject interface{}) (bool, 
 
 	if ns == nil || !ns.IsSet() {
 		return false, nil
-	} else {
-		return true, nil
 	}
+
+	return true, nil
 }
 
 // See ValidationRule.Validate
@@ -483,10 +483,9 @@ func (sv *StringValidationRule) chooseErrorCode(v []string) string {
 	if len(v) > 0 {
 		sv.codesInUse.Add(v[0])
 		return v[0]
-	} else {
-		return sv.defaultErrorCode
 	}
 
+	return sv.defaultErrorCode
 }
 
 type stringOperation struct {
