@@ -87,12 +87,10 @@ func (rafb *FacilityBuilder) createManagers(cn *ioc.ComponentContainer, conf map
 		for _, method := range v.InjectFieldNames {
 
 			if mn.Contains(method) {
-				message := fmt.Sprintf("More than one rdbms.ClientManagerConfig component is configured to inject into the field name %s", method)
-				return errors.New(message)
-			} else {
-				mn.Add(method)
+				return fmt.Errorf("more than one rdbms.ClientManagerConfig component is configured to inject into the field name %s", method)
 			}
 
+			mn.Add(method)
 		}
 	}
 
