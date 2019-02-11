@@ -39,11 +39,16 @@ func parseNaturalToDuration(interval string) (time.Duration, error) {
 		return 0, errors.New(m)
 	}
 
-	if v, u, err := parseValueUnit(tokens[0], tokens[1]); err != nil {
+	var v int64
+	var u time.Duration
+	var err error
+
+	if v, u, err = parseValueUnit(tokens[0], tokens[1]); err != nil {
 		return 0, err
-	} else {
-		return time.Duration(v) * u, nil
 	}
+
+	return time.Duration(v) * u, nil
+
 }
 
 func parseValueUnit(value, unit string) (int64, time.Duration, error) {
@@ -245,11 +250,16 @@ func singleUnit(s string) bool {
 }
 
 func validValue(s string) (int64, bool) {
-	if v, err := strconv.ParseInt(s, 10, 64); err != nil || v < 1 {
+
+	var v int64
+	var err error
+
+	if v, err = strconv.ParseInt(s, 10, 64); err != nil || v < 1 {
 		return 0, false
-	} else {
-		return v, true
 	}
+
+	return v, true
+
 }
 
 func validUnit(s string) (time.Duration, bool) {

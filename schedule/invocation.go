@@ -229,8 +229,9 @@ func (iq *invocationQueue) addToContents(qm *queueMember, c []*invocation) []*in
 	if qm == nil {
 
 		return c
-	} else {
-		c = append(c, qm.i)
-		return iq.addToContents(qm.n, c)
 	}
+
+	c = append(c, qm.i)
+	return iq.addToContents(qm.n, c)
+
 }

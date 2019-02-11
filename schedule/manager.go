@@ -198,18 +198,15 @@ func (im *invocationManager) determineWait() time.Duration {
 
 	if next == nil {
 		return time.Second
-	} else {
-
-		untilNext := next.runAt.Sub(time.Now())
-
-		if untilNext < time.Second {
-			return untilNext
-		} else {
-			return time.Second
-		}
-
 	}
 
+	untilNext := next.runAt.Sub(time.Now())
+
+	if untilNext < time.Second {
+		return untilNext
+	}
+
+	return time.Second
 }
 
 func (im *invocationManager) setFirstInvocation() {
@@ -257,11 +254,9 @@ func (im *invocationManager) ReadyToStop() (bool, error) {
 
 	if im.running.Size() == 0 {
 		return true, nil
-	} else {
-
-		m := fmt.Sprintf("%d instance(s) of task %s are running", im.running.size, im.Task.FullName())
-		return false, errors.New(m)
 	}
+
+	return false, fmt.Errorf("%d instance(s) of task %s are running", im.running.size, im.Task.FullName())
 
 }
 

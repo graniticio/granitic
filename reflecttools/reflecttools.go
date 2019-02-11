@@ -235,20 +235,19 @@ func FindNestedField(path []string, v interface{}) (reflect.Value, error) {
 
 	if pl == 1 {
 		return FieldValue(v, head), nil
-	} else {
-		fv := FieldValue(v, head)
-		next := fv.Interface()
-
-		if !IsPointerToStruct(next) && fv.Kind() != reflect.Struct {
-			m := fmt.Sprintf("%s is not a struct or a pointer to a struct", head)
-			var zero reflect.Value
-
-			return zero, errors.New(m)
-		}
-
-		return FindNestedField(path[1:], next)
-
 	}
+
+	fv := FieldValue(v, head)
+	next := fv.Interface()
+
+	if !IsPointerToStruct(next) && fv.Kind() != reflect.Struct {
+		m := fmt.Sprintf("%s is not a struct or a pointer to a struct", head)
+		var zero reflect.Value
+
+		return zero, errors.New(m)
+	}
+
+	return FindNestedField(path[1:], next)
 
 }
 

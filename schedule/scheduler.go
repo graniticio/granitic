@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/v2/ioc"
 	"github.com/graniticio/granitic/v2/logging"
+	"time"
 )
 
 type TaskScheduler struct {
@@ -98,11 +99,14 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Ta
 
 		}
 
-		if retryWait, err := parseNaturalToDuration(task.RetryInterval); err != nil {
+		var retryWait time.Duration
+		var err error
+
+		if retryWait, err = parseNaturalToDuration(task.RetryInterval); err != nil {
 			return err
-		} else {
-			task.retryWait = retryWait
 		}
+
+		task.retryWait = retryWait
 
 	}
 
