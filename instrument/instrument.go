@@ -54,9 +54,9 @@ func InstrumentorFromContext(ctx context.Context) Instrumentor {
 
 	if ri, found := v.(Instrumentor); found {
 		return ri
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 // AddInstrumentorToContext stores the supplied Instrumentor in a new context, derived from the supplied context.
@@ -69,11 +69,14 @@ type EndEvent func()
 // Event is convenience function that calls InstrumentorFromContext then StartEvent. This function
 // fails silently if the result of InstrumentorFromContext is nil (e.g there is no Instrumentor in the context)
 func Event(ctx context.Context, id string, metadata ...interface{}) EndEvent {
-	if ri := InstrumentorFromContext(ctx); ri == nil {
+
+	var ri Instrumentor
+
+	if ri = InstrumentorFromContext(ctx); ri == nil {
 		return func() {}
-	} else {
-		return ri.StartEvent(id, metadata...)
 	}
+
+	return ri.StartEvent(id, metadata...)
 }
 
 // Method is a convenience function that calls Event with the name of the calling function as the ID.
