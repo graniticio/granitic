@@ -272,7 +272,7 @@ func (qm *TemplatedQueryManager) parseQueryFiles(files []string) map[string]*que
 
 func (qm *TemplatedQueryManager) scanAndParse(scanner *bufio.Scanner, tokenisedTemplates map[string]*queryTemplate, re *regexp.Regexp) {
 
-	var currentTemplate *queryTemplate = nil
+	var currentTemplate *queryTemplate
 	var fragmentBuffer bytes.Buffer
 
 	for scanner.Scan() {
