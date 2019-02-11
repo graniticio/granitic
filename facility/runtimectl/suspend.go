@@ -92,12 +92,9 @@ func isSuspendable(i interface{}) (bool, error) {
 
 	if _, found := i.(ioc.Suspendable); found {
 		return found, nil
-	} else {
-
-		return false, errors.New("Component does not implement ioc.Suspendable")
-
 	}
 
+	return false, errors.New("component does not implement ioc.Suspendable")
 }
 
 func findSuspendable(cc *ioc.ComponentContainer, frameworkMode bool, exclude ...string) []*ioc.Component {

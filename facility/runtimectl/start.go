@@ -54,11 +54,9 @@ func isStartable(i interface{}) (bool, error) {
 
 	if _, found := i.(ioc.Startable); found {
 		return found, nil
-	} else {
-
-		return false, errors.New("Component does not implement ioc.Startable")
-
 	}
+
+	return false, errors.New("Component does not implement ioc.Startable")
 
 }
 

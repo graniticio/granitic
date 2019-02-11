@@ -54,11 +54,9 @@ func isStoppable(i interface{}) (bool, error) {
 
 	if _, found := i.(ioc.Stoppable); found {
 		return found, nil
-	} else {
-
-		return false, errors.New("Component does not implement ioc.Startable")
-
 	}
+
+	return false, errors.New("Component does not implement ioc.Startable")
 
 }
 

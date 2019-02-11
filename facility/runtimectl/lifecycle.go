@@ -45,10 +45,9 @@ func (c *lifecycleCommand) ExecuteCommand(qualifiers []string, args map[string]s
 
 	if len(qualifiers) > 0 {
 		return c.invokeSingle(qualifiers[0])
-	} else {
-		return c.invokeAll(args)
 	}
 
+	return c.invokeAll(args)
 }
 
 func (c *lifecycleCommand) invokeAll(args map[string]string) (*ctl.CommandOutput, []*ws.CategorisedError) {
@@ -104,7 +103,9 @@ func (c *lifecycleCommand) invokeSingle(name string) (*ctl.CommandOutput, []*ws.
 		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(m)}
 	}
 
-	if _, err := c.checkFunc(comp.Instance); err == nil {
+	var err error
+
+	if _, err = c.checkFunc(comp.Instance); err == nil {
 
 		go c.invokeFunc([]*ioc.Component{comp}, c.FrameworkLogger, c.container)
 
@@ -113,9 +114,9 @@ func (c *lifecycleCommand) invokeSingle(name string) (*ctl.CommandOutput, []*ws.
 
 		return co, nil
 
-	} else {
-		return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 	}
+
+	return nil, []*ws.CategorisedError{ctl.NewCommandClientError(err.Error())}
 
 }
 

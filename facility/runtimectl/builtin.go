@@ -66,15 +66,9 @@ func boolArg(args map[string]string, n string) (bool, error) {
 
 	if choice, err := strconv.ParseBool(v); err == nil {
 		return choice, nil
-	} else {
-
-		m := fmt.Sprintf("Value of %s argument cannot be interpreted as a bool", n)
-
-		return false, errors.New(m)
 	}
 
-	return false, nil
-
+	return false, fmt.Errorf("value of %s argument cannot be interpreted as a bool", n)
 }
 
 func fromFilterArg(arg string) (ioc.LifecycleSupport, error) {
