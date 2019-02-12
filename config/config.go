@@ -350,7 +350,7 @@ func (ac *Accessor) populateMapField(targetField reflect.Value, contents map[str
 
 	for k, v := range contents {
 
-		kVal := reflect.ValueOf(k)
+		keyVal := reflect.ValueOf(k)
 		vVal := reflect.ValueOf(v)
 
 		if vVal.Kind() == reflect.Slice {
@@ -361,7 +361,7 @@ func (ac *Accessor) populateMapField(targetField reflect.Value, contents map[str
 			}
 		}
 
-		m.SetMapIndex(kVal, vVal)
+		m.SetMapIndex(keyVal, vVal)
 
 	}
 
