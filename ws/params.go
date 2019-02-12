@@ -53,7 +53,7 @@ func NewParamsForQuery(values url.Values) *Params {
 
 }
 
-// An abstraction of the HTTP query parameters or path parameters with type-safe accessors.
+// Params is an abstraction of the HTTP query parameters or path parameters with type-safe accessors.
 type Params struct {
 	values     url.Values
 	paramNames []string

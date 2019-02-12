@@ -8,15 +8,15 @@ import (
 	"strconv"
 )
 
-// Implemented by a component able to choose the most appropriate HTTP status code to set given the state of a Response
+// HTTPStatusCodeDeterminer implemented by a component able to choose the most appropriate HTTP status code to set given the state of a Response
 type HTTPStatusCodeDeterminer interface {
 	// DetermineCode returns the HTTP status code that should be set on the response.
 	DetermineCode(response *Response) int
 }
 
 /*
-	The default HTTPStatusCodeDeterminer used by Granitic's XXXWs facilities. See the top of this page for
-	rules on how this code is determined.
+GraniticHTTPStatusCodeDeterminer is the default HTTPStatusCodeDeterminer used by Granitic's XXXWs facilities. See the top of this page for
+rules on how this code is determined.
 */
 type GraniticHTTPStatusCodeDeterminer struct {
 }

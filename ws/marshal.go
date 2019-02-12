@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-// Implemented by components that can convert the supplied data into a form suitable for serialisation and
+// MarshalingWriter is implemented by components that can convert the supplied data into a form suitable for serialisation and
 // write that serialised form to the HTTP output stream.
 type MarshalingWriter interface {
 
@@ -19,7 +19,7 @@ type MarshalingWriter interface {
 	MarshalAndWrite(data interface{}, w http.ResponseWriter) error
 }
 
-// A response writer that uses automatic marshalling of structs to serialisable forms rather than using templates.
+// MarshallingResponseWriter is a response writer that uses automatic marshalling of structs to serialisable forms rather than using templates.
 type MarshallingResponseWriter struct {
 	// Injected automatically
 	FrameworkLogger logging.Logger
@@ -46,7 +46,7 @@ type MarshallingResponseWriter struct {
 	MarshalingWriter MarshalingWriter
 }
 
-// See ResponseWriter.Write
+// Write implements ResponseWriter.Write
 func (rw *MarshallingResponseWriter) Write(ctx context.Context, state *ProcessState, outcome Outcome) error {
 
 	var ch map[string]string
@@ -99,7 +99,7 @@ func (rw *MarshallingResponseWriter) write(ctx context.Context, res *Response, w
 	return rw.MarshalingWriter.MarshalAndWrite(wrapper, w)
 }
 
-// See AbnormalStatusWriter.WriteAbnormalStatus
+// WriteAbnormalStatus implements AbnormalStatusWriter.WriteAbnormalStatus
 func (rw *MarshallingResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ProcessState) error {
 	return rw.Write(ctx, state, Abnormal)
 }

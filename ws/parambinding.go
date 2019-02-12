@@ -13,7 +13,7 @@ import (
 
 type bindError func(string, string, string, *Params) *FrameworkError
 
-// Takes string parameters extracted from an HTTP request, converts them to Go native or Granitic nilable types and
+// ParamBinder takes string parameters extracted from an HTTP request, converts them to Go native or Granitic nilable types and
 // injects them into the RequestBody on a Request.
 type ParamBinder struct {
 	// Injected by Granitic
@@ -50,7 +50,7 @@ func (pb *ParamBinder) BindPathParameters(wsReq *Request, p *Params) {
 
 }
 
-// BindPathParameters takes the query parameters from an HTTP request and
+// BindQueryParameters takes the query parameters from an HTTP request and
 // injects them into fields on the Request.RequestBody using the keys of the supplied map as the name of the target fields.
 // Any errors encountered are recorded as framework errors in the Request.
 func (pb *ParamBinder) BindQueryParameters(wsReq *Request, targets map[string]string) {
@@ -85,7 +85,7 @@ func (pb *ParamBinder) BindQueryParameters(wsReq *Request, targets map[string]st
 	pb.initialiseUnsetNilables(t)
 }
 
-// BindPathParameters takes the query parameters from an HTTP request and
+// AutoBindQueryParameters takes the query parameters from an HTTP request and
 // injects them into fields on the Request.RequestBody assuming the parameters have exactly the same name as the target
 // fields. Any errors encountered are recorded as framework errors in the Request.
 func (pb *ParamBinder) AutoBindQueryParameters(wsReq *Request) {

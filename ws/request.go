@@ -10,7 +10,7 @@ import (
 	"net/http"
 )
 
-// Stores information about a web service request that has been either copied in or derived from an underlying HTTP request.
+// Request stores information about a web service request that has been either copied in or derived from an underlying HTTP request.
 type Request struct {
 	// The HTTP method (GET, POST etc) of the underlying HTTP request.
 	HTTPMethod string
@@ -77,13 +77,13 @@ func (wsr *Request) BoundFields() types.StringSet {
 	return wsr.populatedFields
 }
 
-// Implement by components that are able to convert an HTTP request body into a struct.
+// Unmarshaller is implemented by components that are able to convert an HTTP request body into a struct.
 type Unmarshaller interface {
 	// Unmarshall deserialises an HTTP request body and converts it to a struct.
 	Unmarshall(ctx context.Context, req *http.Request, wsReq *Request) error
 }
 
-// Wraps the underlying low-level HTTP request and response writing objects.
+// DirectHTTPAccess wraps the underlying low-level HTTP request and response writing objects.
 type DirectHTTPAccess struct {
 	// The HTTP response output stream.
 	ResponseWriter http.ResponseWriter

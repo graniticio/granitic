@@ -83,17 +83,17 @@ import (
 	"net/http"
 )
 
-// An enumeration of the high-level result of processing a request. Used internally.
+// Outcome is an enumeration of the high-level result of processing a request. Used internally.
 type Outcome uint
 
 const (
-	// A normal outcome resulting in an HTTP 200 response.
+	// Normal is a normal outcome resulting in an HTTP 200 response.
 	Normal = iota
 
-	// A outcome with anticipated and handled errors resulting in a 4xx response.
+	// Error is an outcome with anticipated and handled errors resulting in a 4xx response.
 	Error
 
-	// An unexpected or unusual outcome resulting in a 5xx response.
+	// Abnormal is an unexpected or unusual outcome resulting in a 5xx response.
 	Abnormal
 )
 
@@ -130,7 +130,7 @@ func NewAbnormalState(status int, w *httpendpoint.HTTPResponseWriter) *ProcessSt
 	return state
 }
 
-// Contains data that is relevant to the rendering of the result of a web service request to an HTTP response. This
+// Response contains data that is relevant to the rendering of the result of a web service request to an HTTP response. This
 // type is agnostic of the format (JSON, XML etc) that is to be used to render the response.
 type Response struct {
 	// An instruction that the HTTP status code should be set to this value (if the value is greater than 99). Generally
@@ -163,28 +163,28 @@ func NewResponse(errorFinder ServiceErrorFinder) *Response {
 	return r
 }
 
-// Implemented by components able write the result of a web service call to an HTTP response.
+// ResponseWriter is implemented by components able write the result of a web service call to an HTTP response.
 type ResponseWriter interface {
 	// Write converts whatever data is present in the supplied state object to the HTTP output stream associated
 	// with the current web service request.
 	Write(ctx context.Context, state *ProcessState, outcome Outcome) error
 }
 
-// Implemented by components able to write a valid response even if the request resulted in an abnormal (5xx) outcome.
+// AbnormalStatusWriter is implemented by components able to write a valid response even if the request resulted in an abnormal (5xx) outcome.
 type AbnormalStatusWriter interface {
 	// Write converts whatever data is present in the supplied state object to the HTTP output stream associated
 	// with the current web service request.
 	WriteAbnormalStatus(ctx context.Context, state *ProcessState) error
 }
 
-// An object that constructs response headers that are common to all web service requests. These may typically be
+// CommonResponseHeaderBuilder is an object that constructs response headers that are common to all web service requests. These may typically be
 // caching instructions or 'processing server' records. Implementations must be extremely cautious when using
 // the information in the supplied WsProcess state as some values may be nil.
 type CommonResponseHeaderBuilder interface {
 	BuildHeaders(ctx context.Context, state *ProcessState) map[string]string
 }
 
-// Interface for components able to convert a set of service errors into a structure suitable for serialisation.
+// ErrorFormatter is an interface for components able to convert a set of service errors into a structure suitable for serialisation.
 type ErrorFormatter interface {
 	// FormatErrors converts the supplied errors into a structure that a response writer will use to write the errors to
 	// the current HTTP response.
@@ -199,14 +199,14 @@ func WriteHeaders(w http.ResponseWriter, headers map[string]string) {
 	}
 }
 
-// Implemented by components able to take the body from an Response and wrap it inside a container that will
+// ResponseWrapper is implemented by components able to take the body from an Response and wrap it inside a container that will
 // allow all responses to share a common structure.
 type ResponseWrapper interface {
 	// WrapResponse takes the supplied body and errors and wraps them in a standardised data structure.
 	WrapResponse(body interface{}, errors interface{}) interface{}
 }
 
-// Merges together the headers that have been defined on the Response, the static default headers attache to this writer
+// MergeHeaders merges together the headers that have been defined on the Response, the static default headers attache to this writer
 // and (optionally) those constructed by the  ws.CommonResponseHeaderBuilder attached to this writer. The order of precedence,
 // from lowest to highest, is static headers, constructed headers, headers in the Response.
 func MergeHeaders(res *Response, ch map[string]string, dh map[string]string) map[string]string {

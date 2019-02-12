@@ -8,27 +8,27 @@ import (
 	"fmt"
 )
 
-// The broad 'type' of a service error, used to determine the correct HTTP status code to use.
+// ServiceErrorCategory indicates the broad 'type' of a service error, used to determine the correct HTTP status code to use.
 type ServiceErrorCategory int
 
 const (
-	// An unhandled error that will generally result in an HTTP 500 status code being set.
+	// Unexpected is an unhandled error that will generally result in an HTTP 500 status code being set.
 	Unexpected = iota
 
-	// A problem that the calling client has caused or could have foreseen, generally resulting in an HTTP 400 status code.
+	// Client is a problem that the calling client has caused or could have foreseen, generally resulting in an HTTP 400 status code.
 	Client
 
-	// A problem that the calling client could be expected to have foreseen (email addres in use, for example) resulting in an HTTP 409.
+	// Logic is a problem that the calling client could not be expected to have foreseen (email address in use, for example) resulting in an HTTP 409.
 	Logic
 
-	// An access or authentication error that might result in an HTTP 401 or 403.
+	// Security is an access or authentication error that might result in an HTTP 401 or 403.
 	Security
 
-	// An error that forces a specific HTTP status code.
+	// HTTP is an error that forces a specific HTTP status code.
 	HTTP
 )
 
-// A service error with a concept of the general 'type' of error it is.
+// CategorisedError is a service error with a concept of the general 'type' of error it is.
 type CategorisedError struct {
 	// The broad type of error, which influences the eventual HTTP status code set on the response.
 	Category ServiceErrorCategory
@@ -54,20 +54,20 @@ func NewCategorisedError(category ServiceErrorCategory, code string, message str
 	return ce
 }
 
-// Implemented by a component that is able to find a message and error category given the code for an error
+// ServiceErrorFinder is implemented by a component that is able to find a message and error category given the code for an error
 type ServiceErrorFinder interface {
 	//Find takes a code and returns the message and category for that error. Behaviour undefined if code is not
 	// recognised.
 	Find(code string) *CategorisedError
 }
 
-// Implemented by components that require a ServiceErrorFinder to be injected into them
+// ServiceErrorConsumer is implemented by components that require a ServiceErrorFinder to be injected into them
 type ServiceErrorConsumer interface {
 	// ProvideErrorFinder receives a ServiceErrorFinder
 	ProvideErrorFinder(finder ServiceErrorFinder)
 }
 
-// A structure that records each of the errors found during the processing of a request.
+// ServiceErrors is a structure that records each of the errors found during the processing of a request.
 type ServiceErrors struct {
 	// All services found, in the order in which they occured.
 	Errors []CategorisedError
@@ -164,7 +164,7 @@ func CategoryToCode(c ServiceErrorCategory) string {
 	}
 }
 
-// CategoryToCode maps a ServiceErrorCategory to the category's name's first letter. For example, Security maps to
+// CategoryToName maps a ServiceErrorCategory to the category's name's first letter. For example, Security maps to
 // 'Security'
 func CategoryToName(c ServiceErrorCategory) string {
 	switch c {

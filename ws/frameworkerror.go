@@ -9,21 +9,21 @@ import (
 	"strconv"
 )
 
-// The phase of the request processing during which an error was encountered.
+// FrameworkPhase is the phase of the request processing during which an error was encountered.
 type FrameworkPhase int
 
 const (
-	// Error encountered while trying to parse an HTTP request body into a struct
+	// Unmarshall indicates an error was encountered while trying to parse an HTTP request body into a struct
 	Unmarshall = iota
 
-	// Error encountered while mapping HTTP query parameters to fields on a struct
+	// QueryBind indicates an error was encountered while mapping HTTP query parameters to fields on a struct
 	QueryBind
 
-	// Error encountered while mapping elements of an HTTP request's path to fields on a struct
+	//PathBind indicates an error was encountered while mapping elements of an HTTP request's path to fields on a struct
 	PathBind
 )
 
-// An error encountered in early phases of request processing, before application code is invoked.
+// FrameworkError an error encountered in early phases of request processing, before application code is invoked.
 type FrameworkError struct {
 	// The phase of the request processing during which an error was encountered.
 	Phase FrameworkPhase
@@ -83,15 +83,23 @@ func NewPathBindFrameworkError(message, code, target string) *FrameworkError {
 	return f
 }
 
-// Uniquely identifies a 'handled' failure during the parsing and binding phases
+// FrameworkErrorEvent uniquely identifies a 'handled' failure during the parsing and binding phases
 type FrameworkErrorEvent string
 
 const (
+	// UnableToParseRequest indicates that the HTTP request could not be parsed
 	UnableToParseRequest = "UnableToParseRequest"
-	QueryTargetNotArray  = "QueryTargetNotArray"
-	QueryWrongType       = "QueryWrongType"
-	PathWrongType        = "PathWrongType"
-	QueryNoTargetField   = "QueryNoTargetField"
+	// QueryTargetNotArray indicates that a query parameter whose value is a list has been bound to a target field that is not an array
+	QueryTargetNotArray = "QueryTargetNotArray"
+
+	// QueryWrongType indicates that a query parameter is not compatible with the type of field to which it is bound
+	QueryWrongType = "QueryWrongType"
+
+	// PathWrongType indicates that a path element is not compatible with the type of field to which it is bound
+	PathWrongType = "PathWrongType"
+
+	// QueryNoTargetField indicates that no field on the target can be matched to the a named query parameter
+	QueryNoTargetField = "QueryNoTargetField"
 )
 
 // A FrameworkErrorGenerator can create error messages for errors that occur outside of application code and messages

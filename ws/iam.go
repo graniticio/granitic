@@ -16,7 +16,7 @@ type Identifier interface {
 	IDentify(ctx context.Context, req *http.Request) (iam.ClientIdentity, context.Context)
 }
 
-// Identifier is implemented by components that are able to determine if a caller is allowed to have a request processed.
+// AccessChecker is implemented by components that are able to determine if a caller is allowed to have a request processed.
 type AccessChecker interface {
 	// Allowed returns true if the caller is allowed to have this request processed, false otherwise.
 	Allowed(ctx context.Context, r *Request) bool
