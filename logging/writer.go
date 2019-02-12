@@ -108,7 +108,7 @@ func (afw *AsynchFileWriter) Close() {
 }
 
 // Returns true if one or more messages are queued for writing.
-func (cw *AsynchFileWriter) Busy() bool {
+func (afw *AsynchFileWriter) Busy() bool {
 
-	return len(cw.messages) > 0
+	return len(afw.messages) > 0
 }

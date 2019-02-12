@@ -142,21 +142,21 @@ func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerNa
 	return b.String()
 }
 
-func (alw *LogMessageFormatter) findValueWithVar(ctx context.Context, element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
+func (lmf *LogMessageFormatter) findValueWithVar(ctx context.Context, element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
 	switch element.placeholderType {
 	case logTimePH:
 		return loggedAt.Format(element.variable)
 	case componentNameTruncPH:
 		return truncOrPad(loggerName, element.variable)
 	case ctxValuePH:
-		return alw.ctxValue(ctx, element.variable)
+		return lmf.ctxValue(ctx, element.variable)
 	default:
 		return unsupported
 
 	}
 }
 
-func (alw *LogMessageFormatter) ctxValue(ctx context.Context, key string) string {
+func (lmf *LogMessageFormatter) ctxValue(ctx context.Context, key string) string {
 
 	var v interface{}
 
@@ -166,10 +166,10 @@ func (alw *LogMessageFormatter) ctxValue(ctx context.Context, key string) string
 
 	}
 
-	return alw.Unset
+	return lmf.Unset
 }
 
-func (alw *LogMessageFormatter) findValue(element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
+func (lmf *LogMessageFormatter) findValue(element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
 
 	switch element.placeholderType {
 
@@ -277,11 +277,11 @@ func (lmf *LogMessageFormatter) parseFormat(format string) error {
 	return nil
 }
 
-func (alw *LogMessageFormatter) addTextElement(text string) {
+func (lmf *LogMessageFormatter) addTextElement(text string) {
 
 	if text != "" {
 		e := newTextLogLineElement(text)
-		alw.elements = append(alw.elements, e)
+		lmf.elements = append(lmf.elements, e)
 	}
 }
 
@@ -363,7 +363,7 @@ func padRightTo(s string, p int) string {
 	return b.String()
 }
 
-func (alw *LogMessageFormatter) mapPlaceholder(ph string) prefixFormatPlaceHolder {
+func (lmf *LogMessageFormatter) mapPlaceholder(ph string) prefixFormatPlaceHolder {
 
 	switch ph {
 	default:

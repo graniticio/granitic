@@ -119,31 +119,31 @@ type Accessor struct {
 
 // Flush removes internal references to the (potentially very large) merged JSON data so the associated
 // memory can be recovered during the next garbage collection.
-func (c *Accessor) Flush() {
-	c.JSONData = nil
+func (ac *Accessor) Flush() {
+	ac.JSONData = nil
 }
 
 // PathExists check to see whether the supplied dot-delimited path exists in the configuration and points to a non-null JSON value.
-func (c *Accessor) PathExists(path string) bool {
-	value := c.Value(path)
+func (ac *Accessor) PathExists(path string) bool {
+	value := ac.Value(path)
 
 	return value != nil
 }
 
 // Value returns the JSON value at the supplied path or nil if the path does not exist of points to a null JSON value.
-func (c *Accessor) Value(path string) interface{} {
+func (ac *Accessor) Value(path string) interface{} {
 
 	splitPath := strings.Split(path, JSONPathSeparator)
 
-	return c.configVal(splitPath, c.JSONData)
+	return ac.configVal(splitPath, ac.JSONData)
 
 }
 
 // ObjectVal returns a map representing a JSON object or nil if the path does not exist of points to a null JSON value. An error
 // is returned if the value cannot be interpreted as a JSON object.
-func (c *Accessor) ObjectVal(path string) (map[string]interface{}, error) {
+func (ac *Accessor) ObjectVal(path string) (map[string]interface{}, error) {
 
-	value := c.Value(path)
+	value := ac.Value(path)
 
 	if value == nil {
 		return nil, nil
@@ -157,9 +157,9 @@ func (c *Accessor) ObjectVal(path string) (map[string]interface{}, error) {
 
 // ObjectVal returns the string value of the JSON string at the supplied path. Does not convert other types to
 // a string, so will return an error if the value is not a JSON string.
-func (c *Accessor) StringVal(path string) (string, error) {
+func (ac *Accessor) StringVal(path string) (string, error) {
 
-	v := c.Value(path)
+	v := ac.Value(path)
 
 	if v == nil {
 		return "", errors.New("No string value found at " + path)
@@ -179,9 +179,9 @@ func (c *Accessor) StringVal(path string) (string, error) {
 // are internally represented by Go as a float64, so no error will be returned, but data might be lost
 // if the JSON number does not actually represent an int. An error will be returned if the value is not a JSON number
 // or cannot be converted to an int.
-func (c *Accessor) IntVal(path string) (int, error) {
+func (ac *Accessor) IntVal(path string) (int, error) {
 
-	v := c.Value(path)
+	v := ac.Value(path)
 
 	if v == nil {
 		return 0, errors.New("No such path " + path)
@@ -194,9 +194,9 @@ func (c *Accessor) IntVal(path string) (int, error) {
 }
 
 // IntVal returns the float64 value of the JSON number at the supplied path. An error will be returned if the value is not a JSON number.
-func (c *Accessor) Float64Val(path string) (float64, error) {
+func (ac *Accessor) Float64Val(path string) (float64, error) {
 
-	v := c.Value(path)
+	v := ac.Value(path)
 
 	if v == nil {
 		return 0, errors.New("No such path " + path)
@@ -209,9 +209,9 @@ func (c *Accessor) Float64Val(path string) (float64, error) {
 
 // Array returns the value of an array of JSON obects at the supplied path. Caution should be used when calling this method
 // as behaviour is undefined for JSON arrays of JSON types other than object.
-func (c *Accessor) Array(path string) ([]interface{}, error) {
+func (ac *Accessor) Array(path string) ([]interface{}, error) {
 
-	value := c.Value(path)
+	value := ac.Value(path)
 
 	if value == nil {
 		return nil, nil
@@ -225,9 +225,9 @@ func (c *Accessor) Array(path string) ([]interface{}, error) {
 
 // BoolVal returns the bool value of the JSON bool at the supplied path. An error will be returned if the value is not a JSON bool.
 // Note this method only suports the JSON definition of bools (true, false) not the Go definition (true, false, 1, 0 etc).
-func (c *Accessor) BoolVal(path string) (bool, error) {
+func (ac *Accessor) BoolVal(path string) (bool, error) {
 
-	v := c.Value(path)
+	v := ac.Value(path)
 
 	if v == nil {
 		return false, errors.New("No such path " + path)
@@ -258,7 +258,7 @@ func JSONType(value interface{}) int {
 	}
 }
 
-func (c *Accessor) configVal(path []string, jsonMap map[string]interface{}) interface{} {
+func (ac *Accessor) configVal(path []string, jsonMap map[string]interface{}) interface{} {
 
 	var result interface{}
 	result = jsonMap[path[0]]
@@ -272,16 +272,16 @@ func (c *Accessor) configVal(path []string, jsonMap map[string]interface{}) inte
 	}
 
 	remainPath := path[1:len(path)]
-	return c.configVal(remainPath, result.(map[string]interface{}))
+	return ac.configVal(remainPath, result.(map[string]interface{}))
 }
 
 // SetField takes a target Go interface and uses the data a the supplied path to populated the named field on the
 // target. The target must be a pointer to a struct. The field must be a string, bool, int, float63, string[interface{}] map
 // or a slice of one of those types. An eror will be returned if the target field, is missing, not settable or incompatiable
 // with the JSON value at the supplied path.
-func (ca *Accessor) SetField(fieldName string, path string, target interface{}) error {
+func (ac *Accessor) SetField(fieldName string, path string, target interface{}) error {
 
-	if !ca.PathExists(path) {
+	if !ac.PathExists(path) {
 		return errors.New("No value found at " + path)
 	}
 
@@ -292,32 +292,32 @@ func (ca *Accessor) SetField(fieldName string, path string, target interface{}) 
 
 	switch k {
 	case reflect.String:
-		s, _ := ca.StringVal(path)
+		s, _ := ac.StringVal(path)
 		targetField.SetString(s)
 	case reflect.Bool:
-		b, _ := ca.BoolVal(path)
+		b, _ := ac.BoolVal(path)
 		targetField.SetBool(b)
 	case reflect.Int:
-		i, _ := ca.IntVal(path)
+		i, _ := ac.IntVal(path)
 		targetField.SetInt(int64(i))
 	case reflect.Float64:
-		f, _ := ca.Float64Val(path)
+		f, _ := ac.Float64Val(path)
 		targetField.SetFloat(f)
 	case reflect.Map:
 
-		if v, err := ca.ObjectVal(path); err == nil {
-			if err = ca.populateMapField(targetField, v); err != nil {
+		if v, err := ac.ObjectVal(path); err == nil {
+			if err = ac.populateMapField(targetField, v); err != nil {
 				return err
 			}
 		} else {
 			return err
 		}
 	case reflect.Slice:
-		ca.populateSlice(targetField, path, target)
+		ac.populateSlice(targetField, path, target)
 
 	default:
 		m := fmt.Sprintf("Unable to use value at path %s as target field %s is not a suppported type (%s)", path, fieldName, k)
-		ca.FrameworkLogger.LogErrorf(m)
+		ac.FrameworkLogger.LogErrorf(m)
 
 		return errors.New(m)
 	}
@@ -325,9 +325,9 @@ func (ca *Accessor) SetField(fieldName string, path string, target interface{}) 
 	return nil
 }
 
-func (ca *Accessor) populateSlice(targetField reflect.Value, path string, target interface{}) {
+func (ac *Accessor) populateSlice(targetField reflect.Value, path string, target interface{}) {
 
-	v := ca.Value(path)
+	v := ac.Value(path)
 
 	data, _ := json.Marshal(v)
 
@@ -342,7 +342,7 @@ func (ca *Accessor) populateSlice(targetField reflect.Value, path string, target
 
 }
 
-func (ca *Accessor) populateMapField(targetField reflect.Value, contents map[string]interface{}) error {
+func (ac *Accessor) populateMapField(targetField reflect.Value, contents map[string]interface{}) error {
 	var err error
 
 	m := reflect.MakeMap(targetField.Type())
@@ -354,7 +354,7 @@ func (ca *Accessor) populateMapField(targetField reflect.Value, contents map[str
 		vVal := reflect.ValueOf(v)
 
 		if vVal.Kind() == reflect.Slice {
-			vVal, err = ca.arrayVal(vVal)
+			vVal, err = ac.arrayVal(vVal)
 
 			if err != nil {
 				return err
@@ -368,14 +368,14 @@ func (ca *Accessor) populateMapField(targetField reflect.Value, contents map[str
 	return nil
 }
 
-func (ca *Accessor) arrayVal(a reflect.Value) (reflect.Value, error) {
+func (ac *Accessor) arrayVal(a reflect.Value) (reflect.Value, error) {
 
 	v := a.Interface().([]interface{})
 	l := len(v)
 
 	if l == 0 {
 
-		return reflect.Zero(reflect.TypeOf(ca)), errors.New("Cannot use an empty array as a value in a Map.")
+		return reflect.Zero(reflect.TypeOf(ac)), errors.New("Cannot use an empty array as a value in a Map.")
 
 	}
 
@@ -386,7 +386,7 @@ func (ca *Accessor) arrayVal(a reflect.Value) (reflect.Value, error) {
 		s = reflect.MakeSlice(reflect.TypeOf([]string{}), 0, 0)
 	default:
 		m := fmt.Sprintf("Cannot use an array of %T as a value in a Map.", t)
-		return reflect.Zero(reflect.TypeOf(ca)), errors.New(m)
+		return reflect.Zero(reflect.TypeOf(ac)), errors.New(m)
 	}
 
 	for _, elem := range v {
@@ -401,15 +401,15 @@ func (ca *Accessor) arrayVal(a reflect.Value) (reflect.Value, error) {
 // Populate sets the fields on the supplied target object using the JSON data
 // at the supplied path. This is acheived using Go's json.Marshal to convert the data
 // back into text JSON and then json.Unmarshal to unmarshal back into the target.
-func (ca *Accessor) Populate(path string, target interface{}) error {
-	exists := ca.PathExists(path)
+func (ac *Accessor) Populate(path string, target interface{}) error {
+	exists := ac.PathExists(path)
 
 	if !exists {
 		return errors.New("No such path: " + path)
 	}
 
 	//Already check if path exists
-	object, _ := ca.ObjectVal(path)
+	object, _ := ac.ObjectVal(path)
 
 	if data, err := json.Marshal(object); err != nil {
 		m := fmt.Sprintf("%T cannot be marshalled to JSON", object)

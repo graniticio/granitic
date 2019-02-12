@@ -171,8 +171,8 @@ type NilableInt64 struct {
 }
 
 // See Nilable.IsSet
-func (nb *NilableInt64) IsSet() bool {
-	return nb.set
+func (ni *NilableInt64) IsSet() bool {
+	return ni.set
 }
 
 // See Nilable.MarshalJSON
@@ -220,8 +220,8 @@ type NilableFloat64 struct {
 }
 
 // See Nilable.IsSet
-func (nb *NilableFloat64) IsSet() bool {
-	return nb.set
+func (nf *NilableFloat64) IsSet() bool {
+	return nf.set
 }
 
 // See Nilable.MarshalJSON
@@ -258,6 +258,6 @@ func (nf *NilableFloat64) Set(v float64) {
 }
 
 // The currently stored value (whether or not it has been explicitly set).
-func (ni *NilableFloat64) Float64() float64 {
-	return ni.val
+func (nf *NilableFloat64) Float64() float64 {
+	return nf.val
 }

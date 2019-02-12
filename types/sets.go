@@ -72,15 +72,15 @@ func (us *UnorderedStringSet) AddAll(ss StringSet) {
 }
 
 // See StringSet.Size
-func (ss *UnorderedStringSet) Size() int {
-	return len(ss.members)
+func (us *UnorderedStringSet) Size() int {
+	return len(us.members)
 }
 
 // Contents returns all of the strings contained in this set in a nondeterministic order
-func (ss *UnorderedStringSet) Contents() []string {
+func (us *UnorderedStringSet) Contents() []string {
 	c := make([]string, 0)
 
-	for k, _ := range ss.members {
+	for k, _ := range us.members {
 		c = append(c, k)
 	}
 
@@ -89,13 +89,13 @@ func (ss *UnorderedStringSet) Contents() []string {
 }
 
 // See StringSet.Contains
-func (ss *UnorderedStringSet) Contains(m string) bool {
-	return ss.members[m]
+func (us *UnorderedStringSet) Contains(m string) bool {
+	return us.members[m]
 }
 
 // See StringSet.Enqueue
-func (ss *UnorderedStringSet) Add(s string) {
-	ss.members[s] = true
+func (us *UnorderedStringSet) Add(s string) {
+	us.members[s] = true
 }
 
 // A set of strings where the order in which the strings were added to the set is preserved. Calls to Contents will

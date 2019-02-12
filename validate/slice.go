@@ -73,9 +73,9 @@ type SliceValidationRule struct {
 }
 
 // IsSet returns true if the field to be validated is a non-nil slice.
-func (bv *SliceValidationRule) IsSet(field string, subject interface{}) (bool, error) {
+func (sv *SliceValidationRule) IsSet(field string, subject interface{}) (bool, error) {
 
-	ps, err := bv.extractReflectValue(field, subject)
+	ps, err := sv.extractReflectValue(field, subject)
 
 	if err != nil {
 		return false, err
@@ -89,9 +89,9 @@ func (bv *SliceValidationRule) IsSet(field string, subject interface{}) (bool, e
 }
 
 // See ValidationRule.Validate
-func (bv *SliceValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
+func (sv *SliceValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
-	f := bv.field
+	f := sv.field
 
 	if vc.OverrideField != "" {
 		f = vc.OverrideField
@@ -100,7 +100,7 @@ func (bv *SliceValidationRule) Validate(vc *ValidationContext) (result *Validati
 	sub := vc.Subject
 
 	r := NewValidationResult()
-	set, err := bv.IsSet(f, sub)
+	set, err := sv.IsSet(f, sub)
 
 	if err != nil {
 		return nil, err
@@ -108,17 +108,17 @@ func (bv *SliceValidationRule) Validate(vc *ValidationContext) (result *Validati
 	} else if !set {
 		r.Unset = true
 
-		if bv.required {
-			r.AddForField(f, []string{bv.missingRequiredCode})
+		if sv.required {
+			r.AddForField(f, []string{sv.missingRequiredCode})
 		}
 
 		return r, nil
 	}
 
 	//Ignoring error as called previously during IsSet
-	value, _ := bv.extractReflectValue(f, sub)
+	value, _ := sv.extractReflectValue(f, sub)
 
-	err = bv.runOperations(f, value.(reflect.Value), vc, r)
+	err = sv.runOperations(f, value.(reflect.Value), vc, r)
 
 	return r, err
 }
@@ -150,9 +150,9 @@ func (sv *SliceValidationRule) runOperations(field string, v reflect.Value, vc *
 
 }
 
-func (bv *SliceValidationRule) checkElementContents(field string, slice reflect.Value, v ValidationRule, r *ValidationResult, pvc *ValidationContext, overrideError string) error {
+func (sv *SliceValidationRule) checkElementContents(field string, slice reflect.Value, v ValidationRule, r *ValidationResult, pvc *ValidationContext, overrideError string) error {
 
-	useOverride := overrideError != bv.defaultErrorCode
+	useOverride := overrideError != sv.defaultErrorCode
 
 	stringElement := false
 	nilable := false
@@ -174,14 +174,14 @@ func (bv *SliceValidationRule) checkElementContents(field string, slice reflect.
 
 		switch tv := v.(type) {
 		case *StringValidationRule:
-			vc.Subject, err, nilable = bv.stringValue(e, fa)
+			vc.Subject, err, nilable = sv.stringValue(e, fa)
 			stringElement = true
 		case *IntValidationRule:
 			vc.Subject, err = tv.toInt64(fa, e.Interface())
 		case *FloatValidationRule:
 			vc.Subject, err = tv.toFloat64(fa, e.Interface())
 		case *BoolValidationRule:
-			vc.Subject, err = bv.boolValue(e, fa)
+			vc.Subject, err = sv.boolValue(e, fa)
 		}
 
 		if err != nil {
@@ -203,7 +203,7 @@ func (bv *SliceValidationRule) checkElementContents(field string, slice reflect.
 		r.AddForField(fa, ee)
 
 		if stringElement {
-			bv.overwriteStringValue(e, vc.Subject.(*types.NilableString), nilable)
+			sv.overwriteStringValue(e, vc.Subject.(*types.NilableString), nilable)
 		}
 
 	}
@@ -212,7 +212,7 @@ func (bv *SliceValidationRule) checkElementContents(field string, slice reflect.
 }
 
 // String validation is unique in that it can modify the value under consideration
-func (bv *SliceValidationRule) overwriteStringValue(v reflect.Value, ns *types.NilableString, wasNilable bool) {
+func (sv *SliceValidationRule) overwriteStringValue(v reflect.Value, ns *types.NilableString, wasNilable bool) {
 
 	if !wasNilable {
 
@@ -221,7 +221,7 @@ func (bv *SliceValidationRule) overwriteStringValue(v reflect.Value, ns *types.N
 
 }
 
-func (bv *SliceValidationRule) stringValue(v reflect.Value, fa string) (*types.NilableString, error, bool) {
+func (sv *SliceValidationRule) stringValue(v reflect.Value, fa string) (*types.NilableString, error, bool) {
 
 	s := v.Interface()
 
@@ -237,7 +237,7 @@ func (bv *SliceValidationRule) stringValue(v reflect.Value, fa string) (*types.N
 
 }
 
-func (bv *SliceValidationRule) boolValue(v reflect.Value, fa string) (*types.NilableBool, error) {
+func (sv *SliceValidationRule) boolValue(v reflect.Value, fa string) (*types.NilableBool, error) {
 
 	b := v.Interface()
 
@@ -253,7 +253,7 @@ func (bv *SliceValidationRule) boolValue(v reflect.Value, fa string) (*types.Nil
 
 }
 
-func (bv *SliceValidationRule) extractReflectValue(f string, s interface{}) (interface{}, error) {
+func (sv *SliceValidationRule) extractReflectValue(f string, s interface{}) (interface{}, error) {
 
 	v, err := rt.FindNestedField(rt.ExtractDotPath(f), s)
 
@@ -299,78 +299,78 @@ func (sv *SliceValidationRule) Length(min, max int, code ...string) *SliceValida
 }
 
 // See ValidationRule.StopAllOnFail
-func (bv *SliceValidationRule) StopAllOnFail() bool {
-	return bv.stopAll
+func (sv *SliceValidationRule) StopAllOnFail() bool {
+	return sv.stopAll
 }
 
 // See ValidationRule.CodesInUse
-func (bv *SliceValidationRule) CodesInUse() types.StringSet {
-	return bv.codesInUse
+func (sv *SliceValidationRule) CodesInUse() types.StringSet {
+	return sv.codesInUse
 }
 
 // See ValidationRule.DependsOnFields
-func (bv *SliceValidationRule) DependsOnFields() types.StringSet {
+func (sv *SliceValidationRule) DependsOnFields() types.StringSet {
 
-	return bv.dependsFields
+	return sv.dependsFields
 }
 
 // StopAll indicates that no further rules should be rule if this one fails.
-func (bv *SliceValidationRule) StopAll() *SliceValidationRule {
+func (sv *SliceValidationRule) StopAll() *SliceValidationRule {
 
-	bv.stopAll = true
+	sv.stopAll = true
 
-	return bv
+	return sv
 }
 
 // Required adds a check to see if the field under validation has been set.
-func (bv *SliceValidationRule) Required(code ...string) *SliceValidationRule {
+func (sv *SliceValidationRule) Required(code ...string) *SliceValidationRule {
 
-	bv.required = true
-	bv.missingRequiredCode = bv.chooseErrorCode(code)
+	sv.required = true
+	sv.missingRequiredCode = sv.chooseErrorCode(code)
 
-	return bv
+	return sv
 }
 
 // MEx adds a check to see if any other of the fields with which this field is mutually exclusive have been set.
-func (bv *SliceValidationRule) MEx(fields types.StringSet, code ...string) *SliceValidationRule {
+func (sv *SliceValidationRule) MEx(fields types.StringSet, code ...string) *SliceValidationRule {
 	op := new(sliceOperation)
-	op.ErrCode = bv.chooseErrorCode(code)
+	op.ErrCode = sv.chooseErrorCode(code)
 	op.OpType = sliceOpMex
 	op.MExFields = fields
 
-	bv.addOperation(op)
+	sv.addOperation(op)
 
-	return bv
+	return sv
 }
 
 // Elem supplies a ValidationRule that can be used to checked the validity of the elements of the slice.
-func (bv *SliceValidationRule) Elem(v ValidationRule, code ...string) *SliceValidationRule {
+func (sv *SliceValidationRule) Elem(v ValidationRule, code ...string) *SliceValidationRule {
 
 	op := new(sliceOperation)
-	op.ErrCode = bv.chooseErrorCode(code)
+	op.ErrCode = sv.chooseErrorCode(code)
 	op.OpType = sliceOpElem
 	op.elemValidator = v
 
-	bv.addOperation(op)
+	sv.addOperation(op)
 
-	return bv
+	return sv
 }
 
-func (bv *SliceValidationRule) addOperation(o *sliceOperation) {
-	bv.operations = append(bv.operations, o)
+func (sv *SliceValidationRule) addOperation(o *sliceOperation) {
+	sv.operations = append(sv.operations, o)
 }
 
-func (bv *SliceValidationRule) chooseErrorCode(v []string) string {
+func (sv *SliceValidationRule) chooseErrorCode(v []string) string {
 
 	if len(v) > 0 {
-		bv.codesInUse.Add(v[0])
+		sv.codesInUse.Add(v[0])
 		return v[0]
 	}
 
-	return bv.defaultErrorCode
+	return sv.defaultErrorCode
 }
 
-func (bv *SliceValidationRule) operation(c string) (sliceValidationOperation, error) {
+func (sv *SliceValidationRule) operation(c string) (sliceValidationOperation, error) {
 	switch c {
 	case sliceOpRequiredCode:
 		return sliceOpRequired, nil
