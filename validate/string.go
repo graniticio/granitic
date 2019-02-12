@@ -46,7 +46,7 @@ const (
 	stringOpMEx
 )
 
-// An object able to evaluate the supplied string to see if it meets some definition of validity.
+// An ExternalStringValidator is an object able to evaluate the supplied string to see if it meets some definition of validity.
 type ExternalStringValidator interface {
 	// ValidString returns true if the implementation considers the supplied string to be valid.
 	ValidString(string) (bool, error)
@@ -60,7 +60,7 @@ const (
 	hardTrim = 2
 )
 
-//Create a new NewStringValidationRule to check the specified field.
+// NewStringValidationRule creates a new NewStringValidationRule to check the specified field.
 func NewStringValidationRule(field, defaultErrorCode string) *StringValidationRule {
 	sv := new(StringValidationRule)
 	sv.defaultErrorCode = defaultErrorCode
@@ -72,7 +72,7 @@ func NewStringValidationRule(field, defaultErrorCode string) *StringValidationRu
 	return sv
 }
 
-// A ValidationRule able to validate a string or NilableString field. See the method definitions on this type for
+// StringValidationRule is a ValidationRule able to validate a string or NilableString field. See the method definitions on this type for
 // the supported operations.
 type StringValidationRule struct {
 	defaultErrorCode    string
@@ -88,12 +88,12 @@ type StringValidationRule struct {
 	dependsFields       types.StringSet
 }
 
-// See ValidationRule.DependsOnFields
+// DependsOnFields implements ValidationRule.DependsOnFields
 func (sv *StringValidationRule) DependsOnFields() types.StringSet {
 	return sv.dependsFields
 }
 
-// See ValidationRule.CodesInUse
+// CodesInUse implements ValidationRule.CodesInUse
 func (sv *StringValidationRule) CodesInUse() types.StringSet {
 	return sv.codesInUse
 }
@@ -113,7 +113,7 @@ func (sv *StringValidationRule) IsSet(field string, subject interface{}) (bool, 
 	return true, nil
 }
 
-// See ValidationRule.Validate
+// Validate implements ValidationRule.Validate
 func (sv *StringValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	var value *types.NilableString
@@ -299,7 +299,7 @@ func (sv *StringValidationRule) wasStringSet(s string, field string, knownSet ty
 
 }
 
-// See ValidationRule.StopAllOnFail
+// StopAllOnFail implements ValidationRule.StopAllOnFail
 func (sv *StringValidationRule) StopAllOnFail() bool {
 	return sv.stopAll
 }

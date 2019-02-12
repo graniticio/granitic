@@ -42,7 +42,7 @@ type sliceOperation struct {
 	elemValidator ValidationRule
 }
 
-//Create a new NewSliceValidationRule to check the specified field.
+// NewSliceValidationRule creates a new NewSliceValidationRule to check the specified field.
 func NewSliceValidationRule(field, defaultErrorCode string) *SliceValidationRule {
 	bv := new(SliceValidationRule)
 	bv.defaultErrorCode = defaultErrorCode
@@ -57,7 +57,7 @@ func NewSliceValidationRule(field, defaultErrorCode string) *SliceValidationRule
 	return bv
 }
 
-// A ValidationRule able to validate a slice field and the individual elements of that slice. See the method definitions on this type for
+// SliceValidationRule is a ValidationRule able to validate a slice field and the individual elements of that slice. See the method definitions on this type for
 // the supported operations.
 type SliceValidationRule struct {
 	stopAll             bool
@@ -88,7 +88,7 @@ func (sv *SliceValidationRule) IsSet(field string, subject interface{}) (bool, e
 	return true, nil
 }
 
-// See ValidationRule.Validate
+// Validate implements ValidationRule.Validate
 func (sv *SliceValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := sv.field
@@ -298,17 +298,17 @@ func (sv *SliceValidationRule) Length(min, max int, code ...string) *SliceValida
 
 }
 
-// See ValidationRule.StopAllOnFail
+// StopAllOnFail implements ValidationRule.StopAllOnFail
 func (sv *SliceValidationRule) StopAllOnFail() bool {
 	return sv.stopAll
 }
 
-// See ValidationRule.CodesInUse
+// CodesInUse implements ValidationRule.CodesInUse
 func (sv *SliceValidationRule) CodesInUse() types.StringSet {
 	return sv.codesInUse
 }
 
-// See ValidationRule.DependsOnFields
+// DependsOnFields implements ValidationRule.DependsOnFields
 func (sv *SliceValidationRule) DependsOnFields() types.StringSet {
 
 	return sv.dependsFields

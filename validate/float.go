@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// An object able to evaulate the supplied float64 to see if it meets some definition of validity.
+// ExternalFloat64Validator is an object able to evaulate the supplied float64 to see if it meets some definition of validity.
 type ExternalFloat64Validator interface {
 	// ValidFloat64 returns true if the object considers the supplied float64 to be valid.
 	ValidFloat64(float64) (bool, error)
@@ -59,7 +59,7 @@ func NewFloatValidationRule(field, defaultErrorCode string) *FloatValidationRule
 	return fv
 }
 
-// A ValidationRule for checking a float32, float64 or NilableFloat64 field on an object. See the method definitions on this type for
+// FloatValidationRule is a ValidationRule for checking a float32, float64 or NilableFloat64 field on an object.  implements the method definitions on this type for
 // the supported operations. Note that float32 are converted to float64 before validation.
 type FloatValidationRule struct {
 	stopAll             bool
@@ -100,7 +100,7 @@ func (fv *FloatValidationRule) IsSet(field string, subject interface{}) (bool, e
 	return true, nil
 }
 
-// See ValidationRule.Validate
+// Validate implements ValidationRule.Validate
 func (fv *FloatValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := fv.field
@@ -251,7 +251,7 @@ func (fv *FloatValidationRule) checkIn(i float64, o *floatOperation) bool {
 	return o.InSet[i]
 }
 
-// MEx adds a check to see if any other of the fields with which this field is mutually exclusive have been set.
+// MEx adds a check to  implements if any other of the fields with which this field is mutually exclusive have been set.
 func (fv *FloatValidationRule) MEx(fields types.StringSet, code ...string) *FloatValidationRule {
 	op := new(floatOperation)
 	op.ErrCode = fv.chooseErrorCode(code)
@@ -280,17 +280,17 @@ func (fv *FloatValidationRule) addOperation(o *floatOperation) {
 	fv.codesInUse.Add(o.ErrCode)
 }
 
-// See ValidationRule.StopAllOnFail
+// StopAllOnFail implements ValidationRule.StopAllOnFail
 func (fv *FloatValidationRule) StopAllOnFail() bool {
 	return fv.stopAll
 }
 
-// See ValidationRule.CodesInUse
+// CodesInUse implements ValidationRule.CodesInUse
 func (fv *FloatValidationRule) CodesInUse() types.StringSet {
 	return fv.codesInUse
 }
 
-// See ValidationRule.DependsOnFields
+// DependsOnFields implements ValidationRule.DependsOnFields
 func (fv *FloatValidationRule) DependsOnFields() types.StringSet {
 
 	return fv.dependsFields
@@ -304,7 +304,7 @@ func (fv *FloatValidationRule) StopAll() *FloatValidationRule {
 	return fv
 }
 
-// Required adds a check to see if the field under validation has been set.
+// Required adds a check to  implements if the field under validation has been set.
 func (fv *FloatValidationRule) Required(code ...string) *FloatValidationRule {
 
 	fv.required = true
@@ -313,7 +313,7 @@ func (fv *FloatValidationRule) Required(code ...string) *FloatValidationRule {
 	return fv
 }
 
-// Range adds a check to see if the float under validation is in the supplied range. checkMin/Max are set to false if no
+// Range adds a check to  implements if the float under validation is in the supplied range. checkMin/Max are set to false if no
 // minimum or maximum bound is in effect.
 func (fv *FloatValidationRule) Range(checkMin, checkMax bool, min, max float64, code ...string) *FloatValidationRule {
 
@@ -333,7 +333,7 @@ func (fv *FloatValidationRule) Range(checkMin, checkMax bool, min, max float64, 
 	return fv
 }
 
-// In adds a check to see if the float under validation is exactly equal to one of the float values specified.
+// In adds a check to  implements if the float under validation is exactly equal to one of the float values specified.
 func (fv *FloatValidationRule) In(set []float64, code ...string) *FloatValidationRule {
 
 	ec := fv.chooseErrorCode(code)

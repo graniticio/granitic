@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-// An object able to evaluate the supplied int64 to see if it meets some definition of validity.
+// ExternalInt64Validator is an object able to evaluate the supplied int64 to check if it meets some definition of validity.
 type ExternalInt64Validator interface {
 	// ValidInt64 returns true if the implementation considers the supplied int64 to be valid.
 	ValidInt64(int64) (bool, error)
@@ -59,7 +59,7 @@ func NewIntValidationRule(field, defaultErrorCode string) *IntValidationRule {
 	return iv
 }
 
-// A ValidationRule for checking a native signed int type or NilableInt64 field on an object. See the method definitions on this type for
+// IntValidationRule is a ValidationRule for checking a native signed int type or NilableInt64 field on an object. See the method definitions on this type for
 // the supported operations. Note that any native int types are converted to int64 before validation.
 type IntValidationRule struct {
 	stopAll             bool
@@ -99,7 +99,7 @@ func (iv *IntValidationRule) IsSet(field string, subject interface{}) (bool, err
 	return true, nil
 }
 
-// See ValidationRule.Validate
+// Validate implements ValidationRule.Validate
 func (iv *IntValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := iv.field
@@ -291,17 +291,17 @@ func (iv *IntValidationRule) toInt64(f string, i interface{}) (*types.NilableInt
 
 }
 
-// See ValidationRule.StopAllOnFail
+// StopAllOnFail implements ValidationRule.StopAllOnFail
 func (iv *IntValidationRule) StopAllOnFail() bool {
 	return iv.stopAll
 }
 
-// See ValidationRule.CodesInUse
+// CodesInUse implements ValidationRule.CodesInUse
 func (iv *IntValidationRule) CodesInUse() types.StringSet {
 	return iv.codesInUse
 }
 
-// See ValidationRule.DependsOnFields
+// DependsOnFields implements ValidationRule.DependsOnFields
 func (iv *IntValidationRule) DependsOnFields() types.StringSet {
 
 	return iv.dependsFields

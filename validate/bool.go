@@ -45,7 +45,7 @@ func NewBoolValidationRule(field, defaultErrorCode string) *BoolValidationRule {
 	return bv
 }
 
-// A ValidationRule for checking a bool or NilableBool field on an object. See the method definitions on this type for
+// BoolValidationRule is a ValidationRule for checking a bool or NilableBool field on an object. See the method definitions on this type for
 // the supported operations.
 type BoolValidationRule struct {
 	stopAll             bool
@@ -82,7 +82,7 @@ func (bv *BoolValidationRule) IsSet(field string, subject interface{}) (bool, er
 	return true, nil
 }
 
-// See ValidationRule.Validate
+// Validate implements ValidationRule.Validate
 func (bv *BoolValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := bv.field
@@ -186,17 +186,17 @@ func (bv *BoolValidationRule) extractValue(f string, s interface{}) (*types.Nila
 
 }
 
-// See ValidationRule.StopAllOnFail
+// StopAllOnFail implements ValidationRule.StopAllOnFail
 func (bv *BoolValidationRule) StopAllOnFail() bool {
 	return bv.stopAll
 }
 
-// See ValidationRule.CodesInUse
+// CodesInUse implements ValidationRule.CodesInUse
 func (bv *BoolValidationRule) CodesInUse() types.StringSet {
 	return bv.codesInUse
 }
 
-// See ValidationRule.DependsOnFields
+// DependsOnFields implements ValidationRule.DependsOnFields
 func (bv *BoolValidationRule) DependsOnFields() types.StringSet {
 
 	return bv.dependsFields
@@ -210,7 +210,7 @@ func (bv *BoolValidationRule) StopAll() *BoolValidationRule {
 	return bv
 }
 
-// Required adds a check see if the field under validation has been set.
+// Required adds a check  implements if the field under validation has been set.
 func (bv *BoolValidationRule) Required(code ...string) *BoolValidationRule {
 
 	bv.required = true
@@ -219,7 +219,7 @@ func (bv *BoolValidationRule) Required(code ...string) *BoolValidationRule {
 	return bv
 }
 
-// Is adds a check to see if the field is set to the supplied value.
+// Is adds a check to  implements if the field is set to the supplied value.
 func (bv *BoolValidationRule) Is(v bool, code ...string) *BoolValidationRule {
 
 	bv.requiredValue = types.NewNilableBool(v)
@@ -229,7 +229,7 @@ func (bv *BoolValidationRule) Is(v bool, code ...string) *BoolValidationRule {
 	return bv
 }
 
-// MEx adds a check to see if any other of the fields with which this field is mutually exclusive have been set.
+// MEx adds a check to  implements if any other of the fields with which this field is mutually exclusive have been set.
 func (bv *BoolValidationRule) MEx(fields types.StringSet, code ...string) *BoolValidationRule {
 	op := new(boolOperation)
 	op.ErrCode = bv.chooseErrorCode(code)

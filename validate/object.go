@@ -30,7 +30,7 @@ const (
 	objOpMEx
 )
 
-//Create a new ObjectValidationRule to check the specified field.
+// NewObjectValidationRule creates a new ObjectValidationRule to check the specified field.
 func NewObjectValidationRule(field, defaultErrorCode string) *ObjectValidationRule {
 	ov := new(ObjectValidationRule)
 	ov.defaultErrorCode = defaultErrorCode
@@ -43,7 +43,7 @@ func NewObjectValidationRule(field, defaultErrorCode string) *ObjectValidationRu
 	return ov
 }
 
-// A ValidationRule for checking a struct or map field on an object. See the method definitions on this type for
+// ObjectValidationRule is a ValidationRule for checking a struct or map field on an object. See the method definitions on this type for
 // the supported operations.
 type ObjectValidationRule struct {
 	stopAll             bool
@@ -90,7 +90,7 @@ func (ov *ObjectValidationRule) IsSet(field string, subject interface{}) (bool, 
 
 }
 
-// See ValidationRule.Validate
+// Validate implements ValidationRule.Validate
 func (ov *ObjectValidationRule) Validate(vc *ValidationContext) (result *ValidationResult, unexpected error) {
 
 	f := ov.field
@@ -140,17 +140,17 @@ func (ov *ObjectValidationRule) runOperations(field string, vc *ValidationContex
 
 }
 
-// See ValidationRule.StopAllOnFail
+// StopAllOnFail implements ValidationRule.StopAllOnFail
 func (ov *ObjectValidationRule) StopAllOnFail() bool {
 	return ov.stopAll
 }
 
-// See ValidationRule.CodesInUse
+// CodesInUse implements ValidationRule.CodesInUse
 func (ov *ObjectValidationRule) CodesInUse() types.StringSet {
 	return ov.codesInUse
 }
 
-// See ValidationRule.DependsOnFields
+// DependsOnFields implements ValidationRule.DependsOnFields
 func (ov *ObjectValidationRule) DependsOnFields() types.StringSet {
 
 	return ov.dependsFields

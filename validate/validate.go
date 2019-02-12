@@ -163,13 +163,13 @@ const commonOpLen = "LEN"
 
 const lengthPattern = "^(\\d*)-(\\d*)$"
 
-// Wrapper for an object (the subject) to be validated
+// SubjectContext is a wrapper for an object (the subject) to be validated
 type SubjectContext struct {
 	//An instance of a object to be validated.
 	Subject interface{}
 }
 
-// Wrapper for, and meta-data about, a field on an object to be validated.
+// ValidationContext is a wrapper for, and meta-data about, a field on an object to be validated.
 type ValidationContext struct {
 	// The object containing the field to be validated OR (if DirectSubject is true) the value to be validated.
 	Subject interface{}
@@ -184,7 +184,7 @@ type ValidationContext struct {
 	DirectSubject bool
 }
 
-// The result of applying a rule to a field on an object.
+// ValidationResult contains the result of applying a rule to a field on an object.
 type ValidationResult struct {
 	// A map of field names to the errors encountered on this field. In the case of non-slice types, there will
 	// be only one entry in the map. For slices, there will be an entry for every index into the slice where problems
@@ -212,7 +212,7 @@ func (vr *ValidationResult) AddForField(field string, codes []string) {
 	}
 }
 
-// The total number of errors recorded in this result (NOT the number of unique error codes encountered).
+// ErrorCount returns the total number of errors recorded in this result (NOT the number of unique error codes encountered).
 func (vr *ValidationResult) ErrorCount() int {
 	c := 0
 
@@ -241,7 +241,7 @@ func NewPopulatedValidationResult(field string, codes []string) *ValidationResul
 	return vr
 }
 
-// A validation rule associated with a named field on an object able to be applied in a generic fashion. Implementations exist for each type (bool, string etc)
+// ValidationRule is a validation rule associated with a named field on an object able to be applied in a generic fashion. Implementations exist for each type (bool, string etc)
 // supported by the validation framework.
 type ValidationRule interface {
 	// Check the subject provided in the supplied context and return any found errors.
@@ -265,7 +265,7 @@ type validatorLink struct {
 	field          string
 }
 
-// A container for rules that are shared between multiple RuleValidator instances. The rules
+// UnparsedRuleManager is a container for rules that are shared between multiple RuleValidator instances. The rules
 // are stored in their raw and unparsed JSON representation.
 type UnparsedRuleManager struct {
 	// A map between a name for a rule and the rule's unparsed definition.
@@ -282,7 +282,7 @@ func (rm *UnparsedRuleManager) Rule(ref string) []string {
 	return rm.Rules[ref]
 }
 
-//Summary of all the errors found while validating an object
+// FieldErrors is a summary of all the errors found while validating an object
 type FieldErrors struct {
 
 	// The name of a field, or field[x] where x is a slice index if the field's type was slice
@@ -292,7 +292,7 @@ type FieldErrors struct {
 	ErrorCodes []string
 }
 
-// Coordinates the parsing and application of rules to validate a specific object. Normally
+// RuleValidator coordinates the parsing and application of rules to validate a specific object. Normally
 // an instance of this type is unique to an instance of ws.WsHandler.
 type RuleValidator struct {
 	// A component able to look up ioc components by their name (normally the container itself)
@@ -336,12 +336,12 @@ func (ov *RuleValidator) Container(container *ioc.ComponentContainer) {
 	ov.ComponentFinder = container
 }
 
-// See ComponentNamer.ComponentName
+// ComponentName implements ComponentNamer.ComponentName
 func (ov *RuleValidator) ComponentName() string {
 	return ov.componentName
 }
 
-// See ComponentNamer.SetComponentName
+// SetComponentName implements ComponentNamer.SetComponentName
 func (ov *RuleValidator) SetComponentName(name string) {
 	ov.componentName = name
 }
@@ -471,7 +471,7 @@ func (ov *RuleValidator) parentsOkay(v ValidationRule, fieldsWithProblems types.
 	return true
 }
 
-// Called by the IoC container. Parses the rules into ValidationRule objects.
+// StartComponent is called by the IoC container. Parses the rules into ValidationRule objects.
 func (ov *RuleValidator) StartComponent() error {
 
 	if ov.state != ioc.StoppedState {
@@ -481,7 +481,7 @@ func (ov *RuleValidator) StartComponent() error {
 	ov.state = ioc.StartingState
 
 	if ov.Rules == nil {
-		return errors.New("No Rules specified for validator.")
+		return errors.New("no Rules specified for validator")
 	}
 
 	ov.codesInUse = types.NewUnorderedStringSet([]string{})
