@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-// Component wrapper over Go's xml.Unmarshal method
+// Unmarshaller is a component wrapper over Go's xml.Unmarshal method
 type Unmarshaller struct {
 }
 

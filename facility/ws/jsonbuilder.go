@@ -20,11 +20,11 @@ const jsonUnmarshallerComponentName = instance.FrameworkPrefix + "JSONUnmarshall
 const modeWrap = "WRAP"
 const modeBody = "BODY"
 
-// Creates the components required to support the JSONWs facility and adds them the IoC container.
+// JSONFacilityBuilder creates the components required to support the JSONWs facility and adds them the IoC container.
 type JSONFacilityBuilder struct {
 }
 
-// See FacilityBuilder.BuildAndRegister
+// BuildAndRegister implements FacilityBuilder.BuildAndRegister
 func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	wc := buildAndRegisterWsCommon(lm, ca, cn)
@@ -82,12 +82,12 @@ func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 	return nil
 }
 
-// See FacilityBuilder.FacilityName
+// FacilityName implements FacilityBuilder.FacilityName
 func (fb *JSONFacilityBuilder) FacilityName() string {
 	return "JSONWs"
 }
 
-// See FacilityBuilder.DependsOnFacilities
+// DependsOnFacilities implements FacilityBuilder.DependsOnFacilities
 func (fb *JSONFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

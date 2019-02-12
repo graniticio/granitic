@@ -56,7 +56,7 @@ import (
 	"net/http"
 )
 
-// Component wrapper over Go's xml.Marshalxx functions. Serialises a struct to XML and writes it to the HTTP response
+// MarshalingWriter is a component wrapper over Go's xml.Marshalxx functions. Serialises a struct to XML and writes it to the HTTP response
 // output stream.
 type MarshalingWriter struct {
 	// Format generated XML in a human readable form.
@@ -91,7 +91,7 @@ func (mw *MarshalingWriter) MarshalAndWrite(data interface{}, w http.ResponseWri
 
 }
 
-// Component for wrapping response data in a common strcuture before it is serialised.
+// GraniticXMLResponseWrapper is a component for wrapping response data in a common strcuture before it is serialised.
 type GraniticXMLResponseWrapper struct {
 }
 
@@ -108,14 +108,14 @@ func (rw *GraniticXMLResponseWrapper) WrapResponse(body interface{}, errors inte
 
 }
 
-// Wrapper for web service data and errors giving a consistent structure across all XML endpoints.
+// GraniticXMLWrapper is a wrapper for web service data and errors giving a consistent structure across all XML endpoints.
 type GraniticXMLWrapper struct {
 	XMLName xml.Name
 	Errors  interface{}
 	Body    interface{} `xml:"body"`
 }
 
-// Converts service errors into a data structure for consistent serialisation to XML.
+// GraniticXMLErrorFormatter converts service errors into a data structure for consistent serialisation to XML.
 type GraniticXMLErrorFormatter struct{}
 
 // FormatErrors converts all of the errors present in the supplied objects into a structure suitable for serialisation.
@@ -148,13 +148,13 @@ func (ef *GraniticXMLErrorFormatter) FormatErrors(errors *ws.ServiceErrors) inte
 	return es
 }
 
-//Wrapper to create an errors element in generated XML
+// Errors is a wrapper to create an errors element in generated XML
 type Errors struct {
 	XMLName xml.Name
 	Errors  interface{}
 }
 
-//Default XML representation of a service error. See ws.CategorisedError
+// GraniticError is the default XML representation of a service error. See ws.CategorisedError
 type GraniticError struct {
 	XMLName  xml.Name
 	Error    string `xml:",chardata"`

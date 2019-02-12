@@ -18,7 +18,7 @@ import (
 	"text/template"
 )
 
-// Serialises the body of a ws.Response to XML using Go templates. See https://golang.org/pkg/text/template/
+// TemplatedXMLResponseWriter serialises the body of a ws.Response to XML using Go templates. See https://golang.org/pkg/text/template/
 type TemplatedXMLResponseWriter struct {
 	// Injected by the framework to allow this component to write log messages
 	FrameworkLogger logging.Logger
@@ -50,7 +50,7 @@ type TemplatedXMLResponseWriter struct {
 	state         ioc.ComponentState
 }
 
-// See ResponseWriter.Write
+// Write implements ResponseWriter.Write
 func (rw *TemplatedXMLResponseWriter) Write(ctx context.Context, state *ws.ProcessState, outcome ws.Outcome) error {
 	var ch map[string]string
 
@@ -135,7 +135,7 @@ func (rw *TemplatedXMLResponseWriter) writeErrors(ctx context.Context, res *ws.R
 	return rw.write(ctx, res, w, ch, t)
 }
 
-// See AbnormalStatusWriter.WriteAbnormalStatus
+// WriteAbnormalStatus implements AbnormalStatusWriter.WriteAbnormalStatus
 func (rw *TemplatedXMLResponseWriter) WriteAbnormalStatus(ctx context.Context, state *ws.ProcessState) error {
 
 	return rw.Write(ctx, state, ws.Abnormal)
@@ -167,7 +167,7 @@ func (rw *TemplatedXMLResponseWriter) writeAbnormalStatus(ctx context.Context, s
 
 }
 
-// Called by the IoC container. Verifies that at minimum the AbnormalTemplate and TemplateDir fields are set.
+// StartComponent is called by the IoC container. Verifies that at minimum the AbnormalTemplate and TemplateDir fields are set.
 // Parses all templates found in the TemplateDir
 func (rw *TemplatedXMLResponseWriter) StartComponent() error {
 
@@ -178,11 +178,11 @@ func (rw *TemplatedXMLResponseWriter) StartComponent() error {
 	rw.state = ioc.StartingState
 
 	if rw.AbnormalTemplate == "" {
-		return errors.New("You must specify a template for abnormal HTTP statuses via the AbnormalTemplate field.")
+		return errors.New("you must specify a template for abnormal HTTP statuses via the AbnormalTemplate field")
 	}
 
 	if rw.TemplateDir == "" {
-		return errors.New("You must specify a directory containing XML templates via the TemplateDir field.")
+		return errors.New("you must specify a directory containing XML templates via the TemplateDir field")
 	}
 
 	if rw.StatusTemplates == nil {

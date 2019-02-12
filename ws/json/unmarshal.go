@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-// Component wrapper over Go's JSON decoder.
+// Unmarshaller is a component wrapper over Go's JSON decoder.
 type Unmarshaller struct {
 	FrameworkLogger logging.Logger
 }

@@ -47,7 +47,7 @@ import (
 	"net/http"
 )
 
-// Component wrapper over Go's json.Marshalxx functions. Serialises a struct to JSON and writes it to the HTTP response
+// MarshalingWriter is Component wrapper over Go's json.Marshalxx functions. Serialises a struct to JSON and writes it to the HTTP response
 // output stream.
 type MarshalingWriter struct {
 	// Format generated JSON in a human readable form.
@@ -87,7 +87,7 @@ type errorWrapper struct {
 	Message string
 }
 
-// Implementation of ResponseWrapper that just returns the body object if not nil or the errors object if not nil
+// BodyOrErrorWrapper is an implementation of ResponseWrapper that just returns the body object if not nil or the errors object if not nil
 type BodyOrErrorWrapper struct {
 }
 
@@ -105,7 +105,7 @@ func (rw *BodyOrErrorWrapper) WrapResponse(body interface{}, errors interface{})
 	return nil
 }
 
-// Component for wrapping response data before it is serialised. The wrapping structure is a map[string]string
+// GraniticJSONResponseWrapper is a component for wrapping response data before it is serialised. The wrapping structure is a map[string]string
 type GraniticJSONResponseWrapper struct {
 	ErrorsFieldName string
 	BodyFieldName   string
@@ -126,7 +126,7 @@ func (rw *GraniticJSONResponseWrapper) WrapResponse(body interface{}, errors int
 	return f
 }
 
-// Converts service errors into a data structure for consistent serialisation to JSON.
+// GraniticJSONErrorFormatter converts service errors into a data structure for consistent serialisation to JSON.
 type GraniticJSONErrorFormatter struct{}
 
 // FormatErrors converts all of the errors present in the supplied objects into a structure suitable for serialisation.

@@ -20,11 +20,11 @@ const (
 	marshalMode           = "MARSHAL"
 )
 
-// Creates the components required to support the XMLWs facility and adds them the IoC container.
+// XMLFacilityBuilder creates the components required to support the XMLWs facility and adds them the IoC container.
 type XMLFacilityBuilder struct {
 }
 
-// See FacilityBuilder.BuildAndRegister
+// BuildAndRegister implements FacilityBuilder.BuildAndRegister
 func (fb *XMLFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
 
 	wc := buildAndRegisterWsCommon(lm, ca, cc)
@@ -93,12 +93,12 @@ func (fb *XMLFacilityBuilder) createMarshalComponents(ca *config.Accessor, cc *i
 
 }
 
-// See FacilityBuilder.FacilityName
+// FacilityName implements FacilityBuilder.FacilityName
 func (fb *XMLFacilityBuilder) FacilityName() string {
 	return "XMLWs"
 }
 
-// See FacilityBuilder.DependsOnFacilities
+// DependsOnFacilities implements FacilityBuilder.DependsOnFacilities
 func (fb *XMLFacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
