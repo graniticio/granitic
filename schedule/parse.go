@@ -12,16 +12,16 @@ import (
 	"time"
 )
 
-const day_single = "DAY"
-const day_single_space = day_single + " "
-const minute_single = "MINUTE"
-const minute_single_space = minute_single + " "
-const hour_single = "HOUR"
-const hour_single_space = hour_single + " "
-const second_single = "SECOND"
-const second_single_space = hour_single + " "
-const double_space = "  "
-const single_space = " "
+const daySingle = "DAY"
+const daySingleSpace = daySingle + " "
+const minuteSingle = "MINUTE"
+const minuteSingleSpace = minuteSingle + " "
+const hourSingle = "HOUR"
+const hourSingleSpace = hourSingle + " "
+const secondSingle = "SECOND"
+const secondSingleSpace = hourSingle + " "
+const doubleSpace = "  "
+const singleSpace = " "
 const at = "AT"
 
 const dayDuration = time.Hour * 24
@@ -93,8 +93,8 @@ func parseEveryFromGivenNow(every string, now time.Time) (*interval, error) {
 
 	}
 
-	for strings.Contains(norm, double_space) {
-		norm = strings.Replace(norm, double_space, single_space, -1)
+	for strings.Contains(norm, doubleSpace) {
+		norm = strings.Replace(norm, doubleSpace, singleSpace, -1)
 	}
 
 	tokens := strings.Split(norm, " ")
@@ -240,10 +240,10 @@ func extractTimeElements(s []string, freq time.Duration) (timeElements, error) {
 
 func singleUnit(s string) bool {
 
-	result := (s == day_single || strings.HasPrefix(s, day_single_space) ||
-		s == hour_single || strings.HasPrefix(s, hour_single_space) ||
-		s == minute_single || strings.HasPrefix(s, minute_single_space) ||
-		s == second_single || strings.HasPrefix(s, second_single_space))
+	result := (s == daySingle || strings.HasPrefix(s, daySingleSpace) ||
+		s == hourSingle || strings.HasPrefix(s, hourSingleSpace) ||
+		s == minuteSingle || strings.HasPrefix(s, minuteSingleSpace) ||
+		s == secondSingle || strings.HasPrefix(s, secondSingleSpace))
 
 	return result
 

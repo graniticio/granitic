@@ -17,8 +17,8 @@ import (
 const jsonResponseWriterComponentName = instance.FrameworkPrefix + "JSONResponseWriter"
 const jsonUnmarshallerComponentName = instance.FrameworkPrefix + "JSONUnmarshaller"
 
-const mode_wrap = "WRAP"
-const mode_body = "BODY"
+const modeWrap = "WRAP"
+const modeBody = "BODY"
 
 // Creates the components required to support the JSONWs facility and adds them the IoC container.
 type JSONFacilityBuilder struct {
@@ -52,12 +52,12 @@ func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 			var wrap ws.ResponseWrapper
 
 			switch mode {
-			case mode_body:
+			case modeBody:
 				wrap = new(json.BodyOrErrorWrapper)
-			case mode_wrap:
+			case modeWrap:
 				wrap = new(json.GraniticJSONResponseWrapper)
 			default:
-				m := fmt.Sprintf("JSONWs.WrapMode must be either %s or %s", mode_wrap, mode_body)
+				m := fmt.Sprintf("JSONWs.WrapMode must be either %s or %s", modeWrap, modeBody)
 
 				return errors.New(m)
 			}
