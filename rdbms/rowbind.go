@@ -172,7 +172,7 @@ func (rb *RowBinder) buildAndPopulate(t interface{}, scanners []interface{}) (r 
 
 			defer func() {
 				if r := recover(); r != nil {
-					err = errors.New(fmt.Sprintf("Unable to set field %s with value of type %T\n", v.field, pv.Interface()))
+					err = fmt.Errorf("unable to set field %s with value of type %T\n", v.field, pv.Interface())
 				}
 			}()
 

@@ -162,7 +162,7 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 				}
 
 				if required {
-					return "", errors.New(fmt.Sprintf("Parameter %s is required for query %s but has not been set", key, qid))
+					return "", fmt.Errorf("parameter %s is required for query %s but has not been set", key, qid)
 				}
 
 				if err := vp.SubstituteUnset(&vc); err != nil {
@@ -178,7 +178,7 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 
 			switch t := vc.Value.(type) {
 			default:
-				return "", errors.New(fmt.Sprintf("TemplatedQueryManager: Value for parameter %s is not a supported type. (type is %T)", key, t))
+				return "", fmt.Errorf("value for parameter %s is not a supported type. (type is %T)", key, t)
 			case string:
 				b.WriteString(t)
 			case *types.NilableString:

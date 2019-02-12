@@ -54,7 +54,7 @@ func (ts *TaskScheduler) StartComponent() error {
 			}
 
 			if err := ts.validateAndPrepare(ts.componentContainer, task); err != nil {
-				return errors.New(fmt.Sprintf("%s: %s", component.Name, err.Error()))
+				return fmt.Errorf("%s: %s", component.Name, err.Error())
 			}
 
 		}
