@@ -358,7 +358,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	if h.AccessLogging {
 		finished := time.Now()
-		h.AccessLogWriter.LogRequest(req, wrw, &received, &finished, ctx)
+		h.AccessLogWriter.LogRequest(ctx, req, wrw, &received, &finished)
 	}
 
 }

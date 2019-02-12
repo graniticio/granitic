@@ -128,13 +128,13 @@ type AccessLogWriter struct {
 
 // LogRequest generates an access log line according the configured format. As long as the number of log lines waiting to
 // be written to the file does not exceed the value of AccessLogWriter.LineBufferSize, this method will return immediately.
-func (alw *AccessLogWriter) LogRequest(req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time, ctx context.Context) {
+func (alw *AccessLogWriter) LogRequest(ctx context.Context, req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time) {
 
-	alw.lines <- alw.buildLine(req, res, rec, fin, ctx)
+	alw.lines <- alw.buildLine(ctx, req, res, rec, fin)
 
 }
 
-func (alw *AccessLogWriter) buildLine(req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time, ctx context.Context) string {
+func (alw *AccessLogWriter) buildLine(ctx context.Context, req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time) string {
 	var b bytes.Buffer
 
 	if alw.UtcTimes {
@@ -151,9 +151,9 @@ func (alw *AccessLogWriter) buildLine(req *http.Request, res *httpendpoint.HTTPR
 		case textToken:
 			b.WriteString(e.content)
 		case placeholderToken:
-			b.WriteString(alw.findValue(e, req, res, rec, fin, ctx))
+			b.WriteString(alw.findValue(ctx, e, req, res, rec, fin))
 		case placeholderWithVar:
-			b.WriteString(alw.findValueWithVar(e, req, res, rec, fin, ctx))
+			b.WriteString(alw.findValueWithVar(ctx, e, req, res, rec, fin))
 		}
 	}
 
@@ -404,7 +404,7 @@ func (alw *AccessLogWriter) mapPlaceholder(ph string) logFormatPlaceHolder {
 
 }
 
-func (alw *AccessLogWriter) findValueWithVar(element *logLineToken, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, ctx context.Context) string {
+func (alw *AccessLogWriter) findValueWithVar(ctx context.Context, element *logLineToken, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time) string {
 	switch element.placeholderType {
 	case requestHeader:
 		return alw.requestHeader(element.variable, req)
@@ -432,7 +432,7 @@ func (alw *AccessLogWriter) findValueWithVar(element *logLineToken, req *http.Re
 	}
 }
 
-func (alw *AccessLogWriter) findValue(element *logLineToken, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time, ctx context.Context) string {
+func (alw *AccessLogWriter) findValue(ctx context.Context, element *logLineToken, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time) string {
 
 	switch element.placeholderType {
 
