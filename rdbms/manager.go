@@ -22,12 +22,12 @@ Granitic's RDBMS access types and components adhere to a number of principles:
 Facilities
 
 To use Granitic's RDBMS access, your application will need to enable both the QueryManager and RdbmsAccess facilities.
-See http://granitic.io/1.0/ref/facilities for more details.
+ implements http://granitic.io/1.0/ref/facilities for more details.
 
 Components and types
 
 Enabling these facilities creates the QueryManager and ClientManager components. Your application must provide
-a DatabaseProvider (see below)
+a DatabaseProvider ( implements below)
 
 
 	DatabaseProvider    A component able to provide connections to an RDBMS by creating
@@ -193,7 +193,7 @@ import (
 )
 
 /*
-Implemented by an object able to create a sql.DB object to connect to an instance of an RDBMS. The
+DatabaseProvider is implemented by an object able to create a sql.DB object to connect to an instance of an RDBMS. The
 implementation is expected to manage connection pooling and failover as required
 */
 type DatabaseProvider interface {
@@ -201,22 +201,20 @@ type DatabaseProvider interface {
 	Database() (*sql.DB, error)
 }
 
-// Optional interface for DatabaseProvider implementations when the prepared statement->exec->insert pattern does not yield
+// NonStandardInsertProvider is an optional interface for DatabaseProvider implementations when the prepared statement->exec->insert pattern does not yield
 // the last inserted ID as part of its result.
 type NonStandardInsertProvider interface {
 	InsertIDFunc() InsertWithReturnedID
 }
 
 /*
- Implemented by DatabaseProvider implementations that need to be given a context when establishing a database connection
+ContextAwareDatabaseProvider is implemented by DatabaseProvider implementations that need to be given a context when establishing a database connection
 */
 type ContextAwareDatabaseProvider interface {
 	DatabaseFromContext(context.Context) (*sql.DB, error)
 }
 
-/*
-Implemented by a component that can create Client objects that application code will use to execute SQL statements.
-*/
+// ClientManager is implemented by a component that can create Client objects that application code will use to execute SQL statements.
 type ClientManager interface {
 	// Client returns an Client that is ready to use.
 	Client() (*Client, error)
@@ -226,7 +224,7 @@ type ClientManager interface {
 	ClientFromContext(ctx context.Context) (*Client, error)
 }
 
-// Implemented by components that are interested in having visibility of all DatabaseProvider implementations available
+// ProviderComponentReceiver is implemented by components that are interested in having visibility of all DatabaseProvider implementations available
 // to an application.
 type ProviderComponentReceiver interface {
 	RegisterProvider(p *ioc.Component)
@@ -251,10 +249,10 @@ type ClientManagerConfig struct {
 }
 
 /*
-	Granitic's default implementation of ClientManager. An instance of this will be created when you enable the
+GraniticRdbmsClientManager is Granitic's default implementation of ClientManager. An instance of this will be created when you enable the
 
-	RdbmsAccess access facility and will be injected into any component that needs database access - see the package
-	documentation for facilty/rdbms for more details.
+RdbmsAccess access facility and will be injected into any component that needs database access -  implements the package
+documentation for facilty/rdbms for more details.
 */
 type GraniticRdbmsClientManager struct {
 	// Set to true if you are creating an instance of GraniticRdbmsClientManager manually
@@ -297,7 +295,7 @@ func (cm *GraniticRdbmsClientManager) BlockAccess() (bool, error) {
 
 }
 
-// See ClientManager.Client
+// Client implements ClientManager.Client
 func (cm *GraniticRdbmsClientManager) Client() (*Client, error) {
 
 	if cm.state != ioc.RunningState {
@@ -316,7 +314,7 @@ func (cm *GraniticRdbmsClientManager) Client() (*Client, error) {
 	return newRdbmsClient(db, cm.QueryManager, cm.chooseInsertFunction(), cm.SharedLog), nil
 }
 
-// See ClientManager.ClientFromContext
+// ClientFromContext implements ClientManager.ClientFromContext
 func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*Client, error) {
 
 	if cm.state != ioc.RunningState {

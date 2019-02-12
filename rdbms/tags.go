@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	// The name of a Go tag on struct fields that can be used to map that field to a parameter name
+	// DBParamTag is the name of a Go tag on struct fields that can be used to map that field to a parameter name
 	DBParamTag = "dbparam"
 )
 
@@ -61,12 +61,12 @@ func ParamsFromTags(sources ...interface{}) (map[string]interface{}, error) {
 }
 
 /*
-	ParamsFromFieldsOrTags takes one or more objects (that must be a map[string]interface{} or a pointer to a struct) and
-	returns a single map[string]interface{}. Keys and values are copied from supplied map[string]interface{}s as-is. For
-	pointers to structs, the object will have its fields added to the map  using field names as keys (unless the dbparam tag is set)
-	and the field value as the map value.
+ParamsFromFieldsOrTags takes one or more objects (that must be a map[string]interface{} or a pointer to a struct) and
+returns a single map[string]interface{}. Keys and values are copied from supplied map[string]interface{}s as-is. For
+pointers to structs, the object will have its fields added to the map  using field names as keys (unless the dbparam tag is set)
+and the field value as the map value.
 
-	An error is returned if one of the arguments is not a map[string]interface{} pointer to a struct.
+An error is returned if one of the arguments is not a map[string]interface{} pointer to a struct.
 */
 func ParamsFromFieldsOrTags(sources ...interface{}) (map[string]interface{}, error) {
 

@@ -13,18 +13,17 @@ import (
 	"strconv"
 )
 
-// Used to extract the data from the results of a SQL query and inject the data into a target data structure.
+// RowBinder is used to extract the data from the results of a SQL query and inject the data into a target data structure.
 type RowBinder struct {
 }
 
 /*
-	BindRow takes results from a SQL query that has return zero rows or one row and maps the data into the
-	target interface, which must be a pointer to a struct.
+BindRow takes results from a SQL query that has return zero rows or one row and maps the data into the
+target interface, which must be a pointer to a struct.
 
-	If the query results contain zero rows, BindRow returns false, nil.
+If the query results contain zero rows, BindRow returns false, nil.
 
-	If the query results contain one row, it is populated. See the GoDoc for BindRows for more detail.
-
+If the query results contain one row, it is populated. See the GoDoc for BindRows for more detail.
 */
 func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 
@@ -54,7 +53,7 @@ func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 		}
 
 		if rs != 1 {
-			return false, fmt.Errorf("BindRow: query returned %d rows, expected zero or one row.", rs)
+			return false, fmt.Errorf("BindRow: query returned %d rows, expected zero or one row", rs)
 		}
 
 		tr := reflect.ValueOf(t).Elem()
@@ -76,19 +75,19 @@ func (rb *RowBinder) BindRow(r *sql.Rows, t interface{}) (bool, error) {
 }
 
 /*
-	BindRow takes results from a SQL query that has return zero rows or one row and maps the data into the
-	instances of the target interface, which must be a pointer to a struct.
+BindRows takes results from a SQL query that has return zero rows or one row and maps the data into the
+instances of the target interface, which must be a pointer to a struct.
 
-	If the query results contain zero rows, BindRow returns an empty slice of the target type
+If the query results contain zero rows, BindRow returns an empty slice of the target type
 
-	If the query results contain one or more rows, an instance of the target type is created for each row. Each column
-	in a row is mapped to a field in the target type by either:
+If the query results contain one or more rows, an instance of the target type is created for each row. Each column
+in a row is mapped to a field in the target type by either:
 
-	a) Finding a field whose name exactly matches the column name or alias.
+a) Finding a field whose name exactly matches the column name or alias.
 
-	b) Finding a field with the 'column' struct tag with a value that exactly matches the column name or alias.
+b) Finding a field with the 'column' struct tag with a value that exactly matches the column name or alias.
 
-	A target field may be a bool, any native int/uint type, any native float type, a string or any of the
+A target field may be a bool, any native int/uint type, any native float type, a string or any of the
 	Granitic nilable types.
 */
 func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error) {
@@ -98,11 +97,11 @@ func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error)
 	var targetScanners map[string]*scanner
 
 	if r == nil {
-		return nil, errors.New("Nil *sql.Rows supplied")
+		return nil, errors.New("nil *sql.Rows supplied")
 	}
 
 	if !rt.IsPointerToStruct(t) {
-		return nil, errors.New("Template must be a pointer to a struct.")
+		return nil, errors.New("template must be a pointer to a struct")
 	}
 
 	if columnNames, err = r.Columns(); err != nil {
@@ -133,8 +132,7 @@ func (rb *RowBinder) BindRows(r *sql.Rows, t interface{}) ([]interface{}, error)
 	}
 
 	if matchedTargets != colCount {
-		m := fmt.Sprintf("Not all of the columns in the results could be matched to fields on the template.")
-		return nil, errors.New(m)
+		return nil, fmt.Errorf("not all of the columns in the results could be matched to fields on the template")
 	}
 
 	for r.Next() {
@@ -172,7 +170,7 @@ func (rb *RowBinder) buildAndPopulate(t interface{}, scanners []interface{}) (r 
 
 			defer func() {
 				if r := recover(); r != nil {
-					err = fmt.Errorf("unable to set field %s with value of type %T\n", v.field, pv.Interface())
+					err = fmt.Errorf("unable to set field %s with value of type %T", v.field, pv.Interface())
 				}
 			}()
 
@@ -212,13 +210,13 @@ FieldLoop:
 				switch i.(type) {
 
 				case *types.NilableBool:
-					s.nilable = NilBool
+					s.nilable = nilBool
 				case *types.NilableString:
-					s.nilable = NilString
+					s.nilable = nilString
 				case *types.NilableFloat64:
-					s.nilable = NilFloat
+					s.nilable = nilFloat
 				case *types.NilableInt64:
-					s.nilable = NilInt
+					s.nilable = nilInt
 				default:
 					//Ignore other fields
 					continue FieldLoop
@@ -242,11 +240,11 @@ FieldLoop:
 type nilableType int
 
 const (
-	Unset = iota
-	NilBool
-	NilString
-	NilInt
-	NilFloat
+	unset = iota
+	nilBool
+	nilString
+	nilInt
+	nilFloat
 )
 
 type scanner struct {
@@ -323,7 +321,7 @@ func (s *scanner) supportedStruct(sv string) error {
 
 	switch s.nilable {
 
-	case NilBool:
+	case nilBool:
 
 		if b, err := strconv.ParseBool(sv); err == nil {
 			s.val = types.NewNilableBool(b)
@@ -331,7 +329,7 @@ func (s *scanner) supportedStruct(sv string) error {
 			return err
 		}
 
-	case NilInt:
+	case nilInt:
 
 		if err := s.toIntVal(sv, 64); err == nil {
 			s.val = types.NewNilableInt64(s.val.(int64))
@@ -339,7 +337,7 @@ func (s *scanner) supportedStruct(sv string) error {
 			return err
 		}
 
-	case NilFloat:
+	case nilFloat:
 
 		if err := s.toFloatVal(sv, 64); err == nil {
 			s.val = types.NewNilableFloat64(s.val.(float64))
@@ -347,7 +345,7 @@ func (s *scanner) supportedStruct(sv string) error {
 			return err
 		}
 
-	case NilString:
+	case nilString:
 		s.val = types.NewNilableString(sv)
 
 	}

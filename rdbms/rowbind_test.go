@@ -99,7 +99,7 @@ func TestNilable(t *testing.T) {
 
 	s := new(scanner)
 	s.kind = reflect.Ptr
-	s.nilable = NilBool
+	s.nilable = nilBool
 
 	err := s.Scan([]byte("true"))
 	test.ExpectNil(t, err)
@@ -116,7 +116,7 @@ func TestNilable(t *testing.T) {
 	err = s.Scan([]byte("xx"))
 	test.ExpectNotNil(t, err)
 
-	s.nilable = NilFloat
+	s.nilable = nilFloat
 
 	err = s.Scan([]byte("32.2"))
 	test.ExpectNil(t, err)
@@ -127,7 +127,7 @@ func TestNilable(t *testing.T) {
 	test.ExpectBool(t, f, nf.IsSet())
 	test.ExpectFloat(t, nf.Float64(), float64(32.2))
 
-	s.nilable = NilInt
+	s.nilable = nilInt
 
 	err = s.Scan([]byte("32"))
 	test.ExpectNil(t, err)
@@ -138,7 +138,7 @@ func TestNilable(t *testing.T) {
 	test.ExpectBool(t, f, ni.IsSet())
 	test.ExpectInt(t, int(ni.Int64()), int(32))
 
-	s.nilable = NilString
+	s.nilable = nilString
 
 	err = s.Scan([]byte("XX"))
 	test.ExpectNil(t, err)

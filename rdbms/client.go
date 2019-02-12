@@ -25,7 +25,7 @@ func newRdbmsClient(database *sql.DB, querymanager dsquery.QueryManager, insertF
 	return rc
 }
 
-// The interface application code should use to execute SQL against a database. See the package overview for the rdbms
+// Client is the interface application code should use to execute SQL against a database. See the package overview for the rdbms
 // package for usage.
 //
 // Client is stateful and MUST NOT be shared across goroutines
