@@ -20,10 +20,8 @@ const (
 	goPathEnvVar       = "GOPATH"
 )
 
-// Returns the value of the OS environment variable GRANITIC_HOME. This is expected to be the path
-// (without a trailing /) where Grantic has been installed (e.g. /home/youruser/go/src/github.com/graniticio/granitic).
-// This is required so that configuration files for built-in facilities can be loaded from the resource sub-directory
-// of the Granitic installation.
+// GraniticHome determines where on your filesystem you have checked out Granitic. This is used when code needs
+// access to the configuration for Granitic's built-in facility components which is stored under resource/facility-config
 func GraniticHome() string {
 
 	//Check if GRANITIC_HOME explicitly set

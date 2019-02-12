@@ -24,22 +24,26 @@ type ContentParser interface {
 	ContentTypes() []string
 }
 
+// JSONContentParser supports the loading and parsing of JSON configuration and component definition files
 type JSONContentParser struct {
 }
 
+// ParseInto takes a byte array that is assumed to be serialised JSON and attempts to parse that into the supplied target object
 func (jcp *JSONContentParser) ParseInto(data []byte, target interface{}) error {
 	return json.Unmarshal(data, &target)
 }
 
+// Extensions returns the list of filename extensions (lowercase, without leading dot) that will be considered to be JSON files.
 func (jcp *JSONContentParser) Extensions() []string {
 	return []string{"json"}
 }
 
+// ContentTypes returns the MIME media types/HTTP content-types that will be considered to represent JSON
 func (jcp *JSONContentParser) ContentTypes() []string {
 	return []string{"application/json", "application/x-javascript", "text/javascript", "text/x-javascript", "text/x-json"}
 }
 
-// NewJSONMerger creates a JSONMerger with a Logger
+// NewJSONMergerWithManagedLogging creates a JSONMerger with a Logger managed by Granitic
 func NewJSONMergerWithManagedLogging(flm *logging.ComponentLoggerManager, cp ContentParser) *JSONMerger {
 
 	l := flm.CreateLogger(jsonMergerComponentName)
@@ -48,6 +52,7 @@ func NewJSONMergerWithManagedLogging(flm *logging.ComponentLoggerManager, cp Con
 
 }
 
+// NewJSONMergerWithDirectLogging creates a JSONMerger that uses the supplied logger
 func NewJSONMergerWithDirectLogging(l logging.Logger, cp ContentParser) *JSONMerger {
 
 	jm := new(JSONMerger)
@@ -87,6 +92,7 @@ func (jm *JSONMerger) LoadAndMergeConfig(files []string) (map[string]interface{}
 	return jm.LoadAndMergeConfigWithBase(mergedConfig, files)
 }
 
+// RegisterContentParser adds the supplied ContentParser to the set of parsers that might be eligible to parse a file/stream
 func (jm *JSONMerger) RegisterContentParser(cp ContentParser) {
 
 	for _, ct := range cp.ContentTypes() {
@@ -103,6 +109,8 @@ func (jm *JSONMerger) RegisterContentParser(cp ContentParser) {
 
 }
 
+// LoadAndMergeConfigWithBase takes a representation of a JSON file that has already been parsed and merges the contents
+// of the supplied list of JSON files into that in-memory representation and returns the file merged version.
 func (jm *JSONMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, files []string) (map[string]interface{}, error) {
 
 	var jsonData []byte

@@ -93,7 +93,7 @@ import (
 	"strings"
 )
 
-// The character used to delimit paths to config values.
+// JSONPathSeparator is the character used to delimit paths to config values.
 const JSONPathSeparator string = "."
 
 // Used by code that needs to know what type of JSON data structure resides at a particular path
@@ -151,11 +151,11 @@ func (ac *Accessor) ObjectVal(path string) (map[string]interface{}, error) {
 		return v, nil
 	}
 
-	return nil, fmt.Errorf("Unable to convert the value at %s to a JSON map/object.", path)
+	return nil, fmt.Errorf("unable to convert the value at %s to a JSON map/object", path)
 
 }
 
-// ObjectVal returns the string value of the JSON string at the supplied path. Does not convert other types to
+// StringVal returns the string value of the JSON string at the supplied path. Does not convert other types to
 // a string, so will return an error if the value is not a JSON string.
 func (ac *Accessor) StringVal(path string) (string, error) {
 
@@ -193,7 +193,7 @@ func (ac *Accessor) IntVal(path string) (int, error) {
 
 }
 
-// IntVal returns the float64 value of the JSON number at the supplied path. An error will be returned if the value is not a JSON number.
+// Float64Val returns the float64 value of the JSON number at the supplied path. An error will be returned if the value is not a JSON number.
 func (ac *Accessor) Float64Val(path string) (float64, error) {
 
 	v := ac.Value(path)
@@ -241,7 +241,7 @@ func (ac *Accessor) BoolVal(path string) (bool, error) {
 
 }
 
-// Determines the apparent JSON type of the supplied Go interface.
+// JSONType determines the apparent JSONType of the supplied Go interface.
 func JSONType(value interface{}) int {
 
 	switch value.(type) {
@@ -375,7 +375,7 @@ func (ac *Accessor) arrayVal(a reflect.Value) (reflect.Value, error) {
 
 	if l == 0 {
 
-		return reflect.Zero(reflect.TypeOf(ac)), errors.New("Cannot use an empty array as a value in a Map.")
+		return reflect.Zero(reflect.TypeOf(ac)), errors.New("cannot use an empty array as a value in a Map")
 
 	}
 
