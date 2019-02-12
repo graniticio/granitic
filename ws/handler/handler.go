@@ -56,7 +56,7 @@ import (
 
 const processPayloadFunc = "ProcessPayload"
 
-// Implementing WsRequestProcessor is the minimum required of a component to be considered a 'logic' component suitable for
+// WsRequestProcessor specifies the minimum required of a component to be considered a 'logic' component suitable for
 // use by a WsHandler.
 type WsRequestProcessor interface {
 	// Process performs the actual 'work' of a web service request. The reponse parameter will be modified according to
@@ -64,7 +64,7 @@ type WsRequestProcessor interface {
 	Process(ctx context.Context, request *ws.Request, response *ws.Response)
 }
 
-// Indicates that an object is interested in observing/modifying a web service request after processing has been completed,
+// WsPostProcessor is implemented to indicate that an object is interested in observing/modifying a web service request after processing has been completed,
 // but before the HTTP response is written. Typical uses are the writing of response headers that are generic to all/most handlers or the recording of metrics.
 //
 // It is expected that WsPostProcessors may be shared between multiple instances of WsHandler
@@ -73,34 +73,34 @@ type WsPostProcessor interface {
 	PostProcess(ctx context.Context, handlerName string, request *ws.Request, response *ws.Response)
 }
 
-// Indicates that an object is interested in observing/modifying a web service request after it has been unmarshalled and parsed, but before automatic and
+// WsPreValidateManipulator is implemented to indicate that an object is interested in observing/modifying a web service request after it has been unmarshalled and parsed, but before automatic and
 // application-defined validation takes place.
 type WsPreValidateManipulator interface {
 	// PreValidate returns true if the supplied request is in a suitable state for processing to continue.
 	PreValidate(ctx context.Context, request *ws.Request, errors *ws.ServiceErrors) (proceed bool)
 }
 
-// If implemented by the same object that is used as a handler's WsRequestProcessor, the Validate method will be called
+// WsRequestValidator is optionally implemented by the same object that is used as a handler's WsRequestProcessor. If implemented, the Validate method will be called
 // to determine whether or not a request should proceed to processing.
 type WsRequestValidator interface {
 	// Validate will add one or more CategorisedServiceError objects to the supplied errors parameter if the request is not suitable for further processing.
 	Validate(ctx context.Context, errors *ws.ServiceErrors, request *ws.Request)
 }
 
-// Implemented by logic components that are able to create target objects for data from a web service request to be parsed into. For example,
+// WsUnmarshallTarget  is implemented by logic components that are able to create target objects for data from a web service request to be parsed into. For example,
 // a web service that supports POST requests will need an object into which the request body can be stored.
 type WsUnmarshallTarget interface {
 	// UnmarshallTarget returns a pointer to a struct. That struct can be used by the called to parse or map request data (body, query parameters etc) into.
 	UnmarshallTarget() interface{}
 }
 
-// Indicates that an object can determine whether or not handler supports a given version of a request.
+// WsVersionAssessor allows a component to tell Granitic that the object can determine whether or not handler supports a given version of a request.
 type WsVersionAssessor interface {
 	// SupportsVersion returns true if the named handle is able to support the requested version.
 	SupportsVersion(handlerName string, version httpendpoint.RequiredVersion) bool
 }
 
-// Implemented by logic components that need to instruct the web services renderer to use a specific template to render
+// Templated is implemented by logic components that need to instruct the web services renderer to use a specific template to render
 // a response.
 type Templated interface {
 	// TemplateName returns the unique name of a template to use to render response output.
@@ -110,14 +110,14 @@ type Templated interface {
 	UseWhenError() bool
 }
 
-// Implemented by logic components that need to instruct the web services renderer to use a specific template to render when
+// ErrorTemplate is implemented by logic components that need to instruct the web services renderer to use a specific template to render when
 // errors are detected in the response.
 type ErrorTemplate interface {
 	//ErrorTemplateName returns the unique name of a template to use to render response output.
 	ErrorTemplateName() string
 }
 
-//  WsHandler co-ordinates the processing of a web service request for a particular endpoint.
+// WsHandler co-ordinates the processing of a web service request for a particular endpoint.
 // Implements ws.Provider
 type WsHandler struct {
 
@@ -648,11 +648,11 @@ func (wh *WsHandler) StartComponent() error {
 	wh.state = ioc.StartingState
 
 	if wh.PathPattern == "" || wh.HTTPMethod == "" || wh.Logic == nil {
-		return errors.New("Handlers must have at least a PathPattern string, HTTPMethod string and Logic component set.")
+		return errors.New("handlers must have at least a PathPattern string, HTTPMethod string and Logic component set")
 	}
 
 	if wh.AutoValidator != nil && wh.ErrorFinder == nil {
-		return errors.New("You must set ErrorFinder if you set AutoValidator. Is the ServiceErrorManager facility enabled?")
+		return errors.New("you must set ErrorFinder if you set AutoValidator. Check that the ServiceErrorManager facility is enabled")
 	}
 
 	if err := wh.checkLogicComponent(); err != nil {
@@ -683,7 +683,7 @@ func (wh *WsHandler) StartComponent() error {
 	}
 
 	if wh.DeferAutoErrors && wh.validator == nil {
-		return errors.New("If you want to defer errors generated during auto validation, your logic component must implement WsRequestValidator.")
+		return errors.New("if you want to defer errors generated during auto validation, your logic component must implement WsRequestValidator")
 	}
 
 	wh.state = ioc.RunningState
@@ -699,53 +699,52 @@ func (wh *WsHandler) checkLogicComponent() error {
 
 	} else {
 
-		message := fmt.Sprintf("Logic compoonent must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)", processPayloadFunc)
-
+		err := fmt.Errorf("Logic compoonent must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)", processPayloadFunc)
 		//Logic component doesn't implement WsRequestProcessor - must instead have a method called ProcessPayload
 		method := reflect.ValueOf(wh.Logic).MethodByName(processPayloadFunc)
 
 		if !method.IsValid() {
-			return errors.New(message)
+			return err
 		}
 
 		t := method.Type()
 
 		//Quick check of parameter counts on the method signature
 		if t.NumIn() != 4 || t.NumOut() != 0 {
-			return errors.New(message)
+			return err
 		}
 
 		//Check first arg is context
 		if t.In(0).String() != "context.Context" {
-			return errors.New(message)
+			return err
 		}
 
 		//Check second arg is *ws.Request
 		if t.In(1) != reflect.TypeOf(new(ws.Request)) {
-			return errors.New(message)
+			return err
 		}
 
 		//Check third arg is *ws.Response
 		if t.In(2) != reflect.TypeOf(new(ws.Response)) {
-			return errors.New(message)
+			return err
 		}
 
 		//Check fourth arg is a pointer to a struct
 		fourthArg := t.In(3)
 		if fourthArg.Kind() != reflect.Ptr && fourthArg.Elem().Kind() != reflect.Struct {
-			return errors.New(message)
+			return err
 		}
 	}
 
 	return nil
 }
 
-// See ComponentNamer.ComponentName
+// ComponentName implements ComponentNamer.ComponentName
 func (wh *WsHandler) ComponentName() string {
 	return wh.componentName
 }
 
-// See ComponentNamer.SetComponentName
+// SetComponentName implements ComponentNamer.SetComponentName
 func (wh *WsHandler) SetComponentName(name string) {
 	wh.componentName = name
 }
