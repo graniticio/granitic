@@ -23,7 +23,7 @@ import (
 	"strings"
 )
 
-// Implemented by components that want to decare that they use error codes, so that all codes they
+// ErrorCodeUser is implemented by components that want to decare that they use error codes, so that all codes they
 // use can be validated to make sure that they have corresponding definitions.
 type ErrorCodeUser interface {
 	// ErrorCodesInUse returns the set of error codes that this component relies on and the component's name
@@ -33,7 +33,7 @@ type ErrorCodeUser interface {
 	ValidateMissing() bool
 }
 
-// An instance of ServiceErrorManager contains a map between an error code and a ws.CategorisedError.
+// ServiceErrorManager contains a map between an error code and a ws.CategorisedError.
 type ServiceErrorManager struct {
 	errors map[string]*ws.CategorisedError
 
@@ -47,12 +47,12 @@ type ServiceErrorManager struct {
 	componentName    string
 }
 
-// See ioc.ComponentNamer.ComponentName
+// ComponentName implements ioc.ComponentNamer.ComponentName
 func (sem *ServiceErrorManager) ComponentName() string {
 	return sem.componentName
 }
 
-// See ioc.ComponentNamer.SetComponentName
+// SetComponentName ioc.ComponentNamer.SetComponentName
 func (sem *ServiceErrorManager) SetComponentName(name string) {
 	sem.componentName = name
 }
