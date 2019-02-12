@@ -3,15 +3,12 @@
 
 package ioc
 
-/*
- ComponentDecorator is implemented by special temporary components that only exist while the IoC container is being populated.
-
- A ComponentDecorator's job is to examine another component (the subject) to see if it is suitable for modification by the ComponentDecorator.
- Typically this will involve the ComponentDecorator injecting another object into the subject if the component implements
- a particular interface or has a writable field of a particular name or type.
-
- A number of built-in decorators exist to accomplish tasks like automatically adding Loggers to components with a particular field.
-*/
+// ComponentDecorator is implemented by special temporary components that only exist while the IoC container is being populated.
+//
+// A ComponentDecorator's job is to examine another component (the subject) to see if it is suitable for modification by the ComponentDecorator.
+// Typically this will involve the ComponentDecorator injecting another object into the subject if the component implements
+// a particular interface or has a writable field of a particular name or type.
+// A number of built-in decorators exist to accomplish tasks like automatically adding Loggers to components with a particular field.
 type ComponentDecorator interface {
 	// OfInterest should return true if the ComponentDecorator decides that the supplied component needs to be decorated.
 	OfInterest(subject *Component) bool
@@ -20,7 +17,7 @@ type ComponentDecorator interface {
 	DecorateComponent(subject *Component, container *ComponentContainer)
 }
 
-// An interface implemented by any component that wants direct access to the IoC container.
+// ContainerAccessor is implemented by any component that wants direct access to the IoC container.
 type ContainerAccessor interface {
 	// Container accepts a reference to the Granitic IoC container.
 	Container(container *ComponentContainer)

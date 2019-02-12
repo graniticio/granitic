@@ -18,13 +18,13 @@ const containerDecoratorComponentName = instance.FrameworkPrefix + "ContainerDec
 const containerComponentName = instance.FrameworkPrefix + "Container"
 const lifecycleComponentName = instance.FrameworkPrefix + "LifecycleManager"
 
-// Implemented by components that need to be able to find other components by name.
+// ComponentByNameFinder is implemented by components that need to be able to find other components by name.
 type ComponentByNameFinder interface {
 	// ComponentByName returns the Component with the supplied name, or nil if it does not exist.
 	ComponentByName(string) *Component
 }
 
-// Create a new instance of a Granitic IoC container.
+// NewComponentContainer creates a new instance of a Granitic IoC container.
 func NewComponentContainer(logm *logging.ComponentLoggerManager, ca *config.Accessor, sys *instance.System) *ComponentContainer {
 
 	cc := new(ComponentContainer)
@@ -46,7 +46,7 @@ func NewComponentContainer(logm *logging.ComponentLoggerManager, ca *config.Acce
 }
 
 /*
-The Granitic IoC container. See the GoDoc for the ioc package for more information on how to interact with the container.
+ComponentContainer is the The Granitic IoC container. See the GoDoc for the ioc package for more information on how to interact with the container.
 
 Most applications should never need to interact with the container programmatically.
 */
@@ -84,7 +84,7 @@ func (cc *ComponentContainer) ProtoComponents() map[string]*ProtoComponent {
 	return cc.protoComponents
 }
 
-// See ComponentByNameFinder.ComponentByName
+// ComponentByName implements ComponentByNameFinder.ComponentByName
 func (cc *ComponentContainer) ComponentByName(name string) *Component {
 	return cc.allComponents[name]
 }
@@ -177,7 +177,7 @@ func (cc *ComponentContainer) WrapAndAddProto(name string, instance interface{})
 	cc.AddProto(p)
 }
 
-// AddProto regsiters a collection of proto-components (see AddProto)
+// AddProtos registers a collection of proto-components (see AddProto)
 func (cc *ComponentContainer) AddProtos(protos []*ProtoComponent) {
 	for _, p := range protos {
 		cc.AddProto(p)

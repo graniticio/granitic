@@ -158,21 +158,29 @@ the grnc-ctl command line utility. See the package documentation for grnc-ctl fo
 */
 package ioc
 
-// What state (stopped, running) or transition between states (stopping, starting) a component is currently in.
+// ComponentState represents what state (stopped, running) or transition between states (stopping, starting) a component is currently in.
 type ComponentState int
 
 const (
+	//StoppedState indicates that a component has stopped
 	StoppedState = iota
+	//StoppingState indicates that a component is in the process of stopping
 	StoppingState
+	//StartingState indicates that a component is in the process of starting
 	StartingState
+	//AwaitingAccessState indicates that a component is available for connections from external sources
 	AwaitingAccessState
+	//RunningState indicates that a component is running normally
 	RunningState
+	//SuspendingState indicates that a component is in the process of being suspended
 	SuspendingState
+	//SuspendedState indicates that a component has been suspended and is effectively paused
 	SuspendedState
+	//ResumingState indicates that a component in the process of being resumed from a suspended state
 	ResumingState
 )
 
-// A wrapping structure for a list of ProtoComponents and FrameworkDependencies that is required when starting Granitic.
+// ProtoComponents is a wrapping structure for a list of ProtoComponents and FrameworkDependencies that is required when starting Granitic.
 // A ProtoComponents structure is built by the grnc-bind tool.
 type ProtoComponents struct {
 	// ProtoComponents to be finalised and stored in the IoC container.
@@ -239,7 +247,7 @@ func (pc *ProtoComponent) AddDependency(fieldName, componentName string) {
 	pc.Dependencies[fieldName] = componentName
 }
 
-// AddDependency requests that the container injects the config value at the specified path into the specified field during the configure phase of
+// AddConfigPromise requests that the container injects the config value at the specified path into the specified field during the configure phase of
 // container startup.
 func (pc *ProtoComponent) AddConfigPromise(fieldName, configPath string) {
 
@@ -259,17 +267,22 @@ type Component struct {
 	Name string
 }
 
-// Type definition for a slice of components to allow sorting.
+// Components is a type definition for a slice of components to allow sorting.
 type Components []*Component
 
-func (s Components) Len() int      { return len(s) }
+// Len returns the number of components in the slice
+func (s Components) Len() int { return len(s) }
+
+// Swap exchanges the position of the components at the specified indexes
 func (s Components) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
+// ByName allows a slice of components to be sorted by name
 type ByName struct{ Components }
 
+// Less returns true if the the component at index i has a name the lexicographically proceeds that at j
 func (s ByName) Less(i, j int) bool { return s.Components[i].Name < s.Components[j].Name }
 
-// Implemented by components where the component's instance needs to be aware of its own component name.
+// ComponentNamer is implemented by components where the component's instance needs to be aware of its own component name.
 type ComponentNamer interface {
 	// ComponentName returns the name of the component
 	ComponentName() string
@@ -287,5 +300,5 @@ func NewComponent(name string, instance interface{}) *Component {
 	return c
 }
 
-// A function able to return a pointer to an empty struct
+// StructFactory is a function able to return a pointer to an empty struct
 type StructFactory func() interface{}
