@@ -64,7 +64,7 @@ func (ald *applicationLogDecorator) DecorateComponent(subject *ioc.Component, co
 
 }
 
-// Injects a framework logger into Granitic framework components.
+// FrameworkLogDecorator injects a framework logger into Granitic framework components.
 type FrameworkLogDecorator struct {
 	// The framework ComponentLoggerManager (as opposed to the application ComponentLoggerManager)
 	LoggerManager *logging.ComponentLoggerManager

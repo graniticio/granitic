@@ -25,12 +25,12 @@ const presetCommonName = "common"
 const presetCommonFormat = "%h %l %u %t \"%r\" %s %b"
 const presetCombinedName = "combined"
 
-// The log format used when AccessLogWriter.LogLinePreset is set to combined. Similar to the Apache HTTP preset of the same name.
+// PresetCombinedFormat is the log format used when AccessLogWriter.LogLinePreset is set to combined. Similar to the Apache HTTP preset of the same name.
 const PresetCombinedFormat = "%h %l %u %t \"%r\" %s %b \"%{Referer}i\" \"%{User-agent}i\""
 
-const presetframeworkName = "framework"
+const presetFrameworkName = "framework"
 
-// The log format used when AccessLogWriter.LogLinePreset is set to framework. Uses the X-Forwarded-For header to show all
+// PresetFrameworkFormat is the log format used when AccessLogWriter.LogLinePreset is set to framework. Uses the X-Forwarded-For header to show all
 // IP addresses that the request has been proxied for (useful for services that sit behind multiple load-balancers and proxies) and logs
 // processing time in microseconds.
 const PresetFrameworkFormat = "%h XFF[%{X-Forwarded-For}i] %l %u [%{02/Jan/2006:15:04:05 Z0700}t] \"%m %U%q\" %s %bB %{us}Tμs"
@@ -103,7 +103,7 @@ func newPlaceholderWithVarLineElement(phType logFormatPlaceHolder, variable stri
 	return e
 }
 
-// A component able to asynchronously write an Apache HTTPD style access log. See the top of this GoDoc page for more information.
+// AccessLogWriter is a component able to asynchronously write an Apache HTTPD style access log. See the top of this GoDoc page for more information.
 type AccessLogWriter struct {
 	logFile *os.File
 	// The path of the log file to be written to (and created if required)
@@ -227,11 +227,11 @@ func (alw *AccessLogWriter) configureLogFormat() error {
 	pre := alw.LogLinePreset
 
 	if f == "" && pre == "" {
-		return errors.New("You must specify either a format for access log lines or the name of a preset format (neither has been provided).")
+		return errors.New("you must specify either a format for access log lines or the name of a preset format (neither has been provided)")
 	}
 
 	if f != "" && pre != "" {
-		return errors.New("You must specify either a format for access log lines OR the name of a preset format (BOTH have been provided).")
+		return errors.New("you must specify either a format for access log lines OR the name of a preset format (BOTH have been provided)")
 	}
 
 	if pre != "" {
@@ -242,7 +242,7 @@ func (alw *AccessLogWriter) configureLogFormat() error {
 		} else if pre == presetCombinedName {
 			return alw.parseFormat(PresetCombinedFormat)
 
-		} else if pre == presetframeworkName {
+		} else if pre == presetFrameworkName {
 			return alw.parseFormat(PresetFrameworkFormat)
 
 		} else {

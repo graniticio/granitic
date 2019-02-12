@@ -29,12 +29,12 @@ const rdbmsClientManagerConfigName = instance.FrameworkPrefix + "ClientManagerCo
 
 const managerDecorator = instance.FrameworkPrefix + "DbClientManagerDecorator"
 
-// Creates an instance of rdbms.RDBMSClientManager that can be injected into your application components.
+// FacilityBuilder creates an instance of rdbms.RDBMSClientManager that can be injected into your application components.
 type FacilityBuilder struct {
 	Log logging.Logger
 }
 
-// See FacilityBuilder.BuildAndRegister
+// BuildAndRegister implements FacilityBuilder.BuildAndRegister
 func (rafb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	log := lm.CreateLogger(instance.FrameworkPrefix + "FacilityBuilder")
@@ -175,7 +175,7 @@ func (rafb *FacilityBuilder) findProviders(cn *ioc.ComponentContainer) []string 
 
 }
 
-// See FacilityBuilder.FacilityName
+// FacilityName implements FacilityBuilder.FacilityName
 func (rafb *FacilityBuilder) FacilityName() string {
 	return "RdbmsAccess"
 }

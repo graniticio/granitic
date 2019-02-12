@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-// Components implementing this interface are called by the HTTPServer facility before the request is matched to a handler.
+// IdentifiedRequestContextBuilder is implemented by a component that should be called by the HTTPServer facility before a request is matched to a handler.
 // It is an opportunity to extract information from the HTTP request to add an ID for this request to the context that
 // will be passed to the handler.
 //
@@ -17,30 +17,32 @@ import (
 //
 // It is recommended that only the request meta data (headers, path, parameters) are accessed by implementations, as
 // loading the request body will interfere with later phases of the request processing.
-type IDentifiedRequestContextBuilder interface {
+type IdentifiedRequestContextBuilder interface {
 	// WithIdentity uses information in the supplied request to assign an ID to this context
 	WithIdentity(ctx context.Context, req *http.Request) (context.Context, error)
 	ID(ctx context.Context) string
 }
 
-// Injects a component whose instance is an implementation of IDentifiedRequestContextBuilder into the HTTP Server
+// Injects a component whose instance is an implementation of IdentifiedRequestContextBuilder into the HTTP Server
 type contextBuilderDecorator struct {
 	Server *HTTPServer
 }
 
+// OfInterest returns true if the supplied component is an instance of IdentifiedRequestContextBuilder
 func (cd *contextBuilderDecorator) OfInterest(subject *ioc.Component) bool {
 	result := false
 
 	switch subject.Instance.(type) {
-	case IDentifiedRequestContextBuilder:
+	case IdentifiedRequestContextBuilder:
 		result = true
 	}
 
 	return result
 }
 
+// DecorateComponent injects the IdentifiedRequestContextBuilder into the HTTP server
 func (cd *contextBuilderDecorator) DecorateComponent(subject *ioc.Component, cc *ioc.ComponentContainer) {
 
-	idBuilder := subject.Instance.(IDentifiedRequestContextBuilder)
+	idBuilder := subject.Instance.(IdentifiedRequestContextBuilder)
 	cd.Server.IDContextBuilder = idBuilder
 }

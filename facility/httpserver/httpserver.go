@@ -37,6 +37,7 @@ type registeredProvider struct {
 	Pattern  *regexp.Regexp
 }
 
+// HTTPServer is the server that accepts incoming HTTP requests and maps them to handlers to process them.
 type HTTPServer struct {
 	registeredProvidersByMethod map[string][]*registeredProvider
 	unregisteredProviders       map[string]httpendpoint.Provider
@@ -85,7 +86,7 @@ type HTTPServer struct {
 	VersionExtractor httpendpoint.RequestedVersionExtractor
 
 	// A component able to use data in an HTTP request's headers to populate a context
-	IDContextBuilder IDentifiedRequestContextBuilder
+	IDContextBuilder IdentifiedRequestContextBuilder
 
 	// ID of a component that implements instrument.RequestInstrumentationManager
 	RequestInstrumentationManagerName string
@@ -95,7 +96,7 @@ type HTTPServer struct {
 	reqInstManager instrument.RequestInstrumentationManager
 }
 
-// Implements ioc.ContainerAccessor
+// Container allows Granitic to inject a reference to the IOC container
 func (h *HTTPServer) Container(container *ioc.ComponentContainer) {
 	h.componentContainer = container
 }
@@ -160,11 +161,11 @@ func (h *HTTPServer) StartComponent() error {
 		}
 
 	} else {
-		return errors.New("Auto finding of handlers is disabled, but handlers have not been set manually.")
+		return errors.New("auto finding of handlers is disabled, but handlers have not been set manually")
 	}
 
 	if h.AbnormalStatusWriter == nil {
-		return errors.New("No AbnormalStatusWriter set.")
+		return errors.New("no AbnormalStatusWriter set")
 	}
 
 	if rid := h.RequestInstrumentationManagerName; rid == "" {
@@ -175,7 +176,7 @@ func (h *HTTPServer) StartComponent() error {
 		var c *ioc.Component
 
 		if c = h.componentContainer.ComponentByName(rid); c == nil {
-			return fmt.Errorf("No component named %s exists - was specified in the RequestInstrumentationManagerName field", rid)
+			return fmt.Errorf("no component named %s exists - was specified in the RequestInstrumentationManagerName field", rid)
 		}
 
 		if rim, found := c.Instance.(instrument.RequestInstrumentationManager); found {

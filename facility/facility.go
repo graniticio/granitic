@@ -78,7 +78,7 @@ import (
 	"github.com/graniticio/granitic/v2/logging"
 )
 
-// A facility builder is responsible for programmatically constructing the objects required to support a facility and,
+// A Builder is responsible for programmatically constructing the objects required to support a facility and,
 // where required, adding them to the IoC container.
 type Builder interface {
 	//BuildAndRegister constructs the components that together constitute the facility and stores them in the IoC

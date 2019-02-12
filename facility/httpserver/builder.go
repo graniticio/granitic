@@ -10,11 +10,11 @@ import (
 	"github.com/graniticio/granitic/v2/logging"
 )
 
-// The name of the HTTPServer component as stored in the IoC framework.
+// HTTPServerComponentName is the name of the HTTPServer component as stored in the IoC framework.
 const HTTPServerComponentName = instance.FrameworkPrefix + "HTTPServer"
 const contextIDDecoratorName = instance.FrameworkPrefix + "RequestIDContextDecorator"
 
-// The field on the HTTPServer component into which a ws.AbnormalStatusWriter can be injected. Most applications will use either
+// HTTPServerAbnormalStatusFieldName is the field on the HTTPServer component into which a ws.AbnormalStatusWriter can be injected. Most applications will use either
 // the JSONWs or XMLWs facility, in which case a AbnormalStatusWriter that will respond to requests with an abnormal result
 // (404, 503 etc) by sending a JSON or XML response respectively.
 //
@@ -23,11 +23,11 @@ const contextIDDecoratorName = instance.FrameworkPrefix + "RequestIDContextDecor
 const HTTPServerAbnormalStatusFieldName = "AbnormalStatusWriter"
 const accessLogWriterName = instance.FrameworkPrefix + "AccessLogWriter"
 
-// Creates the components that make up the HTTPServer facility (the server and an access log writer).
+// FacilityBuilder creates the components that make up the HTTPServer facility (the server and an access log writer).
 type FacilityBuilder struct {
 }
 
-// See FacilityBuilder.BuildAndRegister
+// BuildAndRegister implements FacilityBuilder.BuildAndRegister
 func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	httpServer := new(HTTPServer)
@@ -52,12 +52,12 @@ func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 }
 
-// See FacilityBuilder.FacilityName
+// FacilityName implements FacilityBuilder.FacilityName
 func (hsfb *FacilityBuilder) FacilityName() string {
 	return "HTTPServer"
 }
 
-// See FacilityBuilder.DependsOnFacilities
+// DependsOnFacilities implements FacilityBuilder.DependsOnFacilities
 func (hsfb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

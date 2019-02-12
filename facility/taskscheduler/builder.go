@@ -16,11 +16,11 @@ const facilityName = "TaskScheduler"
 //TaskSchedulerComponentName is the name of the TaskScheduler component as stored in the IoC framework.
 const TaskSchedulerComponentName = instance.FrameworkPrefix + facilityName
 
-// Creates the components that make up the TaskScheduler facility
+// FacilityBuilder creates the components that make up the TaskScheduler facility
 type FacilityBuilder struct {
 }
 
-// See FacilityBuilder.BuildAndRegister
+// BuildAndRegister implements FacilityBuilder.BuildAndRegister
 func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	ts := new(schedule.TaskScheduler)
@@ -35,12 +35,12 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 	return nil
 }
 
-// See FacilityBuilder.FacilityName
+// FacilityName implements FacilityBuilder.FacilityName
 func (fb *FacilityBuilder) FacilityName() string {
 	return facilityName
 }
 
-// See FacilityBuilder.DependsOnFacilities
+// DependsOnFacilities implements FacilityBuilder.DependsOnFacilities
 func (fb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

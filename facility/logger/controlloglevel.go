@@ -14,11 +14,12 @@ import (
 )
 
 const (
-	LLComponentName = instance.FrameworkPrefix + "CommandLogLevel"
-	llCommandName   = "log-level"
-	llSummary       = "Views or sets a specific logging threshold for application or framework components."
-	llUsage         = "log-level [component level] [-fw true]"
-	llHelp          = "With no qualifier, this command shows a list of application components that have a specific logging threshold set. When a " +
+	// LogLevelComponentName is the name of the component able to alter log levels at runtime
+	LogLevelComponentName = instance.FrameworkPrefix + "CommandLogLevel"
+	llCommandName         = "log-level"
+	llSummary             = "Views or sets a specific logging threshold for application or framework components."
+	llUsage               = "log-level [component level] [-fw true]"
+	llHelp                = "With no qualifier, this command shows a list of application components that have a specific logging threshold set. When a " +
 		"component and a level are specified as qualifiers, the component's logging threshold is set at the specified level."
 	llHelpTwo   = "Valid values for level are ALL, TRACE, DEBUG, INFO, WARN, ERROR, FATAL (case insensitive)."
 	llHelpThree = "Setting the level to ALL has special behaviour - it efffectively removes the specific logging threshold for the component. The global log threshold will then apply to that component."

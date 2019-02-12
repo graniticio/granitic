@@ -23,7 +23,7 @@ const authenticated = "Authenticated"
 const anonymous = "Anonymous"
 const loggableUserID = "LoggableUserID"
 
-// Create a new ClientIdentity with the supplied log-friendly version of a user ID. The ClientIdentity will be marked
+// NewAuthenticatedIdentity creates a new ClientIdentity with the supplied log-friendly version of a user ID. The ClientIdentity will be marked
 // as Authenticated and not anonymous
 func NewAuthenticatedIdentity(loggableUserID string) ClientIdentity {
 	i := make(ClientIdentity)

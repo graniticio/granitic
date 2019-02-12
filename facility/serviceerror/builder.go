@@ -16,14 +16,14 @@ import (
 const (
 	serviceErrorManagerComponentName      = instance.FrameworkPrefix + "ServiceErrorManager"
 	serviceErrorDecoratorComponentName    = instance.FrameworkPrefix + "ServiceErrorSourceDecorator"
-	errorCodeSourceDecoratorComponentName = instance.FrameworkPrefix + "ErrorCodeSourceDecorator"
+	errorCodeSourceDecoratorComponentName = instance.FrameworkPrefix + "errorCodeSourceDecorator"
 )
 
-// Constructs an instance of ServiceErrorManager and registers it as a component.
+// FacilityBuilder constructs an instance of ServiceErrorManager and registers it as a component.
 type FacilityBuilder struct {
 }
 
-// See FacilityBuilder.BuildAndRegister
+// BuildAndRegister implements FacilityBuilder.BuildAndRegister
 func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	manager := new(ge.ServiceErrorManager)
@@ -39,11 +39,11 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 
 	cn.WrapAndAddProto(serviceErrorManagerComponentName, manager)
 
-	errorDecorator := new(ConsumerDecorator)
+	errorDecorator := new(consumerDecorator)
 	errorDecorator.ErrorSource = manager
 	cn.WrapAndAddProto(serviceErrorDecoratorComponentName, errorDecorator)
 
-	codeDecorator := new(ErrorCodeSourceDecorator)
+	codeDecorator := new(errorCodeSourceDecorator)
 	codeDecorator.ErrorSource = manager
 	cn.WrapAndAddProto(errorCodeSourceDecoratorComponentName, codeDecorator)
 
@@ -63,12 +63,12 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 	return nil
 }
 
-// See FacilityBuilder.FacilityName
+// FacilityName implements FacilityBuilder.FacilityName
 func (fb *FacilityBuilder) FacilityName() string {
 	return "ServiceErrorManager"
 }
 
-// See FacilityBuilder.DependsOnFacilities
+// DependsOnFacilities implements FacilityBuilder.DependsOnFacilities
 func (fb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

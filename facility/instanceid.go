@@ -8,7 +8,7 @@ import (
 	"github.com/graniticio/granitic/v2/ioc"
 )
 
-// Decorator to inject an Identifier into components that need to be aware of the current application instance's
+// InstanceIDDecorator injects an Identifier into components that need to be aware of the current application instance's
 // ID.
 type InstanceIDDecorator struct {
 	// The instance identity that will be injected into components.

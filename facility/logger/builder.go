@@ -21,12 +21,12 @@ import (
 const applicationLoggingDecoratorName = instance.FrameworkPrefix + "ApplicationLoggingDecorator"
 const applicationLoggingManagerName = instance.FrameworkPrefix + "ApplicationLoggingManager"
 
-// Creates a new logging.ComponentLoggerManager for application components and updates the framework's ComponentLoggerManager
+// FacilityBuilder creates a new logging.ComponentLoggerManager for application components and updates the framework's ComponentLoggerManager
 // (which was bootstraped with a command-line supplied global log level) with the application's logging configuration.
 type FacilityBuilder struct {
 }
 
-// See FacilityBuilder.BuildAndRegister
+// BuildAndRegister implements FacilityBuilder.BuildAndRegister
 func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 	globalLogLevelLabel, err := ca.StringVal("ApplicationLogger.GlobalLogLevel")
 
@@ -80,13 +80,13 @@ func (alfb *FacilityBuilder) addRuntimeCommands(ca *config.Accessor, alm *loggin
 	gll.ApplicationManager = alm
 	gll.FrameworkManager = flm
 
-	cn.WrapAndAddProto(GLLComponentName, gll)
+	cn.WrapAndAddProto(GlobalLogCommand, gll)
 
 	llc := new(logLevelCommand)
 	llc.ApplicationManager = alm
 	llc.FrameworkManager = flm
 
-	cn.WrapAndAddProto(LLComponentName, llc)
+	cn.WrapAndAddProto(LogLevelComponentName, llc)
 
 }
 
@@ -140,12 +140,12 @@ func (alfb *FacilityBuilder) error(suffix string) error {
 
 }
 
-// See FacilityBuilder.FacilityName
+// FacilityName implements FacilityBuilder.FacilityName
 func (alfb *FacilityBuilder) FacilityName() string {
 	return "ApplicationLogging"
 }
 
-// See FacilityBuilder.DependsOnFacilities
+// DependsOnFacilities implements FacilityBuilder.DependsOnFacilities
 func (alfb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

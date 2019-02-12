@@ -115,7 +115,7 @@ func ExpectNil(t *testing.T, check interface{}) bool {
 	return false
 }
 
-// ExpectNil stops a test and logs an error if the value to check is nil
+// ExpectNotNil stops a test and logs an error if the value to check is nil
 func ExpectNotNil(t *testing.T, check interface{}) bool {
 	if check != nil {
 		return true

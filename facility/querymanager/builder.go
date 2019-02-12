@@ -92,19 +92,19 @@ import (
 	"github.com/graniticio/granitic/v2/logging"
 )
 
-// The name of the query manager in the IoC container.
+// QueryManagerComponentName is the name of the query manager in the IoC container.
 const QueryManagerComponentName = instance.FrameworkPrefix + "QueryManager"
 
-// The name of the facility
+// QueryManagerFacilityName is the name of the facility
 const QueryManagerFacilityName = "QueryManager"
 
 const processorDecorator = instance.FrameworkPrefix + "ParamValueProcessorDecorator"
 
-// Creates an instance of dsquery.QueryManager and stores it in the IoC container.
+// FacilityBuilder creates an instance of dsquery.QueryManager and stores it in the IoC container.
 type FacilityBuilder struct {
 }
 
-// See FacilityBuilder.BuildAndRegister
+// BuildAndRegister implements FacilityBuilder.BuildAndRegister
 func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	queryManager := new(dsquery.TemplatedQueryManager)
@@ -151,12 +151,12 @@ func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 	return nil
 }
 
-// See FacilityBuilder.FacilityName
+// FacilityName implements FacilityBuilder.FacilityName
 func (qmfb *FacilityBuilder) FacilityName() string {
 	return QueryManagerFacilityName
 }
 
-// See FacilityBuilder.DependsOnFacilities
+// DependsOnFacilities implements FacilityBuilder.DependsOnFacilities
 func (qmfb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

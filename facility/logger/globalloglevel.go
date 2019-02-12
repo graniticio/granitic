@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	GLLComponentName = instance.FrameworkPrefix + "CommandGlobalLevel"
+	// GlobalLogCommand is the name of the component able to alter log levels at runtime
+	GlobalLogCommand = instance.FrameworkPrefix + "CommandGlobalLevel"
 	gllCommandName   = "global-level"
 	gllSummary       = "Views or sets the global logging threshold for application or framework components."
 	gllUsage         = "global-level [level] [-fw true]"
@@ -91,18 +92,22 @@ func (c *globalLogLevelCommand) showCurrentLevel(args map[string]string) (*ctl.C
 
 }
 
+// Name returns the command's name
 func (c *globalLogLevelCommand) Name() string {
 	return gllCommandName
 }
 
+// Summary returns an explanation of what the command does
 func (c *globalLogLevelCommand) Summmary() string {
 	return gllSummary
 }
 
+// Usage defines how to invoke the command
 func (c *globalLogLevelCommand) Usage() string {
 	return gllUsage
 }
 
+// Help give detailed information about the command
 func (c *globalLogLevelCommand) Help() []string {
 	return []string{gllHelp, gllHelpTwo}
 }

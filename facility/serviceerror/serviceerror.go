@@ -62,26 +62,26 @@ import (
 	"github.com/graniticio/granitic/v2/ws"
 )
 
-type ConsumerDecorator struct {
+type consumerDecorator struct {
 	ErrorSource *grncerror.ServiceErrorManager
 }
 
-func (secd *ConsumerDecorator) OfInterest(component *ioc.Component) bool {
+func (secd *consumerDecorator) OfInterest(component *ioc.Component) bool {
 	_, found := component.Instance.(ws.ServiceErrorConsumer)
 
 	return found
 }
 
-func (secd *ConsumerDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+func (secd *consumerDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
 	c := component.Instance.(ws.ServiceErrorConsumer)
 	c.ProvideErrorFinder(secd.ErrorSource)
 }
 
-type ErrorCodeSourceDecorator struct {
+type errorCodeSourceDecorator struct {
 	ErrorSource *grncerror.ServiceErrorManager
 }
 
-func (ecs *ErrorCodeSourceDecorator) OfInterest(component *ioc.Component) bool {
+func (ecs *errorCodeSourceDecorator) OfInterest(component *ioc.Component) bool {
 	s, found := component.Instance.(grncerror.ErrorCodeUser)
 
 	if found {
@@ -91,7 +91,7 @@ func (ecs *ErrorCodeSourceDecorator) OfInterest(component *ioc.Component) bool {
 	return found
 }
 
-func (ecs *ErrorCodeSourceDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
+func (ecs *errorCodeSourceDecorator) DecorateComponent(component *ioc.Component, container *ioc.ComponentContainer) {
 	c := component.Instance.(grncerror.ErrorCodeUser)
 
 	ecs.ErrorSource.RegisterCodeUser(c)
