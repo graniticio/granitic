@@ -28,20 +28,20 @@ import (
 	"strconv"
 )
 
-// Implemented by a type that acts as a wrapper round a native type to track whether a value has actually been set.
+// Nilable is implemented by a type that acts as a wrapper round a native type to track whether a value has actually been set.
 type Nilable interface {
 
-	// Convert the contained value to JSON or nil if no value is set.
+	// MarshalJSON converts the contained value to JSON or nil if no value is set.
 	MarshalJSON() ([]byte, error)
 
-	// Populate the type with the supplied JSON value or ignore if value is JSON null
+	// UnmarshalJSON populates the type with the supplied JSON value or ignore if value is JSON null
 	UnmarshalJSON(b []byte) error
 
-	// Whether or not the value in this type was explicitly set
+	// IsSet returns true if the value in this type was explicitly set
 	IsSet() bool
 }
 
-// Create a new NilableString with the supplied value.
+// NewNilableString creates a new NilableString with the supplied value.
 func NewNilableString(v string) *NilableString {
 	ns := new(NilableString)
 	ns.Set(v)
@@ -49,7 +49,7 @@ func NewNilableString(v string) *NilableString {
 	return ns
 }
 
-// Create a new NilableBool with the supplied value.
+// NewNilableBool creates a new NilableBool with the supplied value.
 func NewNilableBool(b bool) *NilableBool {
 	nb := new(NilableBool)
 	nb.Set(b)
@@ -57,7 +57,7 @@ func NewNilableBool(b bool) *NilableBool {
 	return nb
 }
 
-// Create a new NilableInt64 with the supplied value.
+// NewNilableInt64 creates a new NilableInt64 with the supplied value.
 func NewNilableInt64(i int64) *NilableInt64 {
 	ni := new(NilableInt64)
 	ni.Set(i)
@@ -65,7 +65,7 @@ func NewNilableInt64(i int64) *NilableInt64 {
 	return ni
 }
 
-// Create a new NilableFloat64 with the supplied value.
+// NewNilableFloat64 creates a new NilableFloat64 with the supplied value.
 func NewNilableFloat64(f float64) *NilableFloat64 {
 	nf := new(NilableFloat64)
 	nf.Set(f)
@@ -73,13 +73,13 @@ func NewNilableFloat64(f float64) *NilableFloat64 {
 	return nf
 }
 
-// A string where it can be determined if "" is an explicitly set value, or just the default zero value
+// NilableString is a string where it can be determined if "" is an explicitly set value, or just the default zero value
 type NilableString struct {
 	val string
 	set bool
 }
 
-// See Nilable.MarshalJSON
+// MarshalJSON implements Nilable.MarshalJSON
 func (ns *NilableString) MarshalJSON() ([]byte, error) {
 
 	if ns.set {
@@ -89,7 +89,7 @@ func (ns *NilableString) MarshalJSON() ([]byte, error) {
 	return nil, nil
 }
 
-// See Nilable.UnmarshalJSON
+// UnmarshalJSON implements Nilable.UnmarshalJSON
 func (ns *NilableString) UnmarshalJSON(b []byte) error {
 	json.Unmarshal(b, &ns.val)
 	ns.set = true
@@ -104,23 +104,23 @@ func (ns *NilableString) Set(v string) {
 	ns.set = true
 }
 
-// The currently stored value (whether or not it has been explicitly set).
+// String returns the currently stored value (whether or not it has been explicitly set).
 func (ns *NilableString) String() string {
 	return ns.val
 }
 
-// See Nilable.IsSet
+// IsSet implements Nilable.IsSet
 func (ns *NilableString) IsSet() bool {
 	return ns.set
 }
 
-// A bool where it can be determined if false is an explicitly set value, or just the default zero value.
+// NilableBool is a bool where it can be determined if false is an explicitly set value, or just the default zero value.
 type NilableBool struct {
 	val bool
 	set bool
 }
 
-// See Nilable.MarshalJSON
+// MarshalJSON implements Nilable.MarshalJSON
 func (nb *NilableBool) MarshalJSON() ([]byte, error) {
 
 	if nb.set {
@@ -130,7 +130,7 @@ func (nb *NilableBool) MarshalJSON() ([]byte, error) {
 	return nil, nil
 }
 
-// See Nilable.UnmarshalJSON
+// UnmarshalJSON implements Nilable.UnmarshalJSON
 func (nb *NilableBool) UnmarshalJSON(b []byte) error {
 	s := string(b)
 
@@ -154,28 +154,28 @@ func (nb *NilableBool) Set(v bool) {
 	nb.set = true
 }
 
-// See Nilable.IsSet
+// IsSet implements Nilable.IsSet
 func (nb *NilableBool) IsSet() bool {
 	return nb.set
 }
 
-// The currently stored value (whether or not it has been explicitly set).
+// Bool returns the currently stored value (whether or not it has been explicitly set).
 func (nb *NilableBool) Bool() bool {
 	return nb.val
 }
 
-// An int64 where it can be determined if 0 is an explicitly set value, or just the default zero value.
+// NilableInt64 is an int64 where it can be determined if 0 is an explicitly set value, or just the default zero value.
 type NilableInt64 struct {
 	val int64
 	set bool
 }
 
-// See Nilable.IsSet
+// IsSet implements Nilable.IsSet
 func (ni *NilableInt64) IsSet() bool {
 	return ni.set
 }
 
-// See Nilable.MarshalJSON
+// MarshalJSON implements Nilable.MarshalJSON
 func (ni *NilableInt64) MarshalJSON() ([]byte, error) {
 
 	if ni.set {
@@ -185,7 +185,7 @@ func (ni *NilableInt64) MarshalJSON() ([]byte, error) {
 	return nil, nil
 }
 
-// See Nilable.UnmarshalJSON
+// UnmarshalJSON implements Nilable.UnmarshalJSON
 func (ni *NilableInt64) UnmarshalJSON(b []byte) error {
 	s := string(b)
 
@@ -208,23 +208,23 @@ func (ni *NilableInt64) Set(v int64) {
 	ni.set = true
 }
 
-// The currently stored value (whether or not it has been explicitly set).
+// Int64 returns the currently stored value (whether or not it has been explicitly set).
 func (ni *NilableInt64) Int64() int64 {
 	return ni.val
 }
 
-// An float64 where it can be determined if 0 is an explicitly set value, or just the default zero value.
+// NilableFloat64 is a float64 where it can be determined if 0 is an explicitly set value, or just the default zero value.
 type NilableFloat64 struct {
 	val float64
 	set bool
 }
 
-// See Nilable.IsSet
+// IsSet implements Nilable.IsSet
 func (nf *NilableFloat64) IsSet() bool {
 	return nf.set
 }
 
-// See Nilable.MarshalJSON
+// MarshalJSON implements Nilable.MarshalJSON
 func (nf *NilableFloat64) MarshalJSON() ([]byte, error) {
 
 	if nf.set {
@@ -234,7 +234,7 @@ func (nf *NilableFloat64) MarshalJSON() ([]byte, error) {
 	return nil, nil
 }
 
-// See Nilable.UnmarshalJSON
+// UnmarshalJSON implements Nilable.UnmarshalJSON
 func (nf *NilableFloat64) UnmarshalJSON(b []byte) error {
 	s := string(b)
 	v, err := strconv.ParseFloat(s, 64)
@@ -257,7 +257,7 @@ func (nf *NilableFloat64) Set(v float64) {
 	nf.set = true
 }
 
-// The currently stored value (whether or not it has been explicitly set).
+// Float64 returns the currently stored value (whether or not it has been explicitly set).
 func (nf *NilableFloat64) Float64() float64 {
 	return nf.val
 }

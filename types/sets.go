@@ -3,7 +3,7 @@
 
 package types
 
-// A new UnorderedStringSet seeded with the supplied strings.
+// NewUnorderedStringSet creats a new UnorderedStringSet seeded with the supplied strings.
 func NewUnorderedStringSet(m []string) *UnorderedStringSet {
 	ss := new(UnorderedStringSet)
 	ss.members = make(map[string]bool)
@@ -14,17 +14,17 @@ func NewUnorderedStringSet(m []string) *UnorderedStringSet {
 	return ss
 }
 
-// An empty OrderedStringSet
+// NewEmptyOrderedStringSet creates an empty OrderedStringSet
 func NewEmptyOrderedStringSet() *OrderedStringSet {
 	return NewOrderedStringSet([]string{})
 }
 
-// An empty UnorderedStringSet
+// NewEmptyUnorderedStringSet creates an empty UnorderedStringSet
 func NewEmptyUnorderedStringSet() *UnorderedStringSet {
 	return NewUnorderedStringSet([]string{})
 }
 
-// An OrderedStringSet with the supplied strings added to the new set in the provided order.
+// NewOrderedStringSet creates an OrderedStringSet with the supplied strings added to the new set in the provided order.
 func NewOrderedStringSet(m []string) *OrderedStringSet {
 	os := new(OrderedStringSet)
 
@@ -38,32 +38,32 @@ func NewOrderedStringSet(m []string) *OrderedStringSet {
 	return os
 }
 
-// Common behaviour for an ordered or unordered set of strings.
+// StringSet defines common behaviour for an ordered or unordered set of strings.
 type StringSet interface {
-	// Whether or not the set contains the supplied string.
+	// Contains returns true if the set contains the supplied string
 	Contains(m string) bool
 
-	// Add the supplied string to the set. If the set already contains the supplied value, it is ignored.
+	// Add adds the supplied string to the set. If the set already contains the supplied value, it is ignored.
 	Add(s string)
 
-	// The members of the set a string slice.
+	// Contents returns the members of the set as a string slice
 	Contents() []string
 
-	// The number of members of the set.
+	// Size returns the number of members of the set.
 	Size() int
 
-	// Add all the members of the supplied set to this set.
+	// AddAll adds all the members of the supplied set to this set.
 	AddAll(os StringSet)
 }
 
-// A set of strings where the order in which the strings were added to the set is not recorded.
+// An UnorderedStringSet is a set of strings where the order in which the strings were added to the set is not recorded.
 //
 // This type is not goroutine safe and not recommended for the storage large number of strings.
 type UnorderedStringSet struct {
 	members map[string]bool
 }
 
-// See StringSet.AddAll
+// AddAll implements StringSet.AddAll
 func (us *UnorderedStringSet) AddAll(ss StringSet) {
 
 	for _, m := range ss.Contents() {
@@ -71,7 +71,7 @@ func (us *UnorderedStringSet) AddAll(ss StringSet) {
 	}
 }
 
-// See StringSet.Size
+// Size implements StringSet.Size
 func (us *UnorderedStringSet) Size() int {
 	return len(us.members)
 }
@@ -88,26 +88,25 @@ func (us *UnorderedStringSet) Contents() []string {
 
 }
 
-// See StringSet.Contains
+// Contains implements StringSet.Contains
 func (us *UnorderedStringSet) Contains(m string) bool {
 	return us.members[m]
 }
 
-// See StringSet.Enqueue
+// Add implements StringSet.Add
 func (us *UnorderedStringSet) Add(s string) {
 	us.members[s] = true
 }
 
-// A set of strings where the order in which the strings were added to the set is preserved. Calls to Contents will
+// An OrderedStringSet is a set of strings where the order in which the strings were added to the set is preserved. Calls to Contents will
 // return the strings in the same order in which they were added.
-
 // This type is not goroutine safe and not recommended for the storage of large number of strings.
 type OrderedStringSet struct {
 	members *UnorderedStringSet
 	ordered []string
 }
 
-// See StringSet.AddAll
+// AddAll implements StringSet.AddAll
 func (os *OrderedStringSet) AddAll(ss StringSet) {
 
 	for _, m := range ss.Contents() {
@@ -115,12 +114,12 @@ func (os *OrderedStringSet) AddAll(ss StringSet) {
 	}
 }
 
-// See StringSet.Contains
+// Contains implements StringSet.Contains
 func (os *OrderedStringSet) Contains(m string) bool {
 	return os.members.Contains(m)
 }
 
-// See StringSet.Enqueue
+// Add implements StringSet.Add
 func (os *OrderedStringSet) Add(s string) {
 
 	if os.ordered == nil {
@@ -139,7 +138,7 @@ func (os *OrderedStringSet) Contents() []string {
 	return os.ordered
 }
 
-// See StringSet.Size
+// Size implements StringSet.Size
 func (os *OrderedStringSet) Size() int {
 	return len(os.ordered)
 }
