@@ -57,16 +57,21 @@ const (
 	emptyStructAlias  = "es:"
 )
 
+// A DefinitionLoader handles the loading of component definition files from a sequence of file paths and can write
+// a merged version of those files to a location on a filesystem.
 type DefinitionLoader interface {
 	LoadAndMerge(files []string) (map[string]interface{}, error)
 	WriteMerged(data map[string]interface{}, path string) error
 }
 
+// Binder translates the components defined in component definition files into Go source code.
 type Binder struct {
 	Loader   DefinitionLoader
 	ToolName string
 }
 
+// Bind loads component definitions files from disk/network, merges those files into a single
+// view of components and then converts the merged view into Go source code.
 func (b *Binder) Bind() {
 	var confLocation = flag.String(confLocationFlag, confLocationDefault, confLocationHelp)
 	var bindingsFile = flag.String(bindingsFileFlag, bindingsFileDefault, bindingsFileHelp)
@@ -89,6 +94,9 @@ func (b *Binder) Bind() {
 	b.writeBindings(w, ca)
 }
 
+// SerialiseBuiltinConfig takes the configuration files for Granitic's internal components (facilities) found in
+// resource/facility-config and serialises them into a single string that will be embedded into your application's
+// executable.
 func SerialiseBuiltinConfig() string {
 	gh := config.GraniticHome()
 

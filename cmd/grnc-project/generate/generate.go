@@ -8,10 +8,16 @@ import (
 	"path/filepath"
 )
 
+// TemplateConfigWriter creates a skeleton Granitic configuration file in the supplied location
 type TemplateConfigWriter func(confDir string, pg *ProjectGenerator)
+
+// TemplateComponentWriter creates a skeleton Granitic component definition file in the supplied location
 type TemplateComponentWriter func(confDir string, pg *ProjectGenerator)
+
+// MainFileContentWriter creates a Go source file with main function that initialises and passes control to Granitic
 type MainFileContentWriter func(w *bufio.Writer, pp string)
 
+// ProjectGenerator creates a blank Granitic project that is ready to build and start
 type ProjectGenerator struct {
 	ConfWriterFunc TemplateConfigWriter
 	CompWriterFunc TemplateComponentWriter
@@ -19,6 +25,7 @@ type ProjectGenerator struct {
 	ToolName       string
 }
 
+// Generate creates the folder structure and blank/skeleton files for a new Granitic project that will be ready to build
 func (pg *ProjectGenerator) Generate() {
 	a := os.Args
 
@@ -98,6 +105,7 @@ func (pg *ProjectGenerator) writeGitIgnore(name string) {
 
 }
 
+// OpenOutputFile opens the supplied file path in create mode. Exits if there is a problem opening the file.
 func (pg *ProjectGenerator) OpenOutputFile(p string) *os.File {
 	os.MkdirAll(path.Dir(p), 0755)
 
