@@ -23,34 +23,31 @@ const dotPathSep = "."
 func SetPtrToStruct(target interface{}, field string, valuePointer interface{}) error {
 
 	if !IsPointerToStruct(target) {
-		return errors.New("Target is not a pointer to a struct.")
+		return errors.New("target is not a pointer to a struct")
 	}
 
 	if !IsPointerToStruct(valuePointer) {
-		return errors.New("Value supplied to set on the target is not a pointer to a struct.")
+		return errors.New("value supplied to set on the target is not a pointer to a struct")
 	}
 
 	tv := reflect.ValueOf(target).Elem()
 	vp := reflect.ValueOf(valuePointer)
 
 	if !HasFieldOfName(target, field) {
-		m := fmt.Sprintf("Target does not have a field called %s", field)
-		return errors.New(m)
+		return fmt.Errorf("target does not have a field called %s", field)
 	}
 
 	tfv := tv.FieldByName(field)
 
 	if !tfv.CanSet() {
-		m := fmt.Sprintf("Field %s on target cannot be set. Has the field been exported?", field)
-		return errors.New(m)
+		return fmt.Errorf("field %s on target cannot be set. Check that the field been exported", field)
 	}
 
 	if tfv.Kind() == reflect.Interface {
 		if vp.Type().Implements(tfv.Type()) {
 			tfv.Set(vp)
 		} else {
-			m := fmt.Sprintf("Supplied value (type %s) does not implement the interface (%s) required by the target field %s", vp.Elem().Type().Name(), tfv.Type().Name(), field)
-			return errors.New(m)
+			return fmt.Errorf("supplied value (type %s) does not implement the interface (%s) required by the target field %s", vp.Elem().Type().Name(), tfv.Type().Name(), field)
 		}
 
 	}
@@ -62,27 +59,27 @@ func SetPtrToStruct(target interface{}, field string, valuePointer interface{}) 
 	return nil
 }
 
-func SetFieldPtrToStruct(tfv reflect.Value, valuePointer interface{}) error {
+// SetFieldPtrToStruct assigns the supplied object to the supplied reflect Value (which represents a field on a struct). Returns an
+// error if the supplied type is an interface and the target field cannot be set o
+func SetFieldPtrToStruct(field reflect.Value, valuePointer interface{}) error {
 
 	vp := reflect.ValueOf(valuePointer)
 
-	if !tfv.CanSet() {
-		m := fmt.Sprintf("Field cannot be set")
-		return errors.New(m)
+	if !field.CanSet() {
+		return fmt.Errorf("field cannot be set")
 	}
 
-	if tfv.Kind() == reflect.Interface {
-		if vp.Type().Implements(tfv.Type()) {
-			tfv.Set(vp)
+	if field.Kind() == reflect.Interface {
+		if vp.Type().Implements(field.Type()) {
+			field.Set(vp)
 		} else {
-			m := fmt.Sprintf("Supplied value (type %s) does not implement the interface (%s) required by the target field", vp.Elem().Type().Name(), tfv.Type().Name())
-			return errors.New(m)
+			return fmt.Errorf("supplied value (type %s) does not implement the interface (%s) required by the target field", vp.Elem().Type().Name(), field.Type().Name())
 		}
 
 	}
 
-	if vp.Type().AssignableTo(tfv.Type()) {
-		tfv.Set(vp)
+	if vp.Type().AssignableTo(field.Type()) {
+		field.Set(vp)
 	}
 
 	return nil
@@ -95,7 +92,7 @@ func NilPointer(v reflect.Value) bool {
 
 }
 
-// NilPointer returns true is the supplied reflect value is a Map and is nil.
+// NilMap returns true is the supplied reflect value is a Map and is nil.
 func NilMap(v reflect.Value) bool {
 
 	return v.Kind() == reflect.Map && v.IsNil()
@@ -122,6 +119,7 @@ func IsPointerToStruct(p interface{}) bool {
 	return true
 }
 
+//IsPointer returns true if the supplied object is a pointer type
 func IsPointer(p interface{}) bool {
 	pv := reflect.ValueOf(p)
 	pvk := pv.Kind()
@@ -138,7 +136,7 @@ func HasFieldOfName(i interface{}, fieldName string) bool {
 	return f.IsValid()
 }
 
-// HasFieldOfName assumes the supplied interface is a pointer to a struct and checks to see if the underlying struct
+// HasWritableFieldOfName assumes the supplied interface is a pointer to a struct and checks to see if the underlying struct
 // has a writable field of the supplied name.
 func HasWritableFieldOfName(i interface{}, fieldName string) bool {
 	r := reflect.ValueOf(i).Elem()
@@ -213,6 +211,7 @@ func TargetFieldIsArray(i interface{}, name string) bool {
 	return TypeOfField(i, name).Kind() == reflect.Array
 }
 
+// IsSliceOrArray returns true if the supplied value is a slice or an array
 func IsSliceOrArray(i interface{}) bool {
 	pv := reflect.ValueOf(i)
 	pvk := pv.Kind()
