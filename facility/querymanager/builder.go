@@ -74,7 +74,7 @@ not available when a query is built.
 Parameter Values
 
 Parameter values are injected into the query using a component called a ParamValueProcessor. Granitic includes two
-built-in implementations - ConfigurableProcessor and SqlProcessor. These components a) decide how to handle missing parameter
+built-in implementations - ConfigurableProcessor and SQLProcessor. These components a) decide how to handle missing parameter
 values and b) perform any escaping/subsititution/conversion of values before they are injected into the query.
 
 To enable one of the default processors, set QueryManager.ProcessorName to configurable or sql (the default is configurable). If
@@ -140,7 +140,7 @@ func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 		vp = new(dsquery.ConfigurableProcessor)
 	} else if vpName == "sql" {
 
-		vp = new(dsquery.SqlProcessor)
+		vp = new(dsquery.SQLProcessor)
 
 	}
 

@@ -110,12 +110,12 @@ import (
   "github.com/graniticio/granitic/v2/logging"
 )
 
-type MySqlProvider struct {
+type MySQLProvider struct {
   Config *mysql.Config
   Log logging.Logger
 }
 
-func (p *MySqlProvider) Database() (*sql.DB, error) {
+func (p *MySQLProvider) Database() (*sql.DB, error) {
   dsn := p.Config.FormatDSN()
   
   if db, err := sql.Open("mysql", dsn); err == nil {
@@ -138,7 +138,7 @@ and a component to store your connection parameters:
 
 ```json
 "dbProvider": {
-  "type": "db.MySqlProvider",
+  "type": "db.MySQLProvider",
   "Config": "ref:dbConnection"
 },
 

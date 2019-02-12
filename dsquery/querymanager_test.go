@@ -143,7 +143,7 @@ func buildQueryManager() *TemplatedQueryManager {
 
 	qm := new(TemplatedQueryManager)
 	qm.QueryIDPrefix = "ID:"
-	qm.ValueProcessor = new(SqlProcessor)
+	qm.ValueProcessor = new(SQLProcessor)
 	qm.TrimIDWhiteSpace = true
 	qm.VarMatchRegEx = "\\$\\{([^\\}]*)\\}"
 	qm.NewLine = "\n"
