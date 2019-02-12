@@ -24,21 +24,21 @@ import (
 	"time"
 )
 
-// The prefix for all Granitic owned components stored in the IoC container to namespace them apart from user defined
+// FrameworkPrefix is the prefix for the name of all Granitic owned components stored in the IoC container to namespace them apart from user defined
 // components. It is strongly recommended (but not enforced) that user components do not use this prefix for their own names.
 const FrameworkPrefix = "grnc"
 
-// Immediately exit the application with the return value 1 to signify a problem. Does not cleanly stop IoC components.
+// ExitError immediately exits your application with the return value 1 to signify a problem. Does not cleanly stop IoC components.
 func ExitError() {
 	os.Exit(1)
 }
 
-// Immediately exit the application with the return value 0 to signify a normal exit. Does not cleanly stop IoC components.
+// ExitNormal immediately exits your application with the return value 0 to signify a normal exit. Does not cleanly stop IoC components.
 func ExitNormal() {
 	os.Exit(0)
 }
 
-// A structure used by the implicit System facility to control start, stop and some memory management behaviour.
+// System is used by the implicit System facility to control start, stop and some memory management behaviour.
 type System struct {
 	//The interval (in milliseconds) between checks of blocking components during the start->available lifecycle phase transition.
 	BlockIntervalMS time.Duration
@@ -68,17 +68,17 @@ type System struct {
 	StopTriesBeforeWarn int
 }
 
-// The name of the component in the IoC container holding an instance ID.
+// IDComponent is the name of the component in the IoC container holding an instance ID.
 const IDComponent = FrameworkPrefix + "InstanceIdentifier"
 
-// A structure used to store the ID of a particular instance of a Granitic application. See the granitic package
+// Identifier is used to store the ID of a particular instance of a Granitic application. See the granitic package
 // documentation for instructions on how to define the ID at application start time.
 type Identifier struct {
 	// A identifier for this instance application.
 	ID string
 }
 
-// Implemented by any component that needs to be aware of the ID of the current application instance.
+// Receiver is implemented by any component that needs to be aware of the ID of the current application instance.
 type Receiver interface {
 	// RegisterInstanceID is automatically called by the IoC container to inject the instance ID.
 	RegisterInstanceID(*Identifier)
