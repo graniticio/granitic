@@ -152,7 +152,7 @@ func (im *invocationManager) attemptRetry(i *invocation) (bool, time.Time) {
 		return false, time.Now()
 	}
 
-	i.attempt += 1
+	i.attempt++
 	i.runAt = retryTime
 	i.reason = RETRY
 

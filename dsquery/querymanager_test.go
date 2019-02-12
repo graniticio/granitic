@@ -104,7 +104,7 @@ func NamedVarCount(tokens []*queryTemplateToken) int {
 
 		if token.Type == varNameToken {
 
-			count += 1
+			count++
 		}
 
 	}

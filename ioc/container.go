@@ -309,7 +309,7 @@ func (cc *ComponentContainer) runDecorators(decorators map[string]ComponentDecor
 
 	for {
 		<-done
-		doneCount += 1
+		doneCount++
 
 		if doneCount >= decs {
 			break

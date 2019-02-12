@@ -868,7 +868,7 @@ func (r *mockRows) Next(dest []driver.Value) error {
 		dest[i] = v
 	}
 
-	r.served += 1
+	r.served++
 
 	return nil
 }

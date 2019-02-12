@@ -294,7 +294,7 @@ func (lm *LifecycleManager) countBlocking(warn bool) (int, []string) {
 		block, err := ab.BlockAccess()
 
 		if block {
-			notReady += 1
+			notReady++
 			names = append(names, c.Name)
 			if warn {
 				if err != nil {
@@ -321,7 +321,7 @@ func (lm *LifecycleManager) countNotReady(warn bool) int {
 		ready, err := s.ReadyToStop()
 
 		if !ready {
-			notReady += 1
+			notReady++
 
 			if warn {
 				if err != nil {

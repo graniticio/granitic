@@ -54,11 +54,11 @@ func (dhscd *GraniticHTTPStatusCodeDeterminer) determineCodeFromErrors(errors *S
 			i, _ := strconv.Atoi(error.Code)
 			return i
 		case Security:
-			sCount += 1
+			sCount++
 		case Logic:
-			lCount += 1
+			lCount++
 		case Client:
-			cCount += 1
+			cCount++
 		}
 	}
 
