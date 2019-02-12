@@ -34,7 +34,7 @@ func NewAuthenticatedIdentity(loggableUserID string) ClientIdentity {
 	return i
 }
 
-// Create a new ClientIdentity for an anonymous user. The ClientIdentity will be marked as non-authenticated,
+// NewAnonymousIdentity creates a new ClientIdentity for an anonymous user. The ClientIdentity will be marked as non-authenticated,
 // anonymous and have a dash (-) as the loggable user ID.
 func NewAnonymousIdentity() ClientIdentity {
 	i := make(ClientIdentity)
@@ -45,7 +45,7 @@ func NewAnonymousIdentity() ClientIdentity {
 	return i
 }
 
-// A semi-structured type allowing applications to define their own representation of Identity.
+// ClientIdentity is a semi-structured type allowing applications to define their own representation of Identity.
 type ClientIdentity map[string]interface{}
 
 // SetAuthenticated marks this as an authenticated (true) or unauthenticated (false) Identity.
