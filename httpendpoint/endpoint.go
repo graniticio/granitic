@@ -28,7 +28,7 @@ type HandlerMethods struct {
 	Handler http.Handler
 }
 
-// Implemented by a component that is able to support a web-service request with a particular path.
+// Provider is implemented by a component that is able to support a web-service request with a particular path.
 type Provider interface {
 	//SupportedHTTPMethods returns the HTTP methods (GET, POST, PUT etc) that the endpoint supports.
 	SupportedHTTPMethods() []string
@@ -52,7 +52,7 @@ type Provider interface {
 	AutoWireable() bool
 }
 
-// A semi-structured type to allow applications flexibility in defining what a 'version' is.
+// RequiredVersion is a semi-structured type to allow applications flexibility in defining what a 'version' is.
 type RequiredVersion map[string]interface{}
 
 // RequestedVersionExtractor is implemented by applications to create a component that can determine what version of

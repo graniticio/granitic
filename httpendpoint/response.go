@@ -5,7 +5,7 @@ package httpendpoint
 
 import "net/http"
 
-// A wrapper over http.ResponseWriter that provides Granitic with better visibility on the state of response writing.
+// HTTPResponseWriter is a wrapper over http.ResponseWriter that provides Granitic with better visibility on the state of response writing.
 type HTTPResponseWriter struct {
 	rw http.ResponseWriter
 	// Whether or not any data has already been sent to the underlying http.ResponseWriter.
@@ -45,7 +45,7 @@ func (w *HTTPResponseWriter) WriteHeader(i int) {
 	w.DataSent = true
 }
 
-// Create a new WsHTTPResponseWriter wrapping the supplied http.ResponseWriter
+// NewHTTPResponseWriter creates a new HTTPResponseWriter wrapping the supplied http.ResponseWriter
 func NewHTTPResponseWriter(rw http.ResponseWriter) *HTTPResponseWriter {
 	w := new(HTTPResponseWriter)
 	w.rw = rw
