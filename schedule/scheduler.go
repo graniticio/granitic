@@ -110,7 +110,7 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Ta
 
 	}
 
-	tm := NewInvocationManager(task)
+	tm := newInvocationManager(task)
 	ts.managedTasks = append(ts.managedTasks, tm)
 	tm.Log = ts.FrameworkLogManager.CreateLogger(task.Component + "TaskManager")
 

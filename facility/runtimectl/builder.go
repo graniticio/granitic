@@ -210,16 +210,16 @@ func (fb *FacilityBuilder) createBuiltinCommands(lm *logging.ComponentLoggerMana
 	cs := new(componentsCommand)
 	fb.addCommand(cc, componentsCommandComp, cs)
 
-	stopc := NewStopCommand()
+	stopc := newStopCommand()
 	fb.addCommand(cc, stopCommandComp, stopc)
 
-	startc := NewStartCommand()
+	startc := newStartCommand()
 	fb.addCommand(cc, startCommandName, startc)
 
-	suspendc := NewSuspendCommand()
+	suspendc := newSuspendCommand()
 	fb.addCommand(cc, suspendCommandName, suspendc)
 
-	resumec := NewResumeCommand()
+	resumec := newResumeCommand()
 	fb.addCommand(cc, resumeCommandName, resumec)
 
 }

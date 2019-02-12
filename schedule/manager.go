@@ -10,7 +10,7 @@ import (
 
 const firstRunFormat = "2006-01-02 15:04:05"
 
-func NewInvocationManager(t *Task) *invocationManager {
+func newInvocationManager(t *Task) *invocationManager {
 
 	im := new(invocationManager)
 	im.Task = t

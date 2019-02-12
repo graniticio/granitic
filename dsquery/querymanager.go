@@ -416,7 +416,7 @@ func (qt *queryTemplate) AddFragmentContent(fragment string) {
 	t := qt.currentToken
 
 	if t == nil || t.Type != fragmentToken {
-		t = NewQueryTemplateToken(fragmentToken)
+		t = newQueryTemplateToken(fragmentToken)
 		qt.Tokens = append(qt.Tokens, t)
 		qt.currentToken = t
 	}
@@ -439,7 +439,7 @@ func (qt *queryTemplate) AddIndexedVar(index int) {
 	qt.closeFragmentToken()
 	t := qt.currentToken
 
-	t = NewQueryTemplateToken(varIndexToken)
+	t = newQueryTemplateToken(varIndexToken)
 	t.Index = index
 
 	qt.Tokens = append(qt.Tokens, t)
@@ -451,7 +451,7 @@ func (qt *queryTemplate) AddLabelledVar(label string) {
 	qt.closeFragmentToken()
 	t := qt.currentToken
 
-	t = NewQueryTemplateToken(varNameToken)
+	t = newQueryTemplateToken(varNameToken)
 	t.Content = label
 
 	qt.Tokens = append(qt.Tokens, t)
@@ -477,7 +477,7 @@ type queryTemplateToken struct {
 	Index   int
 }
 
-func NewQueryTemplateToken(tokenType queryTokenType) *queryTemplateToken {
+func newQueryTemplateToken(tokenType queryTokenType) *queryTemplateToken {
 	token := new(queryTemplateToken)
 	token.Type = tokenType
 

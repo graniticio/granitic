@@ -406,7 +406,7 @@ func extractCommandArgs(args []string) (map[string]string, []string) {
 
 func extractToolArgs(args []string) (*toolArgs, []string) {
 
-	ta := NewToolArgs()
+	ta := newToolArgs()
 
 	remain := make([]string, 0)
 	al := len(args)
@@ -491,7 +491,7 @@ type ctlCommandRequest struct {
 	Arguments  map[string]string
 }
 
-func NewToolArgs() *toolArgs {
+func newToolArgs() *toolArgs {
 	ta := new(toolArgs)
 
 	ta.Host = defaultHost

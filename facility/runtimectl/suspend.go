@@ -25,7 +25,7 @@ const (
 )
 
 // Create a variant of the lifecycleCommand configured as the suspend command.
-func NewSuspendCommand() *lifecycleCommand {
+func newSuspendCommand() *lifecycleCommand {
 
 	sc := new(lifecycleCommand)
 
@@ -44,7 +44,7 @@ func NewSuspendCommand() *lifecycleCommand {
 }
 
 // Create a variant of the lifecycleCommand configured as the resume command.
-func NewResumeCommand() *lifecycleCommand {
+func newResumeCommand() *lifecycleCommand {
 
 	sc := new(lifecycleCommand)
 

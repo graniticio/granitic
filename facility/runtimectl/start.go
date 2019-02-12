@@ -18,7 +18,7 @@ const (
 )
 
 // Create a variant of the lifecycleCommand configured as the start command.
-func NewStartCommand() *lifecycleCommand {
+func newStartCommand() *lifecycleCommand {
 
 	sc := new(lifecycleCommand)
 

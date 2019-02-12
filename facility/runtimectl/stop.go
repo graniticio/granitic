@@ -19,7 +19,7 @@ const (
 )
 
 // Create a variant of the lifecycleCommand configured as the stop command.
-func NewStopCommand() *lifecycleCommand {
+func newStopCommand() *lifecycleCommand {
 
 	sc := new(lifecycleCommand)
 
