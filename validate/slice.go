@@ -174,7 +174,7 @@ func (sv *SliceValidationRule) checkElementContents(field string, slice reflect.
 
 		switch tv := v.(type) {
 		case *StringValidationRule:
-			vc.Subject, err, nilable = sv.stringValue(e, fa)
+			vc.Subject, nilable, err = sv.stringValue(e, fa)
 			stringElement = true
 		case *IntValidationRule:
 			vc.Subject, err = tv.toInt64(fa, e.Interface())
@@ -221,18 +221,18 @@ func (sv *SliceValidationRule) overwriteStringValue(v reflect.Value, ns *types.N
 
 }
 
-func (sv *SliceValidationRule) stringValue(v reflect.Value, fa string) (*types.NilableString, error, bool) {
+func (sv *SliceValidationRule) stringValue(v reflect.Value, fa string) (*types.NilableString, bool, error) {
 
 	s := v.Interface()
 
 	switch s := s.(type) {
 	case *types.NilableString:
-		return s, nil, true
+		return s, true, nil
 	case string:
-		return types.NewNilableString(s), nil, false
+		return types.NewNilableString(s), false, nil
 	default:
 		m := fmt.Sprintf("%s is not a string or *NilableString", fa)
-		return nil, errors.New(m), false
+		return nil, false, errors.New(m)
 	}
 
 }
