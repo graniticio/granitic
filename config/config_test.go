@@ -71,7 +71,7 @@ func TestFindConfigFiles(t *testing.T) {
 
 	p := test.FilePath("folders")
 
-	r, err := FindConfigFilesInDir(p)
+	r, err := FindJSONFilesInDir(p)
 
 	test.ExpectNil(t, err)
 

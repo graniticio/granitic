@@ -11,10 +11,10 @@ import (
 	"path/filepath"
 )
 
-// FindConfigFilesInDir finds all files with a .json extension in the supplied directory path, recursively checking
+// FindJSONFilesInDir finds all files with a .json extension in the supplied directory path, recursively checking
 // sub-directories. Note that each directory's contents are examined and added to the list of files lexicographically,
 // so any files in a sub-directory 'b' would appear in the resulting list of files before 'c.json'
-func FindConfigFilesInDir(dirPath string) ([]string, error) {
+func FindJSONFilesInDir(dirPath string) ([]string, error) {
 
 	contents, err := ioutil.ReadDir(dirPath)
 
@@ -34,7 +34,7 @@ func FindConfigFilesInDir(dirPath string) ([]string, error) {
 
 			fmt.Println(dp)
 
-			if sub, err := FindConfigFilesInDir(dp); err == nil {
+			if sub, err := FindJSONFilesInDir(dp); err == nil {
 				files = append(files, sub...)
 			} else {
 				return nil, err

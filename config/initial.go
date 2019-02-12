@@ -50,7 +50,7 @@ func GraniticHome() string {
 
 	resourcePath := filepath.Join(graniticPath, "resource", "facility-config")
 
-	if _, err := FindConfigFilesInDir(resourcePath); err != nil {
+	if _, err := FindJSONFilesInDir(resourcePath); err != nil {
 		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", graniticPath, graniticHomeEnvVar, goPathEnvVar)
 		instance.ExitError()
 	}

@@ -102,7 +102,7 @@ func SerialiseBuiltinConfig() string {
 
 	ghr := path.Join(gh, "resource", "facility-config")
 
-	if fcf, err := config.FindConfigFilesInDir(ghr); err != nil {
+	if fcf, err := config.FindJSONFilesInDir(ghr); err != nil {
 		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", gh, "GRANITIC_HOME", "GOPATH")
 		instance.ExitError()
 	} else {
