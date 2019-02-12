@@ -317,7 +317,7 @@ func (cc *ComponentContainer) runDecorators(decorators map[string]ComponentDecor
 
 	}
 
-	for n, _ := range decorators {
+	for n := range decorators {
 		delete(cc.allComponents, n)
 	}
 }

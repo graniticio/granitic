@@ -113,7 +113,7 @@ func parseEveryFromGivenNow(every string, now time.Time) (*interval, error) {
 
 	if len(tokens) == 2 {
 
-		i.Mode = OFFSET_FROM_START
+		i.Mode = OffsetFromStart
 		i.CalculatedAt = now
 
 		return i, nil
@@ -155,7 +155,7 @@ func configureRunAtModifier(offset string, i *interval, now time.Time) error {
 	}
 
 	i.ActualStart = calculateFirstRun(te, i.Frequency)
-	i.Mode = ACTUAL_START_TIME
+	i.Mode = ActualStartTime
 
 	return nil
 }
@@ -298,8 +298,8 @@ type interval struct {
 type intervalMode int
 
 const (
-	OFFSET_FROM_START intervalMode = iota
-	ACTUAL_START_TIME
+	OffsetFromStart intervalMode = iota
+	ActualStartTime
 )
 
 type intervalToken struct {

@@ -80,7 +80,7 @@ func (us *UnorderedStringSet) Size() int {
 func (us *UnorderedStringSet) Contents() []string {
 	c := make([]string, 0)
 
-	for k, _ := range us.members {
+	for k := range us.members {
 		c = append(c, k)
 	}
 

@@ -43,7 +43,7 @@ func NewParamsForQuery(values url.Values) *Params {
 
 	var names []string
 
-	for k, _ := range values {
+	for k := range values {
 		names = append(names, k)
 	}
 

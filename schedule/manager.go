@@ -215,7 +215,7 @@ func (im *invocationManager) setFirstInvocation() {
 
 	i := newInvocation(1, im.Task.MaxRetries, SCHEDULED)
 
-	if interval.Mode == OFFSET_FROM_START {
+	if interval.Mode == OffsetFromStart {
 		i.runAt = time.Now().Add(interval.OffsetFromStart)
 	} else {
 		i.runAt = interval.ActualStart

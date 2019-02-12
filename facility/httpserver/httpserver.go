@@ -311,7 +311,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 			ctx = idCtx.(context.Context)
 			requestID = h.IDContextBuilder.ID(idCtx)
 
-			instrumentor.Amend(instrument.REQUEST_ID, requestID)
+			instrumentor.Amend(instrument.RequestID, requestID)
 
 			if h.FrameworkLogger.IsLevelEnabled(logging.Trace) {
 				h.FrameworkLogger.LogTracef("Request ID: %s\n", requestID)
@@ -371,7 +371,7 @@ func (h *HTTPServer) versionMatch(ri instrument.Instrumentor, r *http.Request, p
 
 	version := h.VersionExtractor.Extract(r)
 
-	ri.Amend(instrument.REQUEST_VERSION, version)
+	ri.Amend(instrument.RequestVersion, version)
 
 	return p.SupportsVersion(version)
 

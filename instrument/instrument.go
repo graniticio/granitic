@@ -13,10 +13,10 @@ import (
 type Additional uint
 
 const (
-	REQUEST_ID      Additional = iota //string representation of a unique ID for the request
-	REQUEST_VERSION                   //instance of ws.RequiredVersion
-	USER_IDENTITY                     //instance of iam.ClientIdentity
-	HANDLER                           //The handler that is processing the request (*ws.Handler)
+	RequestID      Additional = iota //string representation of a unique ID for the request
+	RequestVersion                   //instance of ws.RequiredVersion
+	UserIdentity                     //instance of iam.ClientIdentity
+	Handler                          //The handler that is processing the request (*ws.Handler)
 )
 
 // Instrumentor is implemented by types that can add additional information to a request that is being instrumented in
