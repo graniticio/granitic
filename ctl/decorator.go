@@ -8,7 +8,7 @@ import (
 	"github.com/graniticio/granitic/v2/logging"
 )
 
-// Used by the Granitic IoC container to discover components implementing ctl.Command and registering them with an instance
+// CommandDecorator is used by the Granitic IoC container to discover components implementing ctl.Command and registering them with an instance
 // of ctl.CommandManager.
 type CommandDecorator struct {
 	// Logger used by Granitic framework components. Automatically injected.

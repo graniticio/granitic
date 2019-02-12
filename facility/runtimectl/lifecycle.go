@@ -14,8 +14,11 @@ import (
 type ownershipFilter int
 
 const (
+	// All indicates that all components (framework and application) should be included
 	All = iota
+	// FrameworkOwned indicates that only components owned by Granitic should be included
 	FrameworkOwned
+	// ApplicationOwned indicates that only components owned by the application should be included
 	ApplicationOwned
 )
 
@@ -66,7 +69,7 @@ func (c *lifecycleCommand) invokeAll(args map[string]string) (*ctl.CommandOutput
 	} else if allowStopCtlServer {
 		sm = c.filterFunc(c.container, includeFramework)
 	} else {
-		sm = c.filterFunc(c.container, includeFramework, RuntimeCtlServer)
+		sm = c.filterFunc(c.container, includeFramework, Server)
 	}
 
 	if len(sm) == 0 {

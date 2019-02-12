@@ -52,6 +52,7 @@ func includeRuntime(args map[string]string) (bool, error) {
 	return boolArg(args, rcArg)
 }
 
+// OperateOnFramework returns true if framework components should be included in whatever command is being invoked.
 func OperateOnFramework(args map[string]string) (bool, error) {
 	return boolArg(args, fwArg)
 }

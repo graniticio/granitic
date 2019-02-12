@@ -18,6 +18,7 @@ package ctl
 
 import "github.com/graniticio/granitic/v2/ws"
 
+// A Command represents an instruction that can be sent to Granitic to operate on a running instance of an application.
 type Command interface {
 	// ExecuteCommand is called when grnc-ctl is used to invoke a command that matches this Command's Name() method.
 	// It is expected to execute whatever functionality is represented by the Command and describe the outcome in a
@@ -39,7 +40,7 @@ type Command interface {
 	Help() []string
 }
 
-// Convenience type to support sorting of slices of Commands.
+// Commands is a convenience type to support sorting of slices of Commands.
 type Commands []Command
 
 // Len returns the number of Commands in the slice.
@@ -48,7 +49,7 @@ func (s Commands) Len() int { return len(s) }
 // Swap swaps the position of two Commands in a slice.
 func (s Commands) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
-// Wrapping type to allow sorting of Commands by name
+// ByName is a wrapping type to allow sorting of Commands by name
 type ByName struct{ Commands }
 
 // Less returns true if the Command at index i has a name lexicographically earlier than the Command at index j.
@@ -78,17 +79,17 @@ type CommandOutput struct {
 	RenderHint renderMode
 }
 
-// Creates a new *ws.CategorisedError of type ws.Client with the supplied message.
+// NewCommandClientError creates a new *ws.CategorisedError of type ws.Client with the supplied message.
 func NewCommandClientError(message string) *ws.CategorisedError {
 	return ws.NewCategorisedError(ws.Client, commandError, message)
 }
 
-// Creates a new *ws.CategorisedError of type ws.Logic with the supplied message.
+// NewCommandLogicError creates a new *ws.CategorisedError of type ws.Logic with the supplied message.
 func NewCommandLogicError(message string) *ws.CategorisedError {
 	return ws.NewCategorisedError(ws.Logic, commandError, message)
 }
 
-// Creates a new *ws.CategorisedError of type ws.Unexpected with the supplied message.
+// NewCommandUnexpectedError creates a new *ws.CategorisedError of type ws.Unexpected with the supplied message.
 func NewCommandUnexpectedError(message string) *ws.CategorisedError {
 	return ws.NewCategorisedError(ws.Unexpected, commandError, message)
 }

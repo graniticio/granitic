@@ -62,7 +62,8 @@ import (
 )
 
 const (
-	RuntimeCtlServer           = instance.FrameworkPrefix + "CtlServer"
+	// Server is the component name that will be used for the runtime control server
+	Server                     = instance.FrameworkPrefix + "CtlServer"
 	runtimeCtlLogic            = instance.FrameworkPrefix + "CtlLogic"
 	runtimeCtlResponseWriter   = instance.FrameworkPrefix + "CtlResponseWriter"
 	runtimeCtlFrameworkErrors  = instance.FrameworkPrefix + "CtlFrameworkErrors"
@@ -81,15 +82,17 @@ const (
 	defaultValidationCode      = "INV_CTL_REQUEST"
 )
 
+//FacilityBuilder creates and configures the RuntimeCtl facility.
 type FacilityBuilder struct {
 }
 
+// BuildAndRegister creates new instances of the structs that make up the RuntimeCtl facility, configures them and adds them to the IOC container.
 func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
 
 	sv := new(httpserver.HTTPServer)
 	ca.Populate("RuntimeCtl.Server", sv)
 
-	cc.WrapAndAddProto(RuntimeCtlServer, sv)
+	cc.WrapAndAddProto(Server, sv)
 
 	rw := new(ws.MarshallingResponseWriter)
 	ca.Populate("RuntimeCtl.ResponseWriter", rw)
@@ -228,10 +231,12 @@ func (fb *FacilityBuilder) addCommand(cc *ioc.ComponentContainer, name string, c
 	cc.WrapAndAddProto(name, c)
 }
 
+// FacilityName returns the canonical name of this facility (RuntimeCtl)
 func (fb *FacilityBuilder) FacilityName() string {
 	return "RuntimeCtl"
 }
 
+// DependsOnFacilities returns the list of other facilities that must be running in order to use RuntimeCtl (none)
 func (fb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
