@@ -55,7 +55,7 @@ func NewTemplatedQueryManager() *TemplatedQueryManager {
 	return qm
 }
 
-// An implementation of QueryManager that reads files containing template queries, tokenizes them and populates them
+// TemplatedQueryManager is an implementation of QueryManager that reads files containing template queries, tokenizes them and populates them
 // on demand with maps of named parameters. This is the implementation provided by the QueryManager facility. See
 // http://granitic.io/1.0/ref/query-manager for details.
 type TemplatedQueryManager struct {
@@ -89,7 +89,7 @@ type TemplatedQueryManager struct {
 	state              ioc.ComponentState
 }
 
-// See QueryManager.FragmentFromID
+// FragmentFromID implements QueryManager.FragmentFromID
 func (qm *TemplatedQueryManager) FragmentFromID(qid string) (string, error) {
 
 	f := qm.fragments[qid]
@@ -110,7 +110,7 @@ func (qm *TemplatedQueryManager) FragmentFromID(qid string) (string, error) {
 
 }
 
-// See QueryManager.BuildQueryFromID
+// BuildQueryFromID implements QueryManager.BuildQueryFromID
 func (qm *TemplatedQueryManager) BuildQueryFromID(qid string, params map[string]interface{}) (string, error) {
 	template := qm.tokenisedTemplates[qid]
 
@@ -149,7 +149,7 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 
 			paramValue := params[key]
 
-			vc := ParamValueContext{
+			vc := paramValueContext{
 				Value:   paramValue,
 				Key:     key,
 				QueryID: qid,
