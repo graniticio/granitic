@@ -1,5 +1,6 @@
 // Copyright 2018-2019 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
+
 package instrument
 
 import (
@@ -13,10 +14,14 @@ import (
 type Additional uint
 
 const (
-	RequestID      Additional = iota //string representation of a unique ID for the request
-	RequestVersion                   //instance of ws.RequiredVersion
-	UserIdentity                     //instance of iam.ClientIdentity
-	Handler                          //The handler that is processing the request (*ws.Handler)
+	//RequestID marks a string representation of a unique ID for the request
+	RequestID Additional = iota
+	//RequestVersion marks an instance of ws.RequiredVersion
+	RequestVersion
+	//UserIdentity marks instance of iam.ClientIdentity
+	UserIdentity
+	//Handler is he handler that is processing the request (*ws.Handler)
+	Handler
 )
 
 // Instrumentor is implemented by types that can add additional information to a request that is being instrumented in
@@ -64,6 +69,8 @@ func AddInstrumentorToContext(ctx context.Context, ri Instrumentor) context.Cont
 	return context.WithValue(ctx, instrumentorKey, ri)
 }
 
+// EndEvent is a function that is returned when an instrumentation event is started and should be called
+// when the event ends
 type EndEvent func()
 
 // Event is convenience function that calls InstrumentorFromContext then StartEvent. This function
