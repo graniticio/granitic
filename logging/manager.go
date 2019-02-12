@@ -19,7 +19,7 @@ func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLe
 	return clm
 }
 
-// Creates new Logger instances for a particular scope (e.g. framework or application).
+// ComponentLoggerManager creates new Logger instances for a particular scope (e.g. framework or application).
 type ComponentLoggerManager struct {
 	created         map[string]*GraniticLogger
 	initialLevels   map[string]interface{}
@@ -28,13 +28,13 @@ type ComponentLoggerManager struct {
 	formatter       *LogMessageFormatter
 }
 
-// Finds a previously created Logger by the name it was given when it was created. Returns nil if no Logger
+// LoggerByName finds a previously created Logger by the name it was given when it was created. Returns nil if no Logger
 // by that name exists.
 func (clm *ComponentLoggerManager) LoggerByName(name string) *GraniticLogger {
 	return clm.created[name]
 }
 
-// Returns the current local log level for all Loggers managed by this component.
+// CurrentLevels returns the current local log level for all Loggers managed by this component.
 func (clm *ComponentLoggerManager) CurrentLevels() []*ComponentLevel {
 
 	cls := make([]*ComponentLevel, 0)
@@ -52,12 +52,12 @@ func (clm *ComponentLoggerManager) CurrentLevels() []*ComponentLevel {
 	return cls
 }
 
-// Returns the global log level for the scope (application, framework) that this ComponentLoggerManager is responsible for.
+// GlobalLevel returns the global log level for the scope (application, framework) that this ComponentLoggerManager is responsible for.
 func (clm *ComponentLoggerManager) GlobalLevel() LogLevel {
 	return clm.globalThreshold
 }
 
-// Updates the writers and formatters of all Loggers managed by this ComponentLoggerManager.
+// UpdateWritersAndFormatter updates the writers and formatters of all Loggers managed by this ComponentLoggerManager.
 func (clm *ComponentLoggerManager) UpdateWritersAndFormatter(writers []LogWriter, formatter *LogMessageFormatter) {
 	clm.writers = writers
 
@@ -66,13 +66,13 @@ func (clm *ComponentLoggerManager) UpdateWritersAndFormatter(writers []LogWriter
 	}
 }
 
-// Sets the global log level for the scope (application, framework) that this ComponentLoggerManager is responsible for.
+// SetGlobalThreshold sets the global log level for the scope (application, framework) that this ComponentLoggerManager is responsible for.
 func (clm *ComponentLoggerManager) SetGlobalThreshold(globalThreshold LogLevel) {
 
 	clm.globalThreshold = globalThreshold
 }
 
-// Provide a map of component names to log levels. If a Logger is subsequently created for a component named in the map,
+// SetInitialLogLevels provide a map of component names to log levels. If a Logger is subsequently created for a component named in the map,
 // the log level in the map will be used to set its local log threshold.
 func (clm *ComponentLoggerManager) SetInitialLogLevels(ll map[string]interface{}) {
 
@@ -93,7 +93,7 @@ func (clm *ComponentLoggerManager) SetInitialLogLevels(ll map[string]interface{}
 	}
 }
 
-// Create a new Logger for the supplied component name
+// CreateLogger creates a new Logger for the supplied component name
 func (clm *ComponentLoggerManager) CreateLogger(componentID string) Logger {
 
 	if clm.created[componentID] != nil {
@@ -117,7 +117,7 @@ func (clm *ComponentLoggerManager) CreateLogger(componentID string) Logger {
 	return clm.CreateLoggerAtLevel(componentID, threshold)
 }
 
-// Create a new Logger for the supplied component name with the local log threshold set to the supplied level.
+// CreateLoggerAtLevel creates a new Logger for the supplied component name with the local log threshold set to the supplied level.
 func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentID string, threshold LogLevel) Logger {
 	l := new(GraniticLogger)
 	l.global = clm
@@ -132,12 +132,12 @@ func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentID string, thres
 	return l
 }
 
-// Does nothing
+// PrepareToStop does nothing
 func (clm *ComponentLoggerManager) PrepareToStop() {
 
 }
 
-// Returns false if any of the LogWriters attached to this component are actively writing.
+// ReadyToStop returns false if any of the LogWriters attached to this component are actively writing.
 func (clm *ComponentLoggerManager) ReadyToStop() (bool, error) {
 
 	for _, w := range clm.writers {
@@ -149,7 +149,7 @@ func (clm *ComponentLoggerManager) ReadyToStop() (bool, error) {
 	return true, nil
 }
 
-// Closes all LogWriters attached to this component.
+// Stop closes all LogWriters attached to this component.
 func (clm *ComponentLoggerManager) Stop() error {
 
 	for _, w := range clm.writers {
@@ -159,17 +159,23 @@ func (clm *ComponentLoggerManager) Stop() error {
 	return nil
 }
 
-// Pairs a component named and its loglevel for sorting and presentation through RuntimeCtl
+// ComponentLevel pairs a component name and its loglevel for sorting and presentation through RuntimeCtl
 type ComponentLevel struct {
 	Name  string
 	Level LogLevel
 }
 
+// ComponentLevels allows a slice of ComponentLevel structs to be sorted
 type ComponentLevels []*ComponentLevel
 
-func (s ComponentLevels) Len() int      { return len(s) }
+// Len supports sorting
+func (s ComponentLevels) Len() int { return len(s) }
+
+// Swap supports sorting
 func (s ComponentLevels) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
+// ByName allows ComponentLevels to be sorted by name
 type ByName struct{ ComponentLevels }
 
+// Less supports sorting by name
 func (s ByName) Less(i, j int) bool { return s.ComponentLevels[i].Name < s.ComponentLevels[j].Name }

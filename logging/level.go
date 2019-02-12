@@ -9,26 +9,40 @@ import (
 	"strings"
 )
 
-// Numeric score of the significance of a message, where zero is non-significant and higher values are more significant.
+// LogLevel is the numeric score of the significance of a message, where zero is non-significant and higher values are more significant.
 type LogLevel uint
 
 const (
-	All   = 0
+	// All allows all messages to be logged
+	All = 0
+	// Trace allows messages with a significance of Trace or higher to be logged
 	Trace = 10
+	// Debug allows messages with a significance of Debug or higher to be logged
 	Debug = 20
-	Info  = 40
-	Warn  = 50
+	// Info allows messages with a significance of Info or higher to be logged
+	Info = 40
+	// Warn allows messages with a significance of Warn or higher to be logged
+	Warn = 50
+	// Error allows messages with a significance of Error or higher to be logged
 	Error = 60
+	// Fatal allows messages with a significance of Fatal or higher to be logged
 	Fatal = 70
 )
 
 const (
-	AllLabel   = "ALL"
+	//AllLabel maps the string ALL to the numeric log level All
+	AllLabel = "ALL"
+	//TraceLabel maps the string TRACE to the numeric log level Trace
 	TraceLabel = "TRACE"
+	//DebugLabel maps the string DEBUG to the numeric log level Debug
 	DebugLabel = "DEBUG"
-	InfoLabel  = "INFO"
-	WarnLabel  = "WARN"
+	//InfoLabel maps the string INFO to the numeric log level Debug
+	InfoLabel = "INFO"
+	//WarnLabel maps the string WARN to the numeric log level Warn
+	WarnLabel = "WARN"
+	//ErrorLabel maps the string ERROR to the numeric log level Error
 	ErrorLabel = "ERROR"
+	//FatalLabel maps the string FATAL to the numeric log level Fatal
 	FatalLabel = "FATAL"
 )
 

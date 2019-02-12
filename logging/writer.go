@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// Implemented by components able to write a log message (to a file, console etc)
+// LogWriter is implemented by components able to write a log message (to a file, console etc)
 type LogWriter interface {
 	// WriteMessage request that the supplied message be written. Depending on implementation, may be asynchronous.
 	WriteMessage(string)
@@ -22,25 +22,25 @@ type LogWriter interface {
 	Busy() bool
 }
 
-// Implementation of LogWriter that sends messages to the console/stdout using the fmt.Print method
+// ConsoleWriter is an implementation of LogWriter that sends messages to the console/stdout using the fmt.Print method
 type ConsoleWriter struct {
 }
 
-// Passes message to fmt.Print
+// WriteMessage passes message to fmt.Print
 func (cw *ConsoleWriter) WriteMessage(m string) {
 	fmt.Print(m)
 }
 
-// Does nothing
+// Close does nothing
 func (cw *ConsoleWriter) Close() {
 }
 
-// Always returns false
+// Busy always returns false
 func (cw *ConsoleWriter) Busy() bool {
 	return false
 }
 
-// Implementation of LogWriter that appends a message to a file. Messages will be written
+// AsynchFileWriter is an implementation of LogWriter that appends a message to a file. Messages will be written
 // asynchronously as long as the number of messages queued for writing does not exceed the value of BufferSize
 type AsynchFileWriter struct {
 	messages chan string
@@ -72,7 +72,7 @@ func (afw *AsynchFileWriter) watchLineBuffer() {
 	}
 }
 
-// Creates a channel to act as a buffer for queued messages
+// Init creates a channel to act as a buffer for queued messages
 func (afw *AsynchFileWriter) Init() error {
 
 	afw.messages = make(chan string, afw.BufferSize)
@@ -102,12 +102,12 @@ func (afw *AsynchFileWriter) openFile() error {
 	return nil
 }
 
-// Closes the log file
+// Close closes the log file
 func (afw *AsynchFileWriter) Close() {
 	afw.logFile.Close()
 }
 
-// Returns true if one or more messages are queued for writing.
+// Busy returns true if one or more messages are queued for writing.
 func (afw *AsynchFileWriter) Busy() bool {
 
 	return len(afw.messages) > 0

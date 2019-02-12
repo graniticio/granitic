@@ -9,28 +9,28 @@ import (
 	"runtime"
 )
 
-// An implementation of logging.Logger that writes errors and fatal messages to the console/command line using Go's fmt.Printf function.
+// ConsoleErrorLogger is an implementation of logging.Logger that writes errors and fatal messages to the console/command line using Go's fmt.Printf function.
 // Messages at all other levels are ignored. This implementation is used by Granitic's command line tools and is not
 // recommended for use in user applications.
 type ConsoleErrorLogger struct {
 }
 
-// Ignored - messages sent to this method are discarded.
+// LogTracefCtx is ignored - messages sent to this method are discarded.
 func (l *ConsoleErrorLogger) LogTracefCtx(ctx context.Context, s string, a ...interface{}) {
 	return
 }
 
-// Ignored - messages sent to this method are discarded.
+// LogDebugfCtx is ignored - messages sent to this method are discarded.
 func (l *ConsoleErrorLogger) LogDebugfCtx(ctx context.Context, s string, a ...interface{}) {
 	return
 }
 
-// Ignored - messages sent to this method are discarded.
+// LogInfofCtx is ignored - messages sent to this method are discarded.
 func (l *ConsoleErrorLogger) LogInfofCtx(ctx context.Context, s string, a ...interface{}) {
 	return
 }
 
-// Ignored - messages sent to this method are discarded.
+// LogWarnfCtx is ignored - messages sent to this method are discarded.
 func (l *ConsoleErrorLogger) LogWarnfCtx(ctx context.Context, s string, a ...interface{}) {
 	return
 }
@@ -57,22 +57,22 @@ func (l *ConsoleErrorLogger) LogAtLevelfCtx(ctx context.Context, level LogLevel,
 	}
 }
 
-// Ignored - messages sent to this method are discarded.
+// LogTracef is ignored - messages sent to this method are discarded.
 func (l *ConsoleErrorLogger) LogTracef(format string, a ...interface{}) {
 	return
 }
 
-// Ignored - messages sent to this method are discarded.
+// LogDebugf is ignored - messages sent to this method are discarded.
 func (l *ConsoleErrorLogger) LogDebugf(format string, a ...interface{}) {
 	return
 }
 
-// Ignored - messages sent to this method are discarded.
+// LogInfof is ignored - messages sent to this method are discarded.
 func (l *ConsoleErrorLogger) LogInfof(format string, a ...interface{}) {
 	return
 }
 
-// Ignored - messages sent to this method are discarded.
+// LogWarnf is ignored - messages sent to this method are discarded.
 func (l *ConsoleErrorLogger) LogWarnf(format string, a ...interface{}) {
 	return
 }
@@ -82,7 +82,7 @@ func (l *ConsoleErrorLogger) LogErrorf(format string, a ...interface{}) {
 	fmt.Printf(format+"\n", a...)
 }
 
-// LogErrorf uses fmt.printf to write the supplied message to the console and appends
+// LogErrorfWithTrace uses fmt.printf to write the supplied message to the console and appends
 // a stack trace.
 func (l *ConsoleErrorLogger) LogErrorfWithTrace(format string, a ...interface{}) {
 	trace := make([]byte, 2048)

@@ -13,9 +13,12 @@ import (
 	"time"
 )
 
-// The default prefix format for log lines
+// PresetFormatFramework is the  default prefix format for log lines
 const PresetFormatFramework = "%{02/Jan/2006:15:04:05 Z0700}t %P [%c] "
+
+// FrameworkPresetPrefix is the flag used in configuration to indicate your app wants to use the default format for log lines
 const FrameworkPresetPrefix = "framework"
+
 const formatRegex = "\\%[a-zA-Z]|\\%\\%|\\%{[^}]*}[a-zA-Z]"
 const varModifiedRegex = "\\%{([^}]*)}([a-zA-Z])"
 const percent = "%"
@@ -91,7 +94,7 @@ func NewFrameworkLogMessageFormatter() *LogMessageFormatter {
 	return lmf
 }
 
-// A component able to take a message to be written to a log file and prefix it with a formatted template
+// A LogMessageFormatter is a component able to take a message to be written to a log file and prefix it with a formatted template
 // which can include log times, data from a Context etc.
 type LogMessageFormatter struct {
 	elements []*prefixElement
@@ -193,18 +196,18 @@ func (lmf *LogMessageFormatter) findValue(element *prefixElement, levelLabel, lo
 
 }
 
-// Checks that a valid format has been provided for the log message prefixes.
+// Init checks that a valid format has been provided for the log message prefixes.
 func (lmf *LogMessageFormatter) Init() error {
 
 	f := lmf.PrefixFormat
 	pre := lmf.PrefixPreset
 
 	if f == "" && pre == "" {
-		return errors.New("You must specify either a format for the prefix to log messages or the name of a preset format (neither has been provided).")
+		return errors.New("you must specify either a format for the prefix to log messages or the name of a preset format (neither has been provided)")
 	}
 
 	if f != "" && pre != "" {
-		return errors.New("You must specify either a format for the prefix to log messages OR the name of a preset format (BOTH have been provided).")
+		return errors.New("you must specify either a format for the prefix to log messages OR the name of a preset format (BOTH have been provided)")
 	}
 
 	if f != "" {
