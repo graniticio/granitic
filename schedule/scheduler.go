@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+// TaskScheduler is the top level Granitic component for managing the scheduled invocation of tasks
 type TaskScheduler struct {
 	componentContainer *ioc.ComponentContainer
 	managedTasks       []*invocationManager
@@ -21,7 +22,7 @@ type TaskScheduler struct {
 	FrameworkLogManager *logging.ComponentLoggerManager
 }
 
-// Implements ioc.ContainerAccessor
+// Container implements ioc.ContainerAccessor.Container
 func (ts *TaskScheduler) Container(container *ioc.ComponentContainer) {
 	ts.componentContainer = container
 }
@@ -63,6 +64,7 @@ func (ts *TaskScheduler) StartComponent() error {
 	return nil
 }
 
+// AllowAccess spawns a goroutinue managing each scheduled task
 func (ts *TaskScheduler) AllowAccess() error {
 
 	for _, tm := range ts.managedTasks {
@@ -168,6 +170,7 @@ func (ts *TaskScheduler) findLogic(cn *ioc.ComponentContainer, task *Task) error
 	return nil
 }
 
+// PrepareToStop calls the same method of each of the managed Tasks
 func (ts *TaskScheduler) PrepareToStop() {
 
 	for _, tm := range ts.managedTasks {
@@ -178,6 +181,7 @@ func (ts *TaskScheduler) PrepareToStop() {
 
 }
 
+// ReadyToStop only returns true when each of the managed tasks report that they are ReadyToStop
 func (ts *TaskScheduler) ReadyToStop() (bool, error) {
 
 	ready := true
@@ -211,6 +215,8 @@ func (ts *TaskScheduler) ReadyToStop() (bool, error) {
 	return false, err
 }
 
+// Stop calls the same method on each of the managed tasks. Any errors returned when stopping
+// the underlying tasks are concatenated together and returned as a single error
 func (ts *TaskScheduler) Stop() error {
 	var buffer bytes.Buffer
 

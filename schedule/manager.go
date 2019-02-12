@@ -55,7 +55,7 @@ func (im *invocationManager) Start() {
 				// The time at which this invocation was scheduled to run has arrived (or passed)
 				im.scheduled.Dequeue()
 
-				if next.reason == SCHEDULED && !task.Disabled {
+				if next.reason == Scheduled && !task.Disabled {
 					im.addNextInvocation(next)
 				}
 
@@ -154,7 +154,7 @@ func (im *invocationManager) attemptRetry(i *invocation) (bool, time.Time) {
 
 	i.attempt++
 	i.runAt = retryTime
-	i.reason = RETRY
+	i.reason = Retry
 
 	im.scheduled.EnqueueAtHead(i)
 
@@ -213,7 +213,7 @@ func (im *invocationManager) setFirstInvocation() {
 
 	interval := im.Interval
 
-	i := newInvocation(1, im.Task.MaxRetries, SCHEDULED)
+	i := newInvocation(1, im.Task.MaxRetries, Scheduled)
 
 	if interval.Mode == OffsetFromStart {
 		i.runAt = time.Now().Add(interval.OffsetFromStart)
@@ -237,7 +237,7 @@ func (im *invocationManager) addNextInvocation(previous *invocation) time.Time {
 
 	interval := im.Interval
 
-	i := newInvocation(previous.counter+1, im.Task.MaxRetries, SCHEDULED)
+	i := newInvocation(previous.counter+1, im.Task.MaxRetries, Scheduled)
 	i.runAt = previous.runAt.Add(interval.Frequency)
 
 	im.scheduled.EnqueueAtTail(i)

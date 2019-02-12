@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	//LLComponentName is the name of the component that handles the management of scheduled tasks
 	LLComponentName = instance.FrameworkPrefix + "CommandScheduledTasks"
 	llCommandName   = "task"
 	llSummary       = "Shows information about all scheduled tasks or invokes/suspends a specified task"

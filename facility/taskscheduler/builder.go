@@ -11,8 +11,9 @@ import (
 	"github.com/graniticio/granitic/v2/schedule"
 )
 
-// The name of the TaskScheduler component as stored in the IoC framework.
 const facilityName = "TaskScheduler"
+
+//TaskSchedulerComponentName is the name of the TaskScheduler component as stored in the IoC framework.
 const TaskSchedulerComponentName = instance.FrameworkPrefix + facilityName
 
 // Creates the components that make up the TaskScheduler facility

@@ -48,6 +48,7 @@ type Task struct {
 	retryWait time.Duration
 }
 
+// FullName returns either task name + ID, just task name or just ID depending on which fields are set
 func (t *Task) FullName() string {
 
 	if t.ID == "" {
@@ -60,6 +61,7 @@ func (t *Task) FullName() string {
 
 }
 
+// StatusMessagef creates a TaskStatusUpdate with the supplied message
 func StatusMessagef(format string, a ...interface{}) TaskStatusUpdate {
 	message := fmt.Sprintf(format, a...)
 
@@ -69,19 +71,23 @@ func StatusMessagef(format string, a ...interface{}) TaskStatusUpdate {
 
 }
 
+// TaskStatusUpdate allows a task to communicate back to its manager some status.
 type TaskStatusUpdate struct {
 	Message string
 	Status  interface{}
 }
 
+// TaskLogic is implemented by any component that can be invoked via a scheduled task
 type TaskLogic interface {
 	ExecuteTask(c chan TaskStatusUpdate) error
 }
 
+// TaskStatusUpdateReceiver is implemented by a component that wants to receive status updates about an invocation of a task
 type TaskStatusUpdateReceiver interface {
 	Receive(summary TaskInvocationSummary, update TaskStatusUpdate)
 }
 
+// TaskInvocationSummary meta-data about a task invocation
 type TaskInvocationSummary struct {
 	TaskName        string
 	TaskID          string

@@ -5,16 +5,19 @@ package schedule
 
 import "fmt"
 
+// NewAllowRetryErrorf creates a an AllowRetryError with the supplied message
 func NewAllowRetryErrorf(template string, args ...interface{}) error {
 	return &AllowRetryError{
 		message: fmt.Sprintf(template, args...),
 	}
 }
 
+// AllowRetryError indicates a non-fatal problem that means retrying the task is permissible
 type AllowRetryError struct {
 	message string
 }
 
+// Error returns the error message
 func (e *AllowRetryError) Error() string {
 	return e.message
 }

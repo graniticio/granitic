@@ -298,7 +298,10 @@ type interval struct {
 type intervalMode int
 
 const (
+	//OffsetFromStart indicates the interval between invocations is relative to the time the application started
 	OffsetFromStart intervalMode = iota
+
+	//ActualStartTime indicates that the invocation will run at a specified time
 	ActualStartTime
 )
 

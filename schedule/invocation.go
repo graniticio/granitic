@@ -9,9 +9,12 @@ import (
 )
 
 const (
-	SCHEDULED = "SCHEDULED"
-	RETRY     = "RETRY"
-	MANUAL    = "MANUAL"
+	//Scheduled indicates that this is the invocation was due to a schedule
+	Scheduled = "Scheduled"
+	//Retry indicates that this is the invocation is a retry of a previously failed invocation
+	Retry = "Retry"
+	//Manual indicates that this is the invocation was triggered outside of a schedule
+	Manual = "Manual"
 )
 
 func newInvocation(counter uint64, retries int, reason string) *invocation {
