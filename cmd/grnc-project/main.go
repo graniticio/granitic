@@ -51,13 +51,22 @@ import (
 
 func main() {
 
+	pg := newJSONProjectGenerator()
+
+	s := pg.SettingsFromArgs()
+
+	pg.Generate(s)
+
+}
+
+func newJSONProjectGenerator() *generate.ProjectGenerator {
 	pg := new(generate.ProjectGenerator)
 	pg.CompWriterFunc = writeComponentsFile
 	pg.ConfWriterFunc = writeConfigFile
 	pg.MainFileFunc = writeMainFile
 	pg.ToolName = "grnc-project"
-	pg.Generate()
 
+	return pg
 }
 
 func tab(s string, t int) string {

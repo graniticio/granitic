@@ -25,40 +25,63 @@ type ProjectGenerator struct {
 	ToolName       string
 }
 
-// Generate creates the folder structure and blank/skeleton files for a new Granitic project that will be ready to build
-func (pg *ProjectGenerator) Generate() {
+// Settings contains the arguments for this tool
+type Settings struct {
+	ProjectName string
+	ModuleName  string
+	BaseFolder  string
+}
+
+// SettingsFromArgs uses CLI parameters to populate a Settings object
+func (pg *ProjectGenerator) SettingsFromArgs() Settings {
+
 	a := os.Args
 
 	if len(a) < 2 {
 		pg.exitError("You must provide a name for your project")
 	}
 
-	name := a[1]
-	module := name
+	project := a[1]
+	module := project
 
 	if len(a) > 2 {
 		module = a[2]
 	}
 
-	resourceDir := filepath.Join(name, "resource")
+	return Settings{
+		ModuleName:  module,
+		ProjectName: project,
+	}
+
+}
+
+// Generate creates the folder structure and blank/skeleton files for a new Granitic project that will be ready to build
+func (pg *ProjectGenerator) Generate(s Settings) {
+
+	name := s.ProjectName
+	module := s.ModuleName
+	base := s.BaseFolder
+
+	projectDir := filepath.Join(base, name)
+	resourceDir := filepath.Join(base, name, "resource")
 	confDir := filepath.Join(resourceDir, "config")
 	compDir := filepath.Join(resourceDir, "components")
 
-	pg.mkDir(name)
+	pg.mkDir(projectDir)
 	pg.mkDir(resourceDir)
 	pg.mkDir(confDir)
 	pg.mkDir(compDir)
 
 	pg.CompWriterFunc(compDir, pg)
 	pg.ConfWriterFunc(confDir, pg)
-	pg.writeMainFile(name, module)
-	pg.writeGitIgnore(name)
-	pg.writeModFile(name, module)
+	pg.writeMainFile(base, name, module)
+	pg.writeGitIgnore(base, name)
+	pg.writeModFile(base, name, module)
 }
 
-func (pg *ProjectGenerator) writeMainFile(name string, module string) {
+func (pg *ProjectGenerator) writeMainFile(base, name, module string) {
 
-	mainFile := filepath.Join(name, "service.go")
+	mainFile := filepath.Join(base, name, "service.go")
 
 	f := pg.OpenOutputFile(mainFile)
 
@@ -72,9 +95,9 @@ func (pg *ProjectGenerator) writeMainFile(name string, module string) {
 
 }
 
-func (pg *ProjectGenerator) writeModFile(name string, module string) {
+func (pg *ProjectGenerator) writeModFile(base, name, module string) {
 
-	modFile := filepath.Join(name, "go.mod")
+	modFile := filepath.Join(base, name, "go.mod")
 
 	f := pg.OpenOutputFile(modFile)
 
@@ -89,9 +112,9 @@ func (pg *ProjectGenerator) writeModFile(name string, module string) {
 
 }
 
-func (pg *ProjectGenerator) writeGitIgnore(name string) {
+func (pg *ProjectGenerator) writeGitIgnore(base, name string) {
 
-	ignoreFile := filepath.Join(name, ".gitignore")
+	ignoreFile := filepath.Join(base, name, ".gitignore")
 
 	f := pg.OpenOutputFile(ignoreFile)
 
