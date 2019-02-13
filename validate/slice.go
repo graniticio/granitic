@@ -404,7 +404,7 @@ func (sv *SliceValidationRule) lengthOkay(r reflect.Value) bool {
 
 }
 
-func newSliceValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder, rv *RuleValidator) *sliceValidationRuleBuilder {
+func newSliceValidationRuleBuilder(ec string, cf ioc.ComponentLookup, rv *RuleValidator) *sliceValidationRuleBuilder {
 	bv := new(sliceValidationRuleBuilder)
 	bv.componentFinder = cf
 	bv.defaultErrorCode = ec
@@ -416,7 +416,7 @@ func newSliceValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder, rv *
 
 type sliceValidationRuleBuilder struct {
 	defaultErrorCode string
-	componentFinder  ioc.ComponentByNameFinder
+	componentFinder  ioc.ComponentLookup
 	sliceLenRegex    *regexp.Regexp
 	ruleValidator    *RuleValidator
 }

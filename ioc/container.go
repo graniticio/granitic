@@ -18,10 +18,12 @@ const containerDecoratorComponentName = instance.FrameworkPrefix + "ContainerDec
 const containerComponentName = instance.FrameworkPrefix + "Container"
 const lifecycleComponentName = instance.FrameworkPrefix + "LifecycleManager"
 
-// ComponentByNameFinder is implemented by components that need to be able to find other components by name.
-type ComponentByNameFinder interface {
+// ComponentLookup is used by components that have visibility of other components stored in the IOC container
+type ComponentLookup interface {
 	// ComponentByName returns the Component with the supplied name, or nil if it does not exist.
 	ComponentByName(string) *Component
+	// AllComponents returns all registered components
+	AllComponents() []*Component
 }
 
 // NewComponentContainer creates a new instance of a Granitic IoC container.
@@ -84,7 +86,7 @@ func (cc *ComponentContainer) ProtoComponents() map[string]*ProtoComponent {
 	return cc.protoComponents
 }
 
-// ComponentByName implements ComponentByNameFinder.ComponentByName
+// ComponentByName implements ComponentLookup.ComponentByName
 func (cc *ComponentContainer) ComponentByName(name string) *Component {
 	return cc.allComponents[name]
 }

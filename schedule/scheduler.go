@@ -14,7 +14,7 @@ import (
 
 // TaskScheduler is the top level Granitic component for managing the scheduled invocation of tasks
 type TaskScheduler struct {
-	componentContainer *ioc.ComponentContainer
+	componentContainer ioc.ComponentLookup
 	managedTasks       []*invocationManager
 	State              ioc.ComponentState
 	// Logger used by Granitic framework components. Automatically injected.
@@ -78,7 +78,7 @@ func (ts *TaskScheduler) AllowAccess() error {
 	return nil
 }
 
-func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Task) error {
+func (ts *TaskScheduler) validateAndPrepare(cn ioc.ComponentLookup, task *Task) error {
 
 	if err := ts.findLogic(cn, task); err != nil {
 		return err
@@ -126,7 +126,7 @@ func (ts *TaskScheduler) validateAndPrepare(cn *ioc.ComponentContainer, task *Ta
 	return nil
 }
 
-func (ts *TaskScheduler) findLogic(cn *ioc.ComponentContainer, task *Task) error {
+func (ts *TaskScheduler) findLogic(cn ioc.ComponentLookup, task *Task) error {
 	if task.Component == "" {
 		return errors.New("Missing Component (you must provide the name of the component that will execute your task")
 	}

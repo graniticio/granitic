@@ -272,7 +272,7 @@ func (bv *BoolValidationRule) operation(c string) (boolValidationOperation, erro
 
 }
 
-func newBoolValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *boolValidationRuleBuilder {
+func newBoolValidationRuleBuilder(ec string, cf ioc.ComponentLookup) *boolValidationRuleBuilder {
 	bv := new(boolValidationRuleBuilder)
 	bv.componentFinder = cf
 	bv.defaultErrorCode = ec
@@ -282,7 +282,7 @@ func newBoolValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *bool
 
 type boolValidationRuleBuilder struct {
 	defaultErrorCode string
-	componentFinder  ioc.ComponentByNameFinder
+	componentFinder  ioc.ComponentLookup
 }
 
 func (vb *boolValidationRuleBuilder) parseRule(field string, rule []string) (ValidationRule, error) {

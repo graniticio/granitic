@@ -410,7 +410,7 @@ func (iv *IntValidationRule) operation(c string) (boolValidationOperation, error
 
 }
 
-func newIntValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *intValidationRuleBuilder {
+func newIntValidationRuleBuilder(ec string, cf ioc.ComponentLookup) *intValidationRuleBuilder {
 	iv := new(intValidationRuleBuilder)
 	iv.componentFinder = cf
 	iv.defaultErrorCode = ec
@@ -420,7 +420,7 @@ func newIntValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *intVa
 
 type intValidationRuleBuilder struct {
 	defaultErrorCode string
-	componentFinder  ioc.ComponentByNameFinder
+	componentFinder  ioc.ComponentLookup
 	rangeRegex       *regexp.Regexp
 }
 

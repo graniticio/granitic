@@ -221,7 +221,7 @@ func (ov *ObjectValidationRule) operation(c string) (objectValidationOperation, 
 
 }
 
-func newObjectValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *objectValidationRuleBuilder {
+func newObjectValidationRuleBuilder(ec string, cf ioc.ComponentLookup) *objectValidationRuleBuilder {
 	ov := new(objectValidationRuleBuilder)
 	ov.componentFinder = cf
 	ov.defaultErrorCode = ec
@@ -231,7 +231,7 @@ func newObjectValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *ob
 
 type objectValidationRuleBuilder struct {
 	defaultErrorCode string
-	componentFinder  ioc.ComponentByNameFinder
+	componentFinder  ioc.ComponentLookup
 }
 
 func (vb *objectValidationRuleBuilder) parseRule(field string, rule []string) (ValidationRule, error) {

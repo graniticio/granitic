@@ -403,7 +403,7 @@ func (fv *FloatValidationRule) operation(c string) (boolValidationOperation, err
 
 }
 
-func newFloatValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *floatValidationRuleBuilder {
+func newFloatValidationRuleBuilder(ec string, cf ioc.ComponentLookup) *floatValidationRuleBuilder {
 	fv := new(floatValidationRuleBuilder)
 	fv.componentFinder = cf
 	fv.defaultErrorCode = ec
@@ -413,7 +413,7 @@ func newFloatValidationRuleBuilder(ec string, cf ioc.ComponentByNameFinder) *flo
 
 type floatValidationRuleBuilder struct {
 	defaultErrorCode string
-	componentFinder  ioc.ComponentByNameFinder
+	componentFinder  ioc.ComponentLookup
 	rangeRegex       *regexp.Regexp
 }
 

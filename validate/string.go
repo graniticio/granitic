@@ -508,7 +508,7 @@ func newStringValidationRuleBuilder(defaultErrorCode string) *stringValidationRu
 type stringValidationRuleBuilder struct {
 	strLenRegex      *regexp.Regexp
 	defaultErrorCode string
-	componentFinder  ioc.ComponentByNameFinder
+	componentFinder  ioc.ComponentLookup
 }
 
 func (vb *stringValidationRuleBuilder) parseRule(field string, rule []string) (ValidationRule, error) {

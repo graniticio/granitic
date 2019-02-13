@@ -296,7 +296,7 @@ type FieldErrors struct {
 // an instance of this type is unique to an instance of ws.WsHandler.
 type RuleValidator struct {
 	// A component able to look up ioc components by their name (normally the container itself)
-	ComponentFinder ioc.ComponentByNameFinder
+	ComponentFinder ioc.ComponentLookup
 
 	// The error code used to lookup error definitions if no error code is defined on a rule or rule operation.
 	DefaultErrorCode string
@@ -722,10 +722,10 @@ func determinePathFields(path string) types.StringSet {
 	return set
 }
 
-func validateExternalOperation(cf ioc.ComponentByNameFinder, field string, ops []string) (int, *ioc.Component, error) {
+func validateExternalOperation(cf ioc.ComponentLookup, field string, ops []string) (int, *ioc.Component, error) {
 
 	if cf == nil {
-		m := fmt.Sprintf("Field %s relies on an external component to validate, but no ioc.ComponentByNameFinder is available.", field)
+		m := fmt.Sprintf("Field %s relies on an external component to validate, but no ioc.ComponentLookup is available.", field)
 		return 0, nil, errors.New(m)
 	}
 
