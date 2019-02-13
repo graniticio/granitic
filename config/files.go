@@ -32,8 +32,6 @@ func FindJSONFilesInDir(dirPath string) ([]string, error) {
 
 			dp := filepath.Join(dirPath, fileName)
 
-			fmt.Println(dp)
-
 			if sub, err := FindJSONFilesInDir(dp); err == nil {
 				files = append(files, sub...)
 			} else {

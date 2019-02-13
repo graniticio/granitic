@@ -4,7 +4,6 @@
 package config
 
 import (
-	"fmt"
 	"github.com/graniticio/granitic/v2/test"
 	"testing"
 )
@@ -17,8 +16,6 @@ func TestExpandToFilesAndURLs(t *testing.T) {
 	r, err := ExpandToFilesAndURLs([]string{u, p})
 
 	test.ExpectNil(t, err)
-
-	fmt.Printf("%v\n", r)
 
 	test.ExpectInt(t, len(r), 6)
 
