@@ -64,6 +64,28 @@ type DefinitionLoader interface {
 	WriteMerged(data map[string]interface{}, path string) error
 }
 
+// Settings contains output/input file locations and other variables for controlling the behaviour of this tool
+type Settings struct {
+	CompDefLocation string
+	BindingsFile    string
+	MergedDebugFile string
+}
+
+// SettingsFromArgs uses CLI parameters to populate a Settings object
+func SettingsFromArgs() Settings {
+
+	s := Settings{}
+
+	s.CompDefLocation = *flag.String(confLocationFlag, confLocationDefault, confLocationHelp)
+	s.BindingsFile = *flag.String(bindingsFileFlag, bindingsFileDefault, bindingsFileHelp)
+	s.MergedDebugFile = *flag.String(mergeLocationFlag, mergeLocationDefault, mergeLocationHelp)
+
+	flag.Parse()
+
+	return s
+
+}
+
 // Binder translates the components defined in component definition files into Go source code.
 type Binder struct {
 	Loader   DefinitionLoader
@@ -72,22 +94,20 @@ type Binder struct {
 
 // Bind loads component definitions files from disk/network, merges those files into a single
 // view of components and then converts the merged view into Go source code.
-func (b *Binder) Bind() {
-	var confLocation = flag.String(confLocationFlag, confLocationDefault, confLocationHelp)
-	var bindingsFile = flag.String(bindingsFileFlag, bindingsFileDefault, bindingsFileHelp)
-	var mergedComponentsFile = flag.String(mergeLocationFlag, mergeLocationDefault, mergeLocationHelp)
+func (b *Binder) Bind(s Settings) {
 
-	flag.Parse()
+	ca := b.loadConfig(s.CompDefLocation)
 
-	ca := b.loadConfig(*confLocation)
-
-	if *mergedComponentsFile != "" {
-		if err := b.Loader.WriteMerged(ca.JSONData, *mergedComponentsFile); err != nil {
+	if s.MergedDebugFile != "" {
+		// Write the merged view of components to a file then exit
+		if err := b.Loader.WriteMerged(ca.JSONData, s.MergedDebugFile); err != nil {
 			b.exitError(err.Error())
 		}
+
+		return
 	}
 
-	f := b.openOutputFile(*bindingsFile)
+	f := b.openOutputFile(s.BindingsFile)
 	defer f.Close()
 
 	w := bufio.NewWriter(f)

@@ -42,7 +42,6 @@ import (
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/logging"
 	"io/ioutil"
-	"os"
 )
 
 func main() {
@@ -50,7 +49,10 @@ func main() {
 	b := new(binder.Binder)
 	b.ToolName = "grnc-bind"
 	b.Loader = new(jsonDefinitionLoader)
-	b.Bind()
+
+	s := binder.SettingsFromArgs()
+
+	b.Bind(s)
 
 }
 
@@ -81,8 +83,6 @@ func (jdl *jsonDefinitionLoader) WriteMerged(data map[string]interface{}, path s
 	if err != nil {
 		return err
 	}
-
-	os.Exit(0)
 
 	return nil
 }

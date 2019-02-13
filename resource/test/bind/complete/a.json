@@ -1,0 +1,14 @@
+{
+  "packages": [
+    "github.com/graniticio/granitic/v2/ws/handler"
+  ],
+  "templates": {
+    "handler": {
+      "type": "handler.WsHandler"
+    },
+    "postHandler": {
+      "ct": "handler",
+      "HTTPMethod": "POST"
+    }
+  }
+}
