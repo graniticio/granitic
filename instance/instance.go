@@ -71,6 +71,11 @@ type System struct {
 // IDComponent is the name of the component in the IoC container holding an instance ID.
 const IDComponent = FrameworkPrefix + "InstanceIdentifier"
 
+// NewIdentifier creates a new Identifier with the provided ID
+func NewIdentifier(id string) *Identifier {
+	return &Identifier{ID: id}
+}
+
 // Identifier is used to store the ID of a particular instance of a Granitic application. See the granitic package
 // documentation for instructions on how to define the ID at application start time.
 type Identifier struct {
