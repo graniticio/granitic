@@ -152,6 +152,10 @@ func (cf *TestComponentFinder) ComponentByName(name string) *ioc.Component {
 	return nil
 }
 
+func (cf *TestComponentFinder) AllComponents() []*ioc.Component {
+	return []*ioc.Component{}
+}
+
 type PasswordValidator struct {
 }
 
@@ -202,4 +206,8 @@ func (cf *CompFinder) ComponentByName(n string) *ioc.Component {
 		return ioc.NewComponent(n, new(types.NilableString))
 	}
 
+}
+
+func (cf *CompFinder) AllComponents() []*ioc.Component {
+	return []*ioc.Component{}
 }
