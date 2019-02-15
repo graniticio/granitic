@@ -33,6 +33,15 @@ then work through [the tutorials](https://github.com/graniticio/granitic/v2/tree
 
 The GoDoc for Granitic can be [found here](https://godoc.org/github.com/graniticio/granitic)
 
+## Testing
+
+Once you have followed the installation instructions, you can run Granitic's unit tests by running
+
+```
+cd $GOPATH/src/github.com/graniticio/granitic
+go test ./...
+```
+
 ## Get in touch
 
  * Twitter: @GraniticIO
