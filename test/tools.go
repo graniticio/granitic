@@ -13,9 +13,6 @@ These methods are not recommended for use in user applications or tests.
 package test
 
 import (
-	"fmt"
-	"github.com/graniticio/granitic/v2/instance"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -28,33 +25,10 @@ const (
 	goPathEnvVar       = "GOPATH"
 )
 
-// FilePath finds the absolute path of a file that is provided relative to the resource/test directory.
+// FilePath finds the absolute path of a file that is provided relative to the testdata directory of the current package under test.
 func FilePath(file string) string {
 
-	//Check if GRANITIC_HOME explicitly set
-	graniticPath := os.Getenv(graniticHomeEnvVar)
-
-	if graniticPath == "" {
-
-		if gopath := os.Getenv(goPathEnvVar); gopath == "" {
-
-			fmt.Printf("Neither %s or %s environment variable is not set. Cannot find Granitic\n", graniticHomeEnvVar, goPathEnvVar)
-			instance.ExitError()
-
-		} else {
-
-			graniticPath = filepath.Join(gopath, "src", "github.com", "graniticio", "granitic")
-
-			if _, err := ioutil.ReadDir(graniticPath); err != nil {
-
-				fmt.Printf("%s environment variable is not set and cannot find Granitic in the default install path of %s (your GOPATH variable is set to %s)\n", graniticHomeEnvVar, graniticPath, gopath)
-				instance.ExitError()
-			}
-
-		}
-
-	}
-	return filepath.Join(graniticPath, "resource", "test", file)
+	return filepath.Join("testdata", file)
 }
 
 // ExpectString stops a test and logs an error if the string to be checked does not have the expected value.

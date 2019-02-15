@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/graniticio/granitic/v2/httpendpoint"
 	"github.com/graniticio/granitic/v2/test"
 	"github.com/graniticio/granitic/v2/ws"
@@ -67,6 +68,9 @@ func GetHandler(t *testing.T) (*WsHandler, *http.Request) {
 	gf := filepath.Join("ws", "get")
 
 	getFilePath := test.FilePath(gf)
+
+	fmt.Println(getFilePath)
+
 	fr, err := os.Open(getFilePath)
 	test.ExpectNil(t, err)
 

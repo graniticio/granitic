@@ -8,6 +8,7 @@ import (
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/ioc"
 	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/test"
 	"testing"
 )
 
@@ -22,7 +23,7 @@ func TestStartWithSettings(t *testing.T) {
 	is := new(config.InitialSettings)
 	is.FrameworkLogLevel = logging.Fatal
 	is.DryRun = true
-	is.Configuration = []string{"resource/test/config/simple.json"}
+	is.Configuration = []string{test.FilePath("simple.json")}
 	StartGraniticWithSettings(pc, is)
 
 }

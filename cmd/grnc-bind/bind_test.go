@@ -17,7 +17,7 @@ func TestBindProcess(t *testing.T) {
 
 	bindOut := filepath.Join(tmp, "bindings.go")
 
-	compDir := test.FilePath("bind/complete")
+	compDir := test.FilePath("complete")
 
 	b := new(binder.Binder)
 	b.ToolName = "bind-test"
@@ -43,7 +43,7 @@ func TestOutputMerged(t *testing.T) {
 	bindOut := filepath.Join(tmp, "bindings.go")
 	mergeOut := filepath.Join(tmp, "merged.json")
 
-	compDir := test.FilePath("bind/complete")
+	compDir := test.FilePath("complete")
 
 	b := new(binder.Binder)
 	b.ToolName = "bind-test"
