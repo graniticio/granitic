@@ -158,7 +158,7 @@ func filteredComponents(cc *ioc.ComponentContainer, ls ioc.LifecycleSupport, of 
 	}
 
 	if nameSort {
-		sort.Sort(ioc.ByName{filtered})
+		sort.Sort(ioc.ByName{Components: filtered})
 	}
 
 	return filtered

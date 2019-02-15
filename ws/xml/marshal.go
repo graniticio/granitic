@@ -100,7 +100,7 @@ func (rw *GraniticXMLResponseWrapper) WrapResponse(body interface{}, errors inte
 
 	w := new(GraniticXMLWrapper)
 
-	w.XMLName = xml.Name{"", "response"}
+	w.XMLName = xml.Name{Space: "", Local: "response"}
 	w.Body = body
 	w.Errors = errors
 
@@ -126,14 +126,14 @@ func (ef *GraniticXMLErrorFormatter) FormatErrors(errors *ws.ServiceErrors) inte
 	}
 
 	es := new(Errors)
-	es.XMLName = xml.Name{"", "errors"}
+	es.XMLName = xml.Name{Space: "", Local: "errors"}
 
 	fe := make([]*GraniticError, len(errors.Errors))
 
 	for i, se := range errors.Errors {
 
 		e := new(GraniticError)
-		e.XMLName = xml.Name{"", "error"}
+		e.XMLName = xml.Name{Space: "", Local: "error"}
 
 		fe[i] = e
 		e.Error = se.Message

@@ -43,7 +43,7 @@ func LoadTestConfig() *config.Accessor {
 
 	mergedJSON, _ := jsonMerger.LoadAndMergeConfig([]string{cFile})
 
-	return &config.Accessor{mergedJSON, new(logging.ConsoleErrorLogger)}
+	return &config.Accessor{JSONData: mergedJSON, FrameworkLogger: new(logging.ConsoleErrorLogger)}
 }
 
 func TestConfigParsing(t *testing.T) {

@@ -90,7 +90,7 @@ func (c *logLevelCommand) showCurrentLevel(args map[string]string) (*ctl.Command
 		comps = c.ApplicationManager.CurrentLevels()
 	}
 
-	sort.Sort(logging.ByName{comps})
+	sort.Sort(logging.ByName{ComponentLevels: comps})
 
 	filtered := make([][]string, 0)
 

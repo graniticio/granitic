@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -11,7 +10,7 @@ func TestPadRightTo(t *testing.T) {
 	ex := "  ABCD"
 
 	if s != ex {
-		fmt.Errorf("Expected [%s] was [%s]", ex, s)
+		t.Errorf("Expected [%s] was [%s]", ex, s)
 	}
 
 }

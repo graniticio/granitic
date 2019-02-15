@@ -275,7 +275,7 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 		instance.ExitError()
 	}
 
-	return &config.Accessor{mergedJSON, fl}
+	return &config.Accessor{JSONData: mergedJSON, FrameworkLogger: fl}
 }
 
 // Record the files and URLs used to create a merged configuration (in the order in which they will be merged)
