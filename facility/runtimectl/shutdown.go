@@ -22,6 +22,7 @@ const (
 type shutdownCommand struct {
 	FrameworkLogger logging.Logger
 	container       *ioc.ComponentContainer
+	disableExit     bool
 }
 
 func (csd *shutdownCommand) Container(container *ioc.ComponentContainer) {
@@ -42,7 +43,12 @@ func (csd *shutdownCommand) startShutdown() {
 	csd.FrameworkLogger.LogInfof("Shutting down (runtime command)")
 
 	csd.container.Lifecycle.StopAll()
-	instance.ExitNormal()
+
+	if !csd.disableExit {
+		instance.ExitNormal()
+	} else {
+		csd.FrameworkLogger.LogInfof("Application exit disabled")
+	}
 }
 
 func (csd *shutdownCommand) Name() string {
