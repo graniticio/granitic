@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 )
 
+var allowExit = true
+
 // TemplateConfigWriter creates a skeleton Granitic configuration file in the supplied location
 type TemplateConfigWriter func(confDir string, pg *ProjectGenerator)
 
@@ -152,5 +154,8 @@ func (pg *ProjectGenerator) exitError(message string, a ...interface{}) {
 	m := fmt.Sprintf("%s: %s \n", pg.ToolName, message)
 
 	fmt.Printf(m, a...)
-	os.Exit(1)
+
+	if allowExit {
+		os.Exit(1)
+	}
 }
