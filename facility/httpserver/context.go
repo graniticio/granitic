@@ -20,6 +20,8 @@ import (
 type IdentifiedRequestContextBuilder interface {
 	// WithIdentity uses information in the supplied request to assign an ID to this context
 	WithIdentity(ctx context.Context, req *http.Request) (context.Context, error)
+
+	//Extract an ID string from a previously populated context
 	ID(ctx context.Context) string
 }
 
