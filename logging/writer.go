@@ -40,6 +40,25 @@ func (cw *ConsoleWriter) Busy() bool {
 	return false
 }
 
+// FixedPrefixConsoleWriter is an implementation of LogWriter that sends messages to the console/stdout with a static prefix in front of every line
+type FixedPrefixConsoleWriter struct {
+	Prefix string
+}
+
+// WriteMessage passes message to fmt.Print
+func (cw *FixedPrefixConsoleWriter) WriteMessage(m string) {
+	fmt.Printf("%s%s", cw.Prefix, m)
+}
+
+// Close does nothing
+func (cw *FixedPrefixConsoleWriter) Close() {
+}
+
+// Busy always returns false
+func (cw *FixedPrefixConsoleWriter) Busy() bool {
+	return false
+}
+
 // AsynchFileWriter is an implementation of LogWriter that appends a message to a file. Messages will be written
 // asynchronously as long as the number of messages queued for writing does not exceed the value of BufferSize
 type AsynchFileWriter struct {

@@ -61,6 +61,9 @@ func main() {
 		os.Exit(1)
 	}
 
+	pref := fmt.Sprintf("%s: ", b.ToolName)
+	b.Log = logging.NewStdoutLogger(s.LogLevel, pref)
+
 	b.Bind(s)
 
 }

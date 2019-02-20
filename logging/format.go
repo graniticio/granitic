@@ -94,6 +94,14 @@ func NewFrameworkLogMessageFormatter() *LogMessageFormatter {
 	return lmf
 }
 
+// NewNoPrefixFormatter creates a LogMessageFormatter that doesn't apply a prefix
+func NewNoPrefixFormatter() *LogMessageFormatter {
+	lmf := new(LogMessageFormatter)
+	lmf.elements = []*prefixElement{}
+
+	return lmf
+}
+
 // A LogMessageFormatter is a component able to take a message to be written to a log file and prefix it with a formatted template
 // which can include log times, data from a Context etc.
 type LogMessageFormatter struct {

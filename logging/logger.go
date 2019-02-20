@@ -229,6 +229,34 @@ type RuntimeControllableLog interface {
 	UpdateWritersAndFormatter([]LogWriter, *LogMessageFormatter)
 }
 
+type gl struct {
+	l LogLevel
+}
+
+func (g gl) GlobalLevel() LogLevel { return g.l }
+
+// NewStdoutLogger creates a Granitic logger that logs to the console/stdout and respects log levels, but does not format the message or provide any formatting of the message
+func NewStdoutLogger(level LogLevel, prefix ...string) Logger {
+
+	pf := ""
+
+	if len(prefix) > 0 {
+		pf = prefix[0]
+	}
+
+	l := new(GraniticLogger)
+	l.localLogThreshhold = level
+	l.global = gl{l: level}
+
+	w := new(FixedPrefixConsoleWriter)
+	w.Prefix = pf
+
+	l.writers = []LogWriter{w}
+	l.formatter = NewNoPrefixFormatter()
+
+	return l
+}
+
 // GraniticLogger is the standard implementation of Logger which respects both a global log level and a specific level for this Logger.
 type GraniticLogger struct {
 	global             GlobalLevel

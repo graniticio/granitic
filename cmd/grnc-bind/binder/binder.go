@@ -135,7 +135,7 @@ func (b *Binder) Bind(s Settings) {
 // SerialiseBuiltinConfig takes the configuration files for Granitic's internal components (facilities) found in
 // resource/facility-config and serialises them into a single string that will be embedded into your application's
 // executable.
-func SerialiseBuiltinConfig() string {
+func SerialiseBuiltinConfig(log logging.Logger) string {
 	gh := config.GraniticHome()
 
 	ghr := path.Join(gh, "resource", "facility-config")
@@ -144,7 +144,7 @@ func SerialiseBuiltinConfig() string {
 		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", gh, "GRANITIC_HOME", "GOPATH")
 		instance.ExitError()
 	} else {
-		jm := config.NewJSONMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JSONContentParser))
+		jm := config.NewJSONMergerWithDirectLogging(log, new(config.JSONContentParser))
 		jm.MergeArrays = true
 
 		if mc, err := jm.LoadAndMergeConfig(fcf); err != nil {
@@ -644,7 +644,7 @@ func (b *Binder) parseTemplates(ca *config.Accessor) map[string]interface{} {
 
 func (b *Binder) writeSerialisedConfig(w *bufio.Writer) {
 
-	sv := SerialiseBuiltinConfig()
+	sv := SerialiseBuiltinConfig(b.Log)
 
 	s := fmt.Sprintf("%s := \"%s\"\n", serialisedVar, sv)
 
@@ -765,6 +765,10 @@ func (b *Binder) contains(a []string, c string) bool {
 
 func (b *Binder) loadConfig(l string) *config.Accessor {
 
+	log := b.Log
+
+	log.LogDebugf("Loading component definition files from %s", l)
+
 	s := strings.Split(l, ",")
 	fl, err := config.ExpandToFilesAndURLs(s)
 
@@ -782,7 +786,7 @@ func (b *Binder) loadConfig(l string) *config.Accessor {
 
 	ca := new(config.Accessor)
 	ca.JSONData = mc
-	ca.FrameworkLogger = new(logging.ConsoleErrorLogger)
+	ca.FrameworkLogger = b.Log
 
 	if !ca.PathExists(packagesField) || !ca.PathExists(componentsField) {
 		m := fmt.Sprintf("The merged component definition file must contain a %s and a %s section.\n", packagesField, componentsField)
@@ -795,7 +799,7 @@ func (b *Binder) loadConfig(l string) *config.Accessor {
 
 func (b *Binder) exitError(message string, a ...interface{}) {
 
-	fmt.Printf("%s: %s\n", b.ToolName, message)
+	b.Log.LogFatalf(message, a...)
 
 	os.Exit(1)
 }
