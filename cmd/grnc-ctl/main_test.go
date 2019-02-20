@@ -7,7 +7,6 @@ import (
 func TestPadRightTo(t *testing.T) {
 
 	s := padRightTo("ABCD", 6)
-	
 
 	ex := "ABCD  "
 
