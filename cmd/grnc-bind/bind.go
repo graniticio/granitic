@@ -24,7 +24,7 @@ grnc-bind will need to be re-run whenever a component definition file is modifie
 
 Usage of grnc-bind:
 
-	grnc-bind [-c component-files] [-m merged-file-out] [-o generated-file]
+	grnc-bind [-c component-files] [-m merged-file-out] [-o generated-file] [-l log-level]
 
 	-c string
 		A comma separated list of component definition files or directories containing component definition files (default "resource/components")
@@ -32,16 +32,20 @@ Usage of grnc-bind:
 		The path of a file where the merged component defintion file should be written to. Execution will halt after writing.
 	-o string
 		Path to the Go source file that will be generated (default "bindings/bindings.go")
+	-l string
+		The level at which the tool will output messages: TRACE, DEBUG, INFO, ERROR, FATAL (default ERROR)
 
 */
 package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/graniticio/granitic/v2/cmd/grnc-bind/binder"
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/logging"
 	"io/ioutil"
+	"os"
 )
 
 func main() {
@@ -50,7 +54,12 @@ func main() {
 	b.ToolName = "grnc-bind"
 	b.Loader = new(jsonDefinitionLoader)
 
-	s := binder.SettingsFromArgs()
+	s, err := binder.SettingsFromArgs()
+
+	if err != nil {
+		fmt.Printf("%s: %s\n", b.ToolName, err.Error())
+		os.Exit(1)
+	}
 
 	b.Bind(s)
 

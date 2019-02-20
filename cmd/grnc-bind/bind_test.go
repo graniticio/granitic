@@ -18,14 +18,16 @@ func TestBindProcess(t *testing.T) {
 	bindOut := filepath.Join(tmp, "bindings.go")
 
 	compDir := test.FilePath("complete")
+	merged := ""
 
 	b := new(binder.Binder)
 	b.ToolName = "bind-test"
 	b.Loader = new(jsonDefinitionLoader)
 
 	s := binder.Settings{
-		CompDefLocation: compDir,
-		BindingsFile:    bindOut,
+		CompDefLocation: &compDir,
+		BindingsFile:    &bindOut,
+		MergedDebugFile: &merged,
 	}
 
 	b.Bind(s)
@@ -50,9 +52,9 @@ func TestOutputMerged(t *testing.T) {
 	b.Loader = new(jsonDefinitionLoader)
 
 	s := binder.Settings{
-		CompDefLocation: compDir,
-		BindingsFile:    bindOut,
-		MergedDebugFile: mergeOut,
+		CompDefLocation: &compDir,
+		BindingsFile:    &bindOut,
+		MergedDebugFile: &mergeOut,
 	}
 
 	b.Bind(s)

@@ -47,6 +47,10 @@ const (
 	mergeLocationDefault string = ""
 	mergeLocationHelp    string = "The path of a file where the merged component definition file should be written to. Execution will halt after writing."
 
+	logLevelFlag    string = "l"
+	logLevelDefault string = "ERROR"
+	logLevelHelp    string = "The level at which messages will be logged to the console (TRACE, DEBUG, WARN, INFO, ERROR, FATAL)"
+
 	newline = "\n"
 
 	refPrefix         = "ref:"
@@ -66,23 +70,36 @@ type DefinitionLoader interface {
 
 // Settings contains output/input file locations and other variables for controlling the behaviour of this tool
 type Settings struct {
-	CompDefLocation string
-	BindingsFile    string
-	MergedDebugFile string
+	CompDefLocation *string
+	BindingsFile    *string
+	MergedDebugFile *string
+	LogLevelLabel   *string
+	LogLevel        logging.LogLevel
 }
 
 // SettingsFromArgs uses CLI parameters to populate a Settings object
-func SettingsFromArgs() Settings {
+func SettingsFromArgs() (Settings, error) {
 
 	s := Settings{}
 
-	s.CompDefLocation = *flag.String(confLocationFlag, confLocationDefault, confLocationHelp)
-	s.BindingsFile = *flag.String(bindingsFileFlag, bindingsFileDefault, bindingsFileHelp)
-	s.MergedDebugFile = *flag.String(mergeLocationFlag, mergeLocationDefault, mergeLocationHelp)
+	s.CompDefLocation = flag.String(confLocationFlag, confLocationDefault, confLocationHelp)
+	s.BindingsFile = flag.String(bindingsFileFlag, bindingsFileDefault, bindingsFileHelp)
+	s.MergedDebugFile = flag.String(mergeLocationFlag, mergeLocationDefault, mergeLocationHelp)
+	s.LogLevelLabel = flag.String(logLevelFlag, logLevelDefault, logLevelHelp)
 
 	flag.Parse()
 
-	return s
+	if ll, err := logging.LogLevelFromLabel(*s.LogLevelLabel); err == nil {
+
+		s.LogLevel = ll
+
+	} else {
+
+		return s, fmt.Errorf("Could not map %s to a valid logging level", *s.LogLevelLabel)
+
+	}
+
+	return s, nil
 
 }
 
@@ -90,24 +107,25 @@ func SettingsFromArgs() Settings {
 type Binder struct {
 	Loader   DefinitionLoader
 	ToolName string
+	Log      logging.Logger
 }
 
 // Bind loads component definitions files from disk/network, merges those files into a single
 // view of components and then converts the merged view into Go source code.
 func (b *Binder) Bind(s Settings) {
 
-	ca := b.loadConfig(s.CompDefLocation)
+	ca := b.loadConfig(*s.CompDefLocation)
 
-	if s.MergedDebugFile != "" {
+	if *s.MergedDebugFile != "" {
 		// Write the merged view of components to a file then exit
-		if err := b.Loader.WriteMerged(ca.JSONData, s.MergedDebugFile); err != nil {
+		if err := b.Loader.WriteMerged(ca.JSONData, *s.MergedDebugFile); err != nil {
 			b.exitError(err.Error())
 		}
 
 		return
 	}
 
-	f := b.openOutputFile(s.BindingsFile)
+	f := b.openOutputFile(*s.BindingsFile)
 	defer f.Close()
 
 	w := bufio.NewWriter(f)
@@ -777,9 +795,8 @@ func (b *Binder) loadConfig(l string) *config.Accessor {
 
 func (b *Binder) exitError(message string, a ...interface{}) {
 
-	m := fmt.Sprintf("%s: %s\n", b.ToolName, message)
+	fmt.Printf("%s: %s\n", b.ToolName, message)
 
-	fmt.Printf(m, a...)
 	os.Exit(1)
 }
 
