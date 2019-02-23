@@ -74,15 +74,15 @@ type jsonDefinitionLoader struct {
 }
 
 // LoadAndMerge reads one or more JSON from local files or HTTP URLs and merges them into a single data structure
-func (jdl *jsonDefinitionLoader) LoadAndMerge(files []string) (map[string]interface{}, error) {
-	jm := config.NewJSONMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JSONContentParser))
+func (jdl *jsonDefinitionLoader) LoadAndMerge(files []string, log logging.Logger) (map[string]interface{}, error) {
+	jm := config.NewJSONMergerWithDirectLogging(log, new(config.JSONContentParser))
 	jm.MergeArrays = true
 
 	return jm.LoadAndMergeConfig(files)
 }
 
 // WriteMerged converts the supplied data structure to JSON and writes to disk at the specified location
-func (jdl *jsonDefinitionLoader) WriteMerged(data map[string]interface{}, path string) error {
+func (jdl *jsonDefinitionLoader) WriteMerged(data map[string]interface{}, path string, log logging.Logger) error {
 
 	b, err := json.MarshalIndent(data, "", "\t")
 

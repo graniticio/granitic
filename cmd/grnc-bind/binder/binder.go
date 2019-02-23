@@ -64,8 +64,8 @@ const (
 // A DefinitionLoader handles the loading of component definition files from a sequence of file paths and can write
 // a merged version of those files to a location on a filesystem.
 type DefinitionLoader interface {
-	LoadAndMerge(files []string) (map[string]interface{}, error)
-	WriteMerged(data map[string]interface{}, path string) error
+	LoadAndMerge(files []string, log logging.Logger) (map[string]interface{}, error)
+	WriteMerged(data map[string]interface{}, path string, log logging.Logger) error
 }
 
 // Settings contains output/input file locations and other variables for controlling the behaviour of this tool
@@ -118,12 +118,14 @@ func (b *Binder) Bind(s Settings) {
 
 	if *s.MergedDebugFile != "" {
 		// Write the merged view of components to a file then exit
-		if err := b.Loader.WriteMerged(ca.JSONData, *s.MergedDebugFile); err != nil {
+		if err := b.Loader.WriteMerged(ca.JSONData, *s.MergedDebugFile, b.Log); err != nil {
 			b.exitError(err.Error())
 		}
 
 		return
 	}
+
+	b.Log.LogDebugf("Writing generated bindings file to %s", *s.BindingsFile)
 
 	f := b.openOutputFile(*s.BindingsFile)
 	defer f.Close()
@@ -140,8 +142,10 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 
 	ghr := path.Join(gh, "resource", "facility-config")
 
+	log.LogDebugf("Looking for Granitic facility config in %s", ghr)
+
 	if fcf, err := config.FindJSONFilesInDir(ghr); err != nil {
-		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", gh, "GRANITIC_HOME", "GOPATH")
+		log.LogFatalf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", gh, "GRANITIC_HOME", "GOPATH")
 		instance.ExitError()
 	} else {
 		jm := config.NewJSONMergerWithDirectLogging(log, new(config.JSONContentParser))
@@ -149,7 +153,7 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 
 		if mc, err := jm.LoadAndMergeConfig(fcf); err != nil {
 
-			fmt.Printf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
+			log.LogFatalf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
 			instance.ExitError()
 
 		} else {
@@ -161,7 +165,7 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 			gob.Register([]interface{}{})
 
 			if err := e.Encode(mc); err != nil {
-				fmt.Printf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
+				log.LogFatalf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
 				instance.ExitError()
 			}
 
@@ -777,7 +781,7 @@ func (b *Binder) loadConfig(l string) *config.Accessor {
 		b.exitError(m)
 	}
 
-	mc, err := b.Loader.LoadAndMerge(fl)
+	mc, err := b.Loader.LoadAndMerge(fl, log)
 
 	if err != nil {
 		m := fmt.Sprintf("Problem merging component definition files togther: %s", err.Error())
