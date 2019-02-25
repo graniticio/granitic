@@ -48,7 +48,7 @@ const (
 	mergeLocationHelp    string = "The path of a file where the merged component definition file should be written to. Execution will halt after writing."
 
 	logLevelFlag    string = "l"
-	logLevelDefault string = "ERROR"
+	logLevelDefault string = "WARN"
 	logLevelHelp    string = "The level at which messages will be logged to the console (TRACE, DEBUG, WARN, INFO, ERROR, FATAL)"
 
 	newline = "\n"
