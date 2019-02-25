@@ -5,6 +5,7 @@ package main
 
 import (
 	"github.com/graniticio/granitic/v2/cmd/grnc-bind/binder"
+	"github.com/graniticio/granitic/v2/logging"
 	"github.com/graniticio/granitic/v2/test"
 	"os"
 	"path/filepath"
@@ -30,6 +31,8 @@ func TestBindProcess(t *testing.T) {
 		MergedDebugFile: &merged,
 	}
 
+	b.Log = new(logging.ConsoleErrorLogger)
+
 	b.Bind(s)
 
 	if _, err := os.Stat(bindOut); os.IsNotExist(err) {
@@ -50,6 +53,8 @@ func TestOutputMerged(t *testing.T) {
 	b := new(binder.Binder)
 	b.ToolName = "bind-test"
 	b.Loader = new(jsonDefinitionLoader)
+
+	b.Log = new(logging.ConsoleErrorLogger)
 
 	s := binder.Settings{
 		CompDefLocation: &compDir,
