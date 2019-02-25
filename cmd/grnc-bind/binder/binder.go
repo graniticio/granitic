@@ -138,41 +138,43 @@ func (b *Binder) Bind(s Settings) {
 // resource/facility-config and serialises them into a single string that will be embedded into your application's
 // executable.
 func SerialiseBuiltinConfig(log logging.Logger) string {
-	gh := config.GraniticHome()
+	gh, err := LocateFacilityConfig(log)
 
-	ghr := path.Join(gh, "resource", "facility-config")
-
-	log.LogDebugf("Looking for Granitic facility config in %s", ghr)
-
-	if fcf, err := config.FindJSONFilesInDir(ghr); err != nil {
-		log.LogFatalf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", gh, "GRANITIC_HOME", "GOPATH")
+	if err != nil {
+		log.LogFatalf(err.Error())
 		instance.ExitError()
+	}
+
+	jm := config.NewJSONMergerWithDirectLogging(log, new(config.JSONContentParser))
+	jm.MergeArrays = true
+
+	jFiles, err := config.FindJSONFilesInDir(gh)
+
+	if err != nil {
+		log.LogFatalf(err.Error())
+		instance.ExitError()
+	}
+
+	if mc, err := jm.LoadAndMergeConfig(jFiles); err != nil {
+
+		log.LogFatalf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
+		instance.ExitError()
+
 	} else {
-		jm := config.NewJSONMergerWithDirectLogging(log, new(config.JSONContentParser))
-		jm.MergeArrays = true
 
-		if mc, err := jm.LoadAndMergeConfig(fcf); err != nil {
+		b := bytes.Buffer{}
+		e := gob.NewEncoder(&b)
 
+		gob.Register(map[string]interface{}{})
+		gob.Register([]interface{}{})
+
+		if err := e.Encode(mc); err != nil {
 			log.LogFatalf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
 			instance.ExitError()
-
-		} else {
-
-			b := bytes.Buffer{}
-			e := gob.NewEncoder(&b)
-
-			gob.Register(map[string]interface{}{})
-			gob.Register([]interface{}{})
-
-			if err := e.Encode(mc); err != nil {
-				log.LogFatalf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
-				instance.ExitError()
-			}
-
-			ser := base64.StdEncoding.EncodeToString(b.Bytes())
-			return ser
-
 		}
+
+		ser := base64.StdEncoding.EncodeToString(b.Bytes())
+		return ser
 
 	}
 

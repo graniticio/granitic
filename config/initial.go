@@ -8,56 +8,9 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/logging"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"strings"
 	"time"
 )
-
-const (
-	graniticHomeEnvVar = "GRANITIC_HOME"
-	goPathEnvVar       = "GOPATH"
-)
-
-// GraniticHome determines where on your filesystem you have checked out Granitic. This is used when code needs
-// access to the configuration for Granitic's built-in facility components which is stored under resource/facility-config
-func GraniticHome() string {
-
-	//Check if GRANITIC_HOME explicitly set
-	graniticPath := os.Getenv(graniticHomeEnvVar)
-
-	if graniticPath == "" {
-
-		if gopath := os.Getenv(goPathEnvVar); gopath == "" {
-
-			fmt.Printf("Neither %s or %s environment variable is not set. Cannot find Granitic\n", graniticHomeEnvVar, goPathEnvVar)
-			instance.ExitError()
-
-		} else {
-
-			graniticPath = filepath.Join(gopath, "src", "github.com", "graniticio", "granitic")
-
-			if _, err := ioutil.ReadDir(graniticPath); err != nil {
-
-				fmt.Printf("%s environment variable is not set and cannot find Granitic in the default install path of %s (your GOPATH variable is set to %s)\n", graniticHomeEnvVar, graniticPath, gopath)
-				instance.ExitError()
-			}
-
-		}
-
-	}
-
-	resourcePath := filepath.Join(graniticPath, "resource", "facility-config")
-
-	if _, err := FindJSONFilesInDir(resourcePath); err != nil {
-		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", graniticPath, graniticHomeEnvVar, goPathEnvVar)
-		instance.ExitError()
-	}
-
-	return graniticPath
-
-}
 
 // InitialSettings contains settings that are needed by Granitic before configuration files can be loaded and parsed. See package
 // granitic for more information on how this is used when starting a Granitic application with command line arguments
