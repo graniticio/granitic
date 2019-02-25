@@ -30,8 +30,7 @@
       "ct": "postHandler",
       "Logic": "ref:submitArtistLogic",
       "PathPattern": "^/artist[/]?$",
-      "AutoValidator": "ref:submitArtistValidator",
-      "CreateTarget": "es:artist.Details"
+      "AutoValidator": "+submitArtistValidator"
     },
     "submitArtistValidator": {
       "type": "validate.RuleValidator",
@@ -52,7 +51,7 @@
     },
     "sharedRuleManager": {
       "type": "validate.UnparsedRuleManager",
-      "Rules": "conf:sharedRules"
+      "Rules": "?sharedRules"
     },
     "artistExistsChecker": {
       "type": "db.ArtistExistsChecker"

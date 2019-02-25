@@ -140,7 +140,7 @@ type WsHandler struct {
 	CheckAccessAfterParse bool
 
 	// A function able to create an empty initialised struct to use as a target for request binding
-	CreateTarget ioc.StructFactory
+	createTarget func() interface{}
 
 	// If true, do not automatically return an error response if errors are found during the parsing and binding phases of request processing.
 	DeferFrameworkErrors bool
@@ -360,14 +360,14 @@ func (wh *WsHandler) validateRequest(ctx context.Context, wsReq *ws.Request, err
 
 func (wh *WsHandler) unmarshall(ctx context.Context, req *http.Request, wsReq *ws.Request) {
 
-	var uf ioc.StructFactory
+	var uf func() interface{}
 
 	if targetSource, found := wh.Logic.(WsUnmarshallTarget); found {
 		//Logic component implements WsUnmarshallTarget - use that to create target
 		uf = targetSource.UnmarshallTarget
-	} else if wh.CreateTarget != nil {
+	} else if wh.createTarget != nil {
 		//A function has been provided to generate targets
-		uf = wh.CreateTarget
+		uf = wh.createTarget
 	} else {
 		//No way of creating a target
 		return
@@ -686,6 +686,11 @@ func (wh *WsHandler) StartComponent() error {
 		return errors.New("if you want to defer errors generated during auto validation, your logic component must implement WsRequestValidator")
 	}
 
+	if err := wh.validateProcessPayload(); err == nil {
+		//The logic attached to this handler has a ProcessPayload method. Extract a func for creating empty structs to pass to it
+		wh.createTarget = wh.extractFactoryFromLogic()
+	}
+
 	wh.state = ioc.RunningState
 
 	return nil
@@ -696,47 +701,78 @@ func (wh *WsHandler) checkLogicComponent() error {
 	if rp, found := wh.Logic.(WsRequestProcessor); found {
 
 		wh.genericProcessor = rp
+		return nil
+	}
 
-	} else {
+	return wh.validateProcessPayload()
+}
 
-		err := fmt.Errorf("Logic compoonent must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)", processPayloadFunc)
-		//Logic component doesn't implement WsRequestProcessor - must instead have a method called ProcessPayload
-		method := reflect.ValueOf(wh.Logic).MethodByName(processPayloadFunc)
+func (wh *WsHandler) validateProcessPayload() error {
 
-		if !method.IsValid() {
-			return err
-		}
+	err := fmt.Errorf("Logic compoonent must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)", processPayloadFunc)
 
-		t := method.Type()
+	if wh.Logic == nil {
+		return err
+	}
 
-		//Quick check of parameter counts on the method signature
-		if t.NumIn() != 4 || t.NumOut() != 0 {
-			return err
-		}
+	//Logic component doesn't implement WsRequestProcessor - must instead have a method called ProcessPayload
+	method := reflect.ValueOf(wh.Logic).MethodByName(processPayloadFunc)
 
-		//Check first arg is context
-		if t.In(0).String() != "context.Context" {
-			return err
-		}
+	if !method.IsValid() {
+		return err
+	}
 
-		//Check second arg is *ws.Request
-		if t.In(1) != reflect.TypeOf(new(ws.Request)) {
-			return err
-		}
+	t := method.Type()
 
-		//Check third arg is *ws.Response
-		if t.In(2) != reflect.TypeOf(new(ws.Response)) {
-			return err
-		}
+	//Quick check of parameter counts on the method signature
+	if t.NumIn() != 4 || t.NumOut() != 0 {
+		return err
+	}
 
-		//Check fourth arg is a pointer to a struct
-		fourthArg := t.In(3)
-		if fourthArg.Kind() != reflect.Ptr && fourthArg.Elem().Kind() != reflect.Struct {
-			return err
-		}
+	//Check first arg is context
+	if t.In(0).String() != "context.Context" {
+		return err
+	}
+
+	//Check second arg is *ws.Request
+	if t.In(1) != reflect.TypeOf(new(ws.Request)) {
+		return err
+	}
+
+	//Check third arg is *ws.Response
+	if t.In(2) != reflect.TypeOf(new(ws.Response)) {
+		return err
+	}
+
+	//Check fourth arg is a pointer to a struct
+	fourthArg := t.In(3)
+
+	if fourthArg.Kind() != reflect.Ptr || fourthArg.Elem().Kind() != reflect.Struct {
+		return err
 	}
 
 	return nil
+}
+
+func (wh *WsHandler) extractFactoryFromLogic() func() interface{} {
+
+	if err := wh.validateProcessPayload(); err != nil {
+		return nil
+	}
+
+	method := reflect.ValueOf(wh.Logic).MethodByName(processPayloadFunc)
+	mt := method.Type()
+
+	targetArg := mt.In(3)
+
+	targetArg.Elem()
+
+	t := targetArg.Elem()
+
+	return func() interface{} {
+		return reflect.New(t).Interface()
+	}
+
 }
 
 // ComponentName implements ComponentNamer.ComponentName

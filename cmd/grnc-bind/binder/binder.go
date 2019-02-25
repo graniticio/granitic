@@ -53,12 +53,14 @@ const (
 
 	newline = "\n"
 
-	refPrefix         = "ref:"
-	refAlias          = "r:"
-	confPrefix        = "conf:"
-	confAlias         = "c:"
-	emptyStructPrefix = "empty-struct:"
-	emptyStructAlias  = "es:"
+	refPrefix        = "ref:"
+	refAlias         = "r:"
+	refSymbol        = "+"
+	refSymbolEscape  = "++"
+	confPrefix       = "conf:"
+	confAlias        = "c:"
+	confSymbol       = "?"
+	confSymbolEscape = "??"
 )
 
 // A DefinitionLoader handles the loading of component definition files from a sequence of file paths and can write
@@ -254,7 +256,6 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 
 	values := make(map[string]interface{})
 	refs := make(map[string]interface{})
-	emptyStructs := make(map[string]interface{})
 	confPromises := make(map[string]interface{})
 
 	b.mergeValueSources(component, templates)
@@ -272,8 +273,6 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 		} else if b.isRef(value) {
 			refs[field] = value
 
-		} else if b.isEmptyStruct(value) {
-			emptyStructs[field] = value
 		} else {
 			values[field] = value
 		}
@@ -283,7 +282,6 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 	b.writeValues(w, name, values, baseIndent)
 	b.writeDeferred(w, name, confPromises, baseIndent, "AddConfigPromise")
 	b.writeDeferred(w, name, refs, baseIndent, "AddDependency")
-	b.writeEmptyStructFunctions(w, name, emptyStructs, baseIndent)
 
 	w.WriteString(newline)
 	w.WriteString(newline)
@@ -302,6 +300,10 @@ func (b *Binder) writeValues(w *bufio.Writer, cName string, values map[string]in
 			continue
 		}
 
+		if s, found := v.(string); found {
+			v = b.removeEscapes(s)
+		}
+
 		init, wasMap := b.asGoInit(v)
 
 		s := fmt.Sprintf("%s.%s = %s\n", cName, k, init)
@@ -315,6 +317,17 @@ func (b *Binder) writeValues(w *bufio.Writer, cName string, values map[string]in
 
 }
 
+func (b *Binder) removeEscapes(s string) interface{} {
+
+	if strings.HasPrefix(s, confSymbolEscape) || strings.HasPrefix(s, refSymbolEscape) {
+
+		return s[1:]
+	}
+
+	return s
+
+}
+
 func (b *Binder) writeDeferred(w *bufio.Writer, cName string, promises map[string]interface{}, tabs int, funcName string) {
 
 	p := b.protoName(cName)
@@ -325,7 +338,7 @@ func (b *Binder) writeDeferred(w *bufio.Writer, cName string, promises map[strin
 
 	for k, v := range promises {
 
-		fc := strings.SplitN(v.(string), ":", 2)[1]
+		fc := b.stripRepOrConffMarker(v.(string))
 
 		s := fmt.Sprintf("%s.%s(%s, %s)\n", p, funcName, b.quoteString(k), b.quoteString(fc))
 		w.WriteString(b.tabIndent(s, tabs))
@@ -334,26 +347,13 @@ func (b *Binder) writeDeferred(w *bufio.Writer, cName string, promises map[strin
 
 }
 
-func (b *Binder) writeEmptyStructFunctions(w *bufio.Writer, cName string, emptyStructs map[string]interface{}, tabs int) {
+func (b *Binder) stripRepOrConffMarker(s string) string {
 
-	if len(emptyStructs) > 0 {
-		w.WriteString(newline)
+	if strings.HasPrefix(s, refSymbol) || strings.HasPrefix(s, confSymbol) {
+		return s[1:]
 	}
 
-	for k, v := range emptyStructs {
-
-		reqType := strings.SplitN(v.(string), ":", 2)[1]
-
-		s := fmt.Sprintf("%s.%s = func() interface{} {\n", cName, k)
-		w.WriteString(b.tabIndent(s, tabs))
-
-		s = fmt.Sprintf("\treturn new(%s)\n", reqType)
-		w.WriteString(b.tabIndent(s, tabs))
-
-		w.WriteString(b.tabIndent("}\n\n", tabs))
-
-	}
-
+	return strings.SplitN(s, ":", 2)[1]
 }
 
 func (b *Binder) writeMapContents(w *bufio.Writer, iName string, fName string, contents map[string]interface{}, tabs int) {
@@ -535,7 +535,7 @@ func (b *Binder) isPromise(v interface{}) bool {
 		return false
 	}
 
-	return strings.HasPrefix(s, confPrefix) || strings.HasPrefix(s, confAlias)
+	return strings.HasPrefix(s, confPrefix) || strings.HasPrefix(s, confAlias) || (strings.HasPrefix(s, confSymbol) && !strings.HasPrefix(s, confSymbolEscape))
 }
 
 func (b *Binder) isRef(v interface{}) bool {
@@ -545,19 +545,8 @@ func (b *Binder) isRef(v interface{}) bool {
 		return false
 	}
 
-	return strings.HasPrefix(s, refPrefix) || strings.HasPrefix(s, refAlias)
+	return strings.HasPrefix(s, refPrefix) || strings.HasPrefix(s, refAlias) || (strings.HasPrefix(s, refSymbol) && !strings.HasPrefix(s, refSymbolEscape))
 
-}
-
-func (b *Binder) isEmptyStruct(v interface{}) bool {
-
-	s, found := v.(string)
-
-	if !found {
-		return false
-	}
-
-	return strings.HasPrefix(s, emptyStructPrefix) || strings.HasPrefix(s, emptyStructAlias)
 }
 
 func (b *Binder) reservedFieldName(f string) bool {

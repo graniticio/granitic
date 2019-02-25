@@ -299,6 +299,3 @@ func NewComponent(name string, instance interface{}) *Component {
 
 	return c
 }
-
-// StructFactory is a function able to return a pointer to an empty struct
-type StructFactory func() interface{}

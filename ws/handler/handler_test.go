@@ -7,7 +7,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	"fmt"
 	"github.com/graniticio/granitic/v2/httpendpoint"
 	"github.com/graniticio/granitic/v2/test"
 	"github.com/graniticio/granitic/v2/ws"
@@ -63,13 +62,123 @@ func TestAllOptionalPhases(t *testing.T) {
 
 }
 
+func TestHandlerWithProcessPayload(t *testing.T) {
+
+	l := new(mockLogic)
+
+	h, req := GetHandler(t)
+
+	h.Logic = l
+	err := h.StartComponent()
+
+	test.ExpectNil(t, err)
+
+	uw := NewStringBufferResponseWriter()
+	w := httpendpoint.NewHTTPResponseWriter(uw)
+
+	h.ServeHTTP(context.Background(), w, req)
+	h.ServeHTTP(context.Background(), w, req)
+
+}
+
+func TestProcessPayloadDeclarationValidation(t *testing.T) {
+
+	ml := new(mockLogic)
+
+	h := new(WsHandler)
+	h.Logic = ml
+
+	err := h.validateProcessPayload()
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	h.Logic = new(mockLogicInvalid)
+
+	err = h.validateProcessPayload()
+
+	if err == nil {
+		t.Fatalf("Expected validation to fail")
+	}
+
+}
+
+func TestFactoryFunctionFromLogic(t *testing.T) {
+
+	h := new(WsHandler)
+
+	h.Logic = new(mockLogic)
+
+	f := h.extractFactoryFromLogic()
+
+	if f == nil {
+		t.Fatalf("Expected function to be extracted")
+	}
+
+	x := f()
+
+	if _, found := x.(*mockTarget); !found {
+		t.Fatalf("Expected a *mockTarget, was %T", x)
+	}
+}
+
+func TestHandlerStart(t *testing.T) {
+
+	wh, _ := GetHandler(t)
+
+	wh.PathPattern = ""
+	wh.HTTPMethod = ""
+	wh.Logic = nil
+
+	err := wh.StartComponent()
+
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+
+	wh, _ = GetHandler(t)
+
+	wh.HTTPMethod = ""
+	wh.Logic = nil
+
+	err = wh.StartComponent()
+
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+
+	wh, _ = GetHandler(t)
+
+	wh.Logic = nil
+
+	err = wh.StartComponent()
+
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+
+	wh, _ = GetHandler(t)
+
+	wh.Logic = new(mockLogic)
+
+	err = wh.StartComponent()
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if wh.createTarget == nil {
+		t.Fatalf("Expected create function to have been extracted")
+	}
+
+}
+
 func GetHandler(t *testing.T) (*WsHandler, *http.Request) {
 
 	gf := filepath.Join("ws", "get")
 
 	getFilePath := test.FilePath(gf)
-
-	fmt.Println(getFilePath)
 
 	fr, err := os.Open(getFilePath)
 	test.ExpectNil(t, err)
@@ -104,6 +213,7 @@ func (w *StringBufferResponseWriter) Header() http.Header {
 }
 
 func (w *StringBufferResponseWriter) Write(b []byte) (int, error) {
+
 	return w.buffer.Write(b)
 }
 
@@ -157,3 +267,22 @@ func (l *AllPhasesLogic) PreValidate(ctx context.Context, request *ws.Request, e
 }
 
 type Body struct{}
+
+type mockTarget struct {
+	Outcome string
+}
+
+type mockLogic struct {
+}
+
+func (ml *mockLogic) ProcessPayload(ctx context.Context, request *ws.Request, response *ws.Response, target *mockTarget) {
+	target.Outcome = "PROCESSED"
+
+}
+
+type mockLogicInvalid struct {
+}
+
+func (ml *mockLogicInvalid) ProcessPayload(ctx context.Context, request *ws.Request, response *ws.Response, target mockTarget) {
+
+}
