@@ -16,6 +16,9 @@ type TemplateConfigWriter func(confDir string, pg *ProjectGenerator)
 // TemplateComponentWriter creates a skeleton Granitic component definition file in the supplied location
 type TemplateComponentWriter func(confDir string, pg *ProjectGenerator)
 
+// ModFileWriter creates a go.mod file in the supplied location
+type ModFileWriter func(baseDir string, moduleName string, pg *ProjectGenerator)
+
 // MainFileContentWriter creates a Go source file with main function that initialises and passes control to Granitic
 type MainFileContentWriter func(w *bufio.Writer, pp string)
 
@@ -24,6 +27,7 @@ type ProjectGenerator struct {
 	ConfWriterFunc TemplateConfigWriter
 	CompWriterFunc TemplateComponentWriter
 	MainFileFunc   MainFileContentWriter
+	ModFileFunc    ModFileWriter
 	ToolName       string
 }
 
@@ -34,13 +38,15 @@ type Settings struct {
 	BaseFolder  string
 }
 
+type exitFunc func(message string, a ...interface{})
+
 // SettingsFromArgs uses CLI parameters to populate a Settings object
-func (pg *ProjectGenerator) SettingsFromArgs() Settings {
+func SettingsFromArgs(ef exitFunc) Settings {
 
 	a := os.Args
 
 	if len(a) < 2 {
-		pg.exitError("You must provide a name for your project")
+		ef("You must provide a name for your project")
 	}
 
 	project := a[1]
@@ -78,7 +84,7 @@ func (pg *ProjectGenerator) Generate(s Settings) {
 	pg.ConfWriterFunc(confDir, pg)
 	pg.writeMainFile(base, name, module)
 	pg.writeGitIgnore(base, name)
-	pg.writeModFile(base, name, module)
+	pg.ModFileFunc(projectDir, module, pg)
 }
 
 func (pg *ProjectGenerator) writeMainFile(base, name, module string) {
@@ -92,23 +98,6 @@ func (pg *ProjectGenerator) writeMainFile(base, name, module string) {
 	w := bufio.NewWriter(f)
 
 	pg.MainFileFunc(w, module)
-
-	w.Flush()
-
-}
-
-func (pg *ProjectGenerator) writeModFile(base, name, module string) {
-
-	modFile := filepath.Join(base, name, "go.mod")
-
-	f := pg.OpenOutputFile(modFile)
-
-	defer f.Close()
-
-	w := bufio.NewWriter(f)
-
-	fmt.Fprintf(w, "module %s\n\n", module)
-	fmt.Fprintf(w, "require github.com/graniticio/granitic/v2 v2\n")
 
 	w.Flush()
 
@@ -135,7 +124,7 @@ func (pg *ProjectGenerator) OpenOutputFile(p string) *os.File {
 	os.MkdirAll(path.Dir(p), 0755)
 
 	if f, err := os.Create(p); err != nil {
-		pg.exitError(err.Error())
+		pg.ExitError(err.Error())
 	} else {
 		return f
 	}
@@ -145,11 +134,12 @@ func (pg *ProjectGenerator) OpenOutputFile(p string) *os.File {
 
 func (pg *ProjectGenerator) mkDir(dir string) {
 	if err := os.Mkdir(dir, 0755); err != nil {
-		pg.exitError(err.Error())
+		pg.ExitError(err.Error())
 	}
 }
 
-func (pg *ProjectGenerator) exitError(message string, a ...interface{}) {
+// ExitError writes
+func (pg *ProjectGenerator) ExitError(message string, a ...interface{}) {
 
 	m := fmt.Sprintf("%s: %s \n", pg.ToolName, message)
 

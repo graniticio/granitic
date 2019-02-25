@@ -8,6 +8,6 @@ func TestExit(t *testing.T) {
 
 	g := new(ProjectGenerator)
 
-	g.exitError("Exit %s", "message")
+	g.ExitError("Exit %s", "message")
 
 }

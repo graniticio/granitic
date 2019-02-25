@@ -792,9 +792,14 @@ func (b *Binder) loadConfig(l string) *config.Accessor {
 	ca.JSONData = mc
 	ca.FrameworkLogger = b.Log
 
-	if !ca.PathExists(packagesField) || !ca.PathExists(componentsField) {
-		m := fmt.Sprintf("The merged component definition file must contain a %s and a %s section.\n", packagesField, componentsField)
-		b.exitError(m)
+	if !ca.PathExists(packagesField) {
+		// Add the missing packages section
+		ca.JSONData[packagesField] = []interface{}{}
+	}
+
+	if !ca.PathExists(componentsField) {
+		// Add the missing components section
+		ca.JSONData[componentsField] = map[string]interface{}{}
 
 	}
 

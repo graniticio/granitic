@@ -45,6 +45,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"github.com/graniticio/granitic/v2/cmd/grnc-project/generate"
 	"path/filepath"
 )
@@ -53,7 +54,7 @@ func main() {
 
 	pg := newJSONProjectGenerator()
 
-	s := pg.SettingsFromArgs()
+	s := generate.SettingsFromArgs(pg.ExitError)
 
 	pg.Generate(s)
 
@@ -64,6 +65,7 @@ func newJSONProjectGenerator() *generate.ProjectGenerator {
 	pg.CompWriterFunc = writeComponentsFile
 	pg.ConfWriterFunc = writeConfigFile
 	pg.MainFileFunc = writeMainFile
+	pg.ModFileFunc = writeModFile
 	pg.ToolName = "grnc-project"
 
 	return pg
@@ -123,5 +125,22 @@ func writeMainFile(w *bufio.Writer, module string) {
 	w.WriteString("func main() {\n")
 	w.WriteString("\tgranitic.StartGranitic(bindings.Components())\n")
 	w.WriteString("}\n")
+
+}
+
+func writeModFile(baseDir string, moduleName string, pg *generate.ProjectGenerator) {
+
+	modFile := filepath.Join(baseDir, "go.mod")
+
+	f := pg.OpenOutputFile(modFile)
+
+	defer f.Close()
+
+	w := bufio.NewWriter(f)
+
+	fmt.Fprintf(w, "module %s\n\n", moduleName)
+	fmt.Fprintf(w, "require github.com/graniticio/granitic/v2 v2\n")
+
+	w.Flush()
 
 }
