@@ -24,6 +24,16 @@ type ContentParser interface {
 	ContentTypes() []string
 }
 
+// EmptyFileError is a marker error to indicate that a config file was logically empty
+type EmptyFileError struct {
+	Message string
+}
+
+// Error returns the message associated with this error
+func (efe EmptyFileError) Error() string {
+	return efe.Message
+}
+
 // JSONContentParser supports the loading and parsing of JSON configuration and component definition files
 type JSONContentParser struct {
 }
@@ -144,8 +154,7 @@ func (jm *JSONMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, 
 		}
 
 		if err != nil {
-			m := fmt.Sprintf("Problem reading data from file/URL %s: %s", fileName, err)
-			return nil, errors.New(m)
+			return nil, fmt.Errorf("Problem reading data from file/URL %s: %s", fileName, err)
 		}
 
 		var loadedConfig interface{}
@@ -153,8 +162,12 @@ func (jm *JSONMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, 
 		err = cp.ParseInto(jsonData, &loadedConfig)
 
 		if err != nil {
-			m := fmt.Sprintf("Problem parsing data from a file or URL (%s) as JSON : %s", fileName, err)
-			return nil, errors.New(m)
+
+			if _, found := err.(EmptyFileError); found {
+				jm.Logger.LogWarnf("Config file/URL %s is empty", fileName)
+			} else {
+				return nil, fmt.Errorf("Problem parsing data from a file or URL (%s) as JSON : %s", fileName, err)
+			}
 		}
 
 		additionalConfig := loadedConfig.(map[string]interface{})
