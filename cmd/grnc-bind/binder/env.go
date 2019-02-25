@@ -1,17 +1,22 @@
 package binder
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/logging"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 )
 
 const (
 	graniticHomeEnvVar = "GRANITIC_HOME"
 	goPathEnvVar       = "GOPATH"
+	reqRegex           = ".*github.com/graniticio/granitic/(v[\\d]*)[\\s]*(\\S*)"
+	replaceRegex       = ".*github.com/graniticio/granitic/v[\\d]*[\\s]*=>[\\s]*(\\S*)"
 )
 
 // LocateFacilityConfig determines where on your filesystem you have checked out Granitic. This is used when code needs
@@ -25,7 +30,7 @@ func LocateFacilityConfig(log logging.Logger) (string, error) {
 
 	log.LogDebugf("Looking for an installation of Granitic")
 
-	if modPath := installationFromModule(log); modPath != "" {
+	if modPath, okay := installationFromModule(log); okay {
 
 		// If the project has a go.mod file, try and work out where Granitic
 		log.LogDebugf("Using location from go.mod file")
@@ -77,8 +82,81 @@ func validateInstallation(path string) (string, bool) {
 	return resourcePath, true
 }
 
-func installationFromModule(log logging.Logger) string {
+func installationFromModule(log logging.Logger) (string, bool) {
 
-	return ""
+	requiredVersion := ""
+	replacePath := ""
+	majorVersion := ""
+
+	var f *os.File
+	var err error
+
+	if f, err = os.Open("go.mod"); err != nil { // os.Open defaults to read only
+
+		fmt.Println("Failed to open")
+		return "", false
+	}
+
+	defer f.Close()
+
+	reqRe := regexp.MustCompile(reqRegex)
+	repRe := regexp.MustCompile(replaceRegex)
+
+	s := bufio.NewScanner(f)
+
+	for s.Scan() {
+		line := s.Text()
+
+		reqMatches := reqRe.FindStringSubmatch(line)
+
+		if len(reqMatches) >= 3 {
+			majorVersion = reqMatches[1]
+			requiredVersion = reqMatches[2]
+		}
+
+		repMatches := repRe.FindStringSubmatch(line)
+
+		if len(repMatches) >= 2 {
+			replacePath = repMatches[1]
+			break
+		}
+
+	}
+
+	if replacePath != "" {
+		log.LogDebugf("Found a replace path for Granitic in go.mod: %s", replacePath)
+		return replacePath, true
+	}
+
+	requiredVersion = strings.TrimSpace(requiredVersion)
+	majorVersion = strings.TrimSpace(majorVersion)
+
+	if requiredVersion != "" {
+
+		fullVersion := fmt.Sprintf("%s@%s", majorVersion, requiredVersion)
+
+		log.LogDebugf("Found a required version for Granitic in go.mod: %s", fullVersion)
+
+		if goPath := os.Getenv(goPathEnvVar); goPath != "" {
+
+			modPath := filepath.Join(goPath, "pkg", "mod", "github.com", "graniticio", "granitic", fullVersion)
+
+			log.LogDebugf("Looking for downloaded Granitic module at %s", modPath)
+
+			if _, err := os.Stat(modPath); !os.IsNotExist(err) {
+				return modPath, true
+			}
+
+			log.LogWarnf("Expected to find a downloaded version of Granitic at %s - make sure you have run 'go mod download'", modPath)
+
+		} else {
+
+			log.LogWarnf("GOPATH not set - unable to try and find downloaded modules")
+
+		}
+
+	}
+
+	return "", false
 
 }
