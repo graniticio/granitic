@@ -1,0 +1,321 @@
+package types
+
+import (
+	"errors"
+	"fmt"
+	rt "github.com/graniticio/granitic/v2/reflecttools"
+	"net/url"
+	"reflect"
+	"strconv"
+)
+
+// NewParams creates a Params with the supplied contents
+func NewParams(v url.Values, pn []string) *Params {
+	p := new(Params)
+	p.values = v
+	p.paramNames = pn
+
+	return p
+}
+
+// Params is an abstraction of the HTTP query parameters or path parameters with type-safe accessors.
+type Params struct {
+	values     url.Values
+	paramNames []string
+}
+
+// ParamNames returns the names of all of the parameters stored
+func (wp *Params) ParamNames() []string {
+	return wp.paramNames
+}
+
+// NotEmpty returns true if a parameter with the supplied name exists and has a non-empty string representation.
+func (wp *Params) NotEmpty(key string) bool {
+
+	if !wp.Exists(key) {
+		return false
+	}
+
+	s, _ := wp.StringValue(key)
+
+	return s != ""
+
+}
+
+// Exists returns true if a parameter with the supplied name exists, even if that parameter's value is an empty string.
+func (wp *Params) Exists(key string) bool {
+	return wp.values[key] != nil
+}
+
+// MultipleValues returns true if the parameter with the supplied name was set more than once (allowed for HTTP query parameters).
+func (wp *Params) MultipleValues(key string) bool {
+
+	value := wp.values[key]
+
+	return value != nil && len(value) > 1
+
+}
+
+// StringValue returns the string representation of the specified parameter or an error if no value exists for that parameter.
+func (wp *Params) StringValue(key string) (string, error) {
+
+	s := wp.values[key]
+
+	if s == nil {
+		return "", wp.noVal(key)
+	}
+
+	return s[len(s)-1], nil
+
+}
+
+// BoolValue returns the bool representation of the specified parameter (using Go's bool conversion rules) or an error if no value exists for that parameter.
+func (wp *Params) BoolValue(key string) (bool, error) {
+
+	v := wp.values[key]
+
+	if v == nil {
+		return false, wp.noVal(key)
+	}
+
+	b, err := strconv.ParseBool(v[len(v)-1])
+
+	return b, err
+
+}
+
+// FloatNValue returns a float representation of the specified parameter with the specified bit size, or an error if no value exists for that parameter or
+// if the value could not be converted to a float.
+func (wp *Params) FloatNValue(key string, bits int) (float64, error) {
+
+	v := wp.values[key]
+
+	if v == nil {
+		return 0.0, wp.noVal(key)
+	}
+
+	i, err := strconv.ParseFloat(v[len(v)-1], bits)
+
+	return i, err
+
+}
+
+// IntNValue returns a signed int representation of the specified parameter with the specified bit size, or an error if no value exists for that parameter or
+// if the value could not be converted to an int.
+func (wp *Params) IntNValue(key string, bits int) (int64, error) {
+
+	v := wp.values[key]
+
+	if v == nil {
+		return 0, wp.noVal(key)
+	}
+
+	i, err := strconv.ParseInt(v[len(v)-1], 10, bits)
+
+	return i, err
+
+}
+
+// UIntNValue returns an unsigned int representation of the specified parameter with the specified bit size, or an error if no value exists for that parameter or
+// if the value could not be converted to an unsigned int.
+func (wp *Params) UIntNValue(key string, bits int) (uint64, error) {
+
+	v := wp.values[key]
+
+	if v == nil {
+		return 0, wp.noVal(key)
+	}
+
+	i, err := strconv.ParseUint(v[len(v)-1], 10, bits)
+
+	return i, err
+
+}
+
+func (wp *Params) noVal(key string) error {
+	message := fmt.Sprintf("No value available for key %s", key)
+	return errors.New(message)
+}
+
+// GenerateMappingError is used to create an error in the context of mapping a parameter into a struct field
+type GenerateMappingError func(paramName string, fieldName string, typeName string, params *Params) error
+
+// FieldAssociatedError is implemented by types that can record which field on a struct caused a problem
+type FieldAssociatedError interface {
+	// RecordField captures the field that was involved in the error
+	RecordField(string)
+}
+
+// ParamValueInjector takes a series of key/value (string/string) paramters and tries to inject them into the fields
+// on a target struct
+type ParamValueInjector struct {
+}
+
+// BindValueToField attempts to take a named parameter from the supplied set of parameters and inject it into a field on the supplied target,
+// converting to the correct data type as it goes.
+func (pb *ParamValueInjector) BindValueToField(paramName string, fieldName string, p *Params, t interface{}, errorFn GenerateMappingError) error {
+
+	switch rt.TypeOfField(t, fieldName).Kind() {
+	case reflect.Int:
+		return pb.setIntNField(paramName, fieldName, p, t, 0, errorFn)
+	case reflect.Int8:
+		return pb.setIntNField(paramName, fieldName, p, t, 8, errorFn)
+	case reflect.Int16:
+		return pb.setIntNField(paramName, fieldName, p, t, 16, errorFn)
+	case reflect.Int32:
+		return pb.setIntNField(paramName, fieldName, p, t, 32, errorFn)
+	case reflect.Int64:
+		return pb.setIntNField(paramName, fieldName, p, t, 64, errorFn)
+	case reflect.Bool:
+		return pb.setBoolField(paramName, fieldName, p, t, errorFn)
+	case reflect.String:
+		return pb.setStringField(paramName, fieldName, p, t, errorFn)
+	case reflect.Uint8:
+		return pb.setUintNField(paramName, fieldName, p, t, 8, errorFn)
+	case reflect.Uint16:
+		return pb.setUintNField(paramName, fieldName, p, t, 16, errorFn)
+	case reflect.Uint32:
+		return pb.setUintNField(paramName, fieldName, p, t, 32, errorFn)
+	case reflect.Uint64:
+		return pb.setUintNField(paramName, fieldName, p, t, 64, errorFn)
+	case reflect.Float32:
+		return pb.setFloatNField(paramName, fieldName, p, t, 32, errorFn)
+	case reflect.Float64:
+		return pb.setFloatNField(paramName, fieldName, p, t, 64, errorFn)
+	case reflect.Ptr:
+		return pb.considerStructField(paramName, fieldName, p, t, errorFn)
+
+	}
+
+	return nil
+
+}
+
+func (pb *ParamValueInjector) considerStructField(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError) error {
+
+	tf := reflect.ValueOf(t).Elem().FieldByName(fieldName)
+	tv := tf.Interface()
+
+	_, found := tv.(Nilable)
+
+	if found {
+		return pb.setNilableField(paramName, fieldName, qp, tf, tv, errorFn, t)
+	}
+
+	return nil
+}
+
+func (pb *ParamValueInjector) setNilableField(paramName string, fieldName string, p *Params, tf reflect.Value, tv interface{}, errorFn GenerateMappingError, parent interface{}) error {
+	np := new(nillableProxy)
+
+	var e error
+	var nv interface{}
+
+	switch tv.(type) {
+
+	case *NilableString:
+		e = pb.setStringField(paramName, "S", p, np, errorFn)
+		nv = NewNilableString(np.S)
+
+	case *NilableBool:
+		if p.NotEmpty(paramName) {
+			e = pb.setBoolField(paramName, "B", p, np, errorFn)
+			nv = NewNilableBool(np.B)
+		}
+
+	case *NilableInt64:
+		if p.NotEmpty(paramName) {
+			e = pb.setIntNField(paramName, "I", p, np, 64, errorFn)
+			nv = NewNilableInt64(np.I)
+		}
+
+	case *NilableFloat64:
+		if p.NotEmpty(paramName) {
+			e = pb.setFloatNField(paramName, "F", p, np, 64, errorFn)
+			nv = NewNilableFloat64(np.F)
+		}
+	}
+
+	if e == nil {
+		rt.SetPtrToStruct(parent, fieldName, nv)
+	} else {
+
+		if fe, okay := e.(FieldAssociatedError); okay {
+			fe.RecordField(fieldName)
+		}
+
+	}
+
+	return e
+}
+
+func (pb *ParamValueInjector) setStringField(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError) error {
+	s, err := qp.StringValue(paramName)
+
+	if err != nil {
+		return errorFn(paramName, fieldName, "string", qp)
+	}
+
+	rt.SetString(t, fieldName, s)
+
+	return nil
+}
+
+func (pb *ParamValueInjector) setBoolField(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError) error {
+	b, err := qp.BoolValue(paramName)
+
+	if err != nil {
+		return errorFn(paramName, fieldName, "bool", qp)
+	}
+
+	rt.SetBool(t, fieldName, b)
+	return nil
+}
+
+func (pb *ParamValueInjector) setIntNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn GenerateMappingError) error {
+	i, err := qp.IntNValue(paramName, bits)
+
+	if err != nil {
+		return errorFn(paramName, fieldName, pb.intTypeName("int", bits), qp)
+	}
+
+	rt.SetInt64(t, fieldName, i)
+	return nil
+}
+
+func (pb *ParamValueInjector) setFloatNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn GenerateMappingError) error {
+	i, err := qp.FloatNValue(paramName, bits)
+
+	if err != nil {
+		return errorFn(paramName, fieldName, pb.intTypeName("float", bits), qp)
+	}
+
+	rt.SetFloat64(t, fieldName, i)
+	return nil
+}
+
+func (pb *ParamValueInjector) setUintNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn GenerateMappingError) error {
+	i, err := qp.UIntNValue(paramName, bits)
+
+	if err != nil {
+		return errorFn(paramName, fieldName, pb.intTypeName("uint", bits), qp)
+	}
+
+	rt.SetUint64(t, fieldName, i)
+	return nil
+}
+
+func (pb *ParamValueInjector) intTypeName(prefix string, bits int) string {
+	if bits == 0 {
+		return prefix
+	}
+
+	return prefix + strconv.Itoa(bits)
+}
+
+type nillableProxy struct {
+	S string
+	B bool
+	I int64
+	F float64
+}

@@ -20,7 +20,7 @@ type Request struct {
 	RequestBody interface{}
 
 	// A copy of the HTTP query parameters from the underlying HTTP request with type-safe accessors.
-	QueryParams *Params
+	QueryParams *types.Params
 
 	// Information extracted from the path portion of the HTTP request using regular expression groups with type-safe accessors.
 	PathParams []string

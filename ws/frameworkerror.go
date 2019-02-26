@@ -23,12 +23,6 @@ const (
 	PathBind
 )
 
-// FieldAssociatedError is implemented by types that can record which field on a struct caused a problem
-type FieldAssociatedError interface {
-	// RecordField captures the field that was involved in the error
-	RecordField(string)
-}
-
 // FrameworkError an error encountered in early phases of request processing, before application code is invoked.
 type FrameworkError struct {
 	// The phase of the request processing during which an error was encountered.
