@@ -114,6 +114,7 @@ type Binder struct {
 	ToolName          string
 	Log               logging.Logger
 	defaultValueRegex *regexp.Regexp
+	errorsFound       bool
 }
 
 // Bind loads component definitions files from disk/network, merges those files into a single
@@ -140,6 +141,11 @@ func (b *Binder) Bind(s Settings) {
 
 	w := bufio.NewWriter(f)
 	b.writeBindings(w, ca)
+
+	if b.errorsFound {
+		b.exitError("Problems found. Please correct the above and re-run %s", b.ToolName)
+	}
+
 }
 
 func (b *Binder) compileRegexes() {
@@ -150,6 +156,9 @@ func (b *Binder) compileRegexes() {
 // resource/facility-config and serialises them into a single string that will be embedded into your application's
 // executable.
 func SerialiseBuiltinConfig(log logging.Logger) string {
+
+	log.LogDebugf("Serialising facility configuration")
+
 	gh, err := LocateFacilityConfig(log)
 
 	if err != nil {
@@ -186,6 +195,9 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 		}
 
 		ser := base64.StdEncoding.EncodeToString(b.Bytes())
+
+		log.LogDebugf("Serialised facility configuration\n")
+
 		return ser
 
 	}
@@ -198,7 +210,13 @@ func (b *Binder) writeBindings(w *bufio.Writer, ca *config.Accessor) {
 	b.writeImports(w, ca)
 
 	c, err := ca.ObjectVal(componentsField)
-	b.checkErr(err)
+
+	if err != nil {
+		b.Log.LogFatalf("Unable to find a %s field in the merged configuration: %s", componentsField, err.Error())
+		b.errorsFound = true
+
+		return
+	}
 
 	t := b.parseTemplates(ca)
 
@@ -206,8 +224,9 @@ func (b *Binder) writeBindings(w *bufio.Writer, ca *config.Accessor) {
 
 	var i = 0
 
-	for name, v := range c {
+	b.Log.LogDebugf("Processing components:\n")
 
+	for name, v := range c {
 		b.writeComponent(w, name, v.((map[string]interface{})), t, i)
 		i++
 	}
@@ -226,8 +245,17 @@ func (b *Binder) writePackage(w *bufio.Writer) {
 }
 
 func (b *Binder) writeImports(w *bufio.Writer, configAccessor *config.Accessor) {
+
+	b.Log.LogDebugf("Gathering and writing import statements")
+
 	packages, err := configAccessor.Array(packagesField)
-	b.checkErr(err)
+
+	if err != nil {
+		b.Log.LogFatalf("Unable to find a %s field in the merged configuration: %s", packagesField, err.Error())
+		b.errorsFound = true
+
+		return
+	}
 
 	seen := types.NewEmptyOrderedStringSet()
 
@@ -252,6 +280,8 @@ func (b *Binder) writeImports(w *bufio.Writer, configAccessor *config.Accessor) 
 	}
 
 	w.WriteString(")\n\n")
+
+	b.Log.LogDebugf("Import statements done\n")
 }
 
 func (b *Binder) writeEntryFunctionOpen(w *bufio.Writer, t int) {
@@ -268,8 +298,16 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 	refs := make(map[string]interface{})
 	confPromises := make(map[string]interface{})
 
+	log := b.Log
+
+	log.LogDebugf("Start component %s", name)
+
 	b.mergeValueSources(component, templates)
-	b.validateHasTypeField(component, name)
+
+	if !b.validateHasTypeField(component, name) {
+		log.LogDebugf("Component %s failed", name)
+		return
+	}
 
 	b.writeComponentNameComment(w, name, baseIndent)
 	b.writeInstanceVar(w, name, component[typeField].(string), baseIndent)
@@ -278,12 +316,21 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 	for field, value := range component {
 
 		if b.isPromise(value) {
+
+			log.LogDebugf("%s.%s has a config promise %v", name, field, value)
+
 			confPromises[field] = value
 
 		} else if b.isRef(value) {
+
+			log.LogDebugf("%s.%s has a reference to component %v", name, field, value)
+
 			refs[field] = value
 
 		} else {
+
+			log.LogDebugf("%s.%s has a direct value", name, field)
+
 			values[field] = value
 		}
 
@@ -295,6 +342,8 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 
 	w.WriteString(newline)
 	w.WriteString(newline)
+
+	log.LogDebugf("End component %s\n", name)
 
 }
 
@@ -314,7 +363,13 @@ func (b *Binder) writeValues(w *bufio.Writer, cName string, values map[string]in
 			v = b.removeEscapes(s)
 		}
 
-		init, wasMap := b.asGoInit(v)
+		init, wasMap, err := b.asGoInit(v)
+
+		if err != nil {
+			b.Log.LogErrorf("Unable to write a value to %s.%s: %s", cName, k, err.Error())
+			b.errorsFound = true
+			continue
+		}
 
 		s := fmt.Sprintf("%s.%s = %s\n", cName, k, init)
 		w.WriteString(b.tabIndent(s, tabs))
@@ -357,6 +412,8 @@ func (b *Binder) writeConfPromises(w *bufio.Writer, cName string, promises map[s
 
 		if defaultValue != "" {
 
+			b.Log.LogDebugf("Found and storing a default value for %s.%s", p, k)
+
 			s = fmt.Sprintf("%s.%s(%s, %s)\n", p, "AddDefaultValue", b.quoteString(k), b.quoteString(defaultValue))
 			w.WriteString(b.tabIndent(s, tabs))
 		}
@@ -380,6 +437,8 @@ func (b *Binder) extractDefaultValue(s string) (string, string) {
 
 func (b *Binder) writeDependencies(w *bufio.Writer, cName string, promises map[string]interface{}, tabs int) {
 
+	b.Log.LogDebugf("Writing component dependencies")
+
 	p := b.protoName(cName)
 
 	if len(promises) > 0 {
@@ -394,6 +453,8 @@ func (b *Binder) writeDependencies(w *bufio.Writer, cName string, promises map[s
 		w.WriteString(b.tabIndent(s, tabs))
 
 	}
+
+	b.Log.LogDebugf("Component dependencies done\n")
 
 }
 
@@ -410,38 +471,57 @@ func (b *Binder) writeMapContents(w *bufio.Writer, iName string, fName string, c
 
 	for k, v := range contents {
 
-		gi, _ := b.asGoInit(v)
+		gi, _, err := b.asGoInit(v)
+
+		if err != nil {
+			b.Log.LogErrorf("Unable to write a value to %s.%s[%s]: %s", iName, fName, b.quoteString(k), err.Error())
+			b.errorsFound = true
+			continue
+		}
 
 		s := fmt.Sprintf("%s.%s[%s] = %s\n", iName, fName, b.quoteString(k), gi)
 		w.WriteString(b.tabIndent(s, tabs))
 	}
 }
 
-func (b *Binder) asGoInit(v interface{}) (string, bool) {
+func (b *Binder) asGoInit(v interface{}) (string, bool, error) {
 
 	switch config.JSONType(v) {
 	case config.JSONMap:
-		return b.asGoMapInit(v), true
+
+		s, err := b.asGoMapInit(v)
+		return s, true, err
 	case config.JSONArray:
-		return b.asGoArrayInit(v), false
+
+		s, err := b.asGoArrayInit(v)
+
+		return s, false, err
 	default:
-		return fmt.Sprintf("%#v", v), false
+		return fmt.Sprintf("%#v", v), false, nil
 	}
 }
 
-func (b *Binder) asGoMapInit(v interface{}) string {
+func (b *Binder) asGoMapInit(v interface{}) (string, error) {
 	a := v.(map[string]interface{})
 
-	at := b.assessMapValueType(a)
+	at, err := b.assessMapValueType(a)
+
+	if err != nil {
+		return "", err
+	}
 
 	s := fmt.Sprintf("make(map[string]%s)", at)
-	return s
+	return s, nil
 }
 
-func (b *Binder) asGoArrayInit(v interface{}) string {
+func (b *Binder) asGoArrayInit(v interface{}) (string, error) {
 	a := v.([]interface{})
 
-	at := b.assessArrayType(a)
+	at, err := b.assessArrayType(a)
+
+	if err != nil {
+		return "", err
+	}
 
 	var buf bytes.Buffer
 
@@ -449,7 +529,7 @@ func (b *Binder) asGoArrayInit(v interface{}) string {
 	buf.WriteString(s)
 
 	for i, m := range a {
-		gi, _ := b.asGoInit(m)
+		gi, _, _ := b.asGoInit(m)
 		buf.WriteString(gi)
 
 		if i+1 < len(a) {
@@ -461,16 +541,16 @@ func (b *Binder) asGoArrayInit(v interface{}) string {
 	s = fmt.Sprintf("}")
 	buf.WriteString(s)
 
-	return buf.String()
+	return buf.String(), nil
 }
 
-func (b *Binder) assessMapValueType(a map[string]interface{}) string {
+func (b *Binder) assessMapValueType(a map[string]interface{}) (string, error) {
 
 	var currentType = config.Unset
 	var sampleVal interface{}
 
 	if len(a) == 0 {
-		b.exitError("This tool does not support empty maps as component values as the type of the map can't be determined.")
+		return "", fmt.Errorf("this tool does not support empty maps as component values as the type of the map can't be determined")
 	}
 
 	for _, v := range a {
@@ -479,7 +559,7 @@ func (b *Binder) assessMapValueType(a map[string]interface{}) string {
 		sampleVal = v
 
 		if newType == config.JSONMap {
-			b.exitError("This tool does not support nested maps/objects as component values.\n")
+			return "", fmt.Errorf("this tool does not support nested maps/objects as component values")
 		}
 
 		if currentType == config.Unset {
@@ -488,26 +568,34 @@ func (b *Binder) assessMapValueType(a map[string]interface{}) string {
 		}
 
 		if newType != currentType {
-			return "interface{}"
+			return "interface{}", nil
 		}
 	}
 
 	if currentType == config.JSONArray {
-		return "[]" + b.assessArrayType(sampleVal.([]interface{}))
+
+		var at string
+		var err error
+
+		if at, err = b.assessArrayType(sampleVal.([]interface{})); err == nil {
+			return fmt.Sprintf("[]%s", at), nil
+		}
+
+		return "", err
 	}
 
 	switch t := sampleVal.(type) {
 	default:
-		return fmt.Sprintf("%T", t)
+		return fmt.Sprintf("%T", t), nil
 	}
 }
 
-func (b *Binder) assessArrayType(a []interface{}) string {
+func (b *Binder) assessArrayType(a []interface{}) (string, error) {
 
 	var currentType = config.Unset
 
 	if len(a) == 0 {
-		b.exitError("This tool does not support zero-length (empty) arrays as component values as the type can't be determined.")
+		return "", fmt.Errorf("this tool does not support zero-length (empty) arrays as component values as the type can't be determined")
 	}
 
 	for _, v := range a {
@@ -515,7 +603,7 @@ func (b *Binder) assessArrayType(a []interface{}) string {
 		newType := config.JSONType(v)
 
 		if newType == config.JSONMap || newType == config.JSONArray {
-			b.exitError("This tool does not support multi-dimensional arrays or object arrays as component values\n")
+			return "", fmt.Errorf("This tool does not support multi-dimensional arrays or object arrays as component values")
 		}
 
 		if currentType == config.Unset {
@@ -524,7 +612,7 @@ func (b *Binder) assessArrayType(a []interface{}) string {
 		}
 
 		if newType != currentType {
-			return "interface{}"
+			return "interface{}", nil
 		}
 	}
 
@@ -535,15 +623,15 @@ func (b *Binder) assessArrayType(a []interface{}) string {
 			switch at := m.(type) {
 			case float64:
 				//Although the first array member looks like an int, it's part of a set of floats
-				return fmt.Sprintf("%T", at)
+				return fmt.Sprintf("%T", at), nil
 
 			}
 		}
 
-		return fmt.Sprintf("%T", t)
+		return fmt.Sprintf("%T", t), nil
 
 	default:
-		return fmt.Sprintf("%T", t)
+		return fmt.Sprintf("%T", t), nil
 	}
 
 }
@@ -603,21 +691,25 @@ func (b *Binder) reservedFieldName(f string) bool {
 	return f == templateField || f == templateFieldAlias || f == typeField || f == typeFieldAlias
 }
 
-func (b *Binder) validateHasTypeField(v map[string]interface{}, name string) {
+func (b *Binder) validateHasTypeField(v map[string]interface{}, name string) bool {
 
 	t := v[typeField]
 
 	if t == nil {
-		m := fmt.Sprintf("Component %s does not have a 'type' defined in its component defintion (or any parent templates).\n", name)
-		b.exitError(m)
+		b.Log.LogErrorf("Component %s does not have a 'type' defined in its component defintion (or any parent templates).\n", name)
+		b.errorsFound = true
+		return false
 	}
 
 	_, found := t.(string)
 
 	if !found {
-		m := fmt.Sprintf("Component %s has a 'type' field defined but the value of the field is not a string.\n", name)
-		b.exitError(m)
+		b.Log.LogErrorf("Component %s has a 'type' field defined but the value of the field is not a string.\n", name)
+		b.errorsFound = true
+		return false
 	}
+
+	return true
 
 }
 
@@ -657,6 +749,8 @@ func (b *Binder) openOutputFile(p string) *os.File {
 
 func (b *Binder) parseTemplates(ca *config.Accessor) map[string]interface{} {
 
+	b.Log.LogDebugf("Processing component templates")
+
 	flattened := make(map[string]interface{})
 
 	if !ca.PathExists(templatesField) {
@@ -664,7 +758,12 @@ func (b *Binder) parseTemplates(ca *config.Accessor) map[string]interface{} {
 	}
 
 	templates, err := ca.ObjectVal(templatesField)
-	b.checkErr(err)
+
+	if err != nil {
+		b.errorsFound = true
+		b.Log.LogErrorf("Problem using the %s field in the merged component definition file: %s", templatesField, err.Error())
+		return map[string]interface{}{}
+	}
 
 	for _, template := range templates {
 		b.replaceAliases(template.(map[string]interface{}))
@@ -682,6 +781,8 @@ func (b *Binder) parseTemplates(ca *config.Accessor) map[string]interface{} {
 		flattened[n] = ft
 
 	}
+
+	b.Log.LogDebugf("Finished processing component templates\n")
 
 	return flattened
 
@@ -710,7 +811,12 @@ func (b *Binder) writeFrameworkModifiers(w *bufio.Writer, ca *config.Accessor) {
 	}
 
 	fm, err := ca.ObjectVal(frameworkField)
-	b.checkErr(err)
+
+	if err != nil {
+
+		b.errorsFound = true
+		b.Log.LogErrorf("Problem using the %s field in the merged component definition file: %s", frameworkField, err.Error())
+	}
 
 	for fc, mods := range fm {
 
@@ -852,10 +958,4 @@ func (b *Binder) exitError(message string, a ...interface{}) {
 	b.Log.LogFatalf(message, a...)
 
 	os.Exit(1)
-}
-
-func (b *Binder) checkErr(e error) {
-	if e != nil {
-		b.exitError(e.Error())
-	}
 }
