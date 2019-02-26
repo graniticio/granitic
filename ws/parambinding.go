@@ -127,6 +127,19 @@ func (pb *ParamBinder) AutoBindQueryParameters(wsReq *Request) {
 	pb.initialiseUnsetNilables(t)
 }
 
+func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *Params, t interface{}, errorFn bindError) error {
+
+	if !rt.TargetFieldIsArray(t, fieldName) && p.MultipleValues(paramName) {
+		m, c := pb.FrameworkErrors.MessageCode(QueryTargetNotArray, fieldName)
+		return NewQueryBindFrameworkError(m, c, paramName, fieldName)
+	}
+
+	pi := new(ParamValueInjector)
+
+	return pi.BindValueToField(paramName, fieldName, p, t, errorFn)
+
+}
+
 func (pb *ParamBinder) initialiseUnsetNilables(t interface{}) {
 
 	vt := reflect.ValueOf(t).Elem()
@@ -191,12 +204,14 @@ func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeNa
 
 }
 
-func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *Params, t interface{}, errorFn bindError) error {
+// ParamValueInjector takes a series of key/value (string/string) paramters and tries to inject them into the fields
+// on a target struct
+type ParamValueInjector struct {
+}
 
-	if !rt.TargetFieldIsArray(t, fieldName) && p.MultipleValues(paramName) {
-		m, c := pb.FrameworkErrors.MessageCode(QueryTargetNotArray, fieldName)
-		return NewQueryBindFrameworkError(m, c, paramName, fieldName)
-	}
+// BindValueToField attempts to take a named parameter from the supplied set of parameters and inject it into a field on the supplied target,
+// converting to the correct data type as it goes.
+func (pb *ParamValueInjector) BindValueToField(paramName string, fieldName string, p *Params, t interface{}, errorFn bindError) error {
 
 	switch rt.TypeOfField(t, fieldName).Kind() {
 	case reflect.Int:
@@ -234,7 +249,7 @@ func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *P
 
 }
 
-func (pb *ParamBinder) considerStructField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) error {
+func (pb *ParamValueInjector) considerStructField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) error {
 
 	tf := reflect.ValueOf(t).Elem().FieldByName(fieldName)
 	tv := tf.Interface()
@@ -248,7 +263,7 @@ func (pb *ParamBinder) considerStructField(paramName string, fieldName string, q
 	return nil
 }
 
-func (pb *ParamBinder) setNilableField(paramName string, fieldName string, p *Params, tf reflect.Value, tv interface{}, errorFn bindError, parent interface{}) error {
+func (pb *ParamValueInjector) setNilableField(paramName string, fieldName string, p *Params, tf reflect.Value, tv interface{}, errorFn bindError, parent interface{}) error {
 	np := new(nillableProxy)
 
 	var e error
@@ -292,7 +307,7 @@ func (pb *ParamBinder) setNilableField(paramName string, fieldName string, p *Pa
 	return e
 }
 
-func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) error {
+func (pb *ParamValueInjector) setStringField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) error {
 	s, err := qp.StringValue(paramName)
 
 	if err != nil {
@@ -304,7 +319,7 @@ func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *Pa
 	return nil
 }
 
-func (pb *ParamBinder) setBoolField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) error {
+func (pb *ParamValueInjector) setBoolField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) error {
 	b, err := qp.BoolValue(paramName)
 
 	if err != nil {
@@ -315,7 +330,7 @@ func (pb *ParamBinder) setBoolField(paramName string, fieldName string, qp *Para
 	return nil
 }
 
-func (pb *ParamBinder) setIntNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) error {
+func (pb *ParamValueInjector) setIntNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) error {
 	i, err := qp.IntNValue(paramName, bits)
 
 	if err != nil {
@@ -326,7 +341,7 @@ func (pb *ParamBinder) setIntNField(paramName string, fieldName string, qp *Para
 	return nil
 }
 
-func (pb *ParamBinder) setFloatNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) error {
+func (pb *ParamValueInjector) setFloatNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) error {
 	i, err := qp.FloatNValue(paramName, bits)
 
 	if err != nil {
@@ -337,7 +352,7 @@ func (pb *ParamBinder) setFloatNField(paramName string, fieldName string, qp *Pa
 	return nil
 }
 
-func (pb *ParamBinder) setUintNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) error {
+func (pb *ParamValueInjector) setUintNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) error {
 	i, err := qp.UIntNValue(paramName, bits)
 
 	if err != nil {
@@ -348,7 +363,7 @@ func (pb *ParamBinder) setUintNField(paramName string, fieldName string, qp *Par
 	return nil
 }
 
-func (pb *ParamBinder) intTypeName(prefix string, bits int) string {
+func (pb *ParamValueInjector) intTypeName(prefix string, bits int) string {
 	if bits == 0 {
 		return prefix
 	}
