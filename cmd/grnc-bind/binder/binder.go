@@ -882,25 +882,23 @@ func (b *Binder) flatten(target map[string]interface{}, templates map[string]int
 
 }
 
-func (b *Binder) checkForTemplateLoop(template map[string]interface{}, templates map[string]interface{}, chain []string) {
+func (b *Binder) checkForTemplateLoop(template map[string]interface{}, templates map[string]interface{}, chain []string) error {
 
 	if template[templateField] == nil {
-		return
+		return nil
 	}
 
 	p := template[templateField].(string)
 
 	if b.contains(chain, p) {
-		message := fmt.Sprintf("Invalid template inheritance %v\n", append(chain, p))
-		b.exitError(message)
+		return fmt.Errorf("invalid template inheritance %v", append(chain, p))
 	}
 
 	if templates[p] == nil {
-		message := fmt.Sprintf("No template exists with name %s\n", p)
-		b.exitError(message)
+		return fmt.Errorf("no template exists with name %s", p)
 	}
 
-	b.checkForTemplateLoop(templates[p].(map[string]interface{}), templates, append(chain, p))
+	return b.checkForTemplateLoop(templates[p].(map[string]interface{}), templates, append(chain, p))
 
 }
 
