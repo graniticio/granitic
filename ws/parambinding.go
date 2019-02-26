@@ -11,7 +11,7 @@ import (
 	"strconv"
 )
 
-type bindError func(string, string, string, *Params) *FrameworkError
+type bindError func(string, string, string, *Params) error
 
 // ParamBinder takes string parameters extracted from an HTTP request, converts them to Go native or Granitic nilable types and
 // injects them into the RequestBody on a Request.
@@ -33,11 +33,16 @@ func (pb *ParamBinder) BindPathParameters(wsReq *Request, p *Params) {
 	for i, fieldName := range p.ParamNames() {
 
 		if rt.HasFieldOfName(t, fieldName) {
-			fErr := pb.bindValueToField(strconv.Itoa(i), fieldName, p, t, pb.pathParamError)
+			err := pb.bindValueToField(strconv.Itoa(i), fieldName, p, t, pb.pathParamError)
 
-			if fErr != nil {
-				fErr.Position = i
-				wsReq.AddFrameworkError(fErr)
+			if err != nil {
+
+				if fe, okay := err.(*FrameworkError); okay {
+					fe.Position = i
+					wsReq.AddFrameworkError(fe)
+				} else {
+					pb.FrameworkLogger.LogErrorf("Unexpected error of type %t (was expecting *FrameworkError). Message was: %s", err, err.Error())
+				}
 			} else {
 				wsReq.RecordFieldAsBound(fieldName)
 			}
@@ -66,10 +71,14 @@ func (pb *ParamBinder) BindQueryParameters(wsReq *Request, targets map[string]st
 			if p.Exists(param) {
 				l.LogTracef("Binding parameter %s to field %s", param, field)
 
-				fErr := pb.bindValueToField(param, field, p, t, pb.queryParamError)
+				err := pb.bindValueToField(param, field, p, t, pb.queryParamError)
 
-				if fErr != nil {
-					wsReq.AddFrameworkError(fErr)
+				if err != nil {
+					if fe, okay := err.(*FrameworkError); okay {
+						wsReq.AddFrameworkError(fe)
+					} else {
+						pb.FrameworkLogger.LogErrorf("Unexpected error of type %t (was expecting *FrameworkError). Message was: %s", err, err.Error())
+					}
 				} else {
 					wsReq.RecordFieldAsBound(field)
 				}
@@ -97,10 +106,16 @@ func (pb *ParamBinder) AutoBindQueryParameters(wsReq *Request) {
 
 		if rt.HasFieldOfName(t, paramName) {
 
-			fErr := pb.bindValueToField(paramName, paramName, p, t, pb.queryParamError)
+			err := pb.bindValueToField(paramName, paramName, p, t, pb.queryParamError)
 
-			if fErr != nil {
-				wsReq.AddFrameworkError(fErr)
+			if err != nil {
+
+				if fe, okay := err.(*FrameworkError); okay {
+					wsReq.AddFrameworkError(fe)
+				} else {
+					pb.FrameworkLogger.LogErrorf("Unexpected error of type %t (was expecting *FrameworkError). Message was: %s", err, err.Error())
+				}
+
 			} else {
 				wsReq.RecordFieldAsBound(paramName)
 			}
@@ -150,7 +165,7 @@ FieldLoop:
 
 }
 
-func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeName string, p *Params) *FrameworkError {
+func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeName string, p *Params) error {
 
 	var v = ""
 
@@ -163,7 +178,7 @@ func (pb *ParamBinder) queryParamError(paramName string, fieldName string, typeN
 
 }
 
-func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeName string, p *Params) *FrameworkError {
+func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeName string, p *Params) error {
 
 	var v = ""
 
@@ -176,7 +191,7 @@ func (pb *ParamBinder) pathParamError(paramName string, fieldName string, typeNa
 
 }
 
-func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *Params, t interface{}, errorFn bindError) *FrameworkError {
+func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *Params, t interface{}, errorFn bindError) error {
 
 	if !rt.TargetFieldIsArray(t, fieldName) && p.MultipleValues(paramName) {
 		m, c := pb.FrameworkErrors.MessageCode(QueryTargetNotArray, fieldName)
@@ -219,7 +234,7 @@ func (pb *ParamBinder) bindValueToField(paramName string, fieldName string, p *P
 
 }
 
-func (pb *ParamBinder) considerStructField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) *FrameworkError {
+func (pb *ParamBinder) considerStructField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) error {
 
 	tf := reflect.ValueOf(t).Elem().FieldByName(fieldName)
 	tv := tf.Interface()
@@ -233,10 +248,10 @@ func (pb *ParamBinder) considerStructField(paramName string, fieldName string, q
 	return nil
 }
 
-func (pb *ParamBinder) setNilableField(paramName string, fieldName string, p *Params, tf reflect.Value, tv interface{}, errorFn bindError, parent interface{}) *FrameworkError {
+func (pb *ParamBinder) setNilableField(paramName string, fieldName string, p *Params, tf reflect.Value, tv interface{}, errorFn bindError, parent interface{}) error {
 	np := new(nillableProxy)
 
-	var e *FrameworkError
+	var e error
 	var nv interface{}
 
 	switch tv.(type) {
@@ -267,13 +282,17 @@ func (pb *ParamBinder) setNilableField(paramName string, fieldName string, p *Pa
 	if e == nil {
 		rt.SetPtrToStruct(parent, fieldName, nv)
 	} else {
-		e.TargetField = fieldName
+
+		if fe, okay := e.(FieldAssociatedError); okay {
+			fe.RecordField(fieldName)
+		}
+
 	}
 
 	return e
 }
 
-func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) *FrameworkError {
+func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) error {
 	s, err := qp.StringValue(paramName)
 
 	if err != nil {
@@ -285,7 +304,7 @@ func (pb *ParamBinder) setStringField(paramName string, fieldName string, qp *Pa
 	return nil
 }
 
-func (pb *ParamBinder) setBoolField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) *FrameworkError {
+func (pb *ParamBinder) setBoolField(paramName string, fieldName string, qp *Params, t interface{}, errorFn bindError) error {
 	b, err := qp.BoolValue(paramName)
 
 	if err != nil {
@@ -296,7 +315,7 @@ func (pb *ParamBinder) setBoolField(paramName string, fieldName string, qp *Para
 	return nil
 }
 
-func (pb *ParamBinder) setIntNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) *FrameworkError {
+func (pb *ParamBinder) setIntNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) error {
 	i, err := qp.IntNValue(paramName, bits)
 
 	if err != nil {
@@ -307,7 +326,7 @@ func (pb *ParamBinder) setIntNField(paramName string, fieldName string, qp *Para
 	return nil
 }
 
-func (pb *ParamBinder) setFloatNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) *FrameworkError {
+func (pb *ParamBinder) setFloatNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) error {
 	i, err := qp.FloatNValue(paramName, bits)
 
 	if err != nil {
@@ -318,7 +337,7 @@ func (pb *ParamBinder) setFloatNField(paramName string, fieldName string, qp *Pa
 	return nil
 }
 
-func (pb *ParamBinder) setUintNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) *FrameworkError {
+func (pb *ParamBinder) setUintNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn bindError) error {
 	i, err := qp.UIntNValue(paramName, bits)
 
 	if err != nil {
