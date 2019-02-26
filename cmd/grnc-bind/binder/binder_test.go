@@ -30,10 +30,33 @@ func TestRemoveEscapes(t *testing.T) {
 		t.Error()
 	}
 
-	s = b.removeEscapes("??T").(string)
+	s = b.removeEscapes("$$T").(string)
 
-	if s != "?T" {
+	if s != "$T" {
 		t.Error()
+	}
+
+}
+
+func TestDefaultValueExtraction(t *testing.T) {
+
+	b := new(Binder)
+	b.compileRegexes()
+
+	s, v := b.extractDefaultValue("a.b.c.d")
+
+	if s != "a.b.c.d" || v != "" {
+		t.Fail()
+	}
+
+	s, v = b.extractDefaultValue("a.b.c.d(true)")
+
+	if s != "a.b.c.d" {
+		t.Fail()
+	}
+
+	if v != "true" {
+		t.Fail()
 	}
 
 }
@@ -80,11 +103,11 @@ func TestCheckConfDetection(t *testing.T) {
 		t.Error()
 	}
 
-	if !b.isPromise("?MyThing") {
+	if !b.isPromise("$MyThing") {
 		t.Error()
 	}
 
-	if b.isPromise("??MyThing") {
+	if b.isPromise("$$MyThing") {
 		t.Error()
 	}
 

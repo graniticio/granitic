@@ -234,6 +234,9 @@ type ProtoComponent struct {
 
 	// A map of fields on the component instance and the config-path that will contain the configuration that shoud be inject into the field.
 	ConfigPromises map[string]string
+
+	// A map of default values for fields if a config promise is not fulfiled
+	DefaultValues map[string]string
 }
 
 // AddDependency requests that the container injects another component into the specified field during the configure phase of
@@ -256,6 +259,16 @@ func (pc *ProtoComponent) AddConfigPromise(fieldName, configPath string) {
 	}
 
 	pc.ConfigPromises[fieldName] = configPath
+}
+
+// AddDefaultValue records an untyped default value to use if a config promise is not fulfiled
+func (pc *ProtoComponent) AddDefaultValue(fieldName, value string) {
+
+	if pc.DefaultValues == nil {
+		pc.DefaultValues = make(map[string]string)
+	}
+
+	pc.DefaultValues[fieldName] = value
 }
 
 // A Component is an instance of a struct with a name that is unique within your application.

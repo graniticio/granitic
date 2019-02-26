@@ -51,7 +51,7 @@
     },
     "sharedRuleManager": {
       "type": "validate.UnparsedRuleManager",
-      "Rules": "?sharedRules"
+      "Rules": "$sharedRules"
     },
     "artistExistsChecker": {
       "type": "db.ArtistExistsChecker"

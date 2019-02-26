@@ -13,6 +13,7 @@ import (
 	"github.com/graniticio/granitic/v2/types"
 	"os"
 	"path"
+	"regexp"
 	"strings"
 )
 
@@ -59,8 +60,8 @@ const (
 	refSymbolEscape  = "++"
 	confPrefix       = "conf:"
 	confAlias        = "c:"
-	confSymbol       = "?"
-	confSymbolEscape = "??"
+	confSymbol       = "$"
+	confSymbolEscape = "$$"
 )
 
 // A DefinitionLoader handles the loading of component definition files from a sequence of file paths and can write
@@ -105,11 +106,14 @@ func SettingsFromArgs() (Settings, error) {
 
 }
 
+const defaultValuePattern = "(.*)\\((.*)\\)"
+
 // Binder translates the components defined in component definition files into Go source code.
 type Binder struct {
-	Loader   DefinitionLoader
-	ToolName string
-	Log      logging.Logger
+	Loader            DefinitionLoader
+	ToolName          string
+	Log               logging.Logger
+	defaultValueRegex *regexp.Regexp
 }
 
 // Bind loads component definitions files from disk/network, merges those files into a single
@@ -127,6 +131,8 @@ func (b *Binder) Bind(s Settings) {
 		return
 	}
 
+	b.compileRegexes()
+
 	b.Log.LogDebugf("Writing generated bindings file to %s", *s.BindingsFile)
 
 	f := b.openOutputFile(*s.BindingsFile)
@@ -134,6 +140,10 @@ func (b *Binder) Bind(s Settings) {
 
 	w := bufio.NewWriter(f)
 	b.writeBindings(w, ca)
+}
+
+func (b *Binder) compileRegexes() {
+	b.defaultValueRegex = regexp.MustCompile(defaultValuePattern)
 }
 
 // SerialiseBuiltinConfig takes the configuration files for Granitic's internal components (facilities) found in
@@ -280,8 +290,8 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 	}
 
 	b.writeValues(w, name, values, baseIndent)
-	b.writeDeferred(w, name, confPromises, baseIndent, "AddConfigPromise")
-	b.writeDeferred(w, name, refs, baseIndent, "AddDependency")
+	b.writeConfPromises(w, name, confPromises, baseIndent)
+	b.writeDependencies(w, name, refs, baseIndent)
 
 	w.WriteString(newline)
 	w.WriteString(newline)
@@ -328,7 +338,7 @@ func (b *Binder) removeEscapes(s string) interface{} {
 
 }
 
-func (b *Binder) writeDeferred(w *bufio.Writer, cName string, promises map[string]interface{}, tabs int, funcName string) {
+func (b *Binder) writeConfPromises(w *bufio.Writer, cName string, promises map[string]interface{}, tabs int) {
 
 	p := b.protoName(cName)
 
@@ -340,7 +350,47 @@ func (b *Binder) writeDeferred(w *bufio.Writer, cName string, promises map[strin
 
 		fc := b.stripRepOrConffMarker(v.(string))
 
-		s := fmt.Sprintf("%s.%s(%s, %s)\n", p, funcName, b.quoteString(k), b.quoteString(fc))
+		path, defaultValue := b.extractDefaultValue(fc)
+
+		s := fmt.Sprintf("%s.%s(%s, %s)\n", p, "AddConfigPromise", b.quoteString(k), b.quoteString(path))
+		w.WriteString(b.tabIndent(s, tabs))
+
+		if defaultValue != "" {
+
+			s = fmt.Sprintf("%s.%s(%s, %s)\n", p, "AddDefaultValue", b.quoteString(k), b.quoteString(defaultValue))
+			w.WriteString(b.tabIndent(s, tabs))
+		}
+
+	}
+
+}
+
+func (b *Binder) extractDefaultValue(s string) (string, string) {
+
+	m := b.defaultValueRegex.FindStringSubmatch(s)
+
+	if len(m) == 3 {
+
+		return m[1], m[2]
+
+	}
+
+	return s, ""
+}
+
+func (b *Binder) writeDependencies(w *bufio.Writer, cName string, promises map[string]interface{}, tabs int) {
+
+	p := b.protoName(cName)
+
+	if len(promises) > 0 {
+		w.WriteString(newline)
+	}
+
+	for k, v := range promises {
+
+		fc := b.stripRepOrConffMarker(v.(string))
+
+		s := fmt.Sprintf("%s.%s(%s, %s)\n", p, "AddDependency", b.quoteString(k), b.quoteString(fc))
 		w.WriteString(b.tabIndent(s, tabs))
 
 	}
