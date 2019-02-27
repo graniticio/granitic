@@ -10,6 +10,7 @@ import (
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/logging"
 	"github.com/graniticio/granitic/v2/reflecttools"
+	"github.com/graniticio/granitic/v2/types"
 	"os"
 	"sort"
 )
@@ -236,6 +237,7 @@ func (cc *ComponentContainer) Populate() error {
 func (cc *ComponentContainer) resolveDependenciesAndConfig() error {
 
 	fl := cc.FrameworkLogger
+	pi := new(types.ParamValueInjector)
 
 	for _, targetProto := range cc.protoComponents {
 
@@ -266,10 +268,31 @@ func (cc *ComponentContainer) resolveDependenciesAndConfig() error {
 		}
 
 		for fieldName, configPath := range targetProto.ConfigPromises {
-			fl.LogTracef("%s needs %s", targetProto.Component.Name, fieldName, configPath)
+			fl.LogTracef("%s.%s needs %s", compName, fieldName, configPath)
 
-			if err := cc.configAccessor.SetField(fieldName, configPath, targetProto.Component.Instance); err != nil {
-				return err
+			target := targetProto.Component.Instance
+
+			if err := cc.configAccessor.SetField(fieldName, configPath, target); err != nil {
+
+				if _, found := err.(config.MissingPathError); found && targetProto.HasDefaultValue(fieldName) {
+
+					fl.LogDebugf("Default value found for %s.%s - attempting to inject", compName, fieldName)
+
+					df := targetProto.DefaultValue(fieldName)
+					params := types.NewSingleValueParams(fieldName, df)
+
+					if err = pi.BindValueToField(fieldName, fieldName, params, target, defaultValueInjectionError); err != nil {
+
+						err = fmt.Errorf("problem using a default value to populate component %s.%s. "+
+							"Check your component definition files and rebuild or set a valid value in configuration at %s: %s", compName, fieldName, configPath, err.Error())
+
+					}
+
+				}
+
+				if err != nil {
+					return err
+				}
 			}
 
 		}
@@ -400,3 +423,9 @@ func (cc *ComponentContainer) addBySupport(c *Component, ls LifecycleSupport) {
 
 // TypeMatcher implementations return true if the supplied interface is (or implements) an expected type
 type TypeMatcher func(i interface{}) bool
+
+func defaultValueInjectionError(paramName string, fieldName string, typeName string, params *types.Params) error {
+
+	return fmt.Errorf("unable to inject default value of field %s which is of type %s", fieldName, typeName)
+
+}

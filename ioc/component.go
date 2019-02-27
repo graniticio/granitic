@@ -271,6 +271,24 @@ func (pc *ProtoComponent) AddDefaultValue(fieldName, value string) {
 	pc.DefaultValues[fieldName] = value
 }
 
+// HasDefaultValue returns true if a default value has been registered for the supplied field
+func (pc *ProtoComponent) HasDefaultValue(fieldName string) bool {
+
+	return pc.DefaultValues != nil && pc.DefaultValues[fieldName] != ""
+
+}
+
+// DefaultValue returns the default value recorded for the supplied field or empty string if it hasn't been set
+func (pc *ProtoComponent) DefaultValue(fieldName string) string {
+
+	if pc.DefaultValues == nil {
+		return ""
+	}
+
+	return pc.DefaultValues[fieldName]
+
+}
+
 // A Component is an instance of a struct with a name that is unique within your application.
 type Component struct {
 	// A pointer to a struct

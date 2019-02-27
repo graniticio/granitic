@@ -107,6 +107,16 @@ const (
 	JSONBool    = 4
 )
 
+// MissingPathError indicates that the a problem was caused by there being no value at the supplied
+// config path
+type MissingPathError struct {
+	message string
+}
+
+func (mp MissingPathError) Error() string {
+	return mp.message
+}
+
 // A Accessor provides access to a merged view of configuration files during the initialisation and
 // configuration of the Granitic IoC container.
 type Accessor struct {
@@ -282,7 +292,7 @@ func (ac *Accessor) configVal(path []string, jsonMap map[string]interface{}) int
 func (ac *Accessor) SetField(fieldName string, path string, target interface{}) error {
 
 	if !ac.PathExists(path) {
-		return errors.New("No value found at " + path)
+		return MissingPathError{message: "No value found at " + path}
 	}
 
 	targetReflect := reflect.ValueOf(target).Elem()

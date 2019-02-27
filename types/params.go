@@ -9,6 +9,17 @@ import (
 	"strconv"
 )
 
+// NewSingleValueParams creates a Params with only one value in it
+func NewSingleValueParams(name string, value string) *Params {
+
+	contents := make(url.Values)
+	contents[name] = []string{value}
+	names := []string{name}
+
+	return &Params{paramNames: names, values: contents}
+
+}
+
 // NewParams creates a Params with the supplied contents
 func NewParams(v url.Values, pn []string) *Params {
 	p := new(Params)
