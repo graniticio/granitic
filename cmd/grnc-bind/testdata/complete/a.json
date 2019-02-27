@@ -2,6 +2,9 @@
   "packages": [
     "github.com/graniticio/granitic/v2/ws/handler"
   ],
+  "packageAliases": {
+    "gg": "github.com/graniticio/granitic/v2/ws/handler"
+  },
   "templates": {
     "handler": {
       "type": "handler.WsHandler"

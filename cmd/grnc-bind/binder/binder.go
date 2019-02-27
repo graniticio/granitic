@@ -18,14 +18,15 @@ import (
 )
 
 const (
-	packagesField      = "packages"
-	componentsField    = "components"
-	frameworkField     = "frameworkModifiers"
-	templatesField     = "templates"
-	templateField      = "compTemplate"
-	templateFieldAlias = "ct"
-	typeField          = "type"
-	typeFieldAlias     = "t"
+	packagesField       = "packages"
+	packageAliasesField = "packageAliases"
+	componentsField     = "components"
+	frameworkField      = "frameworkModifiers"
+	templatesField      = "templates"
+	templateField       = "compTemplate"
+	templateFieldAlias  = "ct"
+	typeField           = "type"
+	typeFieldAlias      = "t"
 
 	protoSuffix = "Proto"
 	modsSuffix  = "Mods"
@@ -115,6 +116,7 @@ type Binder struct {
 	Log               logging.Logger
 	defaultValueRegex *regexp.Regexp
 	errorsFound       bool
+	packagesAliases   *packageStore
 }
 
 // Bind loads component definitions files from disk/network, merges those files into a single
@@ -133,6 +135,7 @@ func (b *Binder) Bind(s Settings) {
 	}
 
 	b.compileRegexes()
+	b.packagesAliases = newPackageStore()
 
 	b.Log.LogDebugf("Writing generated bindings file to %s", *s.BindingsFile)
 
@@ -207,13 +210,13 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 
 func (b *Binder) writeBindings(w *bufio.Writer, ca *config.Accessor) {
 	b.writePackage(w)
-	b.writeImports(w, ca)
+	b.writeImportsAndAliases(w, ca)
 
 	c, err := ca.ObjectVal(componentsField)
 
 	if err != nil {
 		b.Log.LogFatalf("Unable to find a %s field in the merged configuration: %s", componentsField, err.Error())
-		b.errorsFound = true
+		b.fail()
 
 		return
 	}
@@ -244,7 +247,7 @@ func (b *Binder) writePackage(w *bufio.Writer) {
 	w.WriteString(l)
 }
 
-func (b *Binder) writeImports(w *bufio.Writer, configAccessor *config.Accessor) {
+func (b *Binder) writeImportsAndAliases(w *bufio.Writer, configAccessor *config.Accessor) {
 
 	b.Log.LogDebugf("Gathering and writing import statements")
 
@@ -252,36 +255,82 @@ func (b *Binder) writeImports(w *bufio.Writer, configAccessor *config.Accessor) 
 
 	if err != nil {
 		b.Log.LogFatalf("Unable to find a %s field in the merged configuration: %s", packagesField, err.Error())
-		b.errorsFound = true
+		b.fail()
 
-		return
 	}
-
-	seen := types.NewEmptyOrderedStringSet()
 
 	w.WriteString("import (\n")
 
 	iocImp := b.tabIndent(b.quoteString(iocImport), 1)
 	w.WriteString(iocImp + newline)
 
+	b.writeImports(packages, b.packagesAliases, w)
+	b.writePackageAliases(configAccessor, b.packagesAliases, w)
+
+	w.WriteString(")\n\n")
+
+	b.Log.LogDebugf("Import statements done\n")
+
+}
+
+func (b *Binder) writeImports(packages []interface{}, ps *packageStore, w *bufio.Writer) {
 	for _, packageName := range packages {
 
 		p := packageName.(string)
+		seen, err := ps.AddPackage(p)
 
-		if seen.Contains(p) {
+		if seen {
 			continue
-		} else {
-			seen.Add(p)
+		} else if err != nil {
+
+			b.Log.LogErrorf("Problem with package %s: %s", p, err.Error())
+			b.fail()
+
 		}
 
 		i := b.quoteString(p)
 		i = b.tabIndent(i, 1)
 		w.WriteString(i + newline)
 	}
+}
 
-	w.WriteString(")\n\n")
+func (b *Binder) writePackageAliases(configAccessor *config.Accessor, ps *packageStore, w *bufio.Writer) {
 
-	b.Log.LogDebugf("Import statements done\n")
+	aliases, err := configAccessor.ObjectVal(packageAliasesField)
+
+	if aliases == nil {
+		return
+	}
+
+	if len(aliases) == 0 {
+		b.Log.LogWarnf("Found a %s field in the merged component definition, but it was empty", packageAliasesField)
+	}
+
+	if err != nil {
+		b.Log.LogErrorf("Problem reading the %s field in the merged component definitions: %s", packageAliasesField, err.Error())
+		b.fail()
+		return
+	}
+
+	for alias, packageName := range aliases {
+
+		p := packageName.(string)
+		seen, err := ps.AddAlias(alias, p)
+
+		if seen {
+			continue
+		} else if err != nil {
+
+			b.Log.LogErrorf("Problem with alias %s %s: %s", alias, p, err.Error())
+			b.fail()
+
+		}
+
+		i := fmt.Sprintf("%s %s", alias, b.quoteString(p))
+		i = b.tabIndent(i, 1)
+		w.WriteString(i + newline)
+	}
+
 }
 
 func (b *Binder) writeEntryFunctionOpen(w *bufio.Writer, t int) {
@@ -367,7 +416,7 @@ func (b *Binder) writeValues(w *bufio.Writer, cName string, values map[string]in
 
 		if err != nil {
 			b.Log.LogErrorf("Unable to write a value to %s.%s: %s", cName, k, err.Error())
-			b.errorsFound = true
+			b.fail()
 			continue
 		}
 
@@ -475,7 +524,7 @@ func (b *Binder) writeMapContents(w *bufio.Writer, iName string, fName string, c
 
 		if err != nil {
 			b.Log.LogErrorf("Unable to write a value to %s.%s[%s]: %s", iName, fName, b.quoteString(k), err.Error())
-			b.errorsFound = true
+			b.fail()
 			continue
 		}
 
@@ -642,6 +691,26 @@ func (b *Binder) writeComponentNameComment(w *bufio.Writer, n string, i int) {
 }
 
 func (b *Binder) writeInstanceVar(w *bufio.Writer, n string, ct string, tabs int) {
+
+	ps := b.packagesAliases
+
+	i := strings.LastIndex(ct, ".")
+
+	if i <= 0 {
+		b.Log.LogErrorf("Referenced type %s does not appear to be a valid type of the form package.type", ct)
+		b.fail()
+		return
+
+	}
+
+	pack := ct[:i]
+
+	if !ps.ValidEffective(pack) {
+		b.Log.LogErrorf("Type %s references a package/alias %s that has not been imported", ct, pack)
+		b.fail()
+		return
+	}
+
 	s := fmt.Sprintf("%s := new(%s)\n", n, ct)
 	w.WriteString(b.tabIndent(s, tabs))
 }
@@ -697,7 +766,7 @@ func (b *Binder) validateHasTypeField(v map[string]interface{}, name string) boo
 
 	if t == nil {
 		b.Log.LogErrorf("Component %s does not have a 'type' defined in its component defintion (or any parent templates).\n", name)
-		b.errorsFound = true
+		b.fail()
 		return false
 	}
 
@@ -705,7 +774,7 @@ func (b *Binder) validateHasTypeField(v map[string]interface{}, name string) boo
 
 	if !found {
 		b.Log.LogErrorf("Component %s has a 'type' field defined but the value of the field is not a string.\n", name)
-		b.errorsFound = true
+		b.fail()
 		return false
 	}
 
@@ -715,7 +784,7 @@ func (b *Binder) validateHasTypeField(v map[string]interface{}, name string) boo
 
 func (b *Binder) mergeValueSources(c map[string]interface{}, t map[string]interface{}) {
 
-	b.replaceAliases(c)
+	b.determineTypeFromTemplate(c)
 
 	if c[templateField] != nil {
 		b.flatten(c, t, c[templateField].(string))
@@ -760,13 +829,13 @@ func (b *Binder) parseTemplates(ca *config.Accessor) map[string]interface{} {
 	templates, err := ca.ObjectVal(templatesField)
 
 	if err != nil {
-		b.errorsFound = true
+		b.fail()
 		b.Log.LogErrorf("Problem using the %s field in the merged component definition file: %s", templatesField, err.Error())
 		return map[string]interface{}{}
 	}
 
 	for _, template := range templates {
-		b.replaceAliases(template.(map[string]interface{}))
+		b.determineTypeFromTemplate(template.(map[string]interface{}))
 	}
 
 	for n, template := range templates {
@@ -814,7 +883,7 @@ func (b *Binder) writeFrameworkModifiers(w *bufio.Writer, ca *config.Accessor) {
 
 	if err != nil {
 
-		b.errorsFound = true
+		b.fail()
 		b.Log.LogErrorf("Problem using the %s field in the merged component definition file: %s", frameworkField, err.Error())
 	}
 
@@ -841,7 +910,7 @@ func (b *Binder) writeFrameworkModifiers(w *bufio.Writer, ca *config.Accessor) {
 
 }
 
-func (b *Binder) replaceAliases(vs map[string]interface{}) {
+func (b *Binder) determineTypeFromTemplate(vs map[string]interface{}) {
 	tma := vs[templateFieldAlias]
 
 	if tma != nil {
@@ -956,4 +1025,78 @@ func (b *Binder) exitError(message string, a ...interface{}) {
 	b.Log.LogFatalf(message, a...)
 
 	os.Exit(1)
+}
+
+func (b *Binder) fail() {
+	b.errorsFound = true
+}
+
+func newPackageStore() *packageStore {
+
+	ps := new(packageStore)
+
+	ps.seen = types.NewEmptyUnorderedStringSet()
+	ps.effectivePackage = make(map[string]string)
+
+	return ps
+}
+
+type packageStore struct {
+	seen             *types.UnorderedStringSet
+	effectivePackage map[string]string
+}
+
+func (ps *packageStore) AddPackage(p string) (seen bool, err error) {
+
+	if ps.seen.Contains(p) {
+		return true, nil
+	}
+
+	ep := ps.extractEffectivePack(p)
+
+	if other := ps.effectivePackage[ep]; other != "" {
+
+		return false, fmt.Errorf("package %s clashes with package %s - you will need to move one to the %s section of your component definition file", p, other, packageAliasesField)
+
+	}
+
+	ps.effectivePackage[ep] = p
+
+	ps.seen.Add(p)
+
+	return false, nil
+
+}
+
+func (ps *packageStore) ValidEffective(e string) bool {
+	return ps.effectivePackage[e] != ""
+}
+
+func (ps *packageStore) AddAlias(a, p string) (seen bool, err error) {
+	if ps.seen.Contains(a + p) {
+		return true, nil
+	}
+
+	if other := ps.effectivePackage[a]; other != "" {
+
+		return false, fmt.Errorf("alias %s %s clashes with package %s or an alias for that package - you will need to choose a different alias", a, p, other)
+
+	}
+
+	ps.seen.Add(a + p)
+	ps.effectivePackage[a] = p
+
+	return false, nil
+}
+
+func (ps *packageStore) extractEffectivePack(p string) string {
+
+	i := strings.LastIndex(p, "/")
+
+	if i < 0 {
+		return p
+	}
+
+	return p[i+1:]
+
 }
