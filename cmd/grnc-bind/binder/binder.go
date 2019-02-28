@@ -212,7 +212,7 @@ func (b *Binder) writeBindings(w *bufio.Writer, ca *config.Accessor) {
 	b.writePackage(w)
 	b.writeImportsAndAliases(w, ca)
 
-	c, err := ca.ObjectVal(componentsField)
+	components, err := ca.ObjectVal(componentsField)
 
 	if err != nil {
 		b.Log.LogFatalf("Unable to find a %s field in the merged configuration: %s", componentsField, err.Error())
@@ -221,15 +221,17 @@ func (b *Binder) writeBindings(w *bufio.Writer, ca *config.Accessor) {
 		return
 	}
 
+	components = b.expandComponents(components)
+
 	t := b.parseTemplates(ca)
 
-	b.writeEntryFunctionOpen(w, len(c))
+	b.writeEntryFunctionOpen(w, len(components))
 
 	var i = 0
 
 	b.Log.LogDebugf("Processing components:\n")
 
-	for name, v := range c {
+	for name, v := range components {
 		b.writeComponent(w, name, v.((map[string]interface{})), t, i)
 		i++
 	}
@@ -239,6 +241,68 @@ func (b *Binder) writeBindings(w *bufio.Writer, ca *config.Accessor) {
 
 	b.writeEntryFunctionClose(w)
 	w.Flush()
+}
+
+func (b *Binder) expandComponents(comps map[string]interface{}) map[string]interface{} {
+
+	b.Log.LogDebugf("Expanding nested components")
+
+	found := make(map[string]interface{})
+
+	for name, definition := range comps {
+
+		b.Log.LogTracef("Looking for nested components on %s", name)
+
+		switch v := definition.(type) {
+		case map[string]interface{}:
+			b.expandComponent(name, v, found)
+		}
+
+	}
+
+	b.Log.LogDebugf("Finishing expanding nested components")
+
+	return found
+
+}
+
+func (b *Binder) expandComponent(parent string, orig map[string]interface{}, expanded map[string]interface{}) {
+
+	b.Log.LogDebugf("Checking fields on %s", parent)
+
+	expanded[parent] = orig
+
+	for field, value := range orig {
+
+		switch v := value.(type) {
+		case map[string]interface{}:
+
+			if b.hasTypeField(v) {
+
+				childName := fmt.Sprintf("%s%s", parent, field)
+
+				b.Log.LogDebugf("%s seems to be a nested component", childName)
+
+				orig[field] = fmt.Sprintf("%s%s", refSymbol, childName)
+
+				expanded[childName] = v
+
+				b.expandComponent(childName, v, expanded)
+			}
+
+		}
+
+	}
+
+}
+
+func (b *Binder) hasTypeField(check map[string]interface{}) bool {
+
+	if check[typeField] != nil || check[templateField] != nil || check[templateFieldAlias] != nil {
+		return true
+	}
+
+	return false
 }
 
 func (b *Binder) writePackage(w *bufio.Writer) {
@@ -353,8 +417,7 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 
 	b.mergeValueSources(component, templates)
 
-	if !b.validateHasTypeField(component, name) {
-		log.LogDebugf("Component %s failed", name)
+	if !b.validateTypeAvailable(component, name) {
 		return
 	}
 
@@ -760,7 +823,7 @@ func (b *Binder) reservedFieldName(f string) bool {
 	return f == templateField || f == templateFieldAlias || f == typeField || f == typeFieldAlias
 }
 
-func (b *Binder) validateHasTypeField(v map[string]interface{}, name string) bool {
+func (b *Binder) validateTypeAvailable(v map[string]interface{}, name string) bool {
 
 	t := v[typeField]
 

@@ -23,12 +23,12 @@
         "NormaliseName": "normalise"
       }
     },
-    "submitArtistLogic": {
-      "type": "endpoint.SubmitArtistLogic"
-    },
+
     "submitArtistHandler": {
       "ct": "postHandler",
-      "Logic": "ref:submitArtistLogic",
+      "Logic": {
+          "type": "endpoint.SubmitArtistLogic"
+      },
       "PathPattern": "^/artist[/]?$",
       "AutoValidator": "+submitArtistValidator"
     },
