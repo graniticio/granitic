@@ -82,7 +82,7 @@ func tab(s string, t int) string {
 
 func writeConfigFile(confDir string, pg *generate.ProjectGenerator) {
 
-	compFile := filepath.Join(confDir, "config.json")
+	compFile := filepath.Join(confDir, "base.json")
 	f := pg.OpenOutputFile(compFile)
 
 	defer f.Close()
@@ -98,7 +98,7 @@ func writeConfigFile(confDir string, pg *generate.ProjectGenerator) {
 
 func writeComponentsFile(compDir string, pg *generate.ProjectGenerator) {
 
-	compFile := filepath.Join(compDir, "components.json")
+	compFile := filepath.Join(compDir, "common.json")
 	f := pg.OpenOutputFile(compFile)
 
 	defer f.Close()

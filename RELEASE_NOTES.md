@@ -23,6 +23,18 @@ func main() {
 }
 ```
 
+### New default locations for files
+
+The previous default locations for application configuration (`resource/config`) and component definitions (`resource/components`)
+were too verbose and have been deprecated. The new preferred locations are `config` and `comp-def`. 
+
+`grnc-project` has been modified to create projects with these new locations. The empty files it creates are now `config/base.json` and
+`comp-def/common.json` 
+
+The old locations are still respected, but you will see a warning when you use them. Support for the old locations will 
+be removed in a future version of Granitic.
+
+
 ## Reference documentation
 
 Granitic now has a reference manual, intended to compliment the information in the [Godoc](https://godoc.org/github.com/graniticio/granitic). 
@@ -297,3 +309,8 @@ Types where the type name started with the name of the package have been 'de-stu
 
 This is most likely to affect your application code where it uses Granitic types in the `ws` and `rdbms`
 packages.
+
+## Default file locations
+
+Move your configuration files from `resource/config` to `config` and your component definition files from `resource/components`
+to `comp-def`
