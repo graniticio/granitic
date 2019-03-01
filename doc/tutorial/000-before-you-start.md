@@ -2,29 +2,31 @@
 
 Make sure you have followed the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
 
-## Using prepare-tutorial.sh to skip tutorials 
+## Starting points for tutorials 
 
-These tutorials are designed to be followed in sequence, but if you'd like to skip ahead, a script is supplied in the <code>granitic-examples</code> package which will set up a working project ready for you to follow the tutorial you're interested in.
+These tutorials are designed to be followed in sequence, but if you'd like to skip ahead, 
+a GitHub repository is available containing working start points for each
+of the tutorials. Different versions of the tutorial source code are provided for those
+who prefer to work with JSON configuration files and those who prefer YAML.
 
-Make sure you've cloned the <code>granitic-examples</code> repository:
+The step-by-step tutorials that follow all use JSON as the example format.
+
+### Checking out the tutorials repository
+
+You can clone the tutorials repo to any location on your local machine. In the example
+below we have cloned the repo to `~/grnc-tutorial`
 
 <pre>
-cd $GOPATH/src/github.com/graniticio
-git clone https://github.com/graniticio/granitic-examples.git
+cd ~
+git clone https://github.com/graniticio/tutorial.git grnc-tutorial
 </pre>
 
-Then (assuming you'd like to skip to tutorial 2) run:
 
-<pre>
-cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
-./prepare-tutorial.sh 2
-</pre>
+### Using an IDE with the tutorials
 
-You'll now find a working Granitic project in <code>$GOHOME/src/granitic-tutorial/recordstore</code> in the correct state for starting tutorial 2
-
-## Using an IDE with the tutorials
-
-It is recommended you create your IDE project in <code>$GOHOME/src/granitic-tutorial</code>
+It is recommended you use your IDE to open either the `json` or `yaml` folder in the tutorials
+repo you checked out above. This means you will have all of the tutorials visible
+in a single project.
 
 ## Notes for Windows users
 
