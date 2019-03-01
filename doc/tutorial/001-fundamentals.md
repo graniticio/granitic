@@ -36,26 +36,22 @@ to create a skeleton project that can be compiled and started.
 Run the following in a terminal:
 
 <pre>
-mkdir -p $GOPATH/src/grnc-tutorial
-cd $GOPATH/src/grnc-tutorial
-grnc-project recordstore grnc-tutorial/recordstore
+cd ~
+grnc-project recordstore
 </pre>
 
-This will create the following files under $GOPATH/src/grnc-tutorial:
+This will create the following files under your home directory:
 
 <pre>
-/recordstore
-    service.go
-    /resource
-        /components
-            components.json
-        /config
-            config.json
+recordstore
+  .gitignore
+  main.go
+  go mod
+  comp-def/
+    common.json
+  config/
+    base.json
 </pre>
-
-The first argument to <code>grnc-project</code> is a name for your project, in this case <code>recordstore</code> 
-The second is the location of your project relative to <code>$GOHOME/src</code> - specifying this allows the tool to generate source files
-that are ready to use with <code>go build</code> and <code>go install</code>.
 
 ## Starting and stopping your application
 
@@ -66,6 +62,7 @@ Start the application by returning to your terminal and running
 
 <pre>
 cd recordstore
+go mod download
 grnc-bind
 go build
 ./recordstore
@@ -74,23 +71,21 @@ go build
 You should see output similar to:
 
 <pre>
-
-04/Jan/2017:14:41:20 Z INFO  [grncInit] Starting components
-04/Jan/2017:14:41:20 Z INFO  [grncInit] Ready (startup time 3.866393ms)
-
+01/Mar/2019:14:59:52 Z INFO  [grncInit] Starting components
+01/Mar/2019:14:59:52 Z INFO  [grncInit] Ready (startup time 1.68654ms)
 </pre>
 
 This means your application has started and is waiting. You can stop it with <code>CTRL+C</code> and will see output similar to
 
 <pre>
-04/Jan/2017:14:43:11 Z INFO  [grncInit] Shutting down (system signal)
+01/Mar/2019:15:00:36 Z INFO  [grncInit] Shutting down (system signal)
 </pre>
 
 ## Facilities
 
 A <code>facility</code> is Granitic's name for a high-level feature that your application can enable or disable. By default,
 most of the features are disabled. You can see which features are available to your applications and whether or not they're enabled 
-by inspecting the file <code>$GRANITIC_HOME/resource/facility-config/facilities.json</code>:
+by inspecting the file <code>facility/config/active.json</code> in your Granitic installation folder:
 
 ```json
 {
@@ -109,9 +104,10 @@ by inspecting the file <code>$GRANITIC_HOME/resource/facility-config/facilities.
 }
 ```
 
-In order to build a JSON web service, you will need to enable two facilities: <code>HTTPServer</code> and <code>JSONWs</code> (JSON Web Services).
+In order to build a JSON web service that will listen for an handler HTTP requests, you will need to enable two facilities: 
+<code>HTTPServer</code> and <code>JSONWs</code> (JSON Web Services).
 
-We do this by <i>overriding</i> the default setting for each facility. To do this, open the JSON <code>/grnc-tutorial/resource/config/config.json</code> 
+We do this by <i>overriding</i> the default setting for each facility. To do this, open the JSON <code>config/base.json</code> 
 that was generated for you and change it so it looks like:
 
 ```json
@@ -122,23 +118,22 @@ that was generated for you and change it so it looks like:
   }
 }
 ```
-(from now on this file will be referred to as your application's config file)
+(from now on this file will be referred to as your base config file)
 
 If you return to your terminal and run:
 
 <pre>
-grnc-bind
-go build
-./recordstore
+grnc-bind && go build && ./recordstore
 </pre>
 
 You'll see an additional line of logging on startup similar to:
 
 <pre>
-04/Jan/2017:16:34:27 Z INFO  [grncHTTPServer] Listening on 8080
+01/Mar/2019:15:12:29 Z INFO  [grncHTTPServer] Listening on 8080
 </pre>
 
-Which shows that a HTTP server is listening on the default port of 8080. Stop the runnning service with <code>CTRL+C</code>
+Which shows that an HTTP server is listening for web service requests on the default port of 8080. Stop the running 
+service with <code>CTRL+C</code>
 
 ## Adding an endpoint
 
@@ -146,33 +141,30 @@ An <code>endpoint</code> is Granitic's preferred name for code that handles a we
 particular HTTP method (GET, POST etc). Most of the mechanics of routing a request to your code and converting between
 JSON and your custom Go code is handled by Granitic, you will be concerned mainly with defining your _endpoint logic_.
 
-Endpoint logic is code in a Go struct implementing the <code>ws.WsRequestProcessor</code> interface.
+Endpoint logic is code in a Go struct that has a member function that Granitic can call to pass control of a request
+once the framework has completed its automatic steps.
 
-These tutorials are based on the <code>granitic-examples/recordstore</code> demo application, so let's recreate one of the endpoints
-from that application. 
-
-Create the file <code>recordstore/endpoint/artist.go</code> and set the contents to:
+Create the file <code>artist/get.go</code> in your `recordstore` project and set the contents to:
 
 ```go
-package endpoint
+package artist
 
 import (
   "github.com/graniticio/granitic/v2/ws"
   "context"
 )
 
-type ArtistLogic struct {
-}
+type GetLogic struct {}
 
-func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
+func (gl *GetLogic) Process(ctx context.Context, req *ws.Request, res *ws.Response) {
 
-  a := new(ArtistDetail)
+  a := new(Info)
   a.Name = "Hello, World!"
 
   res.Body = a
 }
 
-type ArtistDetail struct {
+type Info struct {
   Name string
 }
 ```
@@ -183,32 +175,31 @@ be used to store the results of the web service call, in this case a recording a
 
 ## Turning your code into a component
 
-At the core of Granitic is an Inversion of Control or IoC container. Granitic looks after the lifecycle (creating and destroying)
-of the Go objects you define, but needs to be told which objects should be included in your application and how they should 
-be configured These definitions are stored in a JSON component definition file which, by default, are stored under 
-<code>resource/component</code>
+At the core of Granitic is an Inversion of Control (IoC) container, sometimes also called a Dependency Injection framework. 
+Granitic looks after the lifecycle (creating and destroying) of the Go objects you define, but needs to be told which 
+objects should be included in your application and how they should be configured. 
 
-A component is a named instance of a Go object, managed by the IoC container.
+These definitions are stored in JSON _component definition files_ which, by default, are stored in your project in a folder called <code>comp-def</code>. 
+You can have as many files as you like in this folder, and it is recommend you group related components in to separate
+named files.
 
 
-Open the file <code>recordstore/resource/components/components.json</code> and set the content to:
+Open the file <code>comp-def/common.json</code> and set the content to:
 
 ```json
 {
   "packages": [
     "github.com/graniticio/granitic/v2/ws/handler",
-    "grnc-tutorial/recordstore/endpoint"
+    "recordstore/artist"
   ],
 
   "components": {
-    "artistLogic": {
-      "type": "endpoint.ArtistLogic"
-    },
-
     "artistHandler": {
       "type": "handler.WsHandler",
       "HTTPMethod": "GET",
-      "Logic": "ref:artistLogic",
+      "Logic": {
+        "type": "artist.GetLogic"  
+      },
       "PathPattern": "^/artist"
     }
   }
@@ -219,22 +210,16 @@ A component definition file has two sections. The <code>packages</code> section 
 code that you intend to use as components. The <code>components</code> section declares uniquely named components that 
 you want to be managed by Granitic.
 
-The first component, named <code>artistLogic</code> has a <code>type</code> field that specifies that the component should 
-be an instance of the <code>ArtistLogic</code> Go struct you wrote above. 
-
-The second declared component, <code>artistHandler</code>, is an instance of <code>ws.WsHandler</code>, a built-in Granitic type.
-A <code>ws.WsHandler</code> coordinates the bulk of the request processing lifecycle as well as managing error-handling 
+The sole component in this file, <code>artistHandler</code>, is an instance of <code>handler.WsHandler</code>, a built-in Granitic 
+type. A <code>ws.WsHandler</code> coordinates the bulk of the request processing lifecycle as well as managing error-handling 
 for a web service request.
+
+One of the fields on this component, `Logic`, expects another component to be injected into to it. In this case
+we're defining the component that the needs to be injected inline as a _nested component_. Note that the nested component
+doesn't need a name, just a type - this case the  `artist.GetLogic` struct we defined above.
 
 The minimal configuration in this example specifies the HTTP method that the handler will respond to (GET) 
 and a regex for matching against incoming request paths.
-
-The line 
-
-<pre>"Logic": "ref:artistLogic"</pre> 
-
-is an example of a component reference. When <code>artistHandler</code> is instantiated by the Granitic container, the previously declared 
-<code>artistLogic</code> component will be used as value for the <code>Logic</code> field on the <code>artistHandler</code> component.
 
 ## Binding
 
@@ -259,18 +244,19 @@ You will notice that a Go source file <code>bindings/bindings.go</code> has been
 ## Building and testing your application
 
 Every Go application requires an entry point <code>main</code> method. For a Go application that was created using the
-<code>grnc-project</code> tool, the <code>main</code> method is in the <code>service.go</code> file at the root of the 
+<code>grnc-project</code> tool, the <code>main</code> method is in the <code>main.go</code> file at the root of the 
 project. For this tutorial, this file will look like:
 
 ```go
 package main
 
-import "github.com/graniticio/granitic"
-import "grnc-tutorial/bindings"
+import "github.com/graniticio/granitic/v2"
+import "recordstore/bindings"
 
 func main() {
   granitic.StartGranitic(bindings.Components())
 }
+
 ```
 
 This simply takes the objects generated by <code>grnc-bind</code> and passes them to Granitic. For the vast majority of
@@ -279,8 +265,7 @@ Granitic applications you will not need to modify or even look at this file.
 Return to your terminal and run:
 
 <pre>
-go build
-./recordstore
+go build && ./recordstore
 </pre>
 
 Now open a browser and visit:

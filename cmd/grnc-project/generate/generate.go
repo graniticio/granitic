@@ -87,7 +87,7 @@ func (pg *ProjectGenerator) Generate(s Settings) {
 
 func (pg *ProjectGenerator) writeMainFile(base, name, module string) {
 
-	mainFile := filepath.Join(base, name, "service.go")
+	mainFile := filepath.Join(base, name, "main.go")
 
 	f := pg.OpenOutputFile(mainFile)
 

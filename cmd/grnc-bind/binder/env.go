@@ -73,7 +73,7 @@ func LocateFacilityConfig(log logging.Logger) (string, error) {
 }
 
 func validateInstallation(path string) (string, bool) {
-	resourcePath := filepath.Join(path, "resource", "facility-config")
+	resourcePath := filepath.Join(path, "facility", "config")
 
 	if _, err := config.FindJSONFilesInDir(resourcePath); err != nil {
 		return path, false

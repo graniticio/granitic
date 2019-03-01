@@ -29,7 +29,7 @@ The previous default locations for application configuration (`resource/config`)
 were too verbose and have been deprecated. The new preferred locations are `config` and `comp-def`. 
 
 `grnc-project` has been modified to create projects with these new locations. The empty files it creates are now `config/base.json` and
-`comp-def/common.json` 
+`comp-def/common.json` and the generated entrypoint file is `main.go`
 
 The old locations are still respected, but you will see a warning when you use them. Support for the old locations will 
 be removed in a future version of Granitic.
@@ -148,8 +148,9 @@ For example:
   "A": "$some.config.path",
   "B": "+someOtherComponent"
 }
-
 ```
+
+If strings in your component definition file start with these new symbols, you can escape them with `$$` or `++`
 
 ### Nested components
 
