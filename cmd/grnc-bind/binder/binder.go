@@ -39,9 +39,10 @@ const (
 	protoArrayVar              = "protoComponents"
 	modifierVar                = "frameworkModifiers"
 	serialisedVar              = "ser"
-	confLocationFlag    string = "c"
-	confLocationDefault string = "resource/components"
-	confLocationHelp    string = "A comma separated list of component definition files or directories containing component definition files"
+	compLocationFlag    string = "c"
+	compLocationDefault string = "comp-def"
+	compLocationV1      string = "resource/components"
+	compLocationHelp    string = "A comma separated list of component definition files or directories containing component definition files"
 
 	bindingsFileFlag    string = "o"
 	bindingsFileDefault string = "bindings/bindings.go"
@@ -88,7 +89,7 @@ func SettingsFromArgs() (Settings, error) {
 
 	s := Settings{}
 
-	s.CompDefLocation = flag.String(confLocationFlag, confLocationDefault, confLocationHelp)
+	s.CompDefLocation = flag.String(compLocationFlag, compLocationDefault, compLocationHelp)
 	s.BindingsFile = flag.String(bindingsFileFlag, bindingsFileDefault, bindingsFileHelp)
 	s.MergedDebugFile = flag.String(mergeLocationFlag, mergeLocationDefault, mergeLocationHelp)
 	s.LogLevelLabel = flag.String(logLevelFlag, logLevelDefault, logLevelHelp)
@@ -125,7 +126,21 @@ type Binder struct {
 // view of components and then converts the merged view into Go source code.
 func (b *Binder) Bind(s Settings) {
 
-	ca := b.loadConfig(*s.CompDefLocation)
+	compLoc := *s.CompDefLocation
+
+	// If the default location for components is set, but doesn't exist, check to see if the Granitic v1 folder exists instead
+	if compLoc == compLocationDefault {
+
+		if !folderExists(compLoc) && folderExists(compLocationV1) {
+
+			b.Log.LogWarnf("%s is no longer the default location for component definition files. Please move your files to %s as "+
+				"support for the old default location will be removed in future Granitic versions", compLocationV1, compLocationDefault)
+
+			compLoc = compLocationV1
+		}
+	}
+
+	ca := b.loadConfig(compLoc)
 
 	if *s.MergedDebugFile != "" {
 		// Write the merged view of components to a file then exit
@@ -1210,4 +1225,12 @@ func (ps *packageStore) extractEffectivePack(p string) string {
 
 	return p[i+1:]
 
+}
+
+func folderExists(path string) bool {
+	s, err := os.Stat(path)
+	if err == nil {
+		return s.IsDir()
+	}
+	return false
 }
