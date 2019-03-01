@@ -19,9 +19,8 @@ Refer to the Windows notes in the [before you start](000-before-you-start.md) tu
 
 ## Introduction
 
-This tutorial will show you how to create a simple Granitic application that exposes a JSON web service over HTTP. It's 
-a little more in-depth than the usual _'look how much you can achieve in two lines with this powerful framework'_ tutorial, 
-as it's a good opportunity to introduce some of Granitic's fundamentals.
+This tutorial will show you how to create a simple Granitic application that exposes a JSON web service over HTTP. It will
+also introduce you to some of Granitic's fundamentals.
  
 ## Creating a Grantic project
 
