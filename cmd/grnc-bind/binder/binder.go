@@ -15,6 +15,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -27,6 +28,7 @@ const (
 	templateFieldAlias  = "ct"
 	typeField           = "type"
 	typeFieldAlias      = "t"
+	nestedName          = "name"
 
 	protoSuffix = "Proto"
 	modsSuffix  = "Mods"
@@ -266,6 +268,7 @@ func (b *Binder) expandComponents(comps map[string]interface{}) map[string]inter
 
 }
 
+// look for field that contain nested component definitions
 func (b *Binder) expandComponent(parent string, orig map[string]interface{}, expanded map[string]interface{}) {
 
 	b.Log.LogDebugf("Checking fields on %s", parent)
@@ -278,8 +281,22 @@ func (b *Binder) expandComponent(parent string, orig map[string]interface{}, exp
 		case map[string]interface{}:
 
 			if b.hasTypeField(v) {
+				// Map in this field has a type or template defined - so consider it a nested component
 
 				childName := fmt.Sprintf("%s%s", parent, field)
+
+				if definedName := v[nestedName]; definedName != nil {
+
+					if s, okay := definedName.(string); okay {
+						// The sub component has a name
+						childName = s
+
+					} else {
+						b.Log.LogErrorf("%s field for nested component is not a string is %T", nestedName, s)
+						b.fail()
+					}
+
+				}
 
 				b.Log.LogDebugf("%s seems to be a nested component", childName)
 
@@ -404,6 +421,27 @@ func (b *Binder) writeEntryFunctionOpen(w *bufio.Writer, t int) {
 	w.WriteString(b.tabIndent(a, 1))
 }
 
+func (b *Binder) validName(name string) bool {
+
+	if len(name) == 0 {
+		return false
+	}
+
+	for i, r := range name {
+
+		if i == 0 && !unicode.IsLetter(r) {
+			return false
+		}
+
+		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
+			return false
+		}
+
+	}
+
+	return true
+}
+
 func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[string]interface{}, templates map[string]interface{}, index int) {
 	baseIndent := 1
 
@@ -416,6 +454,11 @@ func (b *Binder) writeComponent(w *bufio.Writer, name string, component map[stri
 	log.LogDebugf("Start component %s", name)
 
 	b.mergeValueSources(component, templates)
+
+	if !b.validName(name) {
+		b.Log.LogErrorf("%s is not a valid name for a component (must be just letters and numbers and start with a letter)", name)
+		b.fail()
+	}
 
 	if !b.validateTypeAvailable(component, name) {
 		return
