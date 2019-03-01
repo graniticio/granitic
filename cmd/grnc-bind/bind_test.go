@@ -39,6 +39,9 @@ func TestBindProcess(t *testing.T) {
 		t.Fatalf("Expected bindings file %s does not exist: %v", bindOut, err)
 	}
 
+	if b.Failed() {
+		t.Fail()
+	}
 }
 
 func TestOutputMerged(t *testing.T) {
@@ -63,6 +66,10 @@ func TestOutputMerged(t *testing.T) {
 	}
 
 	b.Bind(s)
+
+	if b.Failed() {
+		t.Fail()
+	}
 
 	if _, err := os.Stat(mergeOut); os.IsNotExist(err) {
 		t.Fatalf("Expected bindings file %s does not exist: %v", mergeOut, err)

@@ -1137,6 +1137,11 @@ func (b *Binder) fail() {
 	b.errorsFound = true
 }
 
+// Failed returns true if errors were encountered during the bind process
+func (b *Binder) Failed() bool {
+	return b.errorsFound
+}
+
 func newPackageStore() *packageStore {
 
 	ps := new(packageStore)
