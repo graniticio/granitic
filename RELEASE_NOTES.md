@@ -1,192 +1,299 @@
-# Release notes
+# Granitic 2.0 Release Notes
 
-## 1.3.0  (2018-xx-xx)
+Granitic 2.0 is a major release of Granitic focusing on YAML support, Go module support, streamlining of web service code, improvements
+to `grnc-bind`, code quality and documentation.
 
-## General
-  
-  * Reference documentation for the framework now available in `doc/ref`
-  * YAML support for configuration and component definition files via [graniticio/granitic-yaml](https://github.com/graniticio/granitic-yaml)
-  * Improved test coverage
-  
-## IOC
+This release is not backwards compatible, refer to the migration guide at the bottom of these notes for more information.
 
-### Empty Struct factory functions
+## YAML
 
-The IOC container supports a new prefix `empty-struct:` or `es:`. This is used in conjunction with the name of a struct e.g.
+Granitic now supports YAML for configuration and component definition files. This involves the
+use of a third-party YAML parser and so to preserve Granitic's principle of having no
+dependencies, you must download the additional [granitic-yaml](https://github.com/graniticio/granitic-yaml)
+project from GitHub or add it as a Go module dependency (see below).
+
+The default file format for Granitic is currently still JSON and all documentation an examples
+will continue to use JSON, but YAML versions of the tutorial source code [are now available](https://github.com/graniticio/tutorial).
+
+Note you will need to change your application's main function to 
+
+```go
+func main() {
+	granitic-yaml.StartGraniticWithYaml(bindings.Components())
+}
+```
+
+## Reference documentation
+
+Granitic now has a reference manual, intended to compliment the information in the [Godoc](https://godoc.org/github.com/graniticio/granitic). 
+You can find this manual in  `doc/ref/index.md` or on the [Granitic website](http://www.granitic.io/ref/).
+
+## Go modules
+
+Grantic 2 is compatible with the requirements of [Go modules](https://github.com/golang/go/wiki/Modules) including 
+[semantic import verisioning](https://github.com/golang/go/wiki/Modules#semantic-import-versioning). As such Granitic
+now requires the use of Go 1.11 or later.
+
+Your applications should declare their dependency on Granitic in their `go.mod` file with:
+
+```
+    require github.com/graniticio/granitic/v2 v2
+```
+
+or (if you are using [YAML configuration and component](https://github.com/graniticio/granitic-yaml) files)
+
+```
+    require github.com/graniticio/granitic-yaml/v2 v2
+```
+
+Wherever your code (or component definition files) imports Granitic types, the import statements should be of
+the form:
+
+```go
+    import "github.com/graniticio/granitic/v2/packageName"
+```
+
+
+### Tool support
+
+`grnc-project` and `grnc-yaml-project` now generate working Granitic projects using modules. A `go.mod` will automatically
+be created for you.
+
+`grnc-bind` and `grnc-yaml-bind` have additional support for modules. These features are explained below.
+
+## Web service streamlining
+
+Your web service logic component no longer needs to implement [handler.WsRequestProcessor](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsRequestProcessor) or 
+[handler.WsUnmarshallTarget](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsUnmarshallTarget). Instead it just needs
+to declare a method with the signature:
+
+```go
+  ProcessPayload(context.Context, *ws.Request, *ws.Response, *YourStruct)  
+```
+
+Where `*YourStruct` is a pointer to any type that you want the HTTP request's payload to be parsed into. 
+
+If you do not need any body, path or query parameter data parsed (e.g. a simple GET or HEAD), you should continue to implement
+[handler.WsRequestProcessor](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsRequestProcessor). 
+
+If you need more control over the struct that is created as your parsing target (e.g. you need to pre-populate it), you
+should continue to implement [handler.WsUnmarshallTarget](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsUnmarshallTarget).
+
+## Request instrumentation
+
+Granitic now includes integration points for adding instrumentation to a web service request and
+supporting for propagating that instrumentation to downstream web service requests. A common
+use-case for this is to add timing traces to service calls.
+
+See the [instrument](https://godoc.org/github.com/graniticio/granitic/instrument) package documentation for more details.
+
+## Request unique identifiers
+
+Granitic now includes integration points for generating unique IDs for web service requests
+and having them injected into that request's `context.Context`. You need to create a component that implements
+[IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#IdentifiedRequestContextBuilder)
+
+## Code quality
+
+Granitic 2 sees significant improvements in file and statement unit test coverage. This release
+also see the start of Granitic committing to abiding by _all_ of the advice from the `go vet` and 
+`golint` tools.
+
+This has resulted in changes to the names of a number of exported types and the names of some Granitic
+facilities. See the migration guide at the bottom of these notes for information on how this might affect your
+application.
+
+## grnc-bind
+
+`grnc-bind` (and its YAML equivalent `grnc-yaml-bind`) have gained a number of additional features
+and quality of life improvements.
+
+### Validation and error handling
+
+Rather than exit as soon as an error is found,`grnc-bind` attempts to continue parsing your
+component definition files for as long as possible. This means that multiple errors are now reported
+in a single run.
+
+Additional validation has been applied to increase the number of problems detected during the bind
+phase instead of during `go build`
+
+### Logging
+
+You can now provide a `-l LOGLEVEL` flag to `grnc-bind` for more detailed output. Valid
+values for `LOGLEVEL` are `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR` and `FATAL` (case
+insensitive). Default is `WARN`
+
+### New symbols for dependency and configuration promises
+
+In addition to the `c:`, `conf:`, `r:` and `ref:` prefixes for indicating configuration promises
+and component dependencies, you can now also use the symbols `$` and `+` as an alternative.
+
+For example:
 
 ```json
-    "YourField": "es:yourpackage.YourStruct"
+"ComponentName": {
+  "type": "some.Type",
+  "A": "$some.config.path",
+  "B": "+someOtherComponent"
+}
+
 ```
 
-This will cause an anonymous function:
+### Nested components
 
-```go
-    func() interface{} {
-        return new(yourpackage.YourStruct)
-    }    
-```
+You can now define components in a nested manner under the field of the parent component
+that the nested component should be injected into.
 
-to be injected into `YourField`, so that field must be of type `func() interface{}`. `yourPackage` must be present in the 
-`packages` section at the top of your components file.
-
-See below for an example of where this technique is useful.
-
-## Web services
-
-### Instrumentation
-
-Granitic now supports a pattern for instrumenting web service requests. You can provide implementations
-of `instrument.RequestInstrumentationManager` and `instrument.Instrumentor` to integrate with whichever tool
-or provider you use for collating instrumentation data. Refer to the `instrument` and `facility/httpserver` package documentation for more details.
-
-### Alternative to implementing WsUnmarshallTarget
-
-Previously the `Logic` component attached to each instance of `ws.WsHandler` was required to implement `ws.WsUnmarshallTarget` to create an
-empty struct for unmarhsallling HTTP body, path and parameter data into. This can now be streamlined by setting:
+For example:
 
 ```json
-  "CreateTarget": "es:yourpackage.YourStruct"    
+  "artistHandler": {
+    "type": "handler.WsHandler",
+    "PathPattern": "$paths.getArtist(^/artist)",
+    "HTTPMethod": "GET",
+    "Logic": {
+      "type": "endpoint.ArtistLogic"
+    }
+}
 ```
 
-In the component definition for your handler, where `yourpackage.YourStruct` is the type that your `UnmarshallTarget()` method would've returned.
-`yourPackage` must be present in the `packages` section at the top of your components file.
- 
+The only requirement is that you specify a type or a parent template for the nested component.
+If you want to be able to refer to the nested component from other components, you need to
+provide a `name` field, e.g.:
 
-
-### Alternative to implementing WsRequestProcessor
-
-Previously the `Logic` component attached to each instance of `ws.WsHandler` was required to implement `ws.WsRequestProcessor`. 
-You can now use any struct as the Logic component as long as it implements `ws.WsRequestProcessor` _OR_ has a method like:
-
-```go
-  ProcessPayload(ctx context.Context, request *ws.WsRequest, response *ws.WsResponse, payload *YourStruct)
+```json
+   "Logic": {
+     "type": "endpoint.ArtistLogic",
+     "name": "artistLogic"
+   }
+       
 ```
 
-Where `YourStruct` is the same type returned by your Logic component's `UnmarshallTarget()` method, e.g:
 
-```go
-  ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, ar *ArtistRequest)
+### Default values
+
+You can now provide a default value along with a configuration promise by including the 
+default in brackets after the config path. This value will be used if no configuration 
+is provided to your application that overrides that config path.
+
+For example:
+
+```json
+"ComponentName": {
+  "type": "some.Type",
+  "A": "$some.config.path(true)",
+  "B": "$some.other.path(1.2"
+}
 ```
 
-This approach means that your logic code can immediately use data extracted from the incoming HTTP request instead of having
-to use the pattern:
+Note that default values will only be type checked against the fields you are trying to
+inject them into at application run time (not during the build phase).
 
-```go
-  sar := req.RequestBody.(*SubmittedArtistRequest)
-``` 
 
-### Bug fixes
+### Package aliases
+
+If your component definition files import two packages that clash (because the final part of the
+package name is the same), you can define an alias for one of the packages, then refer to the
+alias when defining types.
+
+For example:
+
+```json
+{
+  "packages": [
+    "github.com/graniticio/granitic/v2/ws/handler"
+  ],
+
+  "packageAliases": {
+    "mh": "myproject/handler"
+  },
+  
+  "SomeComponent": {
+    "type": "mh.SomeType"  
+  }
+}
+```
+
+### Find Granitic installation from go.mod (experimental)
+
+`grnc-bind` serialises a copy of Granitic's facility configuration files into your application.
+As such it needs to know where to find a copy of Granitic on disk. Previously this required
+you to set the `$GRANITIC_HOME` environment variable or check Granitic out to a standard location.
+
+In Granitic 2, the go.mod file can instead be used to automatically work out where to find
+Granitic (but you still need to set your `$GOPATH` environment variable correctly).
+
+This feature has not been fully tested with module proxies so should be considered experimental.
+
+## Bug fixes
 
  * Component definition files containing a slice of `float64` could not be bound if the first element was parseable as an int.
  * The `ServiceErrorManager` was not respecting the value of `ErrorCodeUser.ValidateMissing()` when complaining about missing error codes.
  * Using `ConfigAccessor` to try and push configuration into an unsupported type of target field was not returning an error.
  * Some configuration parsing errors were causing Granitic to exit rather than return an error
- 
-## 1.2.1  (2018-10-08)
 
- * GoDoc improvements
- * Tests now run if ```GRANITIC_HOME``` not set
- * Compatible with ```fmt.xprintx``` checks in ```go vet```
+# Granitic 1.x to 2.0 migration
 
-## 1.2.0  (2018-07-25)
+Support for [Go modules](https://github.com/golang/go/wiki/Modules) and implementing the recommendations
+of `golint` means that you will need to make changes to your application in order to run it with
+Granitic 2.
 
-### General
- * Now requires Go 1.9 or later
- 
-### Logging
- * Default log prefix now wraps component names in square brackets to improve readability
- 
-### Build and configuration
+## Import paths
 
-Applications built with Granitic no longer need access to a copy of Granitic's built-in JSON configuration files at runtime. This means that you do not 
-have to set the GRANITIC_HOME environment variable on the servers you are deploying your applications to.
+[Semantic import verisioning](https://github.com/golang/go/wiki/Modules#semantic-import-versioning) support
+means that you need to include the _major_ version number of Granitic in your import paths.
+This will affect your Go source co and your component definition files.
 
-### Scheduled tasks
+### Go code
 
-The new `TaskScheduler` facility allows processes to be run at predetermined intervals. Includes support for
+```go
+  import "github.com/graniticio/granitic/logging"
+```
 
- * Natural language definition of intervals (every `2 days at 1405` etc)
- * Control over error and retry behaviour
- * Notification to other components when tasks end (successfully or not)
- * Control over overlapping task runs
- 
-Refer to the [granitic.schedule GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/schedule) for more details.
+would need to change to 
 
-### RDBMS
+```go
+  import "github.com/graniticio/granitic/v2/logging"
+```
 
-Improved support for connecting to multiple databases using the `RdbmsAccess` facility. Refer to the [granitic.rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/rdbms) 
-for more information.
+### Component definition files
 
-### JSON Web Services
+```json
+{
+  "packages": [
+    "github.com/graniticio/granitic/ws/handler"
+  ]
+}
+```
 
-__BREAKING CHANGE__
+would need to change to:
 
- By default, the JSONWs facility now no longer wraps response objects in a wrapper with 'response' and 'errors' sections.
- Instead the object returned by the WsHandler is serialised as the HTTP response body unless errors are present, in which case
- the errors structure is used as the response body.
- 
- To revert to the previous behaviour, set:
- 
- ```json
- {
-   "JSONWs": {
-     "WrapMode": "WRAP"
-   }
- }
- ``` 
- 
- in your application's configuration
+```json
+{
+  "packages": [
+    "github.com/graniticio/granitic/v2/ws/handler"
+  ]
+}
+``` 
 
-## 1.1.0  (2018-01-11)
+## Capitalisation of abbreviations
 
-### General
- * Various internal changes to make use of updated libraries in Go 1.8
- * Various changes of all-caps abbreviations (e.g. ID, HTTP) to  Mixed Caps (ID, HTTP) improve readability of method and
- type names
+Common abbreviations in type names (`Id`, `Http`, `Sql`, `Json`, `Xml`) are now capitalised
+(`ID`, `HTTP`, `SQL`, `JSON`, `XML`)
 
-### RDBMS
+For example the type `xml.GraniticXmlErrorFormatter` is now `xml.GraniticXMLErrorFormatter`
 
- * Streamlined [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/v2/rdbms) methods (xxxTagxxx methods removed, xxxParamxxx methods more flexible with the type of arguments they accept)
- * [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/v2/rdbms) interface no longer requires DatabaseFromContext - implementations can now implement the optional ContextAwareDatabaseProvider interface
- * [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/v2/rdbms) interface no longer requires InsertIDFunc - implementations can now implement the optional NonStandardInsertProvider interface
- * If RdbmsClient was created with a context, all operations on the underlying [sql.Db](https://golang.org/pkg/database/sql/#Db) object use the Context variants of methods where possible
- * Transactions can now be opened with [sql.TxOptions](https://golang.org/pkg/database/sql/#TxOptions)
- * Proxy interfaces introduced in front of [sql.Db](https://golang.org/pkg/database/sql/#Db) and [sql.TxOptions](https://golang.org/pkg/database/sql/#TxOptions) to facilitate testing.
- 
-## QueryManager
- 
- * Escaping of parameter values and handling of missing values now deferred to new [ParamValueProcessor](https://godoc.org/github.com/graniticio/granitic/v2/dsquery#ParamValueProcessor) components.
- * Two built-in [ParamValueProcessor](https://godoc.org/github.com/graniticio/granitic/v2/dsquery#ParamValueProcessor) components are available - select by setting QueryManager.ProcessorName to <code>configurable</code> or <code>sql</code>
- * Default is <code>configurable</code> which mimics Granitic 1.0 behaviour.
- * Choosing <code>sql</code> will set missing parameter values to <code>null</code> and map bools to configurable DB specific values.
- * Parameters in a query can now be marked as required by prefixing their name with <code>!</code> in the query template.
+### Facilities
 
-### HTTPServer
-
- * Contexts passed to WsHandler are now inherited from the context on http.Request
- * Server makes use of new Shutdown and Close http.Server methods during framework shutdown
+This has also affected the names of the facilities `HttpServer`, `JsonWs` and `XmlWs` which
+are now `HTTPServer`, `JSONWs` and `XMLWs` respectively. You will need to update any references to 
+these in your application's _configuration_ files.
 
 
-### Validation
+## Stuttering
 
- * validate.ExternalXXXValidator interfaces (i.e ExternalInt64Validator) now return an error as well as a bool
- 
-### Fixes
+Types where the type name started with the name of the package have been 'de-stuttered'. For example
+`ws.WsRequest` is now `ws.Request`.
 
- * [Issue 001](https://github.com/graniticio/granitic/v2/issues/1) - Nilable fields on target objects now initialised if query binding in use
- * [Issue 002](https://github.com/graniticio/granitic/v2/issues/2) - STOPALL validation operation now works as intended
- 
-<hr/> 
-
-## 1.0.1 (2017-08-09)
-
- * Windows support
- * Uses Go context package (rather than golang.org/x/net/context)
- * Now requires Go 1.7
-
-<hr/> 
-
-## 1.0.0 (2016-10-13)
-
-Initial release
- 
+This is most likely to affect your application code where it uses Granitic types in the `ws` and `rdbms`
+packages.
