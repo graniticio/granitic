@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/logging"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -58,10 +60,23 @@ func InitialSettingsFromEnvironment() *InitialSettings {
 }
 
 func processCommandLineArgs(is *InitialSettings) {
-	configFilePtr := flag.String("c", "resource/config", "Path to container configuration files")
+
+	v1ConfLocation := filepath.Join("resource", "config")
+	defaultConfLocation := "config"
+
+	configFilePtr := flag.String("c", defaultConfLocation, "Path to application configuration files")
 	startupLogLevel := flag.String("l", "INFO", "Logging threshold for messages from components during bootstrap")
 	instanceID := flag.String("i", "", "A unique identifier for this instance of the application")
 	flag.Parse()
+
+	// If the default location for config is set, but doesn't exist, check to see if the Granitic v1 folder exists instead
+	if *configFilePtr == defaultConfLocation {
+
+		if !folderExists(defaultConfLocation) && folderExists(v1ConfLocation) {
+
+			configFilePtr = &v1ConfLocation
+		}
+	}
 
 	ll, err := logging.LogLevelFromLabel(*startupLogLevel)
 
@@ -113,4 +128,12 @@ func ExpandToFilesAndURLs(paths []string) ([]string, error) {
 
 func isURL(u string) bool {
 	return strings.HasPrefix(u, "http:") || strings.HasPrefix(u, "https:")
+}
+
+func folderExists(path string) bool {
+	s, err := os.Stat(path)
+	if err == nil {
+		return s.IsDir()
+	}
+	return false
 }

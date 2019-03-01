@@ -71,12 +71,10 @@ func (pg *ProjectGenerator) Generate(s Settings) {
 	base := s.BaseFolder
 
 	projectDir := filepath.Join(base, name)
-	resourceDir := filepath.Join(base, name, "resource")
-	confDir := filepath.Join(resourceDir, "config")
-	compDir := filepath.Join(resourceDir, "components")
+	confDir := filepath.Join(projectDir, "config")
+	compDir := filepath.Join(projectDir, "comp-def")
 
 	pg.mkDir(projectDir)
-	pg.mkDir(resourceDir)
 	pg.mkDir(confDir)
 	pg.mkDir(compDir)
 
