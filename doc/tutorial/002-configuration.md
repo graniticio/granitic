@@ -11,14 +11,8 @@
 
  1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
  2. Read the [before you start](000-before-you-start.md) tutorial
- 3. Either have completed [tutorial 1](001-fundamentals.md) or open a terminal and run
-
-<pre>
-cd $GOPATH/src/github.com/graniticio
-git clone https://github.com/graniticio/granitic-examples.git
-cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
-./prepare-tutorial.sh 2
-</pre>
+ 3. Either have completed [tutorial 1](001-fundamentals.md) or clone the [tutorial repo](https://github.com/graniticio/tutorial)
+ and navigate to `json/002/recordstore` in your terminal.
 
 ## Related GoDoc
 
@@ -26,7 +20,8 @@ https://godoc.org/github.com/graniticio/granitic/v2/config
 
 ## Configuration
 
-Granitic applications use JSON files to store configuration which is loaded when the application starts. Any valid JSON file is a valid configuration file:
+Granitic applications use JSON files to store configuration which is loaded when the application starts. Any valid JSON 
+file is a valid configuration file:
 
 
 ```javascript
@@ -43,14 +38,15 @@ Granitic applications use JSON files to store configuration which is loaded when
 }
 ```
 
-Granitic uses the term <b>configuration path</b> to express the fully-qualified name of a variable in configuration. In the
-above example <code>exampleBool</code> is a configuration path and so is <code>exampleObject.anotherString</code>
+Granitic uses the term <b>config path</b> to express the fully-qualified name of a variable in configuration. In the
+above example `exampleBool` is a config path and so is `exampleObject.anotherString`
 
 
 ## Configuring a Granitic application 
 
-When a Granitic application starts, it looks for configuration files before doing anything else. The location of these files is specified using the
-(<code>-c</code>) command line parameter. The default value for <code>-c</code> is <code>resource/config</code>, so in previous examples
+When a Granitic application starts, it looks for configuration files before doing anything else. The location of these 
+files is specified using the (`-c`) command line parameter. The default value for `-c` 
+is `config`, relative to the working directory from which you start your application, so in previous examples
 running:
 
 <pre>
@@ -60,101 +56,157 @@ recordstore
 is the equivalent of running:
 
 <pre>
-recordstore -c resource/config
+recordstore -c config
 </pre>
 
 The value of the -c parameter is expected to be a comma separated list of:
 
  * Relative or absolute paths to JSON files
  * Relative or absolute paths to directories
- * Absolute URIs of HTTP or HTTPS resources
+ * Absolute URLs of HTTP or HTTPS resources
  
-Support for directories and remote URIs will be discussed in a later tutorial. For now, open a terminal and run:
+## Starting your application with a specific config file
+
+Support for directories and remote URIs will be discussed in a later tutorial. For now, open a terminal, navigate to your
+`recordstore folder` and run
 
 <pre>
-cd $GOPATH/src/granitic-tutorial/recordstore
-grnc-bind
-go build
-./recordstore -c resource/config/config.json
+grnc-bind && go build
+./recordstore -c config/base.json
 </pre>
 
 This runs your recordstore application, specifically stating that a single configuration file 
-<code>resource/config/config.json</code> should be used. Stop the application with <code>CTRL+C</code>
+`resource/config/config.json` should be used. Stop the application with `CTRL+C`
 
 ## Injecting configuration into your components
 
-The Go IoC container automatically injects configuration values into your components. Modify the file <code>endpoint/artist.go</code> so it looks like:
+The Go IoC container automatically injects configuration values into your components. Modify the file `artist/get.go` 
+so it looks like:
 
 ```go
-package endpoint
+package artist
 
 import (
-  "github.com/graniticio/granitic/v2/ws"
-  "context"
+	"context"
+	"github.com/graniticio/granitic/v2/ws"
 )
 
-type ArtistLogic struct {
-  EnvLabel string
+type GetLogic struct{
+	EnvLabel string
 }
 
-func (al *ArtistLogic) Process(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse) {
+func (gl *GetLogic) Process(ctx context.Context, req *ws.Request, res *ws.Response) {
 
-  a := new(ArtistDetail)
-  a.Name = "Hello, World from " + al.EnvLabel
+	a := new(Info)
+	a.Name = fmt.Sprintf("Hello, %s!", gl.EnvLabel)
 
-  res.Body = a
+	res.Body = a
 }
 
-type ArtistDetail struct {
-  Name string
+type Info struct {
+	Name string
 }
+
 ```
 
-We've added a new field to the struct, <code>EnvLabel</code> and have changed our _Hello, World!_ message to include the 
+We've added a new field to the struct, `EnvLabel` and have changed our _Hello, World!_ message to include the 
 value of that field. As the name suggests, this will vary depending on which environment our code is running in.
 
-Now modify the <code>artistLogic</code> definition in your <code>resource/components/components.json</code> file so it looks like:
+Now modify the `artistHandler` definition in your `comp-def/common.json` file so it looks like:
 
 ```javascript
-"artistLogic": {
-    "type": "endpoint.ArtistLogic",
+"artistHandler": {
+  "type": "handler.WsHandler",
+  "HTTPMethod": "GET",
+  "Logic": {
+    "type": "artist.GetLogic",
     "EnvLabel": "conf:environment.label"
+  },
+  "PathPattern": "^/artist"
 }
 ```
 
-This is a configuration promise - you are telling Granitic to find a value in configuration with the _configuration path_ 
-<code>environment.label</code> and inject it into the
-<code>artistLogic</code> component's <code>EnvLabel</code> field at runtime.
+This is a configuration promise - you are telling Granitic to find a value in configuration with the _config path_ 
+`environment.label` and inject it into the `artistHandler.Logic` component's `EnvLabel` field at runtime.
 
 If you now run:
 
-<pre>grnc-bind && go build && ./recordstore -c resource/config/config.json</pre>
+<pre>grnc-bind && go build && ./recordstore -c config/base.json</pre>
 
 you will see an error message similar to:
 
 <pre>
-17/Jan/2017:16:39:42 Z FATAL [grncContainer] No value found at environment.label
+01/Mar/2019:17:41:16 Z FATAL [grncContainer] No value found at environment.label
 </pre>
 
 Granitic adopts a fail-fast model for configuration and will not allow an application to start if it relies on configuration
-that is undefined. Rather than just adding the expected configuration to <code>resource/config/config.json</code>, we'll
+that is undefined. Rather than just adding the expected configuration to `config/base.json`, we'll
 use this opportunity to show how configuration files can be used to make deploying your application in multiple locations 
-more straightfoward.
+more straightforward.
+
+### Default values
+
+It is sometimes desirable to be able to define a default value to use if no config exists instead of failing. This can be achieved
+with default values. In your `comp-def/common.json` file change the line:
+
+```json
+    "EnvLabel": "conf:environment.label"
+```
+
+to
+
+```json
+    "EnvLabel": "conf:environment.label(DEV)"
+```
+
+and trying re-running
+
+```
+grnc-bind && go build && ./recordstore -c config/base.json
+```
+
+and visit [http://localhost:8080/artist](http://localhost:8080/artist) You should see the response:
+          
+```json
+{
+"Name": "Hello, DEV!"
+}
+```
+
+It is **strongly** recommended that you do not store sensitive information such as passwords in default values as default
+values are compiled into your application executable.
 
 
 ## Multiple configuration files
 
 Only the simplest applications will use a single configuration file. Complex applications will split their configuration into
-multiple files to improve readability and maintainability, but most applications will want to separate the configuration that
+multiple files to improve readability and maintainability, but all applications will want to separate the configuration that
 is common to each deployment of an application from that configuration that changes across different deployment environments
 and from one instance of an application to another.
+
+Generally you would expect only your application's common (or 'base') configuration to be checked into source control with 
+environment specific configuration being generated dynamically by your build or configuration management system,
 
 The rest of this tutorial simulates deploying an instance of a web-service across multiple environments and then multiple instances
 running on a single server.
 
-Create two new files:
+Change your `config/base.json` file so it looks like:
 
-<code>resource/env/production.json</code>
+```json
+{
+  "Facilities": {
+   "HTTPServer": true,
+   "JSONWs": true
+  },
+  "environment": {
+    "label": "TEST"
+  }
+}
+```
+
+Then create a new file:
+
+`/tmp/prod.json`
 
 ```json
 {
@@ -164,60 +216,42 @@ Create two new files:
 }
 ```
 
+## Configuration merging
 
-<code>resource/env/development.json</code>
+We now have a value for the _config path_ `environment.label' defined in three places.
 
-```json
-{
-  "environment": {
-    "label": "DEV"
-  }
-}
-```
+Default value: `DEV` 
+
+`config/base.json`: `TEST`
+
+`/tmp/prod.json`: `PROD`
+
 
 As you've only changed configuration files, you don't need to rebuild. You can just run:
 
 <pre>
-./recordstore -c resource/config,resource/env/production.json
+./recordstore -c config,/tmp/prod.json
 </pre>
 
-or
- 
-<pre>
-./recordstore -c resource/config,resource/env/development.json
-</pre>
 
-And visit [http://localhost:8080/artist](http://localhost:8080/artist) to see a different result depending on which config file you're using.
+And visit [http://localhost:8080/artist](http://localhost:8080/artist)
 
+You'll see the message has changed to `Hello, PROD!`. This is due to Granitic's process of _configuration merging_ where
+multiple configuration files are merged together to provide a single view of application configuration.
 
-### Tidying up
+The order in which you specify your configuration files when starting your application is important. Any config path that 
+is defined in multiple files is replaced with the _rightmost_ definition. Try swapping the order of the configuration 
+files and see what happens.
+  
 
-In later tutorials, we'll want the option of running <code>recordstore</code> without specifiying a list of config files, so change
-your <pre>resource/config/config.json</pre> file so that it looks like:
+## Using configuration to run multiple instances
 
-```json
-{
-    "Facilities": {
-        "HTTPServer": true,
-        "JSONWs": true
-    },
-    "environment": {
-        "label": "UNSET"
-    }
-}
-
-```
-
-
-## Overriding configuration
-
-To maximise use of resources, you may want to run multiple instances of a web service on a single host. This means each instance must have a different HTTP port assigned to it. 
-
-This is an example of how you can override previously defined configuration items with new values.
+To maximise use of resources, you may want to run multiple instances of a web service on a single host. This means each 
+instance must have a different HTTP port assigned to it. 
 
 Create two new files:
 
-<code>resource/instance/instance-1.json</code>
+`/tmp/instance-1.json`
 
 ```javascript
 {
@@ -227,7 +261,7 @@ Create two new files:
 }
 ```
 
-<code>resource/instance/instance-2.json</code>
+`/tmp/instance-2.json`
 
 ```javascript
 {
@@ -240,40 +274,36 @@ Create two new files:
 You can now run:
 
 <pre>
-./recordstore -c resource/config,resource/env/development.json,resource/instance/instance-1.json
+./recordstore -c config,/tmp/instance-1.json
 </pre>
 
-and in a separate terminal run:
+and in a separate terminal, navigate to the same folder and run:
 
 <pre>
-cd $GOPATH/src/granitic-tutorial/recordstore
-./recordstore -c resource/config,resource/env/development.json,resource/instance/instance-2.json
+./recordstore -c config,/tmp/instance-2.json
 </pre>
 
-And you now have two separate instances of your recordstore application running and listening on different ports.
+And you now have two separate instances of your `recordstore` application running and listening on different ports.
 
 
-## Configuration merging
+## Facility configuration
 
 In previous examples, you will have noticed that the default HTTP port for Granitic applications is 8080. This is not
 hard-coded, it is defined in another configuration file that is included with Granitic itself called a 
-<code>facility configuration file</code>. Making sure your applications can read these built-in configuration files is why you 
-need to set the <code>GRANITIC_HOME</code> environment variable to point to an installation of Granitic.
+`facility configuration file`, which can be found under the `facility/config` folder of your Granitic installation.
 
-During startup, Granitic builds up a single view of configuration by merging together all of your configuration files with all of the 
-built-in configuration files that can be found under <code>$GRANITIC_HOME/resource/facility-config</code>.
+These files are serialised into your application's executable so you don't need to have Granitic installed on the environment
+you are running your application on. During application startup, Granitic merges this serialised view with your application's configuration files . 
 
-You can see the order in which Granitic is merging configuration files together by starting an application with the <code>-l TRACE</code>
-parameter, which sets Granitic's initial log-level to <code>TRACE</code>. Your application's configuration files take precedence over
-the built-in facility configuration files, so in this example the value of <code>HTTPServer.Port</code> in <code>facility-config/httpserver.json</code> is replaced
-with the value in your <code>recordstore-1.json</code> or <code>recordstore-2.json</code> file.
+Your application's configuration files take precedence over the built-in facility configuration, so in this example the 
+value of `HTTPServer.Port` in `facility/config/httpserver.json`  is replaced with the value in your `/tmp/instance-1.json` or `/tmp/instance-1.json` file.
 
 ### Merging rules
 
-The rules by which configuration two files are merged together are specified in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/config), but the following example 
-illustrates the key rules (note the configuration items are an illustration and do not relate to any specific Granitic features)
+The rules by which configuration two files are merged together are specified in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/config), 
+but the following example illustrates the key rules (note the configuration items are an illustration and do not relate to any specific Granitic features)
 
-<code>a.json</code>
+`a.json`
 
 ```javascript
 {
@@ -291,7 +321,7 @@ illustrates the key rules (note the configuration items are an illustration and 
 }
 ```
 
-<code>b.json</code>
+`b.json`
 
 ```javascript
 {

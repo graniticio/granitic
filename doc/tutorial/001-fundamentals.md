@@ -75,7 +75,7 @@ You should see output similar to:
 01/Mar/2019:14:59:52 Z INFO  [grncInit] Ready (startup time 1.68654ms)
 </pre>
 
-This means your application has started and is waiting. You can stop it with <code>CTRL+C</code> and will see output similar to
+This means your application has started and is waiting. You can stop it with `CTRL+C` and will see output similar to
 
 <pre>
 01/Mar/2019:15:00:36 Z INFO  [grncInit] Shutting down (system signal)
@@ -83,9 +83,9 @@ This means your application has started and is waiting. You can stop it with <co
 
 ## Facilities
 
-A <code>facility</code> is Granitic's name for a high-level feature that your application can enable or disable. By default,
+A `facility` is Granitic's name for a high-level feature that your application can enable or disable. By default,
 most of the features are disabled. You can see which features are available to your applications and whether or not they're enabled 
-by inspecting the file <code>facility/config/active.json</code> in your Granitic installation folder:
+by inspecting the file `facility/config/active.json` in your Granitic installation folder:
 
 ```json
 {
@@ -105,9 +105,9 @@ by inspecting the file <code>facility/config/active.json</code> in your Granitic
 ```
 
 In order to build a JSON web service that will listen for an handler HTTP requests, you will need to enable two facilities: 
-<code>HTTPServer</code> and <code>JSONWs</code> (JSON Web Services).
+`HTTPServer` and `JSONWs` (JSON Web Services).
 
-We do this by <i>overriding</i> the default setting for each facility. To do this, open the JSON <code>config/base.json</code> 
+We do this by <i>overriding</i> the default setting for each facility. To do this, open the JSON `config/base.json` 
 that was generated for you and change it so it looks like:
 
 ```json
@@ -133,18 +133,18 @@ You'll see an additional line of logging on startup similar to:
 </pre>
 
 Which shows that an HTTP server is listening for web service requests on the default port of 8080. Stop the running 
-service with <code>CTRL+C</code>
+service with `CTRL+C`
 
 ## Adding an endpoint
 
-An <code>endpoint</code> is Granitic's preferred name for code that handles a web service request to a particular URI pattern for a 
+An `endpoint` is Granitic's preferred name for code that handles a web service request to a particular URI pattern for a 
 particular HTTP method (GET, POST etc). Most of the mechanics of routing a request to your code and converting between
 JSON and your custom Go code is handled by Granitic, you will be concerned mainly with defining your _endpoint logic_.
 
 Endpoint logic is code in a Go struct that has a member function that Granitic can call to pass control of a request
 once the framework has completed its automatic steps.
 
-Create the file <code>artist/get.go</code> in your `recordstore` project and set the contents to:
+Create the file `artist/get.go` in your `recordstore` project and set the contents to:
 
 ```go
 package artist
@@ -169,7 +169,7 @@ type Info struct {
 }
 ```
 
-This code defines an object implementing the <code>ws.WsRequestProcessor</code> interface and another object that will 
+This code defines an object implementing the `ws.WsRequestProcessor` interface and another object that will 
 be used to store the results of the web service call, in this case a recording artist with the unlikely name "Hello, World!"
 
 
@@ -179,12 +179,12 @@ At the core of Granitic is an Inversion of Control (IoC) container, sometimes al
 Granitic looks after the lifecycle (creating and destroying) of the Go objects you define, but needs to be told which 
 objects should be included in your application and how they should be configured. 
 
-These definitions are stored in JSON _component definition files_ which, by default, are stored in your project in a folder called <code>comp-def</code>. 
+These definitions are stored in JSON _component definition files_ which, by default, are stored in your project in a folder called `comp-def`. 
 You can have as many files as you like in this folder, and it is recommend you group related components in to separate
 named files.
 
 
-Open the file <code>comp-def/common.json</code> and set the content to:
+Open the file `comp-def/common.json` and set the content to:
 
 ```json
 {
@@ -206,12 +206,12 @@ Open the file <code>comp-def/common.json</code> and set the content to:
 }
 ```
 
-A component definition file has two sections. The <code>packages</code> section declares the Go packages containing the 
-code that you intend to use as components. The <code>components</code> section declares uniquely named components that 
+A component definition file has two sections. The `packages` section declares the Go packages containing the 
+code that you intend to use as components. The `components` section declares uniquely named components that 
 you want to be managed by Granitic.
 
-The sole component in this file, <code>artistHandler</code>, is an instance of <code>handler.WsHandler</code>, a built-in Granitic 
-type. A <code>ws.WsHandler</code> coordinates the bulk of the request processing lifecycle as well as managing error-handling 
+The sole component in this file, `artistHandler`, is an instance of `handler.WsHandler`, a built-in Granitic 
+type. A `ws.WsHandler` coordinates the bulk of the request processing lifecycle as well as managing error-handling 
 for a web service request.
 
 One of the fields on this component, `Logic`, expects another component to be injected into to it. In this case
@@ -235,16 +235,16 @@ Return to your terminal and run
 
 <pre>grnc-bind</pre> 
 
-You will notice that a Go source file <code>bindings/bindings.go</code> has been created. You will not 
+You will notice that a Go source file `bindings/bindings.go` has been created. You will not 
 (and in fact should not) edit this file directly, but feel free to examine it to see what is happening.
 
-*You will need to re-run <code>grnc-bind</code> whenever you change your component definition file*
+*You will need to re-run `grnc-bind` whenever you change your component definition file*
 
 
 ## Building and testing your application
 
-Every Go application requires an entry point <code>main</code> method. For a Go application that was created using the
-<code>grnc-project</code> tool, the <code>main</code> method is in the <code>main.go</code> file at the root of the 
+Every Go application requires an entry point `main` method. For a Go application that was created using the
+`grnc-project` tool, the `main` method is in the `main.go` file at the root of the 
 project. For this tutorial, this file will look like:
 
 ```go
@@ -259,7 +259,7 @@ func main() {
 
 ```
 
-This simply takes the objects generated by <code>grnc-bind</code> and passes them to Granitic. For the vast majority of
+This simply takes the objects generated by `grnc-bind` and passes them to Granitic. For the vast majority of
 Granitic applications you will not need to modify or even look at this file.
 
 Return to your terminal and run:
@@ -283,9 +283,9 @@ and you should see the response:
 ## Recap
 
  * Granitic applications contain Go source files, configuration files and component definition files
- * The <code>grnc-project</code> tool can create an empty, working Granitic application
+ * The `grnc-project` tool can create an empty, working Granitic application
  * Components are a named instance of a Go object, managed by Granitic's IoC container
- * The <code>grnc-bind</code> tool converts your component definition files into Go source - run the tool whenever
+ * The `grnc-bind` tool converts your component definition files into Go source - run the tool whenever
   you change your component definitions.
  
 ## Next
