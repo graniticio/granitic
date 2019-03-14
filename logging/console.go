@@ -11,7 +11,7 @@ import (
 
 // ConsoleErrorLogger is an implementation of logging.Logger that writes errors and fatal messages to the console/command line using Go's fmt.Printf function.
 // Messages at all other levels are ignored. This implementation is used by Granitic's command line tools and is not
-// recommended for use in user applications.
+// recommended for use in user applications but can by useful for unit tests.
 type ConsoleErrorLogger struct {
 }
 

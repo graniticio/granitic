@@ -35,16 +35,16 @@ The error conditions that a web service has to cope with can be broadly divided 
 
 ## Service errors
 
-Granitic provides a mechanism for dealing with all these types of error in a consistent way - the [service error](https://godoc.org/github.com/graniticio/granitic/v2/ws)
+Granitic provides a mechanism for dealing with all these types of error in a consistent way - the [service error](https://godoc.org/github.com/graniticio/granitic/ws)
 
-The [ws.WsResponse](https://godoc.org/github.com/graniticio/granitic/v2/ws#WsResponse) object passed to your logic components' [process](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsRequestProcessor)
+The [ws.WsResponse](https://godoc.org/github.com/graniticio/granitic/ws#WsResponse) object passed to your logic components' [process](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsRequestProcessor)
 method represents the data and state that will be returned to your client (via HTTP) when the request has been processed. It has a field:
 
 ```go
    Errors *ServiceErrors
 ```
 
-that provides access to a [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/v2/ws#ServiceErrors) struct. Your code should
+that provides access to a [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors) struct. Your code should
 add errors to this structure as they are encountered. When processing is complete, Granitic will evaluate the errors in this structure to
 determine what type of response and HTTP status code (200, 500 etc) should be sent to your client. 
 
@@ -89,7 +89,7 @@ We need to add another entry to that list:
 ```
 
 The type of error in this case is "U" or <code>unexpected</code>. If Granitic finds an 'unexpected' error in the response, it will set the HTTP status
-code to <code>500 - Internal server error</code>. Determining which HTTP status code is set follows the rules defined here under [HTTP status code determination](https://godoc.org/github.com/graniticio/granitic/v2/ws)
+code to <code>500 - Internal server error</code>. Determining which HTTP status code is set follows the rules defined here under [HTTP status code determination](https://godoc.org/github.com/graniticio/granitic/ws)
 
 ## Building and testing
 

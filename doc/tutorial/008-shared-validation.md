@@ -67,7 +67,7 @@ We now need to edit <code>resource/config/config.json</code> to add some shared 
 ```
 
 <code>EXT</code> (short for external) is an operation that delegates validation of a field to another Granitic component, in this case
-a component named <code>artistExistsChecker</code> that will need to implement the [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalInt64Validator)
+a component named <code>artistExistsChecker</code> that will need to implement the [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator)
 interface.
 
 We need to alter the existing <code>submitArtistRules</code> in <code>config.json</code> so that they use the shared rule on ID we're given:
@@ -196,7 +196,7 @@ get a result like:
  * Validation rules can be defined globally so they can be re-used by multiple endpoints
  * When validating slices, the validation of each element can be delegated to another validation rule
  * When validating ints, floats and strings your validation rule can delegate to another component, as long as it implements
- [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalInt64Validator), [validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalFloat64Validator)
-  or [validate.ExternalStringValidator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalStringValidator)
+ [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator), [validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalFloat64Validator)
+  or [validate.ExternalStringValidator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalStringValidator)
  * Database results can be bound to a basic type as long as your query returns one row with one column.
  

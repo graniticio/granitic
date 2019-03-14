@@ -16,7 +16,7 @@
 
 ## Related GoDoc
 
-https://godoc.org/github.com/graniticio/granitic/v2/config
+https://godoc.org/github.com/graniticio/granitic/config
 
 ## Configuration
 
@@ -97,10 +97,11 @@ type GetLogic struct{
 
 func (gl *GetLogic) Process(ctx context.Context, req *ws.Request, res *ws.Response) {
 
-	a := new(Info)
-	a.Name = fmt.Sprintf("Hello, %s!", gl.EnvLabel)
+  an :=  fmt.Sprintf("Hello, %s!", gl.EnvLabel)
 
-	res.Body = a
+  res.Body = Info{
+  	Name: an,
+  }
 }
 
 type Info struct {
@@ -120,14 +121,15 @@ Now modify the `artistHandler` definition in your `comp-def/common.json` file so
   "HTTPMethod": "GET",
   "Logic": {
     "type": "artist.GetLogic",
-    "EnvLabel": "conf:environment.label"
+    "EnvLabel": "$environment.label"
   },
   "PathPattern": "^/artist"
 }
 ```
 
-This is a configuration promise - you are telling Granitic to find a value in configuration with the _config path_ 
-`environment.label` and inject it into the `artistHandler.Logic` component's `EnvLabel` field at runtime.
+The value starting with the dollar symbol (`$`) is a configuration promise - you are promising your application that Granitic will
+find a value in configuration with the _config path_ `environment.label` and inject it into the `artistHandler.Logic` 
+component's `EnvLabel` field at application startup.
 
 If you now run:
 
@@ -150,13 +152,13 @@ It is sometimes desirable to be able to define a default value to use if no conf
 with default values. In your `comp-def/common.json` file change the line:
 
 ```json
-    "EnvLabel": "conf:environment.label"
+    "EnvLabel": "$environment.label"
 ```
 
 to
 
 ```json
-    "EnvLabel": "conf:environment.label(DEV)"
+    "EnvLabel": "$environment.label(DEV)"
 ```
 
 and trying re-running
@@ -300,7 +302,7 @@ value of `HTTPServer.Port` in `facility/config/httpserver.json`  is replaced wit
 
 ### Merging rules
 
-The rules by which configuration two files are merged together are specified in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/config), 
+The rules by which configuration two files are merged together are specified in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic/config), 
 but the following example illustrates the key rules (note the configuration items are an illustration and do not relate to any specific Granitic features)
 
 `a.json`

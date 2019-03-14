@@ -157,11 +157,11 @@ import (
 type GetLogic struct {}
 
 func (gl *GetLogic) Process(ctx context.Context, req *ws.Request, res *ws.Response) {
+	
+  res.Body = Info{
+    Name: "Hello, World!",
+  }
 
-  a := new(Info)
-  a.Name = "Hello, World!"
-
-  res.Body = a
 }
 
 type Info struct {
