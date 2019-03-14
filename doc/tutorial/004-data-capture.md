@@ -279,7 +279,7 @@ func (pl *PostLogic) ProcessPayload(ctx context.Context, req *ws.Request, res *w
 }
 
 type Submission struct {
-  Name string
+  Name *types.NilableString
   FirstYearActive *types.NilableInt64
 }
 
