@@ -11,31 +11,28 @@
 
  1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
  1. Read the [before you start](000-before-you-start.md) tutorial
- 1. Either have completed [tutorial 5](005-validation.md) or open a terminal and run:
- 
-<pre>
-cd $GOPATH/src/github.com/graniticio
-git clone https://github.com/graniticio/granitic-examples.git
-cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
-./prepare-tutorial.sh 6
-</pre>
+ 1. Either have completed [tutorial 5](005-validation.md) or clone the
+    [tutorial repo](https://github.com/graniticio/tutorial) and navigate to `json/005/recordstore` in your terminal.
 
 ## Setting up a test database
 
-In order to streamline this tutorial, you will use an existing MySQL schema and test data supplied as part of the [Granitic Examples](https://github.com/graniticio/granitic-examples) 
-GitHub repository in the <code>tutorial/docker/db/schema-with-test-data.sql</code> file. 
+In order to streamline this tutorial, you will use an existing MySQL schema and test data supplied as part of the 
+[tutorial](https://github.com/graniticio/tutorial) 
+GitHub repository in the `docker/db/schema-with-test-data.sql` file. 
 
-If you haven't already cloned the [Granitic Examples](https://github.com/graniticio/granitic-examples) repo, you can do it with:
+If you haven't already cloned the [tutorial](https://github.com/graniticio/tutorial) repo, you can do it with:
 
 <pre>
 cd $GOPATH/src/github.com/graniticio
-git clone https://github.com/graniticio/granitic-examples.git
+git clone https://github.com/graniticio/tutorial.git
 </pre>
 
 ### Using an existing MySQL server
 
-If you already have access to a MySQL database and are familiar with MySQL, you may run the <code>schema-with-test-data.sql</code> file against your existing database server and skip ahead to _Defining a DatabaseProvider_ below.
-Note that the script creates a user <code>grnc</code> and allows it to connect from any IP.
+If you already have access to a MySQL database and are familiar with MySQL, you may run the `schema-with-test-data.sql` 
+file against your existing database server and skip ahead to _Defining a DatabaseProvider_ below.
+
+Note that the script creates a user `grnc` and allows it to connect from any IP.
 
 
 ### Docker and MySQL
@@ -43,27 +40,29 @@ Note that the script creates a user <code>grnc</code> and allows it to connect f
 [Install Docker](https://docs.docker.com/engine/installation/) then open a terminal and run:
 
 <pre>
-cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial/docker
-docker-compose up --build -d
+cd $GOPATH/src/github.com/graniticio/tutorial/docker
+docker-compose up --build --detach 
 </pre>
 
-This will build and start a new docker image with the name <code>graniticrs_recordstore-db_1</code> and bind that image's port 3306 to your host machine's port 3306. 
+This will build and start a new docker image with the name `docker_recordstore-db_1` and bind that image's port 3306 
+to your host machine's port 3306. 
+
 If you want to stop the image you can run:
 
 <pre>
-docker stop graniticrs_recordstore-db_1
+docker stop docker_recordstore-db_1
 </pre>
 
 and destroy it permanently with
 
 <pre>
-docker rm graniticrs_recordstore-db_1
+docker rm docker_recordstore-db_1
 </pre>
 
 ### MySQL workbench
 
-If you are interested in examining the database's structure and/or data, you can connect to the new database with [MySQL Workbench](https://dev.mysql.com/downloads/workbench/)
-(or any other tool) using the following credentials:
+If you are interested in examining the database's structure and/or data, you can connect to the new database with 
+[MySQL Workbench](https://dev.mysql.com/downloads/workbench/) (or any other tool) using the following credentials:
 
 ```
 Host:     localhost 
@@ -83,23 +82,22 @@ Your application will have to define a component that implements this interface.
 
 The [DatabaseProvider's](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider) 
 role is to create instances of [sql.DB](https://golang.org/pkg/database/sql/#DB) (Go's connection/driver abstraction) and 
-implement any connection pooling and load balancing your application requires. It's also the most convinient place to import 
+implement any connection pooling and load balancing your application requires. It's also the most convenient place to import 
 whichever package provides the database driver that you require
 
 
 ### Obtaining a MySQL driver for Go
 
-Open a terminal and run
+Open the `go.mod` file in the root of your tutorial project and add the line
 
 ```json
-go get -u github.com/go-sql-driver/mysql
+  require github.com/go-sql-driver/mysql v1.4.1
 ```
 
-to download the most widely used MySQL driver for Go.
 
 ### Creating a DatabaseProvider component
 
-Create a new file in your tutorial project <code>recordstore/db/provider.go</code> and set the contents to be:
+Create a new file in your tutorial project `db/provider.go` and set the contents to be:
 
 ```go
 package db
@@ -133,22 +131,20 @@ In this file we are importing the database driver package and providing a method
 to your database. The implementation here is very simple and doesn't offer any connection management other than that implemented
 by the driver itself.
 
-In your <code>resource/components/components.json</code> file you'll need to declare a component for your [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider) 
-and a component to store your connection parameters:
+In your `comp-def/common.json` file you'll need to declare a component for your 
+[DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider)
 
 ```json
 "dbProvider": {
   "type": "db.MySQLProvider",
-  "Config": "ref:dbConnection"
-},
-
-"dbConnection": {
-  "type": "mysql.Config",
-  "User": "grnc",
-  "Passwd": "OKnasd8!k",
-  "Addr": "localhost",
-  "DBName": "recordstore",
-  "AllowNativePasswords": true
+  "Config": {
+    "type": "mysql.Config",
+    "User": "grnc",
+    "Passwd": "OKnasd8!k",
+    "Addr": "localhost",
+    "DBName": "recordstore",
+    "AllowNativePasswords": true
+  }
 }
 ```
 
@@ -156,15 +152,15 @@ You've added components that rely on two new packages, so make sure you add:
 
 ```go
 "github.com/go-sql-driver/mysql",
-"granitic-tutorial/recordstore/db"
+"recordstore/db"
 ```
 
-to the packages section at the start of <code>components.json</code>
+to the packages section at the start of `components.json`
 
 
-### Configuration in components.json
+### Configuration in component definition is bad practice
 
-Directly storing the database connection parameters in the <code>components.json</code> file is bad practice and is only used here
+Directly storing the database connection parameters in the `common.json` file is bad practice and is only used here
 to keep the length of this tutorial down. Refer back to [the configuration tutorial](002-configuration.md) to see how
 you could use config promises and a separate configuration file to store this type of environment-specific configuration.
 
@@ -172,7 +168,7 @@ you could use config promises and a separate configuration file to store this ty
 ## New facilities
 
 You'll need to enable two new facilities ([QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) 
-and [RdbmsAccess](https://godoc.org/github.com/graniticio/granitic/facility/rdbms)) in your <code>resource/config/config.json</code>
+and [RdbmsAccess](https://godoc.org/github.com/graniticio/granitic/facility/rdbms)) in your `config/base.json`
 
 ```json
 "Facilities": {
@@ -188,23 +184,25 @@ and [RdbmsAccess](https://godoc.org/github.com/graniticio/granitic/facility/rdbm
 
 ### RdbmsAccess
 
-This facility is the bridge between Granitic's database framework and your application code. It uses the [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider)
-to obtain connections to your database and injects an instance of [RdbmsClientManager](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClientManager) into
-any of your application components that have the field:
+This facility is the bridge between Granitic's database framework and your application code. 
+It uses the [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider)
+to obtain connections to your database and injects an instance of [RdbmsClientManager](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClientManager) 
+into any of your application components that have the field:
 
 ```go
-  DbClientManager rdbms.RdbmsClientManager
+  DbClientManager rdbms.ClientManager
 ```
 
 ### QueryManager
 
 An optional (but recommended) facility offered by Granitic is the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager).
-This facility allows you to define your database queries in text files outside of your Go code and have variables injected into the template at runtime to create a working query.
+This facility allows you to define your database queries in text files outside of your Go code and have variables injected 
+into the template at runtime to create a working query.
 
 The [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) facility is not intended to be specific
 to relational databases; it is designed to support any data source that supports a query language (e.g. search engines, NoSQL databases).
 
-However, it can be configured to provide additional support for SQL queries, so add this to your <code>config.json</code> file:
+However, it can be configured to provide additional support for SQL queries, so add this to your `config/base.json` file:
 
 ```json
 "QueryManager": {
@@ -214,37 +212,39 @@ However, it can be configured to provide additional support for SQL queries, so 
 
 ## Artist GET
 
-We are going to connect our existing <code>/artist GET</code> endpoint to the database. Modify the <code>endpoint/artist.go</code> 
-file so that the <code>ArtistLogic</code> type looks like:
+We are going to connect our existing `/artist GET` endpoint to the database. Modify the `artist/get.go` 
+file so that the `GetLogic` type looks like:
 
 ```go
-type ArtistLogic struct {
+type GetLogic struct {
   EnvLabel string
   Log      logging.Logger
-  DbClientManager rdbms.RdbmsClientManager
+  DbClientManager rdbms.ClientManager
 }
 
-func (al *ArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, ar *ArtistRequest) {
+func (gl *GetLogic) ProcessPayload(ctx context.Context, req *ws.Request, res *ws.Response, q *ArtistQuery) {
+
   // Obtain an RdmsClient from the rdbms.RdbmsClientManager injected into this component
-  dbc, _ := al.DbClientManager.Client()
+  dbc, _ := gl.DbClientManager.Client()
 
   // Create a new object to store the results of our database call 
-  result := new(ArtistDetail)
+  result := new(Info)
 
   // Call the database and populate our object
-  if found, err := dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, ar); found {
+  if found, err := dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, q); found {
     // Make our result object the body of the HTTP response we'll send
     res.Body = result
-  
+
   } else if err != nil{
     // Something went wrong when communicating with the database - return HTTP 500
-    al.Log.LogErrorf(err.Error())
+    gl.Log.LogErrorf(err.Error())
     res.HTTPStatus = http.StatusInternalServerError
 
   } else {
     // No results were returned by the database call - return HTTP 404
     res.HTTPStatus = http.StatusNotFound
   }
+
 }
 
 ```  
@@ -262,27 +262,29 @@ import (
 )
 ```
 
-### RdbmsClient
+### rdbms.Client
 
-[RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) is the interface your code uses to execute queries and manage transasctions. It is *not* goroutine-safe and should not be shared, which is why
-we use the <code>RdbmsClientManager</code> to create a new instance on every request. 
+[rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client) is the interface your code uses to 
+execute queries and manage transasctions. It is *not* goroutine-safe and should not be shared, which is why
+we use the `rdbms.ClientManager` to create a new instance on every request. 
 
-The methods on [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) are named to make the intent of your database calls more obvious, in this case the method <code>SelectBindSingleQIDParams</code> tells us:
+The methods on [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client) are named to make the 
+intent of your database calls more obvious, in this case the method `SelectBindSingleQIDParams` tells us:
 
  * Select - You are executing a SELECT-type SQL query
- * BindSingle - You expect zero or one results and want the result bound into a supplied object (the *ArtistDetail*)
+ * BindSingle - You expect zero or one results and want the result bound into a supplied object (the *artist.Info*)
  * QID - You are supplying the Query ID of a previously templated query to execute
- * Params - You are supplying one or more objects that can be used to inject values into your templated queries (the *ArtistRequest*)
+ * Params - You are supplying one or more objects that can be used to inject values into your templated queries (the *ArtistQuery*)
 
-There are a number of variations on these methods, including binding multi-row queries into a slice of objects of your choice. Refer to the [rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms)
-for more information.
+There are a number of variations on these methods, including binding multi-row queries into a slice of objects of your 
+choice. Refer to the [rdbms GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms) for more information.
 
 
 ## Building a query template
 
 The [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) 
-uses <code>resource/queries</code> as the default location for templates, so create a new file <code>recordstore/resource/queries/artist</code> 
-and set the contents to:
+uses `resource/queries` as the default location for templates, so create a new file `resource/queries/artist` in your
+tutorial project and set the contents to:
 
 ```sql
 ID:ARTIST_BY_ID
@@ -296,20 +298,21 @@ WHERE
   
 ```  
 
-Each file can contain any number of queries. The line starting <code>ID:</code> delimits the queries and assigns an ID to
-the following query (in this case <code>ARTIST_BY_ID</code>). Variables are surrounded by <code>${}</code> and names are case sensitive.
+Each file can contain any number of queries. The line starting `ID:` delimits the queries and assigns an ID to
+the following query (in this case `ARTIST_BY_ID`). Variables are surrounded by `${}` and names are case sensitive.
 
 
 ### Parameters to queries
 
-Values for parameters are injected into the query template when you call a method on <code>RdbmsClient</code>. In the case of this query the <code>${ID}</code> parameter will be populated when we call:
+Values for parameters are injected into the query template when you call a method on `rdbms.Client`. In the case of this 
+query the `${ID}` parameter will be populated when we call:
 
 ```go
-  dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, ar)
+  dbc.SelectBindSingleQIDParams("ARTIST_BY_ID", result, q)
 ```
 
-because the <code>ArtistRequest</code> object we are passing as the 'parameter source' has a field named ID. If you want to use a different parameter name in 
-your query, you can use the <code>dbparam</code> struct tag like:
+because the `ArtistQuery` object we are passing as the 'parameter source' has a field named ID. If you want to use a 
+different parameter name in your query, you can use the `dbparam` struct tag like:
 
 ```go
 type ArtistRequest struct {
@@ -317,17 +320,17 @@ type ArtistRequest struct {
 }
 ```
 
-or you can supply a <code>map[string]interface{}</code> as a source of parameters instead of a struct and have complete control over the
+or you can supply a `map[string]interface{}` as a source of parameters instead of a struct and have complete control over the
 names of the map keys.
 
 ### Matching column names and aliases
 
-Granitic automatically populates the fields on the supplied target object (in this case an instance of <code>ArtistDetail</code>) by finding a field 
-whose name and type matches a column name or alias in the SQL query's results. This process is case sensitive, which is why we've had to define
-the column alias <code>Name</code> in the query to match it to the <code>ArtistDetail.Name</code> field.
+Granitic automatically populates the fields on the supplied target object (in this case an instance of `artist.Info`) by 
+finding a field whose name and type matches a column name or alias in the SQL query's results. This process is case sensitive, 
+which is why we've had to define the column alias `Name` in the query to match it to the `ArtistDetail.Name` field.
 
-If you'd prefer not to use aliases in your query or want the the name of the field on the struct to be very different to the column name, you
-can use the <code>column</code> tag on your target object, e.g.:
+If you'd prefer not to use aliases in your query or want the the name of the field on the struct to be very different to 
+the column name, you can use the `column` tag on your target object, e.g.:
 
 ```go
 type ArtistDetail struct {
@@ -337,8 +340,8 @@ type ArtistDetail struct {
 
 #### Debugging queries
 
-You can make the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) log the queries it constructs by
-setting the <code>grncQueryManager</code> framework component's log level to <code>DEBUG</code> in your config file:
+You can make the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) log the queries 
+it constructs by setting the `grncQueryManager` framework component's log level to `DEBUG` in your config file:
 
 ```json
 "FrameworkLogger": {
@@ -387,14 +390,13 @@ and your editor will stop complaining.
 
 ## Start and test
 
-At this point your service can be started:
+At this point your service can be started. Open a terminal, navigate to your tutorial project and run:
 
 ```
-cd $GOPATH/src/granitic-tutorial/recordstore
-grnc-bind && go build && ./recordstore -c resource/config
+grnc-bind && go build && ./recordstore
 ``` 
 
-and visiting <code>http://localhost:8080/artist/1</code> will yield a response like:
+and visiting `http://localhost:8080/artist/1` will yield a response like:
 
 ```json
 {
@@ -405,10 +407,10 @@ and visiting <code>http://localhost:8080/artist/1</code> will yield a response l
 ## Recap
 
  * Granitic requires your code to implement a [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/rdbms#DatabaseProvider)  component.
- * [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) objects provide the interface for executing queries.
- * These are obtained through the [RdbmsClientManager](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClientManager) framework component which is automatically
- injected into your application components if they have a field *DbClientManager rdbms.RdbmsClientManager*
- * Queries can be stored in template files and accesed by your code using IDs. This feature is provided by the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) facility.
+ * [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client) objects provide the interface for executing queries.
+ * These are obtained through the [rdbms.ClientManager](https://godoc.org/github.com/graniticio/granitic/rdbms#ClientManager) framework component which is automatically
+ injected into your application components if they have a field *DbClientManager rdbms.ClientManager*
+ * Queries can be stored in template files and accessed by your code using IDs. This feature is provided by the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) facility.
  
 ## Further reading
 

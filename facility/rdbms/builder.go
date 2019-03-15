@@ -65,7 +65,7 @@ func (rafb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 		mc := new(rdbms.ClientManagerConfig)
 		ca.Populate("RdbmsAccess.Default", mc)
 
-		proto := ioc.CreateProtoComponent(mc, mc.ClientName+"ManagerConfig")
+		proto := ioc.CreateProtoComponent(mc, rdbmsClientManagerConfigName)
 
 		proto.AddDependency("Provider", providerName)
 		cn.AddProto(proto)
