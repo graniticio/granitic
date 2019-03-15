@@ -7,7 +7,7 @@
 
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](../installation.md)
  2. Read the [before you start](000-before-you-start.md) tutorial
  3. Either have completed [tutorial 4](004-data-capture.md) or clone the
   [tutorial repo](https://github.com/graniticio/tutorial) and navigate to `json/005/recordstore` in your terminal.
@@ -313,7 +313,7 @@ if the `LEN` operation has already failed. Change the rule to:
 
  ```json
   ["Name",  "STR",  "REQ:NAME_MISSING", "TRIM", "LEN:5-50:NAME_BAD_LENGTH", "BREAK", "REG:^[A-Z]| +$:NAME_BAD_CONTENT"],
-  ["FirstYearActive",   "INT",  "RANGE:0|150:FIRST_ACTIVE_INVALID"]
+  ["FirstYearActive",   "INT",  "RANGE:1700|2100:FIRST_ACTIVE_INVALID"]
  ```
  
 and you'll see that only the `LEN` operation applies. `BREAK` stops executing the current rule if the previous operation failed

@@ -8,7 +8,7 @@
  
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](../installation.md)
  2. Read the [before you start](000-before-you-start.md) tutorial
  3. Have access to a text editor or IDE for writing Go and JSON files and a terminal emulator or command prompt 
  (referred to as a terminal from now on)

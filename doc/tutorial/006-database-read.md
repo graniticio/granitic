@@ -9,10 +9,10 @@
 
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](../installation.md)
  1. Read the [before you start](000-before-you-start.md) tutorial
  1. Either have completed [tutorial 5](005-validation.md) or clone the
-    [tutorial repo](https://github.com/graniticio/tutorial) and navigate to `json/005/recordstore` in your terminal.
+    [tutorial repo](https://github.com/graniticio/tutorial) and navigate to `json/006/recordstore` in your terminal.
 
 ## Setting up a test database
 
@@ -224,7 +224,7 @@ type GetLogic struct {
 
 func (gl *GetLogic) ProcessPayload(ctx context.Context, req *ws.Request, res *ws.Response, q *ArtistQuery) {
 
-  // Obtain an RdmsClient from the rdbms.RdbmsClientManager injected into this component
+  // Obtain a Client from the rdbms.ClientManager injected into this component
   dbc, _ := gl.DbClientManager.Client()
 
   // Create a new object to store the results of our database call 

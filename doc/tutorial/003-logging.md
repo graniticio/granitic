@@ -8,7 +8,7 @@
  
 ## Prerequisites
 
- 1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
+ 1. Follow the Granitic [installation instructions](../installation.md)
  2. Read the [before you start](000-before-you-start.md) tutorial
  3. Either have completed [tutorial 2](002-configuration.md) or clone the 
  [tutorial repo](https://github.com/graniticio/tutorial) and navigate to `json/003/recordstore` in your terminal.
