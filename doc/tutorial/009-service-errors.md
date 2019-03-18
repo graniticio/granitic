@@ -9,13 +9,8 @@
  1. Follow the Granitic [installation instructions](https://github.com/graniticio/granitic/v2/doc/installation.md)
  1. Read the [before you start](000-before-you-start.md) tutorial
  1. Followed the [setting up a test database](006-database-read.md) section of [tutorial 6](006-database-read.md)
- 1. Either have completed [tutorial 8](008-shared-validation.md) or open a terminal and run:
- 
-<pre>
-cd $GOPATH/src/github.com/graniticio
-git clone https://github.com/graniticio/granitic-examples.git
-cd $GOPATH/src/github.com/graniticio/granitic-examples/tutorial
-./prepare-tutorial.sh 9
+ 1. Either have completed [tutorial 8](008-shared-validation.md)  or clone the
+[tutorial repo](https://github.com/graniticio/tutorial) and navigate to `json/009/recordstore` in your terminal.
 </pre>
 
 
@@ -35,22 +30,25 @@ The error conditions that a web service has to cope with can be broadly divided 
 
 ## Service errors
 
-Granitic provides a mechanism for dealing with all these types of error in a consistent way - the [service error](https://godoc.org/github.com/graniticio/granitic/ws)
+Granitic provides a mechanism for dealing with all these types of error in a consistent way - the 
+[service error](https://godoc.org/github.com/graniticio/granitic/ws)
 
-The [ws.WsResponse](https://godoc.org/github.com/graniticio/granitic/ws#WsResponse) object passed to your logic components' [process](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsRequestProcessor)
-method represents the data and state that will be returned to your client (via HTTP) when the request has been processed. It has a field:
+The [ws.Response](https://godoc.org/github.com/graniticio/granitic/ws#Response) object passed to your logic components' 
+[Process](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsRequestProcessor) or `ProcessPayload` 
+method represents the data and state that will be returned to your client (via HTTP) when the request has been processed. 
+
+It has a field:
 
 ```go
    Errors *ServiceErrors
 ```
 
-that provides access to a [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors) struct. Your code should
-add errors to this structure as they are encountered. When processing is complete, Granitic will evaluate the errors in this structure to
-determine what type of response and HTTP status code (200, 500 etc) should be sent to your client. 
+that provides access to a [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors) struct. 
+Your code should add errors to this structure as they are encountered. When processing is complete, Granitic will 
+evaluate the errors in this structure to determine what type of response and HTTP status code (200, 500 etc) should be sent to your client. 
 
-
-To see this in action, edit your <code>ArtistLogic</code> struct in <code>endpoint/artist.go</code>
-so the <code>Process</code> and change the two lines that look like:
+To see this in action, edit your `artist.GetLogic` struct in `artist/get.go`
+and modify the `ProcessPayload` method by changing the line
 
 ```go
   res.HTTPStatus = http.StatusInternalServerError
@@ -62,9 +60,9 @@ to
   res.Errors.AddPredefinedError("DATABASE_UNEXPECTED")
 ```
 
-Instead of telling Grantic to explicitly set the HTTP status to 500 (internal server error), we are instead logging that a particular error
-has occured. The code we are passing to <code>AddPredefinedError</code> relates to an entry in your list of <code>serviceErrors</code> in your
-<code>resource/config/config.json</code> file, which currently looks like:
+Instead of telling Grantic to explicitly set the HTTP status to 500 (internal server error), we are instead logging that 
+a particular error has occurred. The code we are passing to `AddPredefinedError` relates to an entry in your list of 
+`serviceErrors` in your `config/base.json` file, which currently looks like:
 
 ```json
 "serviceErrors": [
@@ -79,8 +77,9 @@ has occured. The code we are passing to <code>AddPredefinedError</code> relates 
 
 ## Error categories
 
-You'll notice that each entry has the string "C" before the error code. This indicates that the error is a 'client' error, caused by a mistake made
-by the web service client. If Granitic finds only client errors in a response, the response's HTTP status will be set to <code>400 - Bad request</code>
+You'll notice that each entry has the string "C" before the error code. This indicates that the error is a 'client' error, 
+caused by a mistake made by the web service client. If Granitic finds only client errors in a response, 
+the response's HTTP status will be set to `400 - Bad request`
 
 We need to add another entry to that list:
 
@@ -88,27 +87,20 @@ We need to add another entry to that list:
   ["U", "DATABASE_UNEXPECTED", "Unexpected problem communicating with the database"]
 ```
 
-The type of error in this case is "U" or <code>unexpected</code>. If Granitic finds an 'unexpected' error in the response, it will set the HTTP status
-code to <code>500 - Internal server error</code>. Determining which HTTP status code is set follows the rules defined here under [HTTP status code determination](https://godoc.org/github.com/graniticio/granitic/ws)
+The type of error in this case is "U" or `unexpected`. If Granitic finds an 'unexpected' error in the response, it will set the HTTP status
+code to `500 - Internal server error`. Determining which HTTP status code is set follows the rules defined here under [HTTP status code determination](https://godoc.org/github.com/graniticio/granitic/ws)
 
 ## Building and testing
 
-Start your service:
+Start your service by opening a terminal, navigating to the your tutorial folder and running:
 
 ```
-cd $GOPATH/src/granitic-tutorial/recordstore
-grnc-bind && go build && ./recordstore -c resource/config
+grnc-bind && go build && ./recordstore
 ```
 
-and stop your database (if you are using the example docker image run <code>docker stop graniticrs_recordstore-db_1</code> )
+Then _stop your database_ (if you are using the example docker image run `docker stop docker_recordstore-db_1` )
 
-Sending the valid request:
-
-```json
-{
-  "Name": "Another Artist"
-}
-```
+Visiting [http://localhost:8080/artist/1](http://localhost:8080/artist/1)
 
 will result in this response with an HTTP 500 status code
 
