@@ -9,7 +9,8 @@
       "TooBusyStatus": 503,
       "AutoFindHandlers": false,
       "MaxConcurrent": 1,
-      "Address": "127.0.0.1"
+      "Address": "127.0.0.1",
+      "DisableInstrumentationAutoWire": true
     },
     "ResponseWriter": {
       "DefaultHeaders": {

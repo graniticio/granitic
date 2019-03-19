@@ -76,6 +76,12 @@ type HTTPServer struct {
 	// rejected, but potentially increases risk of denial-of-service if instrumentation setup causes load or consumes memory.
 	AllowEarlyInstrumentation bool
 
+	// Prevents this server from finding and using RequestInstrumentationManager components
+	DisableInstrumentationAutoWire bool
+
+	// A component able to instrument a web service request in some way
+	InstrumentationManager instrument.RequestInstrumentationManager
+
 	// How many concurrent requests the server should allow before returning 'too busy' responses to subsequent requests.
 	MaxConcurrent int64
 
@@ -88,12 +94,8 @@ type HTTPServer struct {
 	// A component able to use data in an HTTP request's headers to populate a context
 	IDContextBuilder IdentifiedRequestContextBuilder
 
-	// ID of a component that implements instrument.RequestInstrumentationManager
-	RequestInstrumentationManagerName string
-
-	state          ioc.ComponentState
-	server         *http.Server
-	reqInstManager instrument.RequestInstrumentationManager
+	state  ioc.ComponentState
+	server *http.Server
 }
 
 // Container allows Granitic to inject a reference to the IOC container
@@ -165,26 +167,14 @@ func (h *HTTPServer) StartComponent() error {
 	}
 
 	if h.AbnormalStatusWriter == nil {
-		return errors.New("no AbnormalStatusWriter set")
+
+		return errors.New("no AbnormalStatusWriter set - make sure you have enabled a web services facility")
 	}
 
-	if rid := h.RequestInstrumentationManagerName; rid == "" {
-		//No RequestInstrumentationManager component specified, use a 'noop' implementation
-		h.reqInstManager = new(noopRequestInstrumentationManager)
-	} else {
-
-		var c *ioc.Component
-
-		if c = h.componentContainer.ComponentByName(rid); c == nil {
-			return fmt.Errorf("no component named %s exists - was specified in the RequestInstrumentationManagerName field", rid)
-		}
-
-		if rim, found := c.Instance.(instrument.RequestInstrumentationManager); found {
-			h.reqInstManager = rim
-		}
-
-		return fmt.Errorf("component %s exists, but does not implement instrument.RequestInstrumentationManager. Was specified in the RequestInstrumentationManagerName field", rid)
-
+	if h.InstrumentationManager == nil {
+		//No RequestInstrumentationManager component injected, use a 'noop' implementation
+		h.FrameworkLogger.LogDebugf("No RequestInstrumentationManager set. Using noop implementation")
+		h.InstrumentationManager = new(noopRequestInstrumentationManager)
 	}
 
 	h.state = ioc.AwaitingAccessState
@@ -204,7 +194,7 @@ func (h *HTTPServer) Suspend() error {
 	return nil
 }
 
-// Resume allows subsequent requests to be processed normally (reserves the effect of calling Suspend).
+// Resume allows subsequent requests to be processed normally (reverses the effect of calling Suspend).
 func (h *HTTPServer) Resume() error {
 
 	if h.state != ioc.SuspendedState {
@@ -277,7 +267,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	defer cancelFunc()
 
 	if h.AllowEarlyInstrumentation {
-		ctx, instrumentor, endInstrumentation = h.reqInstManager.Begin(ctx, res, req)
+		ctx, instrumentor, endInstrumentation = h.InstrumentationManager.Begin(ctx, res, req)
 		defer endInstrumentation()
 	}
 
@@ -299,7 +289,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if instrumentor == nil {
-		ctx, instrumentor, endInstrumentation = h.reqInstManager.Begin(ctx, res, req)
+		ctx, instrumentor, endInstrumentation = h.InstrumentationManager.Begin(ctx, res, req)
 		defer endInstrumentation()
 	}
 
