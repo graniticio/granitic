@@ -154,3 +154,108 @@ an explict string value that you want injected into your component. If you _do_ 
 you can escape it with `$$`
 
 If you find the `$` notation difficult to read, you can use `conf:` or `c:` as an alternative.
+
+
+#### Default values
+
+Occasionally it is convenient to specify a value to be used if the configuration path cannot be found at application 
+startup time. In these circumstances you can supply a default value in round brackets after the configuration promise.
+
+For example:
+
+```json
+"dbConfig": {
+  "Addr": "$database.host(localhost)"
+}
+```
+
+This is not generally the recommend approach - instead you should maintain a [base configuration file](cfg-files.md) that
+contains the default values for any configuration paths your application relies upon.
+
+
+## References to other components
+
+Granitic can link your components together by automatically injecting references. The only requirement is that the
+_receiving_ component must have a field that is typed as a _pointer_ to the type that is being injected.
+
+For example:
+
+```go
+type A struct {}
+
+type B struct {
+  ComponentA *A
+}
+```
+
+### Explicit references
+
+The most common way of linking two components is to explicitly declare the relationship in your component definition file.
+
+For example:
+
+```json
+{
+  "components": {
+  
+    "dbConfig": {
+     "type": "mysql.Config"
+    },
+  
+    "dbProvider": {
+      "type": "db.MySQLProvider",
+      "Config": "+dbConfig"
+    }
+  }
+}
+``` 
+
+#### The + prefix
+
+The `+` symbol tells Granitic that the contents of that string is the name of another component to be injected into
+the field. In the above example, the instance of `mysql.Config` associated with the `dbConfig` component will be injected 
+into the field `Config *mysql.Config` on the `dbProvider` component.
+
+If you find the `+` symbol too subtle, you can use `ref:` or `r:` instead.
+
+
+### Nested components
+
+If you have a component that will only realistically be referenced by one other component, it is possible to 
+_nest_ your component declarations to make this clear.
+
+For example:
+
+```json
+"submitArtistHandler": {
+  "type": "handler.WsHandler",
+  "HTTPMethod": "POST",
+  "PathPattern": "^/artist[/]?$",
+  "Logic": {
+    "type": "artist.PostLogic"
+  }
+}
+```
+
+In this example the component that is to be injected into the `submitArtistHandler`'s `Logic` field is being declared
+inline.
+
+
+#### Names allocated to nested components
+
+Nested components are effectively anonymous so cannot be referred to by other components or manipulated through
+[runtime control](rtc-index.md). You can explicitly assign a name to a nested component to get around this limitation.
+
+For example:
+
+```json
+"submitArtistHandler": {
+  "type": "handler.WsHandler",
+  "Logic": {
+    "type": "artist.PostLogic"
+    "name": "submitLogic"
+  }
+}
+```
+
+The nested component in the above example now has the name `submitLogic`.
