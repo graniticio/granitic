@@ -32,3 +32,7 @@ to that state are performed in a safe manner.
 
 The component container be interacted with at runtime via the [built-in runtime control commands](rtc-built-in.md)
 
+---
+**Next**: [Component definition files](ioc-definition-files.md)
+
+**Prev**: [Component container index](ioc-index.md)

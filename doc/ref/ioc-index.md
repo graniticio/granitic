@@ -4,6 +4,7 @@
 
   * [Principles](ioc-principles.md)
   * [Component definition files](ioc-definition-files.md)
+  * [Component templates](ioc-templates.md)
   * [Lifecycle management](ioc-lifecycle.md)
   * [Decorators](ioc-decorators.md)
   

@@ -259,3 +259,17 @@ For example:
 ```
 
 The nested component in the above example now has the name `submitLogic`.
+
+
+### Decorators
+
+There are occasionally circumstances where references cannot or should not be explicitly defined in component definition
+files. Granitic supports a pattern of decoration where references between components can be made programmatically. This
+[decorator pattern is described here](ioc-decorators.md)
+
+---
+**Next**: [Component templates](ioc-templates.md)
+
+**Prev**: [Component container principles](ioc-principles.md)
+
+ 
