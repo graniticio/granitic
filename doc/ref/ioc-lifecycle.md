@@ -86,7 +86,7 @@ cleanly stop work or free up resources.
 
 If your application wants to keep track of it's current lifecycle state it can use the pre-defined 
 [ioc.ComponentState enumeration](https://godoc.org/github.com/graniticio/granitic/ioc#ComponentState). This is
-purely a convenience for your component the values are not read or set by the framework.
+purely a convenience for your component - the values are not read or set by the framework.
 
 ---
 **Next**: [Decorators](ioc-decorators.md)
