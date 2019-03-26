@@ -3,8 +3,8 @@
 If your component implements [ioc.ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/ioc#ComponentDecorator)
 it will be considered a _decorator_ and will be integrated into the container startup process.
 
-After a container has instantiated and configured all registered components, but before any [StartComponent()](ioc-lifecycle.md)
-methods are called all decorators will be given access to all other registered components.
+After the container has instantiated and configured all registered components, but before any [StartComponent()](ioc-lifecycle.md)
+methods are called, all decorators will be given access to all other registered components.
 
 This technique is useful in handful of situations:
 
