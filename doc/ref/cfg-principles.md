@@ -39,7 +39,7 @@ It is likely that the configuration for this environment will have been _generat
 system.
 
 Finally, if multiple instances of your application are deployed to a single environment, an _instance_ layer may be required.
-This layer differentiates each instance and simply contain a unique name for each instance.
+This layer differentiates each instance and might simply contain a unique name for each instance.
 
 ## Configuration paths
 

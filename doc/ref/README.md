@@ -17,6 +17,7 @@ The Granitic reference documentation complements the information available in th
   * [Configuration](cfg-index.md)
     * [Principles](cfg-principles.md)
     * [Configuration files](cfg-files.md)
+    * [Configuration type handling](cfg-types.md)
     * [Merging](cfg-merging.md)
   * [Logging](log-index.md)
     * [Principles](log-principles.md)

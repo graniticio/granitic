@@ -4,6 +4,7 @@
 
   * [Principles](cfg-principles.md)
   * [Configuration files](cfg-files.md)
+  * [Configuration type handling](cfg-types.md)
   * [Merging](cfg-merging.md)
   
 This section explains how to make configuration available to your application at runtime through files and URLs. It
