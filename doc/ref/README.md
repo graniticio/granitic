@@ -42,7 +42,7 @@ The Granitic reference documentation complements the information available in th
   * [Scheduled Activities](sch-index.md)
     * [Principles](sch-principles.md)
     * [Defining schedules](sch-define.md)
-  * [Facilities](fac-index.md)
+  * [Facilities reference](fac-index.md)
     * [HTTP Server](fac-http-server.md)
     * [Logger](fac-logger.md)
     * [JSON Web Services](fac-json-ws.md)
