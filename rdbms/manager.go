@@ -36,9 +36,9 @@ a DatabaseProvider ( implements below)
 	QueryManager        A component that loads files containing template queries from a filesystem
 						and can populate than with provided variables to create a complete SQL query.
 
-	Client         A type providing methods to execute templated queries against an RDBMS.
+	ManagedClient         A type providing methods to execute templated queries against an RDBMS.
 
-	ClientManager  A component able to create Client objects.
+	ClientManager  A component able to create ManagedClient objects.
 
 	RowBinder           A type able to map SQL query results into Go structs.
 
@@ -72,7 +72,7 @@ Refer to the dsquery package for more details on how QueryManagers work.5
 ClientManager
 
 Granitic applications are discouraged from directly interacting with sql.DB objects (although of course they are
-free to do so). Instead, they use instances of Client. Client objects are not reusable across goroutines,
+free to do so). Instead, they use instances of ManagedClient. ManagedClient objects are not reusable across goroutines,
 instead your application will need to ask for a new one to be created for each new goroutine (e.g. for each request in
 a web services application).
 
@@ -80,7 +80,7 @@ The component that is able to provide these clients is ClientManager.
 
 Auto-injection of an ClientManager
 
-Any component that needs an Client should have a field:
+Any component that needs an ManagedClient should have a field:
 
 	DbClientManager rdbms.ClientManager
 
@@ -93,17 +93,17 @@ your application configuration.
 	  }
 	}
 
-Your code then obtains an Client in a manner similar to:
+Your code then obtains an ManagedClient in a manner similar to:
 
-	if rc, err := id.DBClientManager.Client(); err != nil {
+	if rc, err := id.DBClientManager.ManagedClient(); err != nil {
 	  return err
 	}
 
-Client
+ManagedClient
 
 Application code executes SQL (either directly or via a templated query) and interacts with transactions via an
-instance of Client. Refer to the GoDoc for Client for information on the methods available, but the general pattern
-for the methods available on Client is:
+instance of ManagedClient. Refer to the GoDoc for ManagedClient for information on the methods available, but the general pattern
+for the methods available on ManagedClient is:
 
 	SQLVerb[BindingType]QID[ParameterSource]
 
@@ -124,8 +124,8 @@ fields are optionally annotated with the `dbparam` tag. If the dbparam tag is no
 
 Binding
 
-Client provides a mechanism for automatically copying result data into structs or slices of structs. If the
-Client method name contains BindSingle, you will pass a pointer to a struct into the method and its fields will be populated:
+ManagedClient provides a mechanism for automatically copying result data into structs or slices of structs. If the
+ManagedClient method name contains BindSingle, you will pass a pointer to a struct into the method and its fields will be populated:
 
 ad := new(ArtistDetail)
 
@@ -163,7 +163,7 @@ The deferred Rollback call will do nothing if the transaction has previously bee
 
 Direct access to Go DB methods
 
-Client provides pass-through access to sql.DB's Exec, Query and QueryRow methods. Note that these methods are compatible
+ManagedClient provides pass-through access to sql.DB's Exec, Query and QueryRow methods. Note that these methods are compatible
 with Granitic's transaction pattern as described above.
 
 
@@ -214,14 +214,14 @@ type ContextAwareDatabaseProvider interface {
 	DatabaseFromContext(context.Context) (*sql.DB, error)
 }
 
-// ClientManager is implemented by a component that can create Client objects that application code will use to execute SQL statements.
+// ClientManager is implemented by a component that can create ManagedClient objects that application code will use to execute SQL statements.
 type ClientManager interface {
-	// Client returns an Client that is ready to use.
-	Client() (*Client, error)
+	// ManagedClient returns an ManagedClient that is ready to use.
+	Client() (Client, error)
 
-	// ClientFromContext returns an Client that is ready to use. Providing a context allows the underlying DatabaseProvider
+	// ClientFromContext returns an ManagedClient that is ready to use. Providing a context allows the underlying DatabaseProvider
 	// to modify the connection to the RDBMS.
-	ClientFromContext(ctx context.Context) (*Client, error)
+	ClientFromContext(ctx context.Context) (Client, error)
 }
 
 // ProviderComponentReceiver is implemented by components that are interested in having visibility of all DatabaseProvider implementations available
@@ -241,7 +241,7 @@ type ClientManagerConfig struct {
 
 	BlockUntilConnected bool
 
-	// A name that will be shared by any instances of Client created by this manager - this is used for logging purposes
+	// A name that will be shared by any instances of ManagedClient created by this manager - this is used for logging purposes
 	ClientName string
 
 	// Name that will be given to the ClientManager component that will be created. If not set, it will be set the value of ClientName + "Manager"
@@ -296,7 +296,7 @@ func (cm *GraniticRdbmsClientManager) BlockAccess() (bool, error) {
 }
 
 // Client implements ClientManager.Client
-func (cm *GraniticRdbmsClientManager) Client() (*Client, error) {
+func (cm *GraniticRdbmsClientManager) Client() (Client, error) {
 
 	if cm.state != ioc.RunningState {
 		return nil, errors.New("No Client will be created because ClientManager is not running. Application shutting down?")
@@ -315,7 +315,7 @@ func (cm *GraniticRdbmsClientManager) Client() (*Client, error) {
 }
 
 // ClientFromContext implements ClientManager.ClientFromContext
-func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (*Client, error) {
+func (cm *GraniticRdbmsClientManager) ClientFromContext(ctx context.Context) (Client, error) {
 
 	if cm.state != ioc.RunningState {
 		return nil, errors.New("No Client will be created because ClientManager is not running. Application shutting down?")
@@ -367,7 +367,7 @@ func (cm *GraniticRdbmsClientManager) StartComponent() error {
 	return nil
 }
 
-// PrepareToStop transitions component to stopping state, prevent new Client objects from being created.
+// PrepareToStop transitions component to stopping state, prevent new ManagedClient objects from being created.
 func (cm *GraniticRdbmsClientManager) PrepareToStop() {
 	cm.state = ioc.StoppingState
 }

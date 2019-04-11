@@ -8,6 +8,16 @@ import (
 	"testing"
 )
 
+func TestImplementsInterface(t *testing.T) {
+
+	var cm ClientManager
+
+	cm = new(GraniticRdbmsClientManager)
+
+	_ = cm
+
+}
+
 func TestGraniticRdbmsClientManager_ClientFromContext(t *testing.T) {
 
 	m := new(GraniticRdbmsClientManager)

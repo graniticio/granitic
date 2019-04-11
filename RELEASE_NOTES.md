@@ -115,6 +115,11 @@ This has resulted in changes to the names of a number of exported types and the 
 facilities. See the migration guide at the bottom of these notes for information on how this might affect your
 application.
 
+## RDBMS client is now an interface
+
+To make it easier to provide mock implementations for testing, the struct rdbms.RdbmsClient is now the interface
+rdbms.Client
+
 ## grnc-bind
 
 `grnc-bind` (and its YAML equivalent `grnc-yaml-bind`) have gained a number of additional features

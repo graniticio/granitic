@@ -140,10 +140,10 @@ func (rafb *FacilityBuilder) findConfigurations(cn *ioc.ComponentContainer, c ma
 		config, _ := comp.Component.Instance.(*rdbms.ClientManagerConfig)
 
 		if config.ClientName == "" {
-			config.ClientName = name + "Client"
+			config.ClientName = name + "ManagedClient"
 		}
 
-		rafb.Log.LogTracef("Client name will be: %s", config.ClientName)
+		rafb.Log.LogTracef("ManagedClient name will be: %s", config.ClientName)
 
 		if config.ManagerName == "" {
 			config.ManagerName = config.ClientName + "Manager"

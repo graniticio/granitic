@@ -39,6 +39,15 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func TestImplementsExecutor(t *testing.T) {
+	var ex Client
+
+	ex = new(ManagedClient)
+
+	_ = ex
+
+}
+
 func TestPassthroughs(t *testing.T) {
 
 	c := newRdbmsClient(db, qm, DefaultInsertWithReturnedID, logging.CreateAnonymousLogger("testLog", logging.Fatal))
@@ -112,7 +121,7 @@ func TestFindOrCreate(t *testing.T) {
 	test.ExpectInt(t, int(id), 8)
 }
 
-func passthroughChecks(t *testing.T, c *Client) {
+func passthroughChecks(t *testing.T, c *ManagedClient) {
 	drv.consumed()
 	r, err := c.Query("TEST")
 
@@ -386,7 +395,7 @@ func TestIllegalResultContents(t *testing.T) {
 
 }
 
-func testInsertMethods(t *testing.T, c *Client) {
+func testInsertMethods(t *testing.T, c *ManagedClient) {
 
 	p1, p2 := testStandardParams()
 
@@ -413,7 +422,7 @@ func testInsertMethods(t *testing.T, c *Client) {
 	test.ExpectNil(t, err)
 }
 
-func testDeleteMethods(t *testing.T, c *Client) {
+func testDeleteMethods(t *testing.T, c *ManagedClient) {
 
 	p1, p2 := testStandardParams()
 
@@ -446,7 +455,7 @@ func testDeleteMethods(t *testing.T, c *Client) {
 
 }
 
-func testUpdateMethods(t *testing.T, c *Client) {
+func testUpdateMethods(t *testing.T, c *ManagedClient) {
 
 	p1, p2 := testStandardParams()
 
@@ -479,7 +488,7 @@ func testUpdateMethods(t *testing.T, c *Client) {
 
 }
 
-func testSelectMethods(t *testing.T, c *Client) {
+func testSelectMethods(t *testing.T, c *ManagedClient) {
 
 	p1, p2 := testStandardParams()
 
