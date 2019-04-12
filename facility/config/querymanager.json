@@ -7,12 +7,12 @@
     "NewLine": "\n",
     "CreateDefaultValueProcessor": true,
     "ProcessorName": "configurable",
-    "valueProcessors": {
-      "configurable": {
+    "ValueProcessors": {
+      "Configurable": {
         "WrapStrings": true,
         "StringWrapWith": "'"
       },
-      "sql": {
+      "SQL": {
         "BoolFalse": 0,
         "BoolTrue": 1
       }

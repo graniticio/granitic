@@ -75,16 +75,17 @@ Parameter Values
 
 Parameter values are injected into the query using a component called a ParamValueProcessor. Granitic includes two
 built-in implementations - ConfigurableProcessor and SQLProcessor. These components a) decide how to handle missing parameter
-values and b) perform any escaping/subsititution/conversion of values before they are injected into the query.
+values and b) perform any escaping/substitution/conversion of values before they are injected into the query.
 
-To enable one of the default processors, set QueryManager.ProcessorName to configurable or sql (the default is configurable). If
-you want to implement your own processer, set QueryManager.CreateDefaultValueProcessor to false and define a component that
+To enable one of the default processors, set QueryManager.ProcessorName to Configurable or SQL (the default is Configurable). If
+you want to implement your own processor, set QueryManager.CreateDefaultValueProcessor to false and define a component that
 implements ParamValueProcessor
 */
 package querymanager
 
 import (
 	"errors"
+	"fmt"
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/dsquery"
 	"github.com/graniticio/granitic/v2/instance"
@@ -99,6 +100,9 @@ const QueryManagerComponentName = instance.FrameworkPrefix + "QueryManager"
 const QueryManagerFacilityName = "QueryManager"
 
 const processorDecorator = instance.FrameworkPrefix + "ParamValueProcessorDecorator"
+
+const confValueProcess = "Configurable"
+const sqlValueProcess = "SQL"
 
 // FacilityBuilder creates an instance of dsquery.QueryManager and stores it in the IoC container.
 type FacilityBuilder struct {
@@ -124,11 +128,11 @@ func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 	vpName, err := ca.StringVal("QueryManager.ProcessorName")
 
-	if err != nil || (vpName != "configurable" && vpName != "sql") {
-		return errors.New("QueryManager.ProcessorName must be set to 'configurable' or 'sql' if you want to use a stock ValueProcessor")
+	if err != nil || (vpName != confValueProcess && vpName != sqlValueProcess) {
+		return fmt.Errorf("QueryManager.ProcessorName must be set to '%s' or '%s' if you want to use a stock ValueProcessor", confValueProcess, sqlValueProcess)
 	}
 
-	vpConfig := "QueryManager.valueProcessors." + vpName
+	vpConfig := "QueryManager.ValueProcessors." + vpName
 
 	if !ca.PathExists(vpConfig) {
 		return errors.New("Missing configuration path for ValueProcessor: " + vpConfig)
@@ -136,9 +140,9 @@ func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 	var vp dsquery.ParamValueProcessor
 
-	if vpName == "configurable" {
+	if vpName == confValueProcess {
 		vp = new(dsquery.ConfigurableProcessor)
-	} else if vpName == "sql" {
+	} else if vpName == sqlValueProcess {
 
 		vp = new(dsquery.SQLProcessor)
 

@@ -81,8 +81,8 @@ func (cp *ConfigurableProcessor) SubstituteUnset(v *paramValueContext) error {
 // SQLProcessor replaces missing values with the word null, wraps strings with single quotes and
 // replaces bool values with the value the BoolTrue and BoolFalse members
 type SQLProcessor struct {
-	BoolTrue  interface{}
-	BoolFalse interface{}
+	BoolTrue  string
+	BoolFalse string
 }
 
 // EscapeParamValue modifies the value in the supplied parameter + value so that is beocomes valid SQL
