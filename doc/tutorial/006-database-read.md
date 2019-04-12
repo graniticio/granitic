@@ -334,7 +334,7 @@ the column name, you can use the `column` tag on your target object, e.g.:
 
 ```go
 type ArtistDetail struct {
- 	Name string `column:name`
+ 	Name string `column:"name"`
 } 
 ```
 

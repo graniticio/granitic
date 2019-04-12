@@ -183,6 +183,17 @@ func TestPopulateObject(t *testing.T) {
 
 }
 
+func TestPopulateOutOfBoundsNumbers(t *testing.T) {
+
+	ca := LoadConfigFromFile("flipped-numbers.json")
+
+	var sc SimpleConfig
+
+	err := ca.Populate("simpleOne", &sc)
+
+	test.ExpectNil(t, err)
+}
+
 func TestSetField(t *testing.T) {
 
 	ca := LoadConfigFromFile("simple.json")
