@@ -93,15 +93,17 @@ func SerialiseBuiltinConfig() string {
 	gh := config.GraniticHome()
 
 	ghr := path.Join(gh, "resource", "facility-config")
-
-	if fcf, err := config.FindConfigFilesInDir(ghr); err != nil {
+	
+	fcf, err := config.FindConfigFilesInDir(ghr);
+	if err != nil {
 		fmt.Printf("%s does not seem to contain a valid Granitic installation. Check your %s and/or %s environment variables\n", gh, "GRANITIC_HOME", "GOPATH")
 		instance.ExitError()
 	}
 	
 	jm := config.NewJsonMergerWithDirectLogging(new(logging.ConsoleErrorLogger), new(config.JsonContentParser))
 	jm.MergeArrays = true
-	if mc, err := jm.LoadAndMergeConfig(fcf); err != nil {
+	mc, err := jm.LoadAndMergeConfig(fcf)
+	if err != nil {
 		fmt.Printf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
 		instance.ExitError()
 	} 
