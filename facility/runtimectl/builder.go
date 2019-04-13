@@ -4,14 +4,14 @@
 /*
 Package runtimectl provides the RuntimeCtl facility which allows external runtime control of Granitic applications.
 
-This facility is described in detail at http://granitic.io/1.0/ref/runtime-ctl. Refer to the ctl package documentation
+This facility is described in detail at http://granitic.io/ref/runtime-control. Refer to the ctl package documentation
 for information on how to implement your own commands.
 
 Enabling runtime control
 
 Enabling the RuntimeCtl facility creates an HTTP server that allows instructions to be issued to
 any component in the IoC container which implements the ctl.Command interface from the grnc-ctl command line tool.
-See http://granitic.io/1.0/ref/runtime-ctl#builtin for documentation on Granitic's built-in commands.
+See http://granitic.io/ref/runtime-control-built-in for documentation on Granitic's built-in commands.
 
 The HTTP server that listens for commands is separate to the HTTP server created by the XMLWs and JSONWs facilities and runs on a
 different port. The listen port defaults to 9099 but can be changed with the following configuration:

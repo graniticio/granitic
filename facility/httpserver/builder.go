@@ -21,7 +21,7 @@ const instrumentationDecoratorName = instance.FrameworkPrefix + "RequestInstrume
 // (404, 503 etc) by sending a JSON or XML response respectively.
 //
 // If this behaviour is undesirable, an alternative AbnormalStatusWriter can set by using the frameworkModifiers mechanism
-// (see http://granitic.io/1.0/ref/components)
+// (see http://granitic.io/ref/component-definition-files)
 const HTTPServerAbnormalStatusFieldName = "AbnormalStatusWriter"
 const accessLogWriterName = instance.FrameworkPrefix + "AccessLogWriter"
 

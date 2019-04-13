@@ -4,7 +4,7 @@
 /*
 Package ws provides the JSONWs and XMLWs facilities which support JSON and XML web services.
 
-This facility is documented in detail at http://granitic.io/1.0/ref/web-services
+This facility is documented in detail at http://granitic.io/ref/web-services
 
 Web-services
 
@@ -33,12 +33,12 @@ If JSONWs is enabled, any requests to a registered endpoint will have their requ
 This is handled with Go's built-in json package.
 
 Many aspects of the parsing and rendering process (including content types, formatting of errors, pretty-printing and
-camel-case mapping) is configurable. Refer to http://granitic.io/1.0/ref/json for more details.
+camel-case mapping) is configurable. Refer to http://granitic.io/ref/json-web-services for more details.
 
 XML
 
 Once the XMLWs facility is enabled, requests to an endpoint will, by default, be parsed as XML and rendered using
-user defined templates. Refer to http://granitic.io/1.0/ref/xml#templates for more details.
+user defined templates. Refer to http://granitic.io/ref/xml-web-services for more details.
 
 Alternatively, the XMLWs facility can be configured to automatically render responses as XML using Go's built-in
 XML marshalling components by setting the following configuration in your application's configuration files:
@@ -50,10 +50,10 @@ XML marshalling components by setting the following configuration in your applic
 	}
 
 
-Refer to http://granitic.io/1.0/ref/xml#marshalled for more information.
+Refer to http://granitic.io/ref/xml-web-services for more information.
 
 Many aspects of the parsing and rendering process (including content types and formatting of errors) is configurable.
-Refer to http://granitic.io/1.0/ref/xml for more details.
+Refer to http://granitic.io/ref/xml-web-services for more details.
 */
 package ws
 

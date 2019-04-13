@@ -3,7 +3,7 @@
 
 /*
 Package ws defines types used by framework and application components involved in web service processing. For more information
-on how web services work in Granitic, see http://granitic.io/1.0/ref/web-services
+on how web services work in Granitic, see http://granitic.io/ref/web-services
 
 A brief explanation of the key types and concepts follows.
 
@@ -22,16 +22,16 @@ this behaviour can be overridden by setting an HTTP status code manually on the 
 
 Errors
 
-Errors can be detected or occur during all the phases of request processing (see http://granitic.io/1.0/ref/request-processing-phases).
+Errors can be detected or occur during all the phases of request processing (see http://granitic.io/ref/web-services-principles).
 If errors are encountered during the parsing
 and binding phases of request processing, they are referred to as 'framework errors' as they are handled outside of
 application code. Framework errors result in one of small number of generic error messages being sent to a caller. See
-http://granitic.io/1.0/ref/errors-and-messages for information on how to override these messages or how to allow your
+http://granitic.io/ref/error-handling for information on how to override these messages or how to allow your
 application to have visibility of framework errors.
 
 If an error occurs during or after parsing and binding is complete, it will be recorded in the WsReponse.Errors
 field. These types of errors are called service errors. For more information on service errors, refer to the GoDoc for
-CategorisedError below or http://granitic.io/1.0/ref/errors-and-messages.
+CategorisedError below or http://granitic.io/ref/service-error-management.
 
 Response writing
 
@@ -42,7 +42,7 @@ Parameter binding
 
 Parameter binding refers to the process of automatically capturing request query parameters and injecting them into fields
 on the Request Body. It also refers to a similar process for extracting information from a request's path using regular expressions.
-See http://granitic.io/1.0/ref/parameter-binding for more details.
+See http://granitic.io/ref/capture-web-service-data for more details.
 
 IAM and versioning
 

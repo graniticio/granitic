@@ -57,7 +57,7 @@ type Suspendable interface {
 Stoppable is implemented by components that need to be given the opportunity to release resources or perform shutdown activities
 before an application is halted.
 
-See http://granitic.io/1.0/ref/system-settings for information about the number of times ReadyToStop is called, and how the
+See http://granitic.io/ref/system-configurationfor information about the number of times ReadyToStop is called, and how the
 interval between these calls, can be adjusted for your application.
 */
 type Stoppable interface {
@@ -80,7 +80,7 @@ AccessibilityBlocker is implemented by components that MUST be ready before an a
 to a critical external system might implement AccessibilityBlocker to prevent an HTTP server making an API available until
 a connection to the critical system is established.
 
-See http://granitic.io/1.0/ref/system-settings for information about the number of times BlockAccess is called, and how the
+See http://granitic.io/ref/system-configuration for information about the number of times BlockAccess is called, and how the
 interval between these calls can be adjusted for your application.
 */
 type AccessibilityBlocker interface {
@@ -246,7 +246,7 @@ func (lm *LifecycleManager) ResumeComponents(comps []*Component) error {
 /*
 StopComponents invokes PrepareToStop on all components then waits for them to be ready to stop by
 calling ReadyToStop on each component. If one or more components are not ready, they are given x chances to become
-ready with y milliseconds between each check. See http://granitic.io/1.0/ref/system-settings
+ready with y milliseconds between each check. See http://granitic.io/ref/system-configuration
 
 If all components are ready, or if x has been exceeded, Stop is called on all components.
 */

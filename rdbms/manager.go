@@ -4,8 +4,7 @@
 /*
 Package rdbms provides types for interacting with relational (SQL) databases.
 
-A full explanation of Grantic's patterns for relational database access management system (RDBMS) access can be found at http://granitic.io/1.0/ref/rdbms-access A brief
-explanation follows:
+A full explanation of Grantic's patterns for relational database access management system (RDBMS) access can be found at http://granitic.io/ref/relational-databases
 
 Principles
 
@@ -22,7 +21,7 @@ Granitic's RDBMS access types and components adhere to a number of principles:
 Facilities
 
 To use Granitic's RDBMS access, your application will need to enable both the QueryManager and RdbmsAccess facilities.
- implements http://granitic.io/1.0/ref/facilities for more details.
+ implements http://granitic.io/ref/facilities for more details.
 
 Components and types
 

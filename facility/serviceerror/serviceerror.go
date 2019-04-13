@@ -4,7 +4,7 @@
 /*
 Package serviceerror provides the ServiceErrorManager facility which provides error message management.
 
-This facility is documented in detail at http://granitic.io/1.0/ref/service-errors
+This facility is documented in detail at http://granitic.io/ref/service-error-management
 
 Error definitions
 

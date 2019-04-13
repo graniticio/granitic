@@ -8,7 +8,7 @@ The primary type in this package is ServiceErrorManager, which allows an applica
 in a single location and have them looked up and referred to by error codes throughout the application.
 
 A ServiceErrorManager is made available to applications by enabling the ServiceErrorManager facility. This facility is
-documented in detail here: http://granitic.io/1.0/ref/service-errors the package documentation for facility/serviceerror
+documented in detail here: http://granitic.io/ref/service-error-management the package documentation for facility/serviceerror
 gives a brief example of how to define errors in your application.
 */
 package grncerror

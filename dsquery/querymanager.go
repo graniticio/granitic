@@ -10,7 +10,7 @@ execution of queries is the responsibility of clients that understand the type o
 
 Most Granitic applications requiring access to a data source will enable the QueryManager facility which provides access
 to an instance of the TemplatedQueryManager type defined in this package. Instructions on configuring and using the
-QueryManager facility can be found at http://granitic.io/1.0/ref/query-manager also see the package documentation for the
+QueryManager facility can be found at http://granitic.io/ref/query-management also see the package documentation for the
 facility/querymanager package for some basic examples.
 
 */
@@ -57,7 +57,7 @@ func NewTemplatedQueryManager() *TemplatedQueryManager {
 
 // TemplatedQueryManager is an implementation of QueryManager that reads files containing template queries, tokenizes them and populates them
 // on demand with maps of named parameters. This is the implementation provided by the QueryManager facility. See
-// http://granitic.io/1.0/ref/query-manager for details.
+// http://granitic.io/ref/query-management for details.
 type TemplatedQueryManager struct {
 
 	// The path to a folder where template files are stored.

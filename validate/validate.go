@@ -5,13 +5,13 @@
 Package validate provides a declarative, rules-based validation framework for validating user-supplied data.
 
 The types in this package are designed to be used in conjunction with the handler.WsHandler type which your application
-will use to represent web service endpoints (see the package documentation for ws, ws/handler and http://granitic.io/1.0/ref/web-service-handlers )
+will use to represent web service endpoints (see the package documentation for ws, ws/handler and http://granitic.io/ref/web-service-handlers )
 
 The purpose of Granitic's validation framework is to automate as much of the 'boiler-plate' validation from validated the data
 supplied with the a web service call. Simple checks for ensuring a field is present, well-formed and within an allowed range
 can clutter application code.
 
-Granitic's validation framework and patterns are covered in detail at http://granitic.io/1.0/ref/validation but a brief overview of
+Granitic's validation framework and patterns are covered in detail at http://granitic.io/ref/validation but a brief overview of
 the key types and concepts follows.
 
 RuleValidator
@@ -60,11 +60,11 @@ Rules consist of three components: a field name, type and one or more operations
 
 The field name is a field in the WsRequest.Body object that is to be validated.
 
-The type is a shorthand for the the type of the field to be validated (see http://granitic.io/1.0/ref/validation#types)
+The type is a shorthand for the the type of the field to be validated (see http://granitic.io/ref/validation)
 
 The operations are either checks that should be performed against the field (length checks, regexs etc), processing
 instructions (break processing if the previous check failed) or manipulations of the data to be validated (trim a string, etc). See
-http://granitic.io/1.0/ref/validation#operations for more detail.
+http://granitic.io/ref/validation for more detail.
 
 For checks and processing instructions, the order in which they appear in the rule is significant as checks are made from left to right.
 
@@ -73,13 +73,13 @@ Error codes
 Error codes determine what error is sent to a web service caller if a check fails. Error codes can be defined in three
 levels of granularity - on an operation, on a rule or on a RuleValidator. The most specific error available is always used.
 
-Using the validation framework requires the ServiceErrorManager facility to be enabled (see http://granitic.io/1.0/ref/service-errors)
+Using the validation framework requires the ServiceErrorManager facility to be enabled (see http://granitic.io/ref/service-error-management)
 
 Sharing rules
 
 Sometimes it is useful for a rule to be defined once and re-used by multiple RuleValidators. This is also required
 to use some advanced techniques for deep validation of the elements of a slice. This technique is described in detail at
-http://granitic.io/1.0/ref/validation rule manager.
+http://granitic.io/ref/validation rule manager.
 
 Decomposing the application of a rule
 
@@ -106,7 +106,7 @@ in the eventual response to the web service call.
 
 Advanced techniques
 
-The Granitic validation framework is deep and flexible and you are encouraged to read the reference at http://granitic.io/1.0/ref/validation
+The Granitic validation framework is deep and flexible and you are encouraged to read the reference at http://granitic.io/ref/validation
 Advanced techniques include cross field mutual exclusivity, deep validation of slice elements and cross-field dependencies.
 
 Programmatic creation of rules
