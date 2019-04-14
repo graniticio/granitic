@@ -54,7 +54,7 @@ The Granitic reference documentation complements the information available in th
   * [Runtime Control](rtc-index.md)
     * [Principles](rtc-principles.md)
     * [Using the command line tool](rtc-command.md)
-    * [Built-in commands](rtc-build-in.md)
+    * [Built-in commands](rtc-built-in.md)
     * [Adding commands](rtc-adding.md)
     * [API](rtc-api.md)
   * [Administration](adm-index.md)

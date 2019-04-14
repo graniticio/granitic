@@ -1,4 +1,4 @@
-## Component Container Principles
+# Component Container Principles
 
 ## Single named instance
 
