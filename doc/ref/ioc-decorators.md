@@ -1,4 +1,7 @@
 # Component decorators
+Back to: [Reference](README.md) | [Component Container](ioc-index.md)
+
+---
 
 If your component implements [ioc.ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/ioc#ComponentDecorator)
 it will be considered a _decorator_ and will be integrated into the container startup process.

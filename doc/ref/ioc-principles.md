@@ -1,4 +1,7 @@
 # Component Container Principles
+Back to: [Reference](README.md) | [Component Container](ioc-index.md)
+
+---
 
 ## Single named instance
 

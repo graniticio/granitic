@@ -1,6 +1,7 @@
 # Granitic projects
+Back to: [Reference](README.md)
 
-## Contents
+---
 
   * [Anatomy of a Granitic Application](gpr-anatomy.md)
   * [Creating a new project](gpr-create.md)

@@ -1,4 +1,7 @@
 # Building and running a Granitic application
+Back to: [Reference](README.md) | [Granitic Projects](gpr-index.md)
+
+---
 
 Building Granitic applications is a two stage process - bind then build. You can then run your application
 

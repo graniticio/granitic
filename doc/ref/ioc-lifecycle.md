@@ -1,5 +1,7 @@
 # The component lifecycle
+Back to: [Reference](README.md) | [Component Container](ioc-index.md)
 
+---
 Granitic is responsible for creating the Go structs that you tell it manage as components. By default, this means that
 Granitic will create a new instance of the struct (using `new()`). The instance will remain in memory until your application 
 shuts down.

@@ -1,4 +1,7 @@
 # Component templates
+Back to: [Reference](README.md) | [Component Container](ioc-index.md)
+
+---
 
 In larger applications, many components can share the same type and some of the same dependencies. The
 most common example of this is web service handlers, which are implicitly all the same type and will often share the same

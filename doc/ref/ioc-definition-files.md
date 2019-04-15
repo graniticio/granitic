@@ -1,4 +1,7 @@
 # Component definition files
+Back to: [Reference](README.md) | [Component Container](ioc-index.md)
+
+---
 
 Component definition files are JSON files in which you declare which Go structs you want Granitic to manage as components,
 the relationships between your components and how configuration should be found for your components. They are

@@ -1,4 +1,7 @@
 # Anatomy of a Granitic application
+[Reference](README.md) | [Granitic Projects](gpr-index.md)
+
+---
 
 Granitic applications are built from three main resources:
 

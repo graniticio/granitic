@@ -1,4 +1,7 @@
 # Introduction to Granitic
+Back to: [Reference](README.md)
+
+---
 
 The purpose of Granitic is to allow developers who want to build web services in Go to do so with a single dependency.
 Granitic is a framework (a library of code and patterns) but it is also a lightweight application server. By using Granitic 

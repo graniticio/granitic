@@ -1,6 +1,7 @@
 # The Component Container
+Back to: [Reference](README.md)
 
-## In this section
+---
 
   * [Principles](ioc-principles.md)
   * [Component definition files](ioc-definition-files.md)

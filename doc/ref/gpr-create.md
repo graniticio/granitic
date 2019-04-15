@@ -1,4 +1,7 @@
 # Creating a Granitic project
+[Reference](README.md) | [Granitic Projects](gpr-index.md)
+
+---
 
 ## The grnc-project tool
 

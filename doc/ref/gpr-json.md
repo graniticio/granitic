@@ -1,4 +1,7 @@
 # JSON and YAML
+Back to: [Reference](README.md) | [Granitic Projects](gpr-index.md)
+
+---
 
 Granitic uses JSON for configuration and component definition files. This choice is partly driven by features, but is 
 mostly driven by the design principle that Granitic will not introduce any dependencies on your application that you 
