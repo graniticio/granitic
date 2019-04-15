@@ -16,7 +16,7 @@ func TestDecorator(t *testing.T) {
 	c := ioc.NewComponent("", tar)
 
 	d := new(clientManagerDecorator)
-	d.fieldNameManager = map[string]rdbms.ClientManager{"ManagedClient": cm}
+	d.fieldNameManager = map[string]rdbms.ClientManager{"sClient": cm}
 	d.log = new(logging.ConsoleErrorLogger)
 
 	if !d.OfInterest(c) {
