@@ -3,7 +3,7 @@ Back to: [Reference](README.md) | [Logging](log-index.md)
 
 ---
 Controlling which components' messages are output to logs and at which severity level is controlled through the
-concept of log levels.
+concept of log level thresholds (or just log levels).
 
 The default configuration for Granitic's [logging facility](fac-logger.md) includes this:
 
@@ -49,10 +49,38 @@ You can change the log level for an individual component without affecting the g
 
 ```json
 "FrameworkLogger":{
-  "GlobalLogLevel": "INFO"
+  "GlobalLogLevel": "INFO",
+  "ComponentLogLevels": {
+    "grncQueryManager": "DEBUG",
+    "grncHTTPServer": "FATAL"
+  }
 },
 
 "ApplicationLogger":{
-  "GlobalLogLevel": "INFO"
+  "GlobalLogLevel": "INFO",
+  "ComponentLogLevels": {
+    "myComponent": "TRACE"
+  }
 }
 ```
+
+This shows the built-in Granitic components [grncQueryManager](fac-query.md) and [grncHTTPServer](fac-http-server.md)
+having their logging threshold set to `DEBUG` and `FATAL` respectively. Additionally the application component `myComponent`
+has its threshold set to `TRACE`.
+
+### Specific levels take precedence
+
+If a log level is explicitly set, that level will always take precedence over the global log level. So if a component
+is explicitly set to `TRACE`, it will log all messages, even if the global log level was set to `FATAL`.
+
+Conversely, a component with a log level set to `FATAL` would only output FATAL messages, even if the global level was
+set to `TRACE`.
+
+## Setting log levels at runtime
+
+If you enable Granitic's [runtime control facility](fac-runtime.md), you use the [runtime-ctl](rtc-command.md) command
+line tool or the [runtime control API](rtc-api.md) to change the global or component-specific log levels when your
+application is running.
+
+The commands available are documented here in the [built-in commands](rtc-built-in.md) section of the [runtime control](rtc-index.md)
+documentation.
