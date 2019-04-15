@@ -3,7 +3,8 @@
 ## In this section
 
   * [Principles](ws-principles.md)
-  * [Endpoints](ws-endpoints.md)
+  * [Processing pipeline](ws-pipeline.md)
+  * [Endpoints and handlers](ws-handlers.md)
   * [Capturing data](ws-capture.md)
   * [Nilable types](ws-nilable.md)
   * [Validating data](ws-validate.md)
