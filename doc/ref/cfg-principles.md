@@ -1,4 +1,7 @@
 # Configuration principles
+Back to: [Reference](README.md) | [Configuration](cfg-index.md)
+
+---
 
 ## Static vs dynamic configuration
 

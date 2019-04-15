@@ -1,5 +1,7 @@
 # Configuration files
+Back to: [Reference](README.md) | [Configuration](cfg-index.md)
 
+---
 Granitic applications require one or more configuration files to be made available when the application starts. Those
 files may be present on an accessible filesystem or via an HTTP/HTTPS URL.
 

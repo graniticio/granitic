@@ -1,5 +1,7 @@
 # Configuration merging
+Back to: [Reference](README.md) | [Configuration](cfg-index.md)
 
+---
 A key principle in Granitic's configuration model is that of [configuration layers](cfg-principles.md), where an
 application has a base configuration then additional configuration is layered on for specific environments
 and deployments of your application.

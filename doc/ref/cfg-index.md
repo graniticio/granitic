@@ -1,6 +1,7 @@
 # Managing application configuration
+Back to: [Reference](README.md)
 
-## In this section
+---
 
   * [Principles](cfg-principles.md)
   * [Configuration files](cfg-files.md)

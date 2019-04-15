@@ -1,5 +1,7 @@
 # Adding logging to your code
+Back to: [Reference](README.md) | [Logging](log-index.md)
 
+---
 ## Having Granitic inject a logger
 
 Your code can send log messages via the [logging.Log interface](https://godoc.org/github.com/graniticio/granitic/logging#Logger)

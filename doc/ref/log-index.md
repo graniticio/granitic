@@ -1,5 +1,7 @@
 # Logging
+Back to: [Reference](README.md)
 
+---
 ## In this section
 
   * [Principles](log-principles.md)

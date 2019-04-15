@@ -1,5 +1,7 @@
 # Logging principles
+Back to: [Reference](README.md) | [Logging](log-index.md)
 
+---
 ## Logging as a facility
 
 Logging is provided by Granitic as a [facility](fac-logger.md), which means it is optional but enabled by 
