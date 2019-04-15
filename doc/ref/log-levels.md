@@ -40,4 +40,19 @@ of your configuration files:
 ```
 
 Granitic's own components will be effectively silenced (only logging 'FATAL', which would indicate a crash) and your
-own components would be logging 'TRACE' and above (effectively all messages)
+own components would be logging 'TRACE' and above (effectively all messages).
+
+
+## Setting a log level for a specific component
+
+You can change the log level for an individual component without affecting the global log level. For example:
+
+```json
+"FrameworkLogger":{
+  "GlobalLogLevel": "INFO"
+},
+
+"ApplicationLogger":{
+  "GlobalLogLevel": "INFO"
+}
+```
