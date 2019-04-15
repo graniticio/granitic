@@ -84,3 +84,15 @@ application is running.
 
 The commands available are documented here in the [built-in commands](rtc-built-in.md) section of the [runtime control](rtc-index.md)
 documentation.
+
+## Logging during the bootstrap phase
+
+Loading and applying your logging configuration is one of the first things Granitic does, but there is logic that is
+run before that point (finding, loading and validating your configuration, for one). This pre-configuration state
+is known as the bootstrap phase. You can control logging behaviour during this phase by passing the `-l` argument
+to your application and providing one of the standard log levels (from `TRACE` to `FATAL`).
+
+---
+**Next**: [Formatting and output location](log-format.md)
+
+**Prev**: [Adding logging to your code](log-code.md)

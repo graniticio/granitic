@@ -24,7 +24,6 @@ The Granitic reference documentation complements the information available in th
     * [Adding logging to your code](log-code.md)
     * [Controlling log levels](log-levels.md)
     * [Controlling format and files](log-format.md)
-    * [Runtime control](log-runtime.md)
   * [Web Services](ws-index.md)
     * [Principles](ws-principles.md)
     * [Processing pipeline](ws-pipeline.md)

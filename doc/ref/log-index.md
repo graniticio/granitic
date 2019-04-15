@@ -8,7 +8,7 @@ Back to: [Reference](README.md)
   * [Adding logging to your code](log-code.md)
   * [Controlling log levels](log-levels.md)
   * [Controlling format and files](log-format.md)
-  * [Runtime control](log-runtime.md)
   
   
-This section explains how Granitic implements application logging.
+This section explains how Granitic implements application logging. It covers how to issue logging messages from your
+code, how to control which messages are logged (according to their severity) and the format and location of log files.
