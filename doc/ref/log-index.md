@@ -2,8 +2,6 @@
 Back to: [Reference](README.md)
 
 ---
-## In this section
-
   * [Principles](log-principles.md)
   * [Adding logging to your code](log-code.md)
   * [Controlling log levels](log-levels.md)
