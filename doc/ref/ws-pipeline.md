@@ -40,6 +40,6 @@ a response.
 The above represents the 'happy path' for a request. Most of the phases can terminate early triggering automatic [error handling](ws-error.md)
 
 ---
-**Next**: [Endpoints](ws-handlers.md)
+**Next**: [Endpoints and handlers](ws-handlers.md)
 
 **Prev**: [Enabling web services](ws-enable.md)
