@@ -26,7 +26,7 @@ interface.
 The path that is associated with the endpoint is not expressed as a static string, instead it is specified
 as a [Go regular expression](https://golang.org/pkg/regexp/).
 
-Using regular expression serves two purposes: firstly it allows the endpoint to be less brittle - the regular expression
+Using regular expressions serves two purposes: firstly it allows the endpoint to be less brittle - the regular expression
 can be crafted to support mixed-cases or trailing slashes in paths. Secondly, and more importantly, it allows
 capture groups to be defined to allow meaningful information to be [extracted from the request path](ws-capture.md). This
 is vital for REST-like APIs where IDs are often included as part of paths.
@@ -59,7 +59,7 @@ For example, a minimal [component definition](ioc-definition-files.md) might loo
 ```json
 "artistHandler": {
   "type": "handler.WsHandler",
-  "PathPattern": "^/artist"
+  "PathPattern": "^/artist",
   "HTTPMethod": "GET",
   "Logic": {
     "type": "artist.GetLogic"
@@ -69,7 +69,7 @@ For example, a minimal [component definition](ioc-definition-files.md) might loo
 ```
 
 [WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) has a number of fields which are
-used to customise its behaviour and the remainder of this section will explain how to use them.
+used to customise its behaviour. These customisation options will be explained through the rest of this section.
 
 ---
 **Next**: [Capturing data](ws-capture.md)
