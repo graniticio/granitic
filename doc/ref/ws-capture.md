@@ -160,6 +160,18 @@ If a query parameter is not provided, no error will be thrown. This scenario sho
 If a query parameter is provided where the value is incompatible with the type of the field on the target object, a 
 [framework error](ws-error.md) will be raised. 
 
+
+## HTTP request headers
+
+There is explicit support in Granitic for binding HTTP request headers to target objects. You may choose to allow your
+[logic component](ws-logic.md) to have access to the headers (and the underlying HTTP request and response objects) by
+setting `AllowDirectHTTPAccess` to `true` on your handler.
+
+There are integration points for [IAM](ws-iam.md), [instrumentation](ws-instrumentation.md), [versioning](ws-versions.md)
+and [identification](ws-identity.md) where you will have access to HTTP request headers without having to set
+`AllowDirectHTTPAccess` to `true`. 
+
+
 ---
 **Next**: [Nilable types](ws-nilable.md)
 
