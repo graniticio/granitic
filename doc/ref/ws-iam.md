@@ -102,6 +102,6 @@ Be aware that this is potentially a security risk - callers can pass in invalid 
 errors to determine the structure of a valid request.
 
 ---
-**Next**: [Version routing](ws-versions.md)
+**Next**: [Instrumentation](ws-instrumentation.md)
 
 **Prev**: [Error handling](ws-error.md)
