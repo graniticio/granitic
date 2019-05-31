@@ -465,7 +465,7 @@ func (wh *WsHandler) identifyAndAuthenticate(ctx context.Context, w *httpendpoin
 
 	if wh.UserIdentifier != nil {
 
-		i, ctx = wh.UserIdentifier.IDentify(ctx, req)
+		i, ctx = wh.UserIdentifier.Identify(ctx, req)
 		wsReq.UserIdentity = i
 
 		if wh.RequireAuthentication && !i.Authenticated() {
