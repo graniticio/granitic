@@ -27,6 +27,10 @@ The ID will automatically be made available to any [request instrumentation](ws-
 by using the context key you have used to store the ID in the context, can be logged in [application](fac-logger.md) and
 [access](fac-http-server.md) logging.
 
+If your application needs to recover the ID, it should be given a reference to the same 
+[httpserver.IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#IdentifiedRequestContextBuilder),
+component and use its `ID` method.
+
 ---
 **Next**: [Rule based validation](vld-index.md)
 
