@@ -81,7 +81,7 @@ until the flusing is complete.
 
 It is also highly recommended that your  [instrument.RequestInstrumentationManager](https://godoc.org/github.com/graniticio/granitic/instrument#RequestInstrumentationManager)
 implements as many of Granitic's [lifecycle interfaces](ioc-lifecycle.md) as is appropriate, so that connections to 
-your instrumentation services are created during application startup and pending data is not lost when your application
+your instrumentation service are created during application startup and pending data is not lost when your application
 shuts down.
 
   
