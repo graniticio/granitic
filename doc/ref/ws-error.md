@@ -117,12 +117,27 @@ of request processing and chooses the most appropriate HTTP status code accordin
   
 Otherwise, if the `Response.Errors` structure:
     
-  1. Contains one or more _Unexpected_ errors, use `HTTP 500`
+  1. Contains one or more _Unexpected_ errors, use `HTTP 500 - Internal server error`
   1. Contains an _HTTP_ error, convert that error's code to a number and use that
-  1. Contains one or more _Security_ errors, use `HTTP 401`
-  1. Contains one or more _Client_ errors, use `HTTP 400`
-  1. Contains one or more _Logic_ errors, use `HTTP 409`
+  1. Contains one or more _Security_ errors, use `HTTP 401 - Unauthorized`
+  1. Contains one or more _Client_ errors, use `HTTP 400 - Bad Request`
+  1. Contains one or more _Logic_ errors, use `HTTP 409 - Conflict`
 
+## Framework errors
+
+Before Granitic passes control to your [logic component](ws-logic.md) any errors encountered while performing
+the early phases of request processing are recorded using the [ws.FrameworkError](https://godoc.org/github.com/graniticio/granitic/ws#FrameworkError)
+type. 
+
+Generally this process is transparent to your application - errors encountered before your logic are generally due
+to malformed client requests that cannot be easily recovered from and Granitic will automatically return a 
+`HTTP 400 - Bad Request` response.
+
+But if, you choose, you can disable automatic handling of these errors by setting the `DeferFrameworkErrors`
+field of your [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) to `false`.
+
+Your application logic will then have access to the framework errors found via the `FrameworkErrors` field
+of the [ws.Request](https://godoc.org/github.com/graniticio/granitic/ws#Request) passed to it.
 
 ---
 **Next**: [Identity Access Management](ws-iam.md)
