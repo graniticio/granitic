@@ -109,7 +109,7 @@ client is calculated in one of two ways.
 
   1. Granitic examines the _types_ of errors present in the `Errors` field of the [ws.Response](https://godoc.org/github.com/graniticio/granitic/ws#Response)
       according to the [rules defined here](ws-error.md)
-  2. You can explictly set the desired response code by setting the `HTTPStatus` on the [ws.Response](https://godoc.org/github.com/graniticio/granitic/ws#Response).
+  2. You can explicitly set the desired response code by setting the `HTTPStatus` on the [ws.Response](https://godoc.org/github.com/graniticio/granitic/ws#Response).
 
 ---
 **Next**: [Error handling](ws-error.md)
