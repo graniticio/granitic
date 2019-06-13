@@ -37,7 +37,12 @@ The Granitic reference documentation complements the information available in th
     * [Identity and Access Management](ws-iam.md) <!--* [Version routing](ws-versions.md)-->
     * [Instrumentation](ws-instrumentation.md)
     * [Request identification](ws-identity.md)
-  * [Rule based validation](vld-index.md)
+  * [Automatic validation](vld-index.md)
+    * [Principles](vld-principles.md)
+    * [Enabling and configuring rules](vld-enable-rules.md)
+    * [Operations](vld-operations.md)
+    * [Custom operations](vld-custom.md)
+    * [Pre/post-processing](vld-pre-post.md)
   * [Relational Databases](db-index.md)
     * [Principles](db-principles.md)
     * [Provider](db-provider.md)
