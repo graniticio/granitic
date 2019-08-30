@@ -81,7 +81,7 @@ import (
 
 const (
 	//Version is the semantic version number for this version of Granitic
-	Version                            = "2.0.2"
+	Version                            = "2.0.3"
 	initiatorComponentName      string = instance.FrameworkPrefix + "Init"
 	systemPath                         = "System"
 	configAccessorComponentName string = instance.FrameworkPrefix + "Accessor"
@@ -145,6 +145,7 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 	i.logger = frameworkLoggingManager.CreateLogger(initiatorComponentName)
 
 	l := i.logger
+	l.LogInfof("Granitic v%s", Version)
 	l.LogInfof("Starting components")
 
 	//Merge all configuration files and create a container
