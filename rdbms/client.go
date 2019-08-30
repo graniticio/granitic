@@ -16,6 +16,7 @@ type Client interface {
 	FindFragment(qid string) (string, error)
 	BuildQueryFromQIDParams(qid string, p ...interface{}) (string, error)
 	DeleteQIDParams(qid string, params ...interface{}) (sql.Result, error)
+	DeleteQIDParam(qid string, name string, value interface{}) (sql.Result, error)
 	RegisterTempQuery(qid string, query string)
 	ExistingIDOrInsertParams(checkQueryID, insertQueryID string, idTarget *int64, p ...interface{}) error
 	InsertQIDParams(qid string, params ...interface{}) (sql.Result, error)
