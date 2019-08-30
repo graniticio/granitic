@@ -115,7 +115,7 @@ than are not matched to a handler (not found, too busy etc).
 
 ### Unmarshaller
 
-Your handler's `ResponseWriter` field will be set to an instance of [json.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/ws/json#Unmarshaller),
+Your handler's `Unmarshaller` field will be set to an instance of [json.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/ws/json#Unmarshaller),
 which is a simple wrapper over Go's built-in JSON decoding functions.
 
 ## Customisation
@@ -127,4 +127,15 @@ facility will not overwrite it.
 
 ### Advanced customisation
 
-If you want to use Granitic's `Unmarshaller`, but tweak it's behaviour you can make use of the 
+If you want to tweak the behaviour of the components made available by this facility (especially the `ResponseWriter`)
+you can make use of the advanced [framework modification](ioc-definition-files.md) feature to inject your own components
+into fields of the components listed below.
+
+## Component reference
+
+The following components are created when this facility is enabled:
+
+| Name | Type |
+| ---- | ---- |
+| grncJSONResponseWriter | [ws.MarshallingResponseWriter](https://godoc.org/github.com/graniticio/granitic/ws#MarshallingResponseWriter) |
+| grncJSONUnmarshaller | [json.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/ws/json#Unmarshaller) |

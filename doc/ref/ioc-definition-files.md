@@ -270,6 +270,44 @@ There are occasionally circumstances where references cannot or should not be ex
 files. Granitic supports a pattern of decoration where references between components can be made programmatically. This
 [decorator pattern is described here](ioc-decorators.md)
 
+
+## Framework modifiers
+
+In order to meet the principle of [easily replaced core features](int-index.md), Granitic provides a mechanism for 
+modifying its internal components via configuration. This feature is known as *framework modification* and is 
+considered an **advanced feature** and carries some risk as it makes your code dependent on internal Granitic naming and 
+code structure that might be refactored in a later release.
+
+Some sections of in this reference manual may suggest you use framework modification in lieu of more robust customisation
+that is expected in a later release of Granitic.
+
+### Modifying a component
+
+Granitic manages its internal components in the same container as the user components that you create. By convention, these
+components are named with the prefix `grnc`. In order to modify a framework component you must known its name. The [facility
+documentation](fac-index.md) generally lists the name and type of the components created by each facility. 
+
+Once you have the name of the component you want to modify, you need to add a new section to your component definition file 
+(for this example we are modifying the `grncJSONResponseWriter` component that is part of the [JSONWs facility](fac-json-ws.md))
+
+```json
+"frameworkModifiers": {
+  "grncJSONResponseWriter": {
+    "StatusDeterminer": "myCustomHttpCodes"
+  }
+}
+```
+
+Here we are telling Granitic to override the component that is injected into the `StatusDeterminer` field of `grncJSONResponseWriter`
+(which is an instance of [ws.MarshallingResponseWriter](https://godoc.org/github.com/graniticio/granitic/ws#MarshallingResponseWriter))
+with a different component. The component you inject can be any component that you have defined in the `components` section
+of your component definition file.
+
+Note that the name of the injected component is not prefixed with a `+`, which would normally indicate a reference to another
+component. That is because framework modification _only_ supports the injection of components, not literal values or
+configuration promises.
+
+
 ---
 **Next**: [Component templates](ioc-templates.md)
 
