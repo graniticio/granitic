@@ -5,6 +5,11 @@ to `grnc-bind`, code quality and documentation.
 
 This release is not backwards compatible, refer to the migration guide at the bottom of these notes for more information.
 
+
+## 2.0.x fixes
+
+See the section at the end of this document for fixes made since the initial 2.0.0 release
+
 ## YAML
 
 Granitic now supports YAML for configuration and component definition files. This involves the
@@ -320,3 +325,10 @@ packages.
 
 Move your configuration files from `resource/config` to `config` and your component definition files from `resource/components`
 to `comp-def`
+
+# Post release fixes
+
+## 2.0.2
+
+  * [rdbms.Client missing InsertQIDParam method](https://github.com/graniticio/granitic/issues/35)
+
