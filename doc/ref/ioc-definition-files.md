@@ -284,7 +284,7 @@ that is expected in a later release of Granitic.
 ### Modifying a component
 
 Granitic manages its internal components in the same container as the user components that you create. By convention, these
-components are named with the prefix `grnc`. In order to modify a framework component you must known its name. The [facility
+components are named with the prefix `grnc`. In order to modify a framework component you must know its name. The [facility
 documentation](fac-index.md) generally lists the name and type of the components created by each facility. 
 
 Once you have the name of the component you want to modify, you need to add a new section to your component definition file 
