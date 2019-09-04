@@ -1,9 +1,9 @@
 # Service Error Manager (ServiceErrorManager)
 
-Enabling the Service Error Manager facility allows human readable errors messages and the category of error 
-(logic, security, client etc) to be managed in configuration files. This simplifies application logic where errors can
+Enabling the Service Error Manager facility allows human readable error messages and the categorisation of those errors 
+to be managed in configuration files. This simplifies application logic where errors can
 be raised using the [ws.ServiceErrors.AddPredefinedError](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors)
-method.
+method without having to manage messages and categories in Go source code.
 
 This facility must be enabled to make use of [automatic validation](vld-index.md).
 
@@ -92,7 +92,7 @@ The valid categories for errors defined in configuration are:
 | Code | Name | Description |
 | ---- | ---- | ----------- |
 | U | Unexpected | A server side problem that the web service client could not have foreseen |
-| C | Client | A problem with the data submitted by the web service client should have foreseen |
+| C | Client | A problem with the data submitted by the web service client that it should have foreseen |
 | L | Logic | A violation of 'business' logic |
 | S | Security | Unauthenticated or unauthorised access |
  
