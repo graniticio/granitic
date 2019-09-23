@@ -4,7 +4,7 @@
 /*
 Package ctl provides functionality for the runtime control of Granitic applications.
 
-If the RuntimeControl facility is enabled for a Granitic application (see http://granitic.io/ref/runtime-control),
+If the RuntimeControl facility is enabled for a Granitic application (see https://granitic.io/ref/runtime-control ),
 the grnc-ctl command line utility can be used to issue commands to that application via HTTP. Note that the HTTP server
 and handlers instantiated to facilitate runtime control are completely separate from the HTTP server that handles user-defined
 web services.

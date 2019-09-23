@@ -8,7 +8,7 @@ A facility is Granitic's term for a group of components that together provide a 
 like logging or service error management. This package contains several sub-packages, one for each facility that can be
 enabled and configured by user applications.
 
-A full description of how facilities can be enabled and configured can be found at http://granitic.io/ref/facilities but a basic description
+A full description of how facilities can be enabled and configured can be found at https://granitic.io/ref/facilities but a basic description
 of how they work follows:
 
 Enabling and disabling facilities

@@ -6,7 +6,7 @@ Package ioc provides an Inversion of Control component container and lifecycle h
 
 This package provides the types that define and support Granitic component container, which allows your application's
 objects and Granitic's framework facilities to follow the inversion of control (IoC) pattern by having their lifecycle
-and dependencies managed for them. An in-depth discussion of Granitic IoC can be found at http://granitic.io/ref/component-definition-files
+and dependencies managed for them. An in-depth discussion of Granitic IoC can be found at https://granitic.io/ref/component-definition-files
 but a description of the core concepts follows.
 
 Components
@@ -32,7 +32,7 @@ e.g:
 	  }
 	}
 
-For complete information on defining components, refer to http://granitic.io/ref/component-container
+For complete information on defining components, refer to https://granitic.io/ref/component-container
 
 Granitic's documentation will use the term component and component instance interchangeably. For example, 'component field'
 means 'a field on the instance of the Go struct associated with that component'.
@@ -77,7 +77,7 @@ can also include configuration (actual values to be set when the component is in
 
 In the above example, the field CreateRecordLogic.MaxTracks is set to 20 when the struct is instantiated, ArtistMustExist
 is set to the config element 'record.disableAutoArtist' and DAO is set to a reference to another component's instance. Note that c: and r:
-can be used as shorthand for config: and ref: See http://granitic.io/ref/component-container for more information
+can be used as shorthand for config: and ref: See https://granitic.io/ref/component-container for more information
 
 Any error such as type mismatches or missing configuration will cause an error that will halt application startup.
 
@@ -85,7 +85,7 @@ Component templates
 
 A template mechanism exists to allow multiple components that share a type, dependencies or configuration items to
 only have those elements defined once. This is especially useful for web service handlers. See
-http://granitic.io/ref/component-templates for more details.
+https://granitic.io/ref/component-templates for more details.
 
 Binding
 
@@ -143,7 +143,7 @@ Container settings
 The file $GRANITIC_HOME/resource/facility-config/system.json contains configuration, that can be overridden in your
 application's configuration file, affecting startup, garbage collection and shutdown behaviour of the container.
 
-More information can be found at http://granitic.io/ref/system-configuration
+More information can be found at https://granitic.io/ref/system-configuration
 
 Gaining access to the container
 

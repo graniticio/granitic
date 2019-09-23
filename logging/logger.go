@@ -4,7 +4,7 @@
 /*
 Package logging provides a component-based logging framework for user and built-in Granitic components.
 
-Logging in Granitic is covered in detail at http://granitic.io/ref/logging a brief description of the key concepts and
+Logging in Granitic is covered in detail at https://granitic.io/ref/logging a brief description of the key concepts and
 types follows.
 
 Component logging
@@ -126,17 +126,17 @@ look something like:
 	  }
 	}
 
-For more information on these settings, refer to http://granitic.io/ref/logging-format-output
+For more information on these settings, refer to https://granitic.io/ref/logging-format-output
 
 Runtime control
 
 Global log levels and component log levels can be changed at runtime, if your application has the RuntimeCtl facility
-enabled.  implements http://granitic.io/ref/runtime-control for more information
+enabled.  implements https://granitic.io/ref/runtime-control for more information
 
 Log message prefixes
 
 Every message written to a log file or console can be given a customisable prefix containing meta-data like time
-of logging or information from a Context.  implements http://granitic.io/ref/logging-format-output
+of logging or information from a Context.  implements https://granitic.io/ref/logging-format-output
 
 
 */

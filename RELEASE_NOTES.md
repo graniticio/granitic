@@ -43,7 +43,7 @@ be removed in a future version of Granitic.
 ## Reference documentation
 
 Granitic now has a reference manual, intended to compliment the information in the [Godoc](https://godoc.org/github.com/graniticio/granitic). 
-You can find this manual in  `doc/ref/index.md` or on the [Granitic website](http://www.granitic.io/ref/).
+You can find this manual in  `doc/ref/index.md` or on the [Granitic website](https://granitic.io/ref/).
 
 ## Go modules
 

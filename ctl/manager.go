@@ -12,7 +12,7 @@ import (
 )
 
 // A CommandManager is created as a component as part of the RuntimeCtl facility, CommandManager acts a registry for all components that
-// implement ctl.Command. See http://granitic.io/ref/runtime-control-facility for details on how to configure this component.
+// implement ctl.Command. See https://granitic.io/ref/runtime-control-facility for details on how to configure this component.
 type CommandManager struct {
 	// Logger used by Granitic framework components. Automatically injected.
 	FrameworkLogger logging.Logger

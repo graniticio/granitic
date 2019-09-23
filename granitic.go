@@ -6,8 +6,7 @@ Package granitic provides methods for configuring and starting a Granitic applic
 
 Granitic is a framework for building micro-services in Go
 
-To get started with Granitic, visit http://www.granitic.io/getting-started-installing-granitic
-All of the documentation you will need is included in the GoDoc, you can find an index and recommended reading order here: http://www.granitic.io/documentation
+To get started with Granitic, visit https://granitic.io/getting-started-installing-granitic
 
 Entry points
 

@@ -15,7 +15,7 @@ more detail.
 
 This package also defines the data structure for the implicit System facility (which cannot be disabled, but can be configured).
 The System facility controls start up and shutdown behaviour as well as some memory management settings. See
-http://granitic.io/ref/system-configuration
+https://granitic.io/ref/system-configuration
 */
 package instance
 

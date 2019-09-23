@@ -7,7 +7,7 @@ Package querymanager provides the QueryManager facility which allows database qu
 The facility adds a component of type dsquery.QueryManager to the IoC container that other components may use to
 lookup templated queries by an ID and have those queries populated with supplied parameters.
 
-A full description of this facility and how to configure it can be found at http://granitic.io/ref/query-management-facility . Also refer to the GoDoc for the
+A full description of this facility and how to configure it can be found at https://granitic.io/ref/query-management-facility . Also refer to the GoDoc for the
 GoDoc for the dsquery package.
 
 Template locations and template formats

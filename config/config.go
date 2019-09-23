@@ -7,7 +7,7 @@ Package config provides functionality for working with configuration files and c
 Grantic uses JSON files to store component definitions (declarations of, and relationships between, components to
 run in the IoC container) and configuration (variables used by IoC components that may vary between environments and settings
 for Grantic's built-in facilities). A defintion of the use and syntax of these files are outside of the scope of a GoDoc page,
-but are described in detail at http://granitic.io/ref/component-definition-files and http://granitic.io/ref/configuration-files
+but are described in detail at https://granitic.io/ref/component-definition-files and https://granitic.io/ref/configuration-files
 
 This package defines functionality for loading a JSON file (from a filesystem or via HTTP) and merging multiple files into
 a single view. This is a key concept in Granitic.

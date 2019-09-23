@@ -5,7 +5,7 @@
 Package httpserver provides the HTTPServer facility which defines a configurable HTTP server for processing web-service requests.
 
 The HTTPServer facility provides a server that will listen for HTTP web-service requests and map them to the web-service
-endpoints defined by your application. A full description of how to configure this facility can be found at http://granitic.io/ref/http-server
+endpoints defined by your application. A full description of how to configure this facility can be found at https://granitic.io/ref/http-server
 
 This package defines two main types HTTPServer and AccessLogWriter. HTTPServer is a layer over Go's built-in http.Server adding runtime control (suspension, resumption)
 and mapping of requests to instances of ws.Handler. AccessLogWriter supports Apache/Tomcat style access log formatting and writing.
