@@ -9,7 +9,55 @@ https://tools.ietf.org/html/rfc4122
 */
 package uuid
 
+import (
+	"crypto/rand"
+	"encoding/hex"
+	"math/big"
+	"strings"
+)
+
 // V4 returns a valid V4 UUID using the default random number generator with no uniqueness checks
 func V4() string {
-	return "92e8a690-98e3-424b-83e4-cecb3548a7a0"
+
+	max128 := big.NewInt(0)
+
+	max128.SetString("340282366920938463463374607431768211455", 10)
+
+	r, _ := rand.Int(rand.Reader, max128)
+	asBytes := r.Bytes()
+
+	var b strings.Builder
+
+	b.WriteString(hex.EncodeToString(asBytes[0:4]))
+	b.WriteString("-")
+	b.WriteString(hex.EncodeToString(asBytes[4:6]))
+
+	//Get the hex pair that will contain the version, replace the first char with 4 but keep the second
+	b.WriteString("-4")
+
+	vByte := asBytes[6]
+
+	b.WriteString(string(secondChar(vByte)))
+
+	b.WriteString(hex.EncodeToString(asBytes[7:8]))
+	b.WriteString("-")
+
+	//Get the hex pair that will contain the variant and set the first two bits to 1 and 0
+	varByte := asBytes[8]
+	varByte |= (1 << 7)
+	mask := ^(1 << 6)
+	varByte &= byte(mask)
+	b.WriteString(hex.EncodeToString([]byte{varByte}))
+
+	b.WriteString(hex.EncodeToString(asBytes[9:10]))
+	b.WriteString("-")
+	b.WriteString(hex.EncodeToString(asBytes[10:16]))
+
+	return b.String()
+}
+
+const hextable = "0123456789abcdef"
+
+func secondChar(b byte) byte {
+	return hextable[b&0x0f]
 }
