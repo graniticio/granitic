@@ -6,10 +6,15 @@ import (
 
 func TestCompliantDefaultV4(t *testing.T) {
 
-	u := V4()
+	for i := 0; i < 100; i++ {
 
-	if !ValidV4(u) {
-		t.Errorf("Not a valid UUID %s", u)
+		u := V4()
+
+		//fmt.Println(u)
+
+		if !ValidV4(u) {
+			t.Errorf("Not a valid UUID %s", u)
+		}
 	}
 
 }
@@ -17,6 +22,15 @@ func TestCompliantDefaultV4(t *testing.T) {
 func BenchmarkCompliantDefaultV4(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		V4()
+	}
+}
+
+func BenchmarkCustomV4(b *testing.B) {
+
+	g := newCrypto128().Generate
+
+	for i := 0; i < b.N; i++ {
+		V4Custom(g, StandardEncoder)
 	}
 }
 
