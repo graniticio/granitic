@@ -14,6 +14,12 @@ func TestCompliantDefaultV4(t *testing.T) {
 
 }
 
+func BenchmarkCompliantDefaultV4(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		V4()
+	}
+}
+
 func TestV4Validation(t *testing.T) {
 
 	valid := []string{

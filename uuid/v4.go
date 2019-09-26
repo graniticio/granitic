@@ -26,6 +26,13 @@ func V4() string {
 	r, _ := rand.Int(rand.Reader, max128)
 	asBytes := r.Bytes()
 
+	missingBytes := 16 - len(asBytes)
+
+	if missingBytes > 0 {
+		pad := make([]byte, missingBytes)
+		asBytes = append(pad, asBytes...)
+	}
+
 	var b strings.Builder
 
 	b.WriteString(hex.EncodeToString(asBytes[0:4]))
