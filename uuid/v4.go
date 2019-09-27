@@ -6,11 +6,16 @@ Package uuid provides tools for generating and validating various RFC 4122 compl
 
 https://tools.ietf.org/html/rfc4122
 
+Default V4 UUID generation is benchmarked at ~500ns per generation (2.6 GHz Core i7 (I7-8850H))
+and does not benefit from any buffering/pre-generation.
+
 */
 package uuid
 
 import (
 	"crypto/rand"
+	"encoding/base32"
+	"encoding/base64"
 	"io"
 )
 
@@ -82,6 +87,16 @@ func StandardEncoder(asBytes Bytes16) string {
 	}
 
 	return string(buf)
+}
+
+// Base32Encoder encodes the supplied 128 bit number as a base32 string
+func Base32Encoder(asBytes Bytes16) string {
+	return base32.StdEncoding.EncodeToString(asBytes[:])
+}
+
+// Base64Encoder encodes the supplied 128 bit number as a base32 string
+func Base64Encoder(asBytes Bytes16) string {
+	return base64.StdEncoding.EncodeToString(asBytes[:])
 }
 
 // GenerateCryptoRand creates a random 128 bit number using crypto/rand.Reader as a source

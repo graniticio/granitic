@@ -66,3 +66,33 @@ func TestV4Validation(t *testing.T) {
 	}
 
 }
+
+func TestBase32Encoder(t *testing.T) {
+
+	u := GenerateCryptoRand()
+
+	Base32Encoder(u)
+}
+
+func BenchmarkBase32Encoder(b *testing.B) {
+	u := GenerateCryptoRand()
+
+	for i := 0; i < b.N; i++ {
+		Base32Encoder(u)
+	}
+}
+
+func TestBase64Encoder(t *testing.T) {
+
+	u := GenerateCryptoRand()
+
+	Base64Encoder(u)
+}
+
+func BenchmarkBase64Encoder(b *testing.B) {
+	u := GenerateCryptoRand()
+
+	for i := 0; i < b.N; i++ {
+		Base64Encoder(u)
+	}
+}
