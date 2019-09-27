@@ -11,25 +11,20 @@ package uuid
 
 import (
 	"crypto/rand"
-	"math/big"
-	"strings"
+	"io"
 )
 
-var default128Gen random128
+var default128Gen Generate16Byte
 
 // V4 returns a valid V4 UUID using the default random number generator with no uniqueness checks
 func V4() string {
 
-	if default128Gen == nil {
-		default128Gen = newCrypto128().Generate
-	}
-
-	return V4Custom(default128Gen, StandardEncoder)
+	return V4Custom(GenerateCryptoRand, StandardEncoder)
 
 }
 
-// V4Custom returns a valid V4 UUID with a custom random number generator and encoder
-func V4Custom(gen random128, e encoder) string {
+// V4Custom returns a valid V4 UUID with a custom random number generator and EncodeFrom16Byte
+func V4Custom(gen Generate16Byte, e EncodeFrom16Byte) string {
 
 	asBytes := gen()
 
@@ -58,51 +53,43 @@ func V4Custom(gen random128, e encoder) string {
 
 const hextable = "0123456789abcdef"
 
-type random128 func() []byte
+// Bytes16 is a 128-bit number represented as 16 bytes
+type Bytes16 [16]byte
 
-type encoder func([]byte) string
+// Generate16Byte is a type of function able to create unsigned 128-bit numbers represented as a sequence of 16 bytes.
+type Generate16Byte func() Bytes16
 
-// StandardEncoder encodes the supplied 128 bit number as a standard dash seperated UUID
-func StandardEncoder(asBytes []byte) string {
-	var sb strings.Builder
+// EncodeFrom16Byte takes a 16 byte/128-bit representation of a UUID and encodes it as a string
+type EncodeFrom16Byte func(Bytes16) string
+
+// StandardEncoder encodes the supplied 128 bit number as a standard dash separated UUID
+func StandardEncoder(asBytes Bytes16) string {
+	buf := make([]byte, 36)
+
+	writeIndex := 0
 
 	for i, b := range asBytes {
 
 		if (i == 4) || (i == 6) || (i == 8) || (i == 10) {
-			sb.WriteRune('-')
+			buf[writeIndex] = ('-')
+			writeIndex++
 		}
 
-		sb.WriteByte(hextable[b>>4])
-		sb.WriteByte(hextable[b&0x0f])
+		buf[writeIndex] = hextable[b>>4]
+		buf[writeIndex+1] = hextable[b&0x0f]
+
+		writeIndex += 2
 	}
 
-	return sb.String()
+	return string(buf)
 }
 
-func newCrypto128() *crypto128 {
+// GenerateCryptoRand creates a random 128 bit number using crypto/rand.Reader as a source
+func GenerateCryptoRand() Bytes16 {
 
-	c := new(crypto128)
-	c.max = big.NewInt(0)
+	asBytes := Bytes16{}
 
-	c.max.SetString("340282366920938463463374607431768211455", 10)
-
-	return c
-}
-
-type crypto128 struct {
-	max *big.Int
-}
-
-func (c *crypto128) Generate() []byte {
-	r, _ := rand.Int(rand.Reader, c.max)
-	asBytes := r.Bytes()
-
-	missingBytes := 16 - len(asBytes)
-
-	if missingBytes > 0 {
-		pad := make([]byte, missingBytes)
-		asBytes = append(pad, asBytes...)
-	}
+	io.ReadFull(rand.Reader, asBytes[:])
 
 	return asBytes
 }

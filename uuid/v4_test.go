@@ -27,10 +27,26 @@ func BenchmarkCompliantDefaultV4(b *testing.B) {
 
 func BenchmarkCustomV4(b *testing.B) {
 
-	g := newCrypto128().Generate
+	g := GenerateCryptoRand
 
 	for i := 0; i < b.N; i++ {
 		V4Custom(g, StandardEncoder)
+	}
+}
+
+func BenchmarkCyrptoGenerate(b *testing.B) {
+	g := GenerateCryptoRand
+
+	for i := 0; i < b.N; i++ {
+		g()
+	}
+}
+
+func BenchmarkStandardEncoder(b *testing.B) {
+	u := GenerateCryptoRand()
+
+	for i := 0; i < b.N; i++ {
+		StandardEncoder(u)
 	}
 }
 
