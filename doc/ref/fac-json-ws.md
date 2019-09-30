@@ -30,7 +30,9 @@ and is:
     "ResponseWriter": {
       "DefaultHeaders": {
         "Content-Type": "application/json; charset=utf-8"
-      }
+      },
+      "IncludeRequestID": false,
+      "RequestIDHeader": "request-id"
     },
     "Marshal": {
       "PrettyPrint": false,
@@ -65,6 +67,12 @@ You may add additional headers to the response by setting them in your configura
   }
 }
 ```
+
+#### Request ID Header
+
+If you have enabled [request identification](ws-identity.md), you can have the ID associated with a request included as a response
+header by setting `JSONWs.ResponseWriter.IncludeRequestID` to `true`. The name of the header can be controlled by
+changing the value of `JSONWs.ResponseWriter.RequestIDHeader`.
 
 ### JSON formatting
 
