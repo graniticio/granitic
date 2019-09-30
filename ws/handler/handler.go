@@ -242,6 +242,14 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 	wsReq.HTTPMethod = req.Method
 	wsReq.ServingHandler = wh.ComponentName()
 
+	wsReq.ID = ws.RecoverIDFunction(ctx)
+
+	if wsReq.ID == nil {
+		wsReq.ID = func(ctx2 context.Context) string {
+			return ""
+		}
+	}
+
 	if wh.AllowDirectHTTPAccess {
 		da := new(ws.DirectHTTPAccess)
 		da.Request = req

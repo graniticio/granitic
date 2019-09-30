@@ -23,13 +23,20 @@ which allows you to define a component that:
 If you create a component that implements [httpserver.IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#IdentifiedRequestContextBuilder),
 it will automatically be injected into your [HTTPServer](fac-http-server.md) using a [decorator](ioc-decorators.md).
 
-The ID will automatically be made available to any [request instrumentation](ws-instrumentation.md) you have set up and,
+## Default request ID
+
+Granitic can automatically generate a request ID (a V4 UUID) for each request. See the [HTTPServer facility documentation](fac-http-server.md)
+for more details.
+
+## Accessing the request ID
+
+If your code has access to the [ws.Request](https://godoc.org/github.com/graniticio/granitic/ws#Request) object, it can
+use the `ID()` function on that object to recover the string representation of the ID, given a context.
+
+The ID will also be automatically be made available to any [request instrumentation](ws-instrumentation.md) you have set up and,
 by using the context key you have used to store the ID in the context, can be logged in [application](fac-logger.md) and
 [access](fac-http-server.md) logging.
 
-If your application needs to recover the ID, it should be given a reference to the same 
-[httpserver.IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#IdentifiedRequestContextBuilder),
-component and use its `ID` method.
 
 ---
 **Next**: [Rule based validation](vld-index.md)

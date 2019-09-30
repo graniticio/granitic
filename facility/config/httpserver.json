@@ -4,6 +4,13 @@
     "AccessLogging": false,
     "TooBusyStatus": 503,
     "AutoFindHandlers": true,
+    "RequestID": {
+      "Enabled": false,
+      "Format": "UUIDV4",
+      "UUID":{
+        "Encoding": "RFC4122"
+      }
+    },
     "AccessLog": {
       "LogPath": "./access.log",
       "LogLinePreset": "framework",

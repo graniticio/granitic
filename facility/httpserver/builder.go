@@ -4,11 +4,15 @@
 package httpserver
 
 import (
+	"context"
+	"fmt"
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/instrument"
 	"github.com/graniticio/granitic/v2/ioc"
 	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/uuid"
+	"net/http"
 )
 
 // HTTPServerComponentName is the name of the HTTPServer component as stored in the IoC framework.
@@ -66,6 +70,51 @@ func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 		log.LogDebugf("Auto wiring of instrumentation managers disabled")
 	}
 
+	if err := configureRequestIDGeneration(ca, log, httpServer); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func configureRequestIDGeneration(ca *config.Accessor, log logging.Logger, s *HTTPServer) error {
+
+	cfg := new(requestIDConfig)
+	basePath := "HTTPServer.RequestID"
+
+	if err := ca.Populate(basePath, cfg); err != nil {
+		return fmt.Errorf("Unable to read configuration for request ID generation %s", err.Error())
+	} else if !cfg.Enabled {
+		return nil
+	}
+
+	log.LogDebugf("Generation of request IDs enabled")
+
+	if cfg.Format != "UUIDV4" {
+		return fmt.Errorf("%s is not a valid configuration value for %s.Format. Must be UUIDV4", cfg.Format, basePath)
+	}
+
+	var encodingFunc uuid.EncodeFrom16Byte
+
+	switch cfg.UUID.Encoding {
+
+	case "RFC4122":
+		encodingFunc = uuid.StandardEncoder
+	case "Base32":
+		encodingFunc = uuid.Base32Encoder
+	case "Base64":
+		encodingFunc = uuid.Base64Encoder
+	default:
+		return fmt.Errorf("%s is not a valid configuration value for %s.UUID.Encoding. Must be one of RFC4122, Base32, Base64", cfg.UUID.Encoding, basePath)
+	}
+
+	rcb := new(requestContextBuilder)
+	rcb.encoder = encodingFunc
+	rcb.idGen = uuid.GenerateCryptoRand
+
+	s.IDContextBuilder = rcb
+
 	return nil
 
 }
@@ -111,4 +160,40 @@ func (id *instrumentationDecorator) DecorateComponent(subject *ioc.Component, cc
 	id.Log.LogDebugf("HTTP server using %s for instrumentation", subject.Name)
 
 	id.Server.InstrumentationManager = im
+}
+
+type requestIDConfig struct {
+	Enabled bool
+	Format  string
+	UUID    struct {
+		Encoding string
+	}
+}
+
+type requestContextBuilder struct {
+	idGen   uuid.Generate16Byte
+	encoder uuid.EncodeFrom16Byte
+}
+
+type idKey string
+
+const ridKey idKey = "GRNCREQID"
+
+func (rcb *requestContextBuilder) WithIdentity(ctx context.Context, req *http.Request) (context.Context, error) {
+
+	id := uuid.V4Custom(rcb.idGen, rcb.encoder)
+
+	return context.WithValue(ctx, ridKey, id), nil
+
+}
+
+func (rcb *requestContextBuilder) ID(ctx context.Context) string {
+	id := ctx.Value(ridKey)
+
+	if id == nil {
+		return ""
+	}
+
+	return id.(string)
+
 }

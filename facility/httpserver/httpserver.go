@@ -302,6 +302,8 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 			ctx = idCtx.(context.Context)
 			requestID = h.IDContextBuilder.ID(idCtx)
 
+			ctx = ws.StoreRequestIDFunction(ctx, h.IDContextBuilder.ID)
+
 			instrumentor.Amend(instrument.RequestID, requestID)
 
 			if h.FrameworkLogger.IsLevelEnabled(logging.Trace) {

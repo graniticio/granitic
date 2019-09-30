@@ -32,12 +32,15 @@ type Request struct {
 	// Information about the web service caller (if the handler has a Identifier).
 	UserIdentity iam.ClientIdentity
 
-	//The underlying HTTP request and response  (if the handler was configured to pass
+	// The underlying HTTP request and response  (if the handler was configured to pass
 	// this information on).
 	UnderlyingHTTP *DirectHTTPAccess
 
-	//The component name of the handler that generated this Request.
+	// The component name of the handler that generated this Request.
 	ServingHandler string
+
+	// The unique ID assigned to this request and stored in the context
+	ID func(ctx context.Context) string
 }
 
 // HasFrameworkErrors returns true if one or more framework errors have been recorded.
@@ -90,4 +93,27 @@ type DirectHTTPAccess struct {
 
 	// The incoming HTTP request.
 	Request *http.Request
+}
+
+type ridFuncKey string
+
+const ridFunc ridFuncKey = "GRNCRIDFUNC"
+
+// StoreRequestIDFunction allows the function used to extract a request from a function to be passed around in a context
+func StoreRequestIDFunction(ctx context.Context, f func(context.Context) string) context.Context {
+
+	return context.WithValue(ctx, ridFunc, f)
+
+}
+
+// RecoverIDFunction allows the function used to extract a request from a function to recovered from a context
+func RecoverIDFunction(ctx context.Context) func(context.Context) string {
+
+	f := ctx.Value(ridFunc)
+
+	if f != nil {
+		return f.(func(context.Context) string)
+	}
+
+	return nil
 }
