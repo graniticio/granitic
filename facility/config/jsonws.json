@@ -3,7 +3,9 @@
     "ResponseWriter": {
       "DefaultHeaders": {
         "Content-Type": "application/json; charset=utf-8"
-      }
+      },
+      "IncludeRequestID": false,
+      "RequestIDHeader": "request-id"
     },
     "Marshal": {
       "PrettyPrint": false,
