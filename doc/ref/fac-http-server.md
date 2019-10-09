@@ -197,3 +197,25 @@ or `combined`. The default is `framework`. The `common` and `combined` formats a
 | framework | %h XFF[%{X-Forwarded-For}i] %l %u [%{02/Jan/2006:15:04:05 Z0700}t] "%m %U%q" %s %bB %{us}Tμs | [::1]:49574 XFF[-] - - [09/Oct/2019:14:59:55 Z] "POST /test" 200 -B 252μs |
 | common | %h %l %u %t "%r" %s %b | [::1]:49580 - - [09/Oct/2019:15:01:35 +0000] "POST /test HTTP/1.1" 200 - |
 | combined | %h %l %u %t "%r" %s %b "%{Referer}i" "%{User-agent}i" | [::1]:49584 - - [09/Oct/2019:15:02:37 +0000] "POST /test HTTP/1.1" 200 - "-" "-" |
+
+
+### Available verbs
+
+| Verb | Meaning and usage |
+| --- | --- |
+| %% | The percent symbol |
+| %b | The number of bytes (excluding headers) sent to client or the - symbol if zero |
+| %B | The number of bytes (excluding headers) sent to client or the 0 symbol if zero |
+| %D | The wall-clock time the service spent processing the request in microseconds |
+| %h | The host (as IPV4 or IPV6 address) from which the client is connecting |
+| %{x}i | The string value of a header included in the HTTP request where x is the case insensitive name of the header |
+| %l | Prints the - symbol. For compatibility with common log formats always. |
+| %m | The HTTP method (GET, POST etc) of the request |
+| %q | The query string of the request, including a leading ? character |
+| %r | The HTTP request line (method, path and HTTP version) |
+| %s | The HTTP status code (200, 404 etc) sent to the client with the response |
+| %{x}t | The point in time at which the request was received where x is a standard Go date/time format string (e.g. 02/Jan/2006:15:04:05 Z0700 ). In UTC or local time according to access log configuration |
+| %{x}T | The wall-clock time the service spent processing the request in a unit specified by x where s gives seconds, ms gives milliseconds and us gives microseconds |
+| %u | A string representation of the ID of the user on whose behalf the request is being made. Only available if [IAM is configured](ws-iam.md), otherwise the - symbol is printed |
+| %U | The path portion of the HTTP request line | 
+
