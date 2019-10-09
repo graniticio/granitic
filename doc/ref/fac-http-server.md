@@ -189,7 +189,8 @@ format or define your own.
 ### Preset formats
 
 Granitic currently specifies threee preset formats. You can set `HTTPServer.AccessLog.LogLinePreset` to `framework`, `common`
-or `combined`. The default is `framework`
+or `combined`. The default is `framework`. The `common` and `combined` formats are intended to be similar to the 
+[Apache HTTPD log formats](http://httpd.apache.org/docs/current/mod/mod_log_config.html) of the same name.
 
 | Name | Format | Example |
 | --- | --- | --- |
