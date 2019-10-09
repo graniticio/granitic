@@ -155,3 +155,27 @@ fine-grained timing information around the very early stages of request processi
 that were rejected because the server was busy.
 
 If you want to be able to instrument these types of request, set `HTTPServer.AllowEarlyInstrumentation` to `true`.
+
+## Access logging
+
+Granitic can be configured to write a summary of each request received to a log file, similar to most web and application
+servers. This feature is disabled by default and can be enabled by setting `HTTPServer.AccessLogging` to true in your
+configuration.
+
+This will create (or append) a UTF-8 encoded file called `access.log` in the same directory that you started your application (e.g. your
+application's working directory). You can change this specifying a full or relative path to a file with
+`HTTPServer.AccessLog.LogPath`. Your application must have filesystem permission to create and edit the file at that path.  
+
+The format and information recorded for each request is highly customisable and is described in detail below.
+
+### Timestamps
+
+You may choose to have the timestamps associated with each request as UTC (recommended and the default), or in the local
+time of your server. To use local time, set `HTTPServer.AccessLog.UtcTimes` to `false`.
+
+### Non-blocking writing
+
+Lines are written to the access log asynchronously. You web service calls will not block for log writing as long as there
+is space in the log line buffer. The size of this buffer is defined at `HTTPServer.AccessLog.LineBufferSize` with a default 
+value of `10`. If your application is writing logs to a slow storage system or handles large numbers of simultaneous 
+requests, you might want to adjust this value.
