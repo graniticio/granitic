@@ -1,9 +1,13 @@
 {
   "HTTPServer":{
     "Port": 8080,
-    "AccessLogging": false,
+    "Address": "",
+    "AllowEarlyInstrumentation": false,
+    "DisableInstrumentationAutoWire": false,
+    "MaxConcurrent": 0,
     "TooBusyStatus": 503,
     "AutoFindHandlers": true,
+    "AccessLogging": false,
     "AccessLog": {
       "LogPath": "./access.log",
       "LogLinePreset": "framework",
