@@ -125,6 +125,14 @@ and instructing the HTTP server to use it by providing a [framework modifier](io
 
 where `myStatusWriter` is the name of your component that implements [ws.AbnormalStatusWriter](https://godoc.org/github.com/graniticio/granitic/ws#AbnormalStatusWriter).
 
+### Request identification
+
+If you have created a component that implements [httpserver.IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#IdentifiedRequestContextBuilder)
+that component will be automatically be used to create, derive or inherit a ID for the current request using information included in the HTTP request.
+
+See [request identification](ws-identity.md) for more information.
+
+
 ### Instrumentation
 
 The HTTP server supports and coordinates the [instrumentation of web service requests](ws-instrumentation.md) automatically
@@ -219,3 +227,48 @@ or `combined`. The default is `framework`. The `common` and `combined` formats a
 | %u | A string representation of the ID of the user on whose behalf the request is being made. Only available if [IAM is configured](ws-iam.md), otherwise the - symbol is printed |
 | %U | The path portion of the HTTP request line | 
 
+## Lifecycle
+
+The IOC component that represents the HTTP server is integrated with Granitic's  [component lifecycle model](ioc-lifecycle.md) and
+has different behaviour depending on which lifecycle state or transition the component is in.
+
+The server can be suspended and resumed using [runtime control](rtc-index.md)
+
+### Start
+
+ * Finds any other components required to run (handlers, instrumentation, abnormal status writer, request identifier)
+ * DOES NOT open or listening on the configured address and port
+ 
+### Allow Access
+
+ * Confirms that it is possible to listen on the configured address and port
+ * Starts listening for HTTP requests on the configured address and port
+ 
+### Suspend
+ 
+ * Keeps listening for requests but sends a 'too busy' response (default 503)
+ 
+### Resume
+
+ * Allows requests to be processed again
+ 
+### Prepare to stop
+ 
+ * Keeps processing existing requests but sends a 'too busy' response (default 503) for any new requests
+ 
+### Ready to stop check
+
+ * Returns true if no requests are currently being processed
+ 
+### Stop
+
+ * Shuts down the underlying HTTP server, terminating any requests that are still running
+
+## Component reference
+
+The following components are created when this facility is enabled:
+
+| Name | Type |
+| ---- | ---- |
+| grncHTTPServer | [httpserver.HTTPServer](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#HTTPServer) |
+| grncAccessLogWriter | [httpserver.AccessLogWriter](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#AccessLogWriter) |
