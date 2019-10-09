@@ -179,3 +179,20 @@ Lines are written to the access log asynchronously. You web service calls will n
 is space in the log line buffer. The size of this buffer is defined at `HTTPServer.AccessLog.LineBufferSize` with a default 
 value of `10`. If your application is writing logs to a slow storage system or handles large numbers of simultaneous 
 requests, you might want to adjust this value.
+
+## Log line format
+
+The information you want to include in each line of the access log is controlled by a format string comprised of 'verbs'
+and fixed characters similar to [fmt.Printf](https://golang.org/pkg/fmt/) or HTTPD. You may choose from a preset
+format or define your own.
+
+### Preset formats
+
+Granitic currently specifies threee preset formats. You can set `HTTPServer.AccessLog.LogLinePreset` to `framework`, `common`
+or `combined`. The default is `framework`
+
+| Name | Format | Example |
+| --- | --- | --- |
+| framework | %h XFF[%{X-Forwarded-For}i] %l %u [%{02/Jan/2006:15:04:05 Z0700}t] "%m %U%q" %s %bB %{us}Tμs | [::1]:49574 XFF[-] - - [09/Oct/2019:14:59:55 Z] "POST /test" 200 -B 252μs |
+| common | %h %l %u %t "%r" %s %b | [::1]:49580 - - [09/Oct/2019:15:01:35 +0000] "POST /test HTTP/1.1" 200 - |
+| combined | %h %l %u %t "%r" %s %b "%{Referer}i" "%{User-agent}i" | [::1]:49584 - - [09/Oct/2019:15:02:37 +0000] "POST /test HTTP/1.1" 200 - "-" "-" |
