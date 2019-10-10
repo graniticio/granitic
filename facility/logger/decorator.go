@@ -20,6 +20,10 @@ type applicationLogDecorator struct {
 
 	// Logger to allow this decorator to log messages.
 	FrameworkLogger logging.Logger
+
+	useNullLogger bool
+
+	nullLogger logging.Logger
 }
 
 // OfInterest returns true if the subject component has a field of type logging.Logger and the name Log.
@@ -57,7 +61,14 @@ func (ald *applicationLogDecorator) OfInterest(subject *ioc.Component) bool {
 
 // DecorateComponent injects a newly created Logger into the Log field of the subject component.
 func (ald *applicationLogDecorator) DecorateComponent(subject *ioc.Component, container *ioc.ComponentContainer) {
-	logger := ald.LoggerManager.CreateLogger(subject.Name)
+
+	var logger logging.Logger
+
+	if ald.useNullLogger {
+		logger = ald.nullLogger
+	} else {
+		logger = ald.LoggerManager.CreateLogger(subject.Name)
+	}
 
 	reflectComponent := reflect.ValueOf(subject.Instance).Elem()
 	reflectComponent.FieldByName(expectedApplicationLoggerFieldName).Set(reflect.ValueOf(logger))

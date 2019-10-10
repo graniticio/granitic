@@ -120,6 +120,9 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.Accessor) error {
 
 	if fc["ApplicationLogging"].(bool) {
 		fi.addFacility(new(logger.FacilityBuilder))
+	} else {
+		//Even if application logging is disabled, a small number of skeleton components are needed
+		new(logger.NullLoggingFacilityBuilder).BuildAndRegister(fi.FrameworkLoggingManager, ca, fi.container)
 	}
 
 	fi.addFacility(new(querymanager.FacilityBuilder))
