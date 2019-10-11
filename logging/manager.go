@@ -88,6 +88,7 @@ func (clm *ComponentLoggerManager) SetGlobalThreshold(globalThreshold LogLevel) 
 
 // SetInitialLogLevels provide a map of component names to log levels. If a Logger is subsequently created for a component named in the map,
 // the log level in the map will be used to set its local log threshold.
+// Previously created loggers will be updated
 func (clm *ComponentLoggerManager) SetInitialLogLevels(ll map[string]interface{}) {
 
 	clm.initialLevels = ll
