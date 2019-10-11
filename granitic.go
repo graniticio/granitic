@@ -150,6 +150,19 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 	//Merge all configuration files and create a container
 	ca := i.createConfigAccessor(is, frameworkLoggingManager)
 
+	//Check to see framework logging has been disabled
+	if enabled, err := ca.BoolVal("Facilities.FrameworkLogging"); err != nil {
+		l.LogErrorf("Unable to find config path Facilities.FrameworkLogging to check to see if framework logging is disabled")
+	} else if !enabled {
+		l.LogTracef("Disabling framework logging")
+		frameworkLoggingManager.Disable()
+
+		nl := new(logging.NullLogger)
+		l = nl
+		i.logger = nl
+		ca.FrameworkLogger = nl
+	}
+
 	//Load system settings from config
 	ss := i.loadSystemsSettings(ca)
 

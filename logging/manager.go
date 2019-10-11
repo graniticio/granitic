@@ -26,6 +26,8 @@ type ComponentLoggerManager struct {
 	globalThreshold LogLevel
 	writers         []LogWriter
 	formatter       *LogMessageFormatter
+	disabled        bool
+	nullLogger      Logger
 }
 
 // LoggerByName finds a previously created Logger by the name it was given when it was created. Returns nil if no Logger
@@ -50,6 +52,18 @@ func (clm *ComponentLoggerManager) CurrentLevels() []*ComponentLevel {
 	}
 
 	return cls
+}
+
+// Disable prevents this manager from creating new loggers - a NullLogger will be returned instead
+func (clm *ComponentLoggerManager) Disable() {
+	clm.disabled = true
+	clm.nullLogger = new(NullLogger)
+
+}
+
+// IsDisabled checks to see if this manager has been disabled
+func (clm *ComponentLoggerManager) IsDisabled() bool {
+	return clm.disabled
 }
 
 // GlobalLevel returns the global log level for the scope (application, framework) that this ComponentLoggerManager is responsible for.
@@ -96,6 +110,10 @@ func (clm *ComponentLoggerManager) SetInitialLogLevels(ll map[string]interface{}
 // CreateLogger creates a new Logger for the supplied component name
 func (clm *ComponentLoggerManager) CreateLogger(componentID string) Logger {
 
+	if clm.disabled {
+		return clm.nullLogger
+	}
+
 	if clm.created[componentID] != nil {
 		return clm.created[componentID]
 	}
@@ -119,6 +137,11 @@ func (clm *ComponentLoggerManager) CreateLogger(componentID string) Logger {
 
 // CreateLoggerAtLevel creates a new Logger for the supplied component name with the local log threshold set to the supplied level.
 func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentID string, threshold LogLevel) Logger {
+
+	if clm.disabled {
+		return clm.nullLogger
+	}
+
 	l := new(GraniticLogger)
 	l.global = clm
 	l.localLogThreshhold = threshold

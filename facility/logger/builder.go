@@ -46,8 +46,13 @@ func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 		return err
 	}
 
-	writers, err := alfb.buildWriters(ca)
-	formatter, err := alfb.buildFormatter(ca)
+	writers, err := BuildWritersFromConfig(ca)
+
+	if err != nil {
+		return alfb.error(err.Error())
+	}
+
+	formatter, err := BuildFormatterFromConfig(ca)
 
 	if err != nil {
 		return alfb.error(err.Error())
@@ -65,12 +70,23 @@ func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 	cn.WrapAndAddProto(applicationLoggingDecoratorName, ald)
 
-	alfb.addRuntimeCommands(ca, alm, lm, cn)
+	AddRuntimeCommandsForLogging(ca, alm, lm, cn)
 
 	return nil
 }
 
-func (alfb *FacilityBuilder) addRuntimeCommands(ca *config.Accessor, alm *logging.ComponentLoggerManager, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
+// AddRuntimeCommandsForFrameworkLogging registers the runtime control commands related to logging with stubbed
+// out application logging
+func AddRuntimeCommandsForFrameworkLogging(ca *config.Accessor, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
+
+	alm := logging.CreateComponentLoggerManager(logging.Fatal, map[string]interface{}{}, []logging.LogWriter{}, nil)
+
+	AddRuntimeCommandsForLogging(ca, alm, flm, cn)
+
+}
+
+// AddRuntimeCommandsForLogging registers the runtime control commands related to logging
+func AddRuntimeCommandsForLogging(ca *config.Accessor, alm *logging.ComponentLoggerManager, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
 
 	if !runtimectl.Enabled(ca) {
 		return
@@ -90,7 +106,8 @@ func (alfb *FacilityBuilder) addRuntimeCommands(ca *config.Accessor, alm *loggin
 
 }
 
-func (alfb *FacilityBuilder) buildFormatter(ca *config.Accessor) (*logging.LogMessageFormatter, error) {
+// BuildFormatterFromConfig uses configuration to determine the format for application logs
+func BuildFormatterFromConfig(ca *config.Accessor) (*logging.LogMessageFormatter, error) {
 
 	lmf := new(logging.LogMessageFormatter)
 
@@ -106,7 +123,8 @@ func (alfb *FacilityBuilder) buildFormatter(ca *config.Accessor) (*logging.LogMe
 
 }
 
-func (alfb *FacilityBuilder) buildWriters(ca *config.Accessor) ([]logging.LogWriter, error) {
+// BuildWritersFromConfig uses configuration to determine the writers for logging
+func BuildWritersFromConfig(ca *config.Accessor) ([]logging.LogWriter, error) {
 	writers := make([]logging.LogWriter, 0)
 
 	if console, err := ca.BoolVal("LogWriting.EnableConsoleLogging"); err != nil {

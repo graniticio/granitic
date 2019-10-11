@@ -116,13 +116,15 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.Accessor) error {
 	}
 
 	fi.facilityStatus = fc
-	fi.updateFrameworkLogLevel()
+	fi.updateFrameworkLoggingConfiguration()
 
 	if fc["ApplicationLogging"].(bool) {
 		fi.addFacility(new(logger.FacilityBuilder))
 	} else {
 		//Even if application logging is disabled, a small number of skeleton components are needed
-		new(logger.NullLoggingFacilityBuilder).BuildAndRegister(fi.FrameworkLoggingManager, ca, fi.container)
+		if err := fi.handleDisabledApplicationLogging(ca); err != nil {
+			return err
+		}
 	}
 
 	fi.addFacility(new(querymanager.FacilityBuilder))
@@ -139,9 +141,45 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.Accessor) error {
 	return err
 }
 
-func (fi *FacilitiesInitialisor) updateFrameworkLogLevel() error {
+func (fi *FacilitiesInitialisor) handleDisabledApplicationLogging(ca *config.Accessor) error {
+
+	logger.AddRuntimeCommandsForFrameworkLogging(ca, fi.FrameworkLoggingManager, fi.container)
+
+	new(logger.NullLoggingFacilityBuilder).BuildAndRegister(fi.FrameworkLoggingManager, ca, fi.container)
+	flm := fi.FrameworkLoggingManager
+	if !flm.IsDisabled() {
+
+		w, err := logger.BuildWritersFromConfig(ca)
+
+		if err != nil {
+			return err
+		}
+
+		f, err := logger.BuildFormatterFromConfig(ca)
+
+		if err != nil {
+			return err
+		}
+
+		flm.UpdateWritersAndFormatter(w, f)
+	}
+	return nil
+}
+
+func (fi *FacilitiesInitialisor) updateFrameworkLoggingConfiguration() error {
 
 	flm := fi.FrameworkLoggingManager
+
+	fld := new(logger.FrameworkLogDecorator)
+	fld.FrameworkLogger = flm.CreateLogger(frameworkLoggerDecoratorName)
+	fld.LoggerManager = flm
+
+	fi.container.WrapAndAddProto(frameworkLoggerDecoratorName, fld)
+
+	if flm.IsDisabled() {
+		// Framework logging is disabled, but decorator is still required
+
+	}
 
 	defaultLogLevelLabel, err := fi.ConfigAccessor.StringVal("FrameworkLogger.GlobalLogLevel")
 
@@ -163,12 +201,6 @@ func (fi *FacilitiesInitialisor) updateFrameworkLogLevel() error {
 
 	flm.SetInitialLogLevels(il)
 	flm.SetGlobalThreshold(defaultLogLevel)
-
-	fld := new(logger.FrameworkLogDecorator)
-	fld.FrameworkLogger = flm.CreateLogger(frameworkLoggerDecoratorName)
-	fld.LoggerManager = flm
-
-	fi.container.WrapAndAddProto(frameworkLoggerDecoratorName, fld)
 
 	return nil
 
