@@ -6,6 +6,8 @@ package logging
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
 	"runtime"
 )
 
@@ -13,6 +15,7 @@ import (
 // Messages at all other levels are ignored. This implementation is used by Granitic's command line tools and is not
 // recommended for use in user applications but can by useful for unit tests.
 type ConsoleErrorLogger struct {
+	w io.Writer
 }
 
 // LogTracefCtx is ignored - messages sent to this method are discarded.
@@ -37,7 +40,12 @@ func (l *ConsoleErrorLogger) LogWarnfCtx(ctx context.Context, s string, a ...int
 
 // LogErrorfCtx uses fmt.printf to write the supplied message to the console.
 func (l *ConsoleErrorLogger) LogErrorfCtx(ctx context.Context, format string, a ...interface{}) {
-	fmt.Printf(format+"\n", a...)
+
+	if l.w == nil {
+		l.w = os.Stdout
+	}
+
+	fmt.Fprintf(l.w, format+"\n", a...)
 }
 
 // LogErrorfCtxWithTrace uses fmt.printf to write the supplied message to the console and appends a stack trace.
@@ -77,9 +85,14 @@ func (l *ConsoleErrorLogger) LogWarnf(format string, a ...interface{}) {
 	return
 }
 
-// LogErrorf uses fmt.printf to write the supplied message to the console.
+// LogErrorf uses fmt.Fprintf to write the supplied message to the console (or other writer)
 func (l *ConsoleErrorLogger) LogErrorf(format string, a ...interface{}) {
-	fmt.Printf(format+"\n", a...)
+
+	if l.w == nil {
+		l.w = os.Stdout
+	}
+
+	fmt.Fprintf(l.w, format+"\n", a...)
 }
 
 // LogErrorfWithTrace uses fmt.printf to write the supplied message to the console and appends
