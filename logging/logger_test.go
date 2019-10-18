@@ -4,9 +4,22 @@
 package logging
 
 import (
+	"context"
 	"github.com/graniticio/granitic/v2/test"
 	"testing"
 )
+
+func TestStdoutLoggerCanBeBuilt(t *testing.T) {
+
+	l := NewStdoutLogger(Trace)
+
+	l.LogTracef("MESSAGE")
+
+	l = NewStdoutLogger(Trace, "PREFIX")
+
+	l.LogTracef("MESSAGE")
+
+}
 
 func TestThresholdDetection(t *testing.T) {
 
@@ -32,5 +45,36 @@ func TestThresholdDetection(t *testing.T) {
 
 	lal.localLogThreshhold = All
 	test.ExpectBool(t, lal.IsLevelEnabled(Trace), true)
+
+}
+
+func TestNilLogging(t *testing.T) {
+
+	var l Logger
+	l = new(NullLogger)
+
+	if l.IsLevelEnabled(Trace) {
+		t.FailNow()
+	}
+
+	ctx := context.Background()
+
+	l.LogDebugf("")
+	l.LogAtLevelf(Trace, "TRACE", "")
+	l.LogAtLevelfCtx(ctx, Trace, "TRACE", "")
+	l.LogDebugfCtx(ctx, "")
+	l.LogErrorf("")
+	l.LogErrorfCtx(ctx, "")
+	l.LogErrorfCtxWithTrace(ctx, "")
+	l.LogErrorfWithTrace("")
+	l.LogErrorfWithTrace("")
+	l.LogFatalf("")
+	l.LogFatalfCtx(ctx, "")
+	l.LogInfof("")
+	l.LogInfofCtx(ctx, "")
+	l.LogTracef("")
+	l.LogTracefCtx(ctx, "")
+	l.LogWarnf("")
+	l.LogWarnfCtx(ctx, "")
 
 }
