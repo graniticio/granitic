@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/v2/httpendpoint"
 	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
 	"net/http"
 	"os"
 	"regexp"
@@ -55,7 +56,7 @@ const (
 	percentSymbol
 	method
 	path
-	puery
+	query
 	processTimeMicro
 	processTime
 )
@@ -105,7 +106,10 @@ func newPlaceholderWithVarLineElement(phType logFormatPlaceHolder, variable stri
 
 // AccessLogWriter is a component able to asynchronously write an Apache HTTPD style access log. See the top of this GoDoc page for more information.
 type AccessLogWriter struct {
-	logFile *os.File
+	logFile closableStringWriter
+
+	openFileFunc func() (closableStringWriter, error)
+
 	// The path of the log file to be written to (and created if required)
 	LogPath string
 
@@ -118,8 +122,11 @@ type AccessLogWriter struct {
 	//The number of lines that can be buffered for asynchronous writing to the log file before calls to LogRequest block.
 	LineBufferSize int
 
-	//Whether or not timestamps should be converted to UTC before they are written to the access log.
+	// Whether or not timestamps should be converted to UTC before they are written to the access log.
 	UtcTimes bool
+
+	// A component able to extract information from a context.Context into a loggable format
+	ContextFilter logging.ContextFilter
 
 	elements []*logLineToken
 	lines    chan string
@@ -167,13 +174,21 @@ func (alw *AccessLogWriter) buildLine(ctx context.Context, req *http.Request, re
 // is returned if any of these steps fails.
 func (alw *AccessLogWriter) StartComponent() error {
 
+	if alw.openFileFunc == nil {
+		alw.openFileFunc = alw.openFile
+	}
+
 	if alw.state != ioc.StoppedState {
 		return nil
 	}
 
 	alw.state = ioc.StartingState
 
-	alw.lines = make(chan string, alw.LineBufferSize)
+	if alw.LineBufferSize > 0 {
+		alw.lines = make(chan string, alw.LineBufferSize)
+	} else {
+		alw.lines = make(chan string)
+	}
 
 	err := alw.configureLogFormat()
 
@@ -181,7 +196,11 @@ func (alw *AccessLogWriter) StartComponent() error {
 		return err
 	}
 
-	err = alw.openFile()
+	alw.logFile, err = alw.openFileFunc()
+
+	if err != nil {
+		return err
+	}
 
 	go alw.watchLineBuffer()
 
@@ -204,21 +223,20 @@ func (alw *AccessLogWriter) watchLineBuffer() {
 	}
 }
 
-func (alw *AccessLogWriter) openFile() error {
+func (alw *AccessLogWriter) openFile() (closableStringWriter, error) {
 	logPath := alw.LogPath
 
 	if len(strings.TrimSpace(logPath)) == 0 {
-		return errors.New("HTTP server access log is enabled, but no path to a log file specified")
+		return nil, errors.New("HTTP server access log is enabled, but no path to a log file specified")
 	}
 
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	alw.logFile = f
-	return nil
+	return f, nil
 }
 
 func (alw *AccessLogWriter) configureLogFormat() error {
@@ -387,7 +405,7 @@ func (alw *AccessLogWriter) mapPlaceholder(ph string) logFormatPlaceHolder {
 	case "m":
 		return method
 	case "q":
-		return puery
+		return query
 	case "r":
 		return requestLine
 	case "s":
@@ -464,7 +482,7 @@ func (alw *AccessLogWriter) findValue(ctx context.Context, element *logLineToken
 	case path:
 		return req.URL.Path
 
-	case puery:
+	case query:
 		return alw.query(req)
 
 	case requestLine:
@@ -533,9 +551,9 @@ func (alw *AccessLogWriter) PrepareToStop() {
 
 }
 
-// ReadyToStop always returns true
+// ReadyToStop returns true if the log line buffer is empty
 func (alw *AccessLogWriter) ReadyToStop() (bool, error) {
-	return true, nil
+	return len(alw.lines) > 0, nil
 }
 
 // Stop closes the log file
@@ -548,4 +566,9 @@ func (alw *AccessLogWriter) Stop() error {
 	alw.state = ioc.StoppedState
 
 	return nil
+}
+
+type closableStringWriter interface {
+	WriteString(s string) (n int, err error)
+	Close() error
 }
