@@ -9,6 +9,18 @@ import (
 	"testing"
 )
 
+func TestStdoutLoggerCanBeBuilt(t *testing.T) {
+
+	l := NewStdoutLogger(Trace)
+
+	l.LogTracef("MESSAGE")
+
+	l = NewStdoutLogger(Trace, "PREFIX")
+
+	l.LogTracef("MESSAGE")
+
+}
+
 func TestThresholdDetection(t *testing.T) {
 
 	g := new(globalLogSource)
