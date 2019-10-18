@@ -137,6 +137,10 @@ type AccessLogWriter struct {
 // be written to the file does not exceed the value of AccessLogWriter.LineBufferSize, this method will return immediately.
 func (alw *AccessLogWriter) LogRequest(ctx context.Context, req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time) {
 
+	if alw.state != ioc.RunningState {
+		return
+	}
+
 	alw.lines <- alw.buildLine(ctx, req, res, rec, fin)
 
 }
@@ -556,11 +560,15 @@ func (alw *AccessLogWriter) ReadyToStop() (bool, error) {
 	return len(alw.lines) > 0, nil
 }
 
-// Stop closes the log file
+// Stop closes the log file and message channel
 func (alw *AccessLogWriter) Stop() error {
 
 	if alw.logFile != nil {
 		return alw.logFile.Close()
+	}
+
+	if alw.lines != nil {
+		close(alw.lines)
 	}
 
 	alw.state = ioc.StoppedState
