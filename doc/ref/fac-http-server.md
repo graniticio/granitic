@@ -212,22 +212,23 @@ or `combined`. The default is `framework`. The `common` and `combined` formats a
 ### Available verbs
 
 | Verb | Meaning and usage |
-| --- | --- |
+| ----- | --- |
 | %% | The percent symbol |
 | %b | The number of bytes (excluding headers) sent to client or the - symbol if zero |
 | %B | The number of bytes (excluding headers) sent to client or the 0 symbol if zero |
 | %D | The wall-clock time the service spent processing the request in microseconds |
 | %h | The host (as IPV4 or IPV6 address) from which the client is connecting |
-| %{x}i | The string value of a header included in the HTTP request where x is the case insensitive name of the header |
+| %{?}i | The string value of a header included in the HTTP request where ? is the case insensitive name of the header |
 | %l | Prints the - symbol. For compatibility with common log formats always. |
 | %m | The HTTP method (GET, POST etc) of the request |
 | %q | The query string of the request, including a leading ? character |
 | %r | The HTTP request line (method, path and HTTP version) |
 | %s | The HTTP status code (200, 404 etc) sent to the client with the response |
-| %{x}t | The point in time at which the request was received where x is a standard Go date/time format string (e.g. 02/Jan/2006:15:04:05 Z0700 ). In UTC or local time according to access log configuration |
-| %{x}T | The wall-clock time the service spent processing the request in a unit specified by x where s gives seconds, ms gives milliseconds and us gives microseconds |
+| %{?}t | The point in time at which the request was received where ? is a standard Go date/time format string (e.g. 02/Jan/2006:15:04:05 Z0700 ). In UTC or local time according to access log configuration |
+| %{?}T | The wall-clock time the service spent processing the request in a unit specified by ? where s gives seconds, ms gives milliseconds and us gives microseconds |
 | %u | A string representation of the ID of the user on whose behalf the request is being made. Only available if [IAM is configured](ws-iam.md), otherwise the - symbol is printed |
-| %U | The path portion of the HTTP request line | 
+| %U | The path portion of the HTTP request line |
+| %{?}x | A value from a context.Context that has been made available to the access logger via a component you have written implementing [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) where ? is the key to the value 
 
 ## Lifecycle
 
