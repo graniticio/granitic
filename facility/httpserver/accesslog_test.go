@@ -3,7 +3,9 @@ package httpserver
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/graniticio/granitic/v2/httpendpoint"
+	"github.com/graniticio/granitic/v2/logging"
 	"net/http"
 	"net/url"
 	"os"
@@ -70,6 +72,40 @@ func TestHTTPRequestLineElements(t *testing.T) {
 	checkContents(t, fs, "/test?a=b POST")
 }
 
+type ctxKey string
+
+func TestContextValueLogging(t *testing.T) {
+
+	var key ctxKey = "private"
+
+	cxf := new(contextFilter)
+	cxf.mappings = make(map[string]ctxKey)
+
+	cxf.mappings["set"] = key
+
+	alw, fs := logWriterWithBuffer(t, "%{set}x %{unset}x")
+
+	alw.ContextFilter = cxf
+
+	ctx := context.Background()
+
+	ctx = context.WithValue(ctx, key, "EXPOSED")
+
+	req := new(http.Request)
+	end := time.Now()
+
+	start := end.Add(time.Second * -2)
+
+	rw := responseWriter(true, 200)
+
+	alw.LogRequest(ctx, req, rw, &start, &end)
+	alw.PrepareToStop()
+
+	alw.Stop()
+
+	checkContents(t, fs, "EXPOSED -")
+}
+
 func checkContents(t *testing.T, fs *fileSimulator, ex string) {
 
 	check := ex + "\n"
@@ -131,4 +167,23 @@ func (fs *fileSimulator) Close() error {
 	fs.Closed = true
 
 	return nil
+}
+
+type contextFilter struct {
+	mappings map[string]ctxKey
+}
+
+func (cf *contextFilter) Extract(ctx context.Context) logging.FilteredContextData {
+
+	fd := make(logging.FilteredContextData)
+
+	for k, v := range cf.mappings {
+
+		sv := ctx.Value(v)
+
+		fd[k] = fmt.Sprintf("%v", sv)
+
+	}
+
+	return fd
 }

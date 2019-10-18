@@ -188,6 +188,8 @@ is space in the log line buffer. The size of this buffer is defined at `HTTPServ
 value of `10`. If your application is writing logs to a slow storage system or handles large numbers of simultaneous 
 requests, you might want to adjust this value.
 
+If you want to force blocking writing (useful for tests), set `HTTPServer.AccessLog.LineBufferSize` to zero or less.
+
 ## Log line format
 
 The information you want to include in each line of the access log is controlled by a format string comprised of 'verbs'

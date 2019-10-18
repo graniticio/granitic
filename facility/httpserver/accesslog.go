@@ -45,6 +45,7 @@ type logFormatPlaceHolder int
 const (
 	unsupported = iota
 	remoteHost
+	ctxValue
 	clientID
 	userID
 	receivedTime
@@ -120,6 +121,7 @@ type AccessLogWriter struct {
 	LogLinePreset string
 
 	//The number of lines that can be buffered for asynchronous writing to the log file before calls to LogRequest block.
+	//Setting to zero or less makes calls to LogRequest synchronous
 	LineBufferSize int
 
 	// Whether or not timestamps should be converted to UTC before they are written to the access log.
@@ -148,6 +150,13 @@ func (alw *AccessLogWriter) LogRequest(ctx context.Context, req *http.Request, r
 func (alw *AccessLogWriter) buildLine(ctx context.Context, req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time) string {
 	var b bytes.Buffer
 
+	var cv logging.FilteredContextData
+
+	if alw.ContextFilter != nil {
+		// Extract loggable information from the context
+		cv = alw.ContextFilter.Extract(ctx)
+	}
+
 	if alw.UtcTimes {
 		utcRec := rec.UTC()
 		utcFin := fin.UTC()
@@ -164,7 +173,7 @@ func (alw *AccessLogWriter) buildLine(ctx context.Context, req *http.Request, re
 		case placeholderToken:
 			b.WriteString(alw.findValue(ctx, e, req, res, rec, fin))
 		case placeholderWithVar:
-			b.WriteString(alw.findValueWithVar(ctx, e, req, res, rec, fin))
+			b.WriteString(alw.findValueWithVar(ctx, cv, e, req, res, rec, fin))
 		}
 	}
 
@@ -422,11 +431,13 @@ func (alw *AccessLogWriter) mapPlaceholder(ph string) logFormatPlaceHolder {
 		return userID
 	case "U":
 		return path
+	case "x":
+		return ctxValue
 	}
 
 }
 
-func (alw *AccessLogWriter) findValueWithVar(ctx context.Context, element *logLineToken, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time) string {
+func (alw *AccessLogWriter) findValueWithVar(ctx context.Context, cd logging.FilteredContextData, element *logLineToken, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time) string {
 	switch element.placeholderType {
 	case requestHeader:
 		return alw.requestHeader(element.variable, req)
@@ -447,6 +458,8 @@ func (alw *AccessLogWriter) findValueWithVar(ctx context.Context, element *logLi
 			return "??"
 
 		}
+	case ctxValue:
+		return alw.ctxValue(cd, element.variable)
 
 	default:
 		return unsupportedPlaceholder
@@ -508,6 +521,16 @@ func (alw *AccessLogWriter) findValue(ctx context.Context, element *logLineToken
 		return unsupportedPlaceholder
 
 	}
+
+}
+
+func (alw *AccessLogWriter) ctxValue(cd logging.FilteredContextData, key string) string {
+
+	if cd == nil || cd[key] == "" {
+		return hyphen
+	}
+
+	return cd[key]
 
 }
 
