@@ -580,7 +580,15 @@ func (alw *AccessLogWriter) PrepareToStop() {
 
 // ReadyToStop returns true if the log line buffer is empty
 func (alw *AccessLogWriter) ReadyToStop() (bool, error) {
-	return len(alw.lines) > 0, nil
+
+	l := len(alw.lines)
+
+	if l == 0 {
+		return true, nil
+	}
+
+	return false, fmt.Errorf("%s waiting to writing %d lines to the log file", accessLogWriterName, l)
+
 }
 
 // Stop closes the log file and message channel

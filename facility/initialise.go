@@ -136,6 +136,17 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.Accessor) error {
 	fi.addFacility(new(runtimectl.FacilityBuilder))
 	fi.addFacility(new(taskscheduler.FacilityBuilder))
 
+	if fc["ApplicationLogging"].(bool) || fc["HTTPServer"].(bool) {
+		//Facilties are required that might need a logging.ContextFilter
+
+		cff := new(ContextFilterBuilder)
+
+		fi.addFacility(cff)
+
+		fc[cff.FacilityName()] = true
+
+	}
+
 	err = fi.buildEnabledFacilities()
 
 	return err
