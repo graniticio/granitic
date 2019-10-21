@@ -261,8 +261,9 @@ func (alw *AccessLogWriter) configureLogFormat() error {
 		return errors.New("you must specify either a format for access log lines or the name of a preset format (neither has been provided)")
 	}
 
-	if f != "" && pre != "" {
-		return errors.New("you must specify either a format for access log lines OR the name of a preset format (BOTH have been provided)")
+	if f != "" {
+		//Custom log mode - ignore the preset
+		pre = ""
 	}
 
 	if pre != "" {
