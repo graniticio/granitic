@@ -27,15 +27,14 @@ func TestNoPlaceholdersFormat(t *testing.T) {
 func TestPlaceHolders(t *testing.T) {
 
 	lf := new(LogMessageFormatter)
-	lf.PrefixFormat = "%P %L %l %c %% "
+	lf.Unset = "-"
+	lf.PrefixFormat = "%P %L %l %c %% %{CTX}X "
 
 	err := lf.Init()
 	test.ExpectNil(t, err)
 
 	m := lf.Format(context.Background(), "INFO", "NAME", "MESSAGE")
 
-	test.ExpectString(t, m, "INFO  INFO I NAME % MESSAGE\n")
-
-	fmt.Println(m)
+	test.ExpectString(t, m, "INFO  INFO I NAME % - MESSAGE\n")
 
 }

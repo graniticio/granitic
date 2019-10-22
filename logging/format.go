@@ -118,6 +118,9 @@ type LogMessageFormatter struct {
 
 	// The symbol to use in place of an unset variable in a log line prefix.
 	Unset string
+
+	// A component able to extract information from a context.Context into a loggable format
+	ContextFilter ContextFilter
 }
 
 // Format takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset
@@ -127,6 +130,12 @@ func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerNa
 
 	if ctx == nil {
 		ctx = context.Background()
+	}
+
+	var fcd FilteredContextData
+
+	if lmf.ContextFilter != nil {
+		fcd = lmf.ContextFilter.Extract(ctx)
 	}
 
 	if lmf.UtcTimes {
@@ -143,7 +152,7 @@ func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerNa
 		case placeholderElement:
 			b.WriteString(lmf.findValue(e, levelLabel, loggerName, &t))
 		case placeholderWithVarElement:
-			b.WriteString(lmf.findValueWithVar(ctx, e, levelLabel, loggerName, &t))
+			b.WriteString(lmf.findValueWithVar(ctx, fcd, e, levelLabel, loggerName, &t))
 		}
 	}
 
@@ -153,31 +162,36 @@ func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerNa
 	return b.String()
 }
 
-func (lmf *LogMessageFormatter) findValueWithVar(ctx context.Context, element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
+func (lmf *LogMessageFormatter) findValueWithVar(ctx context.Context, fcd FilteredContextData, element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {
+
 	switch element.placeholderType {
 	case logTimePH:
 		return loggedAt.Format(element.variable)
 	case componentNameTruncPH:
 		return truncOrPad(loggerName, element.variable)
 	case ctxValuePH:
-		return lmf.ctxValue(ctx, element.variable)
+		return lmf.ctxValue(ctx, fcd, element.variable)
 	default:
 		return unsupported
 
 	}
 }
 
-func (lmf *LogMessageFormatter) ctxValue(ctx context.Context, key string) string {
+func (lmf *LogMessageFormatter) ctxValue(ctx context.Context, fcd FilteredContextData, key string) string {
 
-	var v interface{}
+	result := lmf.Unset
 
-	if v = ctx.Value(key); v != nil {
+	if fcd != nil && fcd[key] != "" {
 
-		return fmt.Sprintf("%v", v)
+		result = fcd[key]
+
+	} else if v := ctx.Value(key); v != nil {
+
+		result = fmt.Sprintf("%v", v)
 
 	}
 
-	return lmf.Unset
+	return result
 }
 
 func (lmf *LogMessageFormatter) findValue(element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {

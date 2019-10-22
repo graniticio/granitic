@@ -432,7 +432,7 @@ func (alw *AccessLogWriter) mapPlaceholder(ph string) logFormatPlaceHolder {
 		return userID
 	case "U":
 		return path
-	case "x":
+	case "X":
 		return ctxValue
 	}
 

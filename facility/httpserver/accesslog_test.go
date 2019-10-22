@@ -83,7 +83,7 @@ func TestContextValueLogging(t *testing.T) {
 
 	cxf.mappings["set"] = key
 
-	alw, fs := logWriterWithBuffer(t, "%{set}x %{unset}x")
+	alw, fs := logWriterWithBuffer(t, "%{set}X %{unset}X")
 
 	alw.ContextFilter = cxf
 

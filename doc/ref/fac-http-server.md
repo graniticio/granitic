@@ -228,7 +228,7 @@ or `combined`. The default is `framework`. The `common` and `combined` formats a
 | %{?}T | The wall-clock time the service spent processing the request in a unit specified by ? where s gives seconds, ms gives milliseconds and us gives microseconds |
 | %u | A string representation of the ID of the user on whose behalf the request is being made. Only available if [IAM is configured](ws-iam.md), otherwise the - symbol is printed |
 | %U | The path portion of the HTTP request line |
-| %{?}x | A value from a context.Context that has been made available to the access logger via a component you have written implementing [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) where ? is the key to the value 
+| %{?}X | A value from a context.Context that has been made available to the access logger via a component you have written implementing [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) where ? is the key to the value 
 
 ## Lifecycle
 

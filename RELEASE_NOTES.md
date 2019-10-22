@@ -11,5 +11,5 @@ The access logging feature of the HTTPServer facility has the following changed 
 
   * Improved stopping behaviour (silently ignores LogRequest when application is stopping) and closes log line channel correctly
   * Now explicitly switches to synchronous/blocking logging when `HTTPServer.AccessLog.LineBufferSize` is set to zero or less. Default is 10.
-  * Data stored in a `context.Context` can now be logged in access log lines (using the `%x{KEY}` verb) as long
+  * Data stored in a `context.Context` can now be logged in access log lines (using the `%{KEY}X` verb) as long
   as you have created a component that implements [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter)
