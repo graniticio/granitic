@@ -28,6 +28,7 @@ type ComponentLoggerManager struct {
 	formatter       *LogMessageFormatter
 	disabled        bool
 	nullLogger      Logger
+	ContextFilter   ContextFilter
 }
 
 // LoggerByName finds a previously created Logger by the name it was given when it was created. Returns nil if no Logger
@@ -52,6 +53,16 @@ func (clm *ComponentLoggerManager) CurrentLevels() []*ComponentLevel {
 	}
 
 	return cls
+}
+
+// StartComponent makes an injected ContextFilter available to the formatters attached to this manager
+func (clm *ComponentLoggerManager) StartComponent() error {
+
+	if clm.ContextFilter != nil && clm.formatter != nil {
+		clm.formatter.ContextFilter = clm.ContextFilter
+	}
+
+	return nil
 }
 
 // Disable prevents this manager from creating new loggers - a NullLogger will be returned instead
