@@ -13,3 +13,8 @@ The access logging feature of the HTTPServer facility has the following changed 
   * Now explicitly switches to synchronous/blocking logging when `HTTPServer.AccessLog.LineBufferSize` is set to zero or less. Default is 10.
   * Data stored in a `context.Context` can now be logged in access log lines (using the `%{KEY}X` verb) as long
   as you have created a component that implements [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter)
+  
+## HTTP Response Status Codes
+
+The default set of HTTP status codes (described [here](https://granitic.io/ref/error-handling)) can now be overridden in
+configuration [as described here](https://granitic.io/ref/json-web-services)
