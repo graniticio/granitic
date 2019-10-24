@@ -133,6 +133,27 @@ So if you explicitly set an `Unmarshaller` or `ResponseWriter` with a reference 
 your [component definition](ioc-definition-files.md)  (or in a [component template](ioc-templates.md)) the `JSONWs`
 facility will not overwrite it. 
 
+## Changing default HTTP status codes
+
+The set of HTTP status codes used when an error is found, [according to the rules here](ws-error.md), are defined in 
+configuration. The default values are:
+
+```json
+{
+  "WS": {
+    "HTTPStatus": {
+      "NoError": 200,
+      "Client": 400,
+      "Security": 401,
+      "Unexpected": 500,
+      "Logic": 409
+    }
+  }
+}
+```
+
+You can change one or more of these codes by overriding the value in your application's configuration.
+
 ### Advanced customisation
 
 If you want to tweak the behaviour of the components made available by this facility (especially the `ResponseWriter`)
