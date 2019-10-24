@@ -1,0 +1,11 @@
+{
+  "WS": {
+    "HTTPStatus": {
+      "NoError": 200,
+      "Client": 400,
+      "Security": 401,
+      "Unexpected": 500,
+      "Logic": 409
+    }
+  }
+}

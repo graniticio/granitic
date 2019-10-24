@@ -109,7 +109,7 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 
 	rw.ErrorFormatter = new(json.GraniticJSONErrorFormatter)
 
-	rw.StatusDeterminer = new(ws.GraniticHTTPStatusCodeDeterminer)
+	rw.StatusDeterminer = ws.NewGraniticHTTPStatusCodeDeterminer()
 
 	feg := new(ws.FrameworkErrorGenerator)
 	feg.FrameworkLogger = lm.CreateLogger(runtimeCtlFrameworkErrors)

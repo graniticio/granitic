@@ -27,7 +27,11 @@ type JSONFacilityBuilder struct {
 // BuildAndRegister implements FacilityBuilder.BuildAndRegister
 func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
-	wc := buildAndRegisterWsCommon(lm, ca, cn)
+	wc, err := buildAndRegisterWsCommon(lm, ca, cn)
+
+	if err != nil {
+		return err
+	}
 
 	um := new(json.Unmarshaller)
 	cn.WrapAndAddProto(jsonUnmarshallerComponentName, um)

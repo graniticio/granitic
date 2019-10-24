@@ -3,7 +3,7 @@ package ws
 import "testing"
 
 func TestCodeMapping(t *testing.T) {
-	scd := new(GraniticHTTPStatusCodeDeterminer)
+	scd := NewGraniticHTTPStatusCodeDeterminer()
 
 	r := new(Response)
 	r.HTTPStatus = 200

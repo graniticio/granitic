@@ -27,7 +27,11 @@ type XMLFacilityBuilder struct {
 // BuildAndRegister implements FacilityBuilder.BuildAndRegister
 func (fb *XMLFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
 
-	wc := buildAndRegisterWsCommon(lm, ca, cc)
+	wc, err := buildAndRegisterWsCommon(lm, ca, cc)
+
+	if err != nil {
+		return nil
+	}
 
 	um := new(xml.Unmarshaller)
 	cc.WrapAndAddProto(xmlUnmarshallerName, um)

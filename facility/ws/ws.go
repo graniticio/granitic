@@ -80,21 +80,29 @@ func offerAbnormalStatusWriter(arw ws.AbnormalStatusWriter, cc *ioc.ComponentCon
 	}
 }
 
-func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) *wsCommon {
+func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) (*wsCommon, error) {
 
 	scd := new(ws.GraniticHTTPStatusCodeDeterminer)
+
+	if err := ca.Populate("WS.HTTPStatus", scd); err != nil {
+		return nil, err
+	}
+
 	cn.WrapAndAddProto(wsHTTPStatusDeterminerComponentName, scd)
 
 	pb := new(ws.ParamBinder)
 	cn.WrapAndAddProto(wsParamBinderComponentName, pb)
 
 	feg := new(ws.FrameworkErrorGenerator)
-	ca.Populate("FrameworkServiceErrors", feg)
+
+	if err := ca.Populate("FrameworkServiceErrors", feg); err != nil {
+		return nil, err
+	}
 	cn.WrapAndAddProto(wsFrameworkErrorGenerator, feg)
 
 	pb.FrameworkErrors = feg
 
-	return newWsCommon(pb, feg, scd)
+	return newWsCommon(pb, feg, scd), nil
 
 }
 

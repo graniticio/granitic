@@ -24,7 +24,7 @@ func TestMarshalAbnormal(t *testing.T) {
 	mrw.FrameworkErrors = feg
 	mrw.FrameworkLogger = new(logging.ConsoleErrorLogger)
 
-	scd := new(GraniticHTTPStatusCodeDeterminer)
+	scd := NewGraniticHTTPStatusCodeDeterminer()
 
 	mrw.StatusDeterminer = scd
 
