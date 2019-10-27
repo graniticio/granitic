@@ -74,6 +74,14 @@ If your installation has been successful, you'll see command line output similar
 
 You can stop the program with CTRL+C and can safely delete the /tmp/install-test folder.
 
+## Troubleshooting
+
+If you have problems installing or running the support tools. Make sure that:
+  
+  * Your `GOPATH` environment variable [is set correctly](https://github.com/golang/go/wiki/GOPATH) and contains a folder called `bin` _or_ the `GOBIN` environment
+  variable is set.
+  * Your `PATH` variable includes `$GOPATH/bin` or `$GOBIN`
+
 ## Next steps
 
 For more information on developing Granitic applications, please [work through the tutorials](https://github.com/graniticio/granitic/v2/tree/master/doc/tutorial)
