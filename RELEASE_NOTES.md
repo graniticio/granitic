@@ -24,6 +24,13 @@ as you have created a component that implements [logging.ContextFilter](https://
 The default set of HTTP status codes (described [here](https://granitic.io/ref/error-handling)) can now be overridden in
 configuration [as described here](https://granitic.io/ref/json-web-services)
 
+## UUIDs
+
+The function `uuid.V4()` can now be used to generate version four UUIDs. The implementation is fast and uses Go's 
+`crypto/rand` package to create the random numbers on which they are based.
+
+You can now also configure the HTTPSever facility to assign UUID V4 IDs to each request
+
 
 ## Request IDs
 

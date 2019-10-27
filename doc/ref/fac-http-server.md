@@ -47,6 +47,13 @@ and is:
       "LogLinePreset": "framework",
       "UtcTimes": true,
       "LineBufferSize": 10
+    },
+    "RequestID": {
+      "Enabled": false,
+      "Format": "UUIDV4",
+      "UUID":{
+        "Encoding": "RFC4122"
+      }
     }
   }
 }
@@ -132,6 +139,10 @@ that component will be automatically be used to create, derive or inherit a ID f
 
 See [request identification](ws-identity.md) for more information.
 
+You may instruct Granitic to assign a UUID V4 ID to each request by setting `HTTPServer.RequestID.Enabled` to
+`true`. By default these IDs will be standard [RFC4122](https://tools.ietf.org/html/rfc4122) formatted UUIDs, but you
+can choose to alter the formatting by setting `HTTPServer.RequestID.UUID.Encoding` to `Base32` or `Base64`
+"RFC4122":
 
 ### Instrumentation
 

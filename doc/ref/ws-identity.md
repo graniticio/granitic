@@ -37,6 +37,8 @@ The ID will also be automatically be made available to any [request instrumentat
 by using the context key you have used to store the ID in the context, can be logged in [application](fac-logger.md) and
 [access](fac-http-server.md) logging.
 
+Other code can access the ID, as long as it have access to the context, by invoking the function `ws.RequestID(context.Context)`
+
 
 ---
 **Next**: [Rule based validation](vld-index.md)
