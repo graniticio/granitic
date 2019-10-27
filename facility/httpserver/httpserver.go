@@ -66,9 +66,6 @@ type HTTPServer struct {
 	// (not found, server too busy, panic in application logic). If you use the JSONWs or XMLWs facility, this is automatically injected.
 	AbnormalStatusWriter ws.AbnormalStatusWriter
 
-	// The name of a component in the IoC container that should be used as an AbnormalStatusWriter if one is not being auto-injected.
-	AbnormalStatusWriterName string
-
 	// The number of HTTP requests currently being handled by the server.
 	ActiveRequests int64
 
