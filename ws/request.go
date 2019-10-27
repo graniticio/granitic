@@ -99,14 +99,14 @@ type ridFuncKey string
 
 const ridFunc ridFuncKey = "GRNCRIDFUNC"
 
-// StoreRequestIDFunction allows the function used to extract a request from a function to be passed around in a context
+// StoreRequestIDFunction stores a function in the context that is able to recover a request ID from a context.
 func StoreRequestIDFunction(ctx context.Context, f func(context.Context) string) context.Context {
 
 	return context.WithValue(ctx, ridFunc, f)
 
 }
 
-// RecoverIDFunction allows the function used to extract a request from a function to recovered from a context
+// RecoverIDFunction finds a function in the context that is able to recover a request ID from a context.
 func RecoverIDFunction(ctx context.Context) func(context.Context) string {
 
 	f := ctx.Value(ridFunc)
@@ -116,4 +116,16 @@ func RecoverIDFunction(ctx context.Context) func(context.Context) string {
 	}
 
 	return nil
+}
+
+// RequestID returns the ID stored in the supplied context or "" if there is no ID or if a function for extracting
+// an ID from a context has not been defined and also stored in the context
+func RequestID(ctx context.Context) string {
+	f := RecoverIDFunction(ctx)
+
+	if f == nil {
+		return ""
+	}
+
+	return f(ctx)
 }

@@ -14,7 +14,18 @@ The access logging feature of the HTTPServer facility has the following changed 
   * Data stored in a `context.Context` can now be logged in access log lines (using the `%{KEY}X` verb) as long
   as you have created a component that implements [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter)
   
+## Application logging
+
+Data stored in a `context.Context` can now be logged in the prefix of applicaiton log lines (using the `%{KEY}X` verb) as long
+as you have created a component that implements [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter)
+
 ## HTTP Response Status Codes
 
 The default set of HTTP status codes (described [here](https://granitic.io/ref/error-handling)) can now be overridden in
 configuration [as described here](https://granitic.io/ref/json-web-services)
+
+
+## Request IDs
+
+If [request identification](https://granitic.io/ref/request-identity) has been set up, your code can now find the string
+ID for the current request by calling `ws.RequestID(context.Context)`
