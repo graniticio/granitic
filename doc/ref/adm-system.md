@@ -19,6 +19,8 @@ The content of this file is as follows:
 }
 ```
 
+These can values can be overridden in your application configuration.
+
 ## Start-up blocking
 
 `System.BlockIntervalMS`, `System.BlockRetries` and `System.BlockTriesBeforeWarn` affect how Granitic handles components that are able to
