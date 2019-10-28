@@ -49,7 +49,8 @@ path of your choosing. For example:
     "EnableConsoleLogging": false,
     "EnableFileLogging": true,
     "File":{
-      "LogPath": "/tmp/my-app.log"
+      "LogPath": "/tmp/my-app.log",
+      "BufferSize": 50
     }
   }
 }
@@ -63,10 +64,17 @@ Disables console logging and sends all messages to the file `/tmp/my-app.log`
 The OS user that starts your application must have file system permissions sufficient to create and append any log file
 you specify. The log file is created with the permissions `0600`
 
+### Buffering
+
+Writing to logs files is buffered and asynchronous - your code does not block while log lines are being written to a file,
+_unless_ the buffer is full. This could happen if your application is very busy or if the log file is located on 
+particularly slow storage. The size of this buffer is controlled with the configuration path `LogWriting.File.BufferSize`
+(default `50`).
+
 ### Log rotation
 
-Granitic does not currently have any built-in log rotation capability. It _should_ be compatible with third-party
-log rotation tools, but this is not fully tested.
+Granitic does not currently have any built-in log rotation capability. It is compatible with tools like `logrotate` as
+long as the tool is configured to _truncate_ files, rather than move and recreate them.
 
 ## Log message prefixes
 
@@ -85,8 +93,18 @@ defaults to:
 "%{02/Jan/2006:15:04:05 Z0700}t %P [%c] "
 ```
 
-Formats work similar to `fmt` verb patterns. The available `verbs` are documented in the [logging facility](fac-logger.md)
-section of this manual.
+Formats work similar to `fmt` verb patterns. The available `verbs` are:
+
+| Formatting Verb | Meaning and usage |
+| ----- | --- |
+| %% | The percent symbol |
+| %{?}t | The point in time at which the request was received where ? is a standard Go date/time format string (e.g. `02/Jan/2006:15:04:05 Z0700` ). In UTC or local time according to access log configuration ||
+| %L | The log level (`DEBUG`, `ERROR`, etc) at which the message was logged. |
+| %l | The first character of the level (e.g. `D` for `DEBUG`, etc) at which the message was logged. |
+| %P | The log level (`DEBUG`, `ERROR`, etc) at which the message was logged right-padded with spaces so each label takes up five characters. |
+| %c | The name of the component which logged the message. |
+| %{?}C | The name of the component which logged the message with a fixed length. If the name of the component is longer than ?, it will be truncated to that length. If it is longer, it will be right-padded with spaces. |
+| %{?}X | A value from a context.Context that has been made available to the logger via a component you have written implementing [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) where ? is the key to the value 
 
 
 ### UTC
