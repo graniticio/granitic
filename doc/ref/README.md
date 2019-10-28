@@ -69,6 +69,6 @@ The Granitic reference documentation complements the information available in th
   * [Administration](adm-index.md)
     * [Remote configuration](adm-remote.md)
     * [Instance identification](adm-instance.md)
-    * [System facility](adm-system.md)
+    * [System configuration](adm-system.md)
     
   
