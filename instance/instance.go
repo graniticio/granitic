@@ -10,7 +10,7 @@ services can identify it.
 
 This package defines a type for storing an instance ID and an interface to be implemented
 by any component that needs to be aware of the ID of the current instance. An instance ID is specified when starting
-Granitic via a command line argument or an InitialSettings struct. See the documentation for the granitic pacakge for
+Granitic via a command line argument or an InitialSettings struct. See the documentation for the granitic package for
 more detail.
 
 This package also defines the data structure for the implicit System facility (which cannot be disabled, but can be configured).

@@ -6,7 +6,7 @@ Package config provides functionality for working with configuration files and c
 
 Grantic uses JSON files to store component definitions (declarations of, and relationships between, components to
 run in the IoC container) and configuration (variables used by IoC components that may vary between environments and settings
-for Grantic's built-in facilities). A defintion of the use and syntax of these files are outside of the scope of a GoDoc page,
+for Grantic's built-in facilities). A definition of the use and syntax of these files are outside of the scope of a GoDoc page,
 but are described in detail at https://granitic.io/ref/component-definition-files and https://granitic.io/ref/configuration-files
 
 This package defines functionality for loading a JSON file (from a filesystem or via HTTP) and merging multiple files into
@@ -287,7 +287,7 @@ func (ac *Accessor) configVal(path []string, jsonMap map[string]interface{}) int
 
 // SetField takes a target Go interface and uses the data a the supplied path to populated the named field on the
 // target. The target must be a pointer to a struct. The field must be a string, bool, int, float63, string[interface{}] map
-// or a slice of one of those types. An eror will be returned if the target field, is missing, not settable or incompatiable
+// or a slice of one of those types. An eror will be returned if the target field, is missing, not settable or incompatible
 // with the JSON value at the supplied path.
 func (ac *Accessor) SetField(fieldName string, path string, target interface{}) error {
 
@@ -409,7 +409,7 @@ func (ac *Accessor) arrayVal(a reflect.Value) (reflect.Value, error) {
 }
 
 // Populate sets the fields on the supplied target object using the JSON data
-// at the supplied path. This is acheived using Go's json.Marshal to convert the data
+// at the supplied path. This is achieved using Go's json.Marshal to convert the data
 // back into text JSON and then json.Unmarshal to unmarshal back into the target.
 func (ac *Accessor) Populate(path string, target interface{}) error {
 	exists := ac.PathExists(path)

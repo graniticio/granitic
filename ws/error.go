@@ -69,7 +69,7 @@ type ServiceErrorConsumer interface {
 
 // ServiceErrors is a structure that records each of the errors found during the processing of a request.
 type ServiceErrors struct {
-	// All services found, in the order in which they occured.
+	// All services found, in the order in which they occurred.
 	Errors []CategorisedError
 
 	// An externally computed HTTP status code that reflects the mix of errors in this structure.
@@ -110,7 +110,7 @@ func (se *ServiceErrors) AddPredefinedError(code string, field ...string) error 
 	}
 
 	if e == nil {
-		message := fmt.Sprintf("An error occured with code %s, but no error message is available", code)
+		message := fmt.Sprintf("An error occurred with code %s, but no error message is available", code)
 		e = NewCategorisedError(Unexpected, code, message)
 
 	}

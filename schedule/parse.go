@@ -52,7 +52,7 @@ func parseNaturalToDuration(interval string) (time.Duration, error) {
 }
 
 func parseValueUnit(value, unit string) (int64, time.Duration, error) {
-	//Make such the first token is a postive integer
+	//Make such the first token is a positive integer
 	frequencyValue, okay := validValue(value)
 
 	if !okay {

@@ -59,7 +59,7 @@ const processPayloadFunc = "ProcessPayload"
 // WsRequestProcessor specifies the minimum required of a component to be considered a 'logic' component suitable for
 // use by a WsHandler.
 type WsRequestProcessor interface {
-	// Process performs the actual 'work' of a web service request. The reponse parameter will be modified according to
+	// Process performs the actual 'work' of a web service request. The response parameter will be modified according to
 	// the output or errors that the web service caller should see.
 	Process(ctx context.Context, request *ws.Request, response *ws.Response)
 }

@@ -19,7 +19,7 @@ to see a list of all commands, then
 
 	grnct-ctl help command-name
 
-to see usage and detailed help on an indiviudal command.
+to see usage and detailed help on an individual command.
 
 Usage of grnc-ctl:
 

@@ -157,7 +157,7 @@ type FieldAssociatedError interface {
 	RecordField(string)
 }
 
-// ParamValueInjector takes a series of key/value (string/string) paramters and tries to inject them into the fields
+// ParamValueInjector takes a series of key/value (string/string) parameters and tries to inject them into the fields
 // on a target struct
 type ParamValueInjector struct {
 }

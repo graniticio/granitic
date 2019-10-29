@@ -5,7 +5,7 @@
 Package logger provides the FrameworkLogging and ApplicationLogging facilities which control logging from framework and application components.
 
 Full documentation for this facility can be found at https://granitic.io/ref/logging and GoDoc for the logging types that your application
-will interact with are detailled in the logging package.
+will interact with are detailed in the logging package.
 */
 package logger
 

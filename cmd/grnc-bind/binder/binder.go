@@ -886,7 +886,7 @@ func (b *Binder) validateTypeAvailable(v map[string]interface{}, name string) bo
 	t := v[typeField]
 
 	if t == nil {
-		b.Log.LogErrorf("Component %s does not have a 'type' defined in its component defintion (or any parent templates).\n", name)
+		b.Log.LogErrorf("Component %s does not have a 'type' defined in its component definition (or any parent templates).\n", name)
 		b.fail()
 		return false
 	}

@@ -26,7 +26,7 @@ func LocateFacilityConfig(log logging.Logger) (string, error) {
 	var graniticPath string
 	var err error
 
-	notFound := fmt.Errorf("unable to find a Granitic installation - checked go.mod file, %s envrionment variable and standard checkout location under %s", graniticHomeEnvVar, goPathEnvVar)
+	notFound := fmt.Errorf("unable to find a Granitic installation - checked go.mod file, %s environment variable and standard checkout location under %s", graniticHomeEnvVar, goPathEnvVar)
 
 	log.LogDebugf("Looking for an installation of Granitic")
 
