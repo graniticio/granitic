@@ -1,4 +1,7 @@
 # FrameworkLogging and ApplicationLogging
+Back to: [Reference](README.md) | [Facilities](fac-index.md)
+
+---
 
 The FrameworkLogging and ApplicationLogging facilities control how your components, and Granitic's built-in 
 components, log messages by importance/severity.
@@ -61,3 +64,8 @@ The following components are created when both facilities are enabled
 | ---- | ---- |
 | grncApplicationLoggingManager | [logging.ComponentLoggerManager](https://godoc.org/github.com/graniticio/granitic/logging#ComponentLoggerManager) |
 | grncFrameworkLoggingManager | [logging.ComponentLoggerManager](https://godoc.org/github.com/graniticio/granitic/logging#ComponentLoggerManager) |
+
+---
+**Next**: [JSON Web Services](fac-json-ws.md)
+
+**Prev**: [HTTP Server](fac-http-server.md)

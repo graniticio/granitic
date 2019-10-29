@@ -1,4 +1,7 @@
 # HTTP Server
+Back to: [Reference](README.md) | [Facilities](fac-index.md)
+
+---
 
 Enabling the HTTPServer facility makes your [web service endpoints](ws-handlers.md) accessible to callers via HTTP. The 
 HTTP server that is created is a wrapper over Go's [built-in HTTP serving functionality](https://golang.org/pkg/net/http/).
@@ -123,9 +126,11 @@ abnormal status writer by creating a component that implements [ws.AbnormalStatu
 and instructing the HTTP server to use it by providing a [framework modifier](ioc-definition-files.md) like:
 
 ```json
-"frameworkModifiers": {
-  "grncHTTPServer": {
-    "AbnormalStatusWriter": "myStatusWriter"
+{
+  "frameworkModifiers": {
+    "grncHTTPServer": {
+      "AbnormalStatusWriter": "myStatusWriter"
+    }
   }
 }
 ``` 
@@ -288,3 +293,8 @@ The following components are created when this facility is enabled:
 | ---- | ---- |
 | grncHTTPServer | [httpserver.HTTPServer](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#HTTPServer) |
 | grncAccessLogWriter | [httpserver.AccessLogWriter](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#AccessLogWriter) |
+
+---
+**Next**: [Logger facility](fac-logger.md)
+
+**Prev**: [Facilities index](fac-index.md)
