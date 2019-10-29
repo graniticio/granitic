@@ -281,7 +281,7 @@ func (ac *Accessor) configVal(path []string, jsonMap map[string]interface{}) int
 		return result
 	}
 
-	remainPath := path[1:len(path)]
+	remainPath := path[1:]
 	return ac.configVal(remainPath, result.(map[string]interface{}))
 }
 
