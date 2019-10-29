@@ -717,7 +717,7 @@ func (wh *WsHandler) checkLogicComponent() error {
 
 func (wh *WsHandler) validateProcessPayload() error {
 
-	err := fmt.Errorf("Logic compoonent must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)", processPayloadFunc)
+	err := fmt.Errorf("Logic component must either implement WsRequestProcessor or have method %s(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)", processPayloadFunc)
 
 	if wh.Logic == nil {
 		return err
