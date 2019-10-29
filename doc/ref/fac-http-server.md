@@ -158,9 +158,11 @@ means that the HTTP server will not automatically look for a component that impl
 Instead you will need to explicit provide an instrumentation manager via a framework modifier like:
 
 ```json
-"frameworkModifiers": {
-  "grncHTTPServer": {
-    "InstrumentationManager": "myInstrumentationManager"
+{
+  "frameworkModifiers": {
+    "grncHTTPServer": {
+      "InstrumentationManager": "myInstrumentationManager"
+    }
   }
 }
 ``` 
@@ -222,7 +224,7 @@ or `combined`. The default is `framework`. The `common` and `combined` formats a
 
 ### Available verbs
 
-| Verb | Meaning and usage |
+| Formatting Verb | Meaning and usage |
 | ----- | --- |
 | %% | The percent symbol |
 | %b | The number of bytes (excluding headers) sent to client or the - symbol if zero |
@@ -235,7 +237,7 @@ or `combined`. The default is `framework`. The `common` and `combined` formats a
 | %q | The query string of the request, including a leading ? character |
 | %r | The HTTP request line (method, path and HTTP version) |
 | %s | The HTTP status code (200, 404 etc) sent to the client with the response |
-| %{?}t | The point in time at which the request was received where ? is a standard Go date/time format string (e.g. 02/Jan/2006:15:04:05 Z0700 ). In UTC or local time according to access log configuration |
+| %{?}t | The point in time at which the request was received where ? is a standard Go date/time format string (e.g. `02/Jan/2006:15:04:05 Z0700` ). In UTC or local time according to access log configuration |
 | %{?}T | The wall-clock time the service spent processing the request in a unit specified by ? where s gives seconds, ms gives milliseconds and us gives microseconds |
 | %u | A string representation of the ID of the user on whose behalf the request is being made. Only available if [IAM is configured](ws-iam.md), otherwise the - symbol is printed |
 | %U | The path portion of the HTTP request line |

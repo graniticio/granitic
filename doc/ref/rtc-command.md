@@ -1,3 +1,3 @@
-# Using the grnc-ctl commmand line tool 
+# Using grnc-ctl
 
-This section will explain how to use `grnc-ctl`
+This section will explain how to use grnc-ctl
