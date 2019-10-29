@@ -252,7 +252,7 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 	bz, err := base64.StdEncoding.DecodeString(*is.BuiltInConfig)
 
 	if err != nil {
-		i.logger.LogFatalf("Unable to deserialize the copy of Grantic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
+		i.logger.LogFatalf("Unable to deserialize the copy of Granitic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
 		instance.ExitError()
 	}
 
@@ -267,7 +267,7 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 	err = dc.Decode(&builtIn)
 
 	if err != nil {
-		i.logger.LogFatalf("Unable to deserialize the copy of Grantic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
+		i.logger.LogFatalf("Unable to deserialize the copy of Granitic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
 		instance.ExitError()
 	}
 
