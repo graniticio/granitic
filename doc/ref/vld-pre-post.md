@@ -1,5 +1,5 @@
 # Pre and post-processing data
-Back to: [Reference](README.md) | [Automatic Validation](vld-index.md)
+[Reference](README.md) | [Automatic Validation](vld-index.md)
 
 ---
 **Next**: [Relational databases](db-index.md)

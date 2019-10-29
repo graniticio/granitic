@@ -1,5 +1,5 @@
 # Enabling Automatic Validation
-Back to: [Reference](README.md) | [Automatic Validation](vld-index.md)
+[Reference](README.md) | [Automatic Validation](vld-index.md)
 
 ---
 **Next**: [Operations reference](vld-operations.md)

@@ -1,5 +1,5 @@
 # XML web services (XMLWS)
-Back to: [Reference](README.md) | [Facilities](fac-index.md)
+[Reference](README.md) | [Facilities](fac-index.md)
 
 ---
 

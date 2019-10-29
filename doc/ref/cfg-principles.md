@@ -1,5 +1,5 @@
 # Configuration principles
-Back to: [Reference](README.md) | [Configuration](cfg-index.md)
+[Reference](README.md) | [Configuration](cfg-index.md)
 
 ---
 

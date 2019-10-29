@@ -1,5 +1,5 @@
 # Log message formatting and location
-Back to: [Reference](README.md) | [Logging](log-index.md)
+[Reference](README.md) | [Logging](log-index.md)
 
 ---
 

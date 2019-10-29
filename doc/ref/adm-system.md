@@ -1,5 +1,7 @@
 # System configuration
-Back to: [Reference](README.md) | [Administration](adm-index.md)
+[Reference](README.md) | [Administration](adm-index.md)
+
+---
 
 The file `facility/config/system.json` contains settings that affect the low-level behaviour of the Granitic framework.
 The content of this file is as follows:

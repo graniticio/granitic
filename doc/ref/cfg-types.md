@@ -1,5 +1,5 @@
 # Configuration type handling
-Back to: [Reference](README.md) | [Configuration](cfg-index.md)
+[Reference](README.md) | [Configuration](cfg-index.md)
 
 ---
 JSON supports a very simple [type model](http://json.org) of strings, booleans, numbers, objects (maps) and arrays of those types.

@@ -1,5 +1,5 @@
 # Automatic Validation Principles
-Back to: [Reference](README.md) | [Automatic Validation](vld-index.md)
+[Reference](README.md) | [Automatic Validation](vld-index.md)
 
 ## Minimising boilerplate code
 

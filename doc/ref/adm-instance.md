@@ -1,5 +1,7 @@
 # Instance identification
-Back to: [Reference](README.md) | [Administration](adm-index.md)
+[Reference](README.md) | [Administration](adm-index.md)
+
+---
 
 If you are running multiple instances of the same application, either on a single VM/server/container, or across multiple
 hosts, it is often useful to assign each instance a unique ID.

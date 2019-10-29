@@ -1,5 +1,5 @@
 # HTTP Server
-Back to: [Reference](README.md) | [Facilities](fac-index.md)
+[Reference](README.md) | [Facilities](fac-index.md)
 
 ---
 

@@ -1,5 +1,5 @@
 # The component lifecycle
-Back to: [Reference](README.md) | [Component Container](ioc-index.md)
+[Reference](README.md) | [Component Container](ioc-index.md)
 
 ---
 Granitic is responsible for creating the Go structs that you tell it manage as components. By default, this means that

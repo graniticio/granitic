@@ -1,5 +1,5 @@
 # JSON and YAML
-Back to: [Reference](README.md) | [Granitic Projects](gpr-index.md)
+[Reference](README.md) | [Granitic Projects](gpr-index.md)
 
 ---
 
