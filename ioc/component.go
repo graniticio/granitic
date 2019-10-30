@@ -91,7 +91,7 @@ Binding
 
 Unlike JVM/CLR languages, Go has no runtime 'instance-for-type-name' mechanism for creating instances of a struct. As
 a result, unlike JVM/CLR IoC containers you may have used, the container does not instantiate the actual instances
-of the Go structs behind application components. Instead a 'binding' proces is used - refer to the pacakage documentation
+of the Go structs behind application components. Instead a 'binding' process is used - refer to the package documentation
 for the grnc-bind tool for more information.
 
 Container lifecycle
@@ -235,7 +235,7 @@ type ProtoComponent struct {
 	// A map of fields on the component instance and the config-path that will contain the configuration that shoud be inject into the field.
 	ConfigPromises map[string]string
 
-	// A map of default values for fields if a config promise is not fulfiled
+	// A map of default values for fields if a config promise is not fulfilled
 	DefaultValues map[string]string
 }
 
@@ -261,7 +261,7 @@ func (pc *ProtoComponent) AddConfigPromise(fieldName, configPath string) {
 	pc.ConfigPromises[fieldName] = configPath
 }
 
-// AddDefaultValue records an untyped default value to use if a config promise is not fulfiled
+// AddDefaultValue records an untyped default value to use if a config promise is not fulfilled
 func (pc *ProtoComponent) AddDefaultValue(fieldName, value string) {
 
 	if pc.DefaultValues == nil {

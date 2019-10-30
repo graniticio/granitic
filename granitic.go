@@ -100,7 +100,7 @@ func StartGranitic(cs *ioc.ProtoComponents) {
 }
 
 // StartGraniticWithSettings starts the IoC container and populates it with the supplied list of prototype components and using the
-// provided intial settings. This function will run until the application is halted by an interrupt (ctrl+c) or
+// provided initial settings. This function will run until the application is halted by an interrupt (ctrl+c) or
 // a runtime control shutdown command.
 func StartGraniticWithSettings(cs *ioc.ProtoComponents, is *config.InitialSettings) {
 	i := new(initiator)

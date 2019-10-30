@@ -45,7 +45,7 @@ type MarshallingResponseWriter struct {
 	// Component able to serialize the data to the HTTP output stream.
 	MarshalingWriter MarshalingWriter
 
-	// Whether or not the unique ID assigned to the request should be written as a reponse header
+	// Whether or not the unique ID assigned to the request should be written as a response header
 	IncludeRequestID bool
 
 	// The header key used if the request ID should be written as a response header
