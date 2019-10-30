@@ -4,6 +4,10 @@
 version: 2
 jobs:
   build:
+    branches:
+      only:
+        - master
+        - /maint-.*/
     docker:
       # specify the version
       - image: circleci/golang:1.12
