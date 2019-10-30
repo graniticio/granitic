@@ -1,6 +1,6 @@
 # Granitic
 
-Granitic is a framework and lightweight application server for building and running web and micro services written in Go. 
+Granitic is a framework and lightweight application server for building and running web and micro services written in Go.
 
 ## Features
 
@@ -10,7 +10,7 @@ Granitic is a framework and lightweight application server for building and runn
     * Full support for JSON and plain XML web services.
     * Automatic binding of request bodies, query parameters and path parameters.
     * Declarative, rule driven validation.
-    * A comprehensive error management system including full templating of all system and application error messages and 
+    * A comprehensive error management system including full templating of all system and application error messages and
     HTTP response code mapping.
 * Component based error logging.
 * Query management for data sources.
@@ -28,8 +28,8 @@ Additionally, Granitic is designed to be 'DevOps friendly' and offers:
 
 ## Getting started
 
-Read and follow the [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md) 
-then work through [the tutorials](https://github.com/graniticio/granitic/v2/tree/master/doc/tutorial)
+Read and follow the [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
+then work through [the tutorials](https://github.com/graniticio/granitic/tree/master/doc/tutorial)
 
 The GoDoc for Granitic can be [found here](https://godoc.org/github.com/graniticio/granitic)
 
