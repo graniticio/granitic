@@ -3,7 +3,7 @@ Back to: [Reference](README.md)
 
 ---
   * [Principles](vld-principles.md)
-  * [Creating and enabling rules](vld-enable-rules.md)
+  * [Defining and enabling rules](vld-enable-rules.md)
   * [Operations reference](vld-operations.md)
   * [Custom operations](vld-custom.md)
   * [Pre and post-processing](vld-pre-post.md)
