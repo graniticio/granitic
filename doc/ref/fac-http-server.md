@@ -183,7 +183,7 @@ configuration.
 
 This will create (or append) a UTF-8 encoded file called `access.log` in the same directory that you started your application (e.g. your
 application's working directory). You can change this specifying a full or relative path to a file with
-`HTTPServer.AccessLog.LogPath`. Your application must have filesystem permission to create and edit the file at that path.  
+`HTTPServer.AccessLog.LogPath`. Your application must have filesystem permission to create and edit the file at that path. You can also choose to be written stdout instead of a file to fill in "stdout".  
 
 The format and information recorded for each request is highly customisable and is described in detail below.
 
