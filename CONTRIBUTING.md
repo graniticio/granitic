@@ -54,3 +54,17 @@ features.
 
 Generally you can tell which branch you should be submitting to based on the [milestone](https://github.com/graniticio/granitic/milestones)
 associated with the issue.
+
+
+## Tests
+
+Please include high-quality tests with your submissions. The rule with test coverage is that your contribution 
+must not lower the coverage percentage of the file or package you are modifying.
+
+If you are creating a new Go file as part of your submission, the expectation is that your tests will provide
+100% coverage for that file.
+
+Granitic's strict no-dependencies rule extends to tests. You can only use the test libraries included as part of
+Go or in Granitic's `test` package.
+
+If your tests require data files, they should be included in a folder named `testdata` in the package you are testing.
