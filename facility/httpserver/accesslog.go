@@ -8,15 +8,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v2/httpendpoint"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/graniticio/granitic/v2/httpendpoint"
+	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v2/logging"
 )
 
 const percent = "%"
@@ -243,8 +244,10 @@ func (alw *AccessLogWriter) openFile() (closableStringWriter, error) {
 		return nil, errors.New("HTTP server access log is enabled, but no path to a log file specified")
 	}
 
+	if logPath == "stdout" {
+		return os.Stdout, nil
+	}
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-
 	if err != nil {
 		return nil, err
 	}
