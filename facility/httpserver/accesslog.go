@@ -595,15 +595,15 @@ func (alw *AccessLogWriter) ReadyToStop() (bool, error) {
 // Stop closes the log file and message channel
 func (alw *AccessLogWriter) Stop() error {
 
-	if alw.logFile != nil {
-		return alw.logFile.Close()
-	}
-
 	if alw.lines != nil {
 		close(alw.lines)
 	}
 
 	alw.state = ioc.StoppedState
+
+	if alw.logFile != nil {
+		return alw.logFile.Close()
+	}
 
 	return nil
 }
