@@ -183,9 +183,18 @@ configuration.
 
 This will create (or append) a UTF-8 encoded file called `access.log` in the same directory that you started your application (e.g. your
 application's working directory). You can change this specifying a full or relative path to a file with
-`HTTPServer.AccessLog.LogPath`. Your application must have filesystem permission to create and edit the file at that path. You can also choose to be written stdout instead of a file to fill in "stdout".  
+`HTTPServer.AccessLog.LogPath`. Your application must have filesystem permission to create and edit the file at that path. 
 
 The format and information recorded for each request is highly customisable and is described in detail below.
+
+### STDOUT logging
+
+If you need your application to write access logs to `STDOUT`, the preferred option is to set
+`HTTPServer.AccessLog.LogPath` to whatever file path represents `STDOUT` on your OS (e.g. `/dev/stdout`).
+
+If your OS does not support this concept, you can set `HTTPServer.AccessLog.LogPath` to `STDOUT` and Granitic will
+use Go's [os.Stdout](https://golang.org/pkg/os/#pkg-variables) file to write access log entries.
+
 
 ### Timestamps
 

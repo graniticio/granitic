@@ -41,6 +41,8 @@ const formatRegex = "\\%[a-zA-Z]|\\%\\%|\\%{[^}]*}[a-zA-Z]"
 const varModifiedRegex = "\\%{([^}]*)}([a-zA-Z])"
 const commonLogDateFormat = "[02/Jan/2006:15:04:05 -0700]"
 
+const stdoutMode = "STDOUT"
+
 type logFormatPlaceHolder int
 
 const (
@@ -244,9 +246,10 @@ func (alw *AccessLogWriter) openFile() (closableStringWriter, error) {
 		return nil, errors.New("HTTP server access log is enabled, but no path to a log file specified")
 	}
 
-	if logPath == "stdout" {
-		return os.Stdout, nil
+	if logPath == stdoutMode {
+		return uncloseable{os.Stdout}, nil
 	}
+
 	f, err := os.OpenFile(logPath, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return nil, err
@@ -598,15 +601,15 @@ func (alw *AccessLogWriter) ReadyToStop() (bool, error) {
 // Stop closes the log file and message channel
 func (alw *AccessLogWriter) Stop() error {
 
-	if alw.logFile != nil {
-		return alw.logFile.Close()
-	}
-
 	if alw.lines != nil {
 		close(alw.lines)
 	}
 
 	alw.state = ioc.StoppedState
+
+	if alw.logFile != nil {
+		return alw.logFile.Close()
+	}
 
 	return nil
 }
@@ -614,4 +617,16 @@ func (alw *AccessLogWriter) Stop() error {
 type closableStringWriter interface {
 	WriteString(s string) (n int, err error)
 	Close() error
+}
+
+type uncloseable struct {
+	c closableStringWriter
+}
+
+func (u uncloseable) WriteString(s string) (n int, err error) {
+	return u.c.WriteString(s)
+}
+
+func (u uncloseable) Close() error {
+	return nil
 }

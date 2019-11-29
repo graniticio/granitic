@@ -13,6 +13,7 @@ import (
 	"github.com/graniticio/granitic/v2/logging"
 	"github.com/graniticio/granitic/v2/uuid"
 	"net/http"
+	"strings"
 )
 
 // HTTPServerComponentName is the name of the HTTPServer component as stored in the IoC framework.
@@ -46,6 +47,16 @@ func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 	if httpServer.AccessLogging {
 		accessLogWriter := new(AccessLogWriter)
 		ca.Populate("HTTPServer.AccessLog", accessLogWriter)
+
+		file := accessLogWriter.LogPath
+
+		file = strings.TrimSpace(file)
+		file = strings.ToUpper(file)
+
+		if file == stdoutMode {
+			log.LogDebugf("Access logs will be written to STDOUT")
+			accessLogWriter.LogPath = stdoutMode
+		}
 
 		httpServer.AccessLogWriter = accessLogWriter
 

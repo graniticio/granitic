@@ -21,7 +21,7 @@ func TestAccessLogWriterWithStdout(t *testing.T) {
 	alw.LogLinePreset = "combined"
 	alw.LineBufferSize = 1
 
-	alw.LogPath = "stdout"
+	alw.LogPath = stdoutMode
 
 	if err := alw.StartComponent(); err != nil {
 		t.Fatalf(err.Error())
