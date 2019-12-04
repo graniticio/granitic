@@ -43,6 +43,11 @@ Once you have followed the installation instructions, you can run Granitic's uni
 cd $GOPATH/src/github.com/graniticio/granitic
 go test ./...
 ```
+## Contributing
+
+We are always delighted to receive contributions from the community. Please read the 
+[Contributing](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) guides and
+then have a look at the [open issues](https://github.com/graniticio/granitic/issues)
 
 ## Get in touch
 
