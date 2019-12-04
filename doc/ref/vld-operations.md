@@ -137,6 +137,28 @@ minimum and maximum length (`LEN:2-10`), just a maximum (`LEN:-10`) or just a mi
 
 ### EXT (External component)
 
+`EXT:componentName[:ERROR_CODE]`
+
+## Available for
+  * STR
+  * INT
+  * FLOAT
+  
+### Parameters
+
+`EXT` requires the component name of a [component registered in the Granitic IoC container](ioc-principles.md)
+that can determine whether or not the field under validation is allowed.
+
+
+### Usage
+EXT allows complex checks that cannot be modelled using Granitic's rules and operations or require access to external
+data source. For example, you might want to check if an email address is already being used by another user before
+allowing another user to claim it.
+
+The component that is used to perform the check must implement one of [validate.ExternalStringValidator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalStringValidator),
+[validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalFloat64Validator) or
+[validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator) according to 
+the type of the field under consideration.
 
 **Next**: [Custom operations](vld-custom.md)
 
