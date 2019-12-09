@@ -139,19 +139,19 @@ minimum and maximum length (`LEN:2-10`), just a maximum (`LEN:-10`) or just a mi
 
 `EXT:componentName[:ERROR_CODE]`
 
-## Available for
+#### Available for
   * STR
   * INT
   * FLOAT
   
-### Parameters
+#### Parameters
 
 `EXT` requires the component name of a [component registered in the Granitic IoC container](ioc-principles.md)
 that can determine whether or not the field under validation is allowed.
 
+#### Usage
 
-### Usage
-EXT allows complex checks that cannot be modelled using Granitic's rules and operations or require access to external
+`EXT` allows complex checks that cannot be modelled using Granitic's rules and operations or require access to an external
 data source. For example, you might want to check if an email address is already being used by another user before
 allowing another user to claim it.
 
@@ -159,6 +159,96 @@ The component that is used to perform the check must implement one of [validate.
 [validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalFloat64Validator) or
 [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator) according to 
 the type of the field under consideration.
+
+---
+
+### RANGE
+
+`RANGE:[min]|[max][:ERROR_CODE]`
+
+#### Available for
+  * INT
+  * FLOAT
+  
+#### Parameters
+
+`RANGE` requires a minimum allowed value or a maximum allowed value or both.
+
+#### Usage
+
+`RANGE` allows to check whether a numeric value is within a pre-defined range. As the minimum and maximum parameters are
+both optional, this operation can also be used to implement minimum (with no maximum) or maximum (with no minimum) value checks.
+
+*Examples:*
+
+`RANGE:1|10` value must be between 1 and 10 inclusive
+
+`RANGE:-2|` value must be a minimum of -2, with no upper limit
+
+`RANGE:|0.98` value must be a maximum of 0.98 with no lower limit
+
+--- 
+
+## BOOL operations
+
+The following operations are only available for checks on `BOOL` fields.
+
+### IS
+
+`IS:boolValue[:ERROR_CODE]`
+
+#### Parameters
+
+`IS` takes either `true` or `false` as a parameter
+
+#### Usage
+
+`IS` is used to require a boolean value to be set to the same value (true or false) as specified in the check.
+
+---
+
+## STRING operations
+
+The following operations are only available for checks on `STRING` fields.
+
+### TRIM
+
+`TRIM`
+
+#### Usage
+
+`TRIM` temporarily removes leading and trailing whitespace (using [strings.TrimSpace()](https://golang.org/pkg/strings/#TrimSpace))
+for the purposes of all validation checks. If the value passes all checks, it is the original untrimmed version of the value which
+is passed to your [application logic](ws-logic.md).
+
+---
+
+### HARDTRIM
+
+`HARDTRIM`
+
+#### Usage
+
+`HARDTRIM` behaves in a similar way to `TRIM`, except that the value is permanently changed to its trimmed value 
+(e.g your [application logic](ws-logic.md) will receive the trimmed version of the value.
+
+---
+
+
+#### REG (regular expression)
+
+`REG:expression[:ERROR_CODE]`
+
+#### Parameters
+
+`REG` requires a mandatory [regular expression pattern](https://golang.org/pkg/regexp/). The validity of the expression
+is checked during Granitic startup with [regexp.MustCompile()](https://golang.org/pkg/regexp/#MustCompile). If this 
+fails your application will shutdown with an error.
+ 
+#### Usage
+
+The string value being checked will be matched against the compiled pattern using [regexp.MatchString()](https://golang.org/pkg/regexp/#MatchString)
+and the check will fail if there is no match.
 
 **Next**: [Custom operations](vld-custom.md)
 
