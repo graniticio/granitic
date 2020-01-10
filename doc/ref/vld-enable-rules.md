@@ -60,7 +60,8 @@ An example rule set is:
     ["CatalogRef",  "STR",               "REQ:CATALOG_REF_MISSING", "HARDTRIM",        "BREAK",     "REG:^[A-Z]{3}-[\\d]{6}$:CATALOG_REF"],
     ["Name",        "STR:RECORD_NAME",   "REQ",                     "HARDTRIM",        "LEN:1-128"],
     ["Artist",      "STR:ARTIST_NAME",   "REQ",                     "HARDTRIM",        "LEN:1-64"],
-    ["Tracks",      "SLICE:TRACK_COUNT", "LEN:1-100",               "ELEM:trackName"]
+    ["Tracks",      "SLICE:TRACK_COUNT", "LEN:1-100",               "ELEM:trackName"],
+    ["Label",       "RULE:validLabel"]
   ]
 }
 ```
@@ -98,6 +99,11 @@ Type must be one of the following:
 You may also set an error code after the type (e.g. `STR:INVALID_NAME`). This error code is
 then used instead of the default error code defined for the rule set.
 
+### Shared rules
+
+Validation rules are generally specific to a specific [endpoint](ws-handlers.md), but some rules need to be shared
+across multiple endpoints. The documentation for [shared rules](vld-custom.md) explains how this works.
+
 ### Operations
 
 Operations are either checks that should be performed against the field (length checks, regular expressions etc), 
@@ -108,7 +114,7 @@ Many operations support arguments that are specified after the operation name. F
 on a string that requires the validated string to be between 1 and 128 characters in length. 
 
 You may also set an error code after the operation name and/or arguments (e.g. `REQ:CATALOG_REF_MISSING` or 
-`LEN:1-100:TRACK_LENGTH). This error code is then used instead of the default error code defined for the rule or rule set.
+`LEN:1-100:TRACK_LENGTH`). This error code is then used instead of the default error code defined for the rule or rule set.
 
 The operations that are available for each supported type are documented in the [operations reference](vld-operations.md).
 

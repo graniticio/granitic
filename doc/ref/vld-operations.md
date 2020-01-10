@@ -250,6 +250,12 @@ fails your application will shutdown with an error.
 The string value being checked will be matched against the compiled pattern using [regexp.MatchString()](https://golang.org/pkg/regexp/#MatchString)
 and the check will fail if there is no match.
 
+---
+
+## SLICE operations
+
+The following operations are only available for checks on `SLICE` fields.
+
 **Next**: [Custom operations](vld-custom.md)
 
 **Prev**: [Creating and enabling rules](vld-enable-rules.md)
