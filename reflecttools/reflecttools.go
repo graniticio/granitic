@@ -233,6 +233,12 @@ func FindNestedField(path []string, v interface{}) (reflect.Value, error) {
 	head := path[0]
 
 	if pl == 1 {
+
+		if !HasFieldOfName(v, head) {
+			var zero reflect.Value
+			return zero, fmt.Errorf("field %s does not exist on target object of type %T", head, v)
+		}
+
 		return FieldValue(v, head), nil
 	}
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Granitic. All rights reserved.
+// Copyright 2016-2020 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package reflecttools
@@ -34,6 +34,20 @@ func TestNestedFieldFind(t *testing.T) {
 	test.ExpectString(t, v.Interface().(string), "Not ptr")
 
 }
+
+func TestMissingField(t *testing.T) {
+
+	subject := new(blank)
+
+	_, err := FindNestedField(ExtractDotPath("F1"), subject)
+
+	if err == nil {
+		t.Fail()
+	}
+
+}
+
+type blank struct{}
 
 func TestInvalidDependencySet(t *testing.T) {
 
