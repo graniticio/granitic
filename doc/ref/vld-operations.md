@@ -256,6 +256,21 @@ and the check will fail if there is no match.
 
 The following operations are only available for checks on `SLICE` fields.
 
+### ELEM (validate elements)
+
+`ELEM:sharedRuleName[:ERROR_CODE]`
+
+#### Parameters
+
+`ELEM` requires the name of a [shared rule](vld-custom.md) to apply to each element of the array/slice to be checked.
+The shared rule must be of type `INT`, `FLOAT`, `STRING` or `BOOL` (multi-dimensional and object arrays cannot
+currently be validated used `ELEM`)
+
+### Usage
+
+Each element of the slice/array to be checked will be validated against the supplied rule. Validation of the remaining
+elements will continue even if an element fails validation. 
+
 **Next**: [Custom operations](vld-custom.md)
 
 **Prev**: [Creating and enabling rules](vld-enable-rules.md)

@@ -95,14 +95,18 @@ Type must be one of the following:
 | BOOL | A `bool` or a `*types.NilableBool` |
 | FLOAT | A `float` of any size or signedness or a `*types.NilableFloat64` |
 | SLICE | A slice or array of any type |
+| RULE | Indicate that a [shared rule](vld-custom.md) should be used to validate this field.
 
 You may also set an error code after the type (e.g. `STR:INVALID_NAME`). This error code is
 then used instead of the default error code defined for the rule set.
 
 ### Shared rules
 
-Validation rules are generally specific to a specific [endpoint](ws-handlers.md), but some rules need to be shared
-across multiple endpoints. The documentation for [shared rules](vld-custom.md) explains how this works.
+Validation rules are generally specific to a particular [endpoint](ws-handlers.md), but some rules need to be shared
+across multiple endpoints. Shared rules can be referenced from within a rule set by specifying `RULE:ruleName` instead
+of a type in a rule. 
+
+The documentation for [shared rules](vld-custom.md) explains how this works.
 
 ### Operations
 
