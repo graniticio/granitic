@@ -136,6 +136,20 @@ func HasFieldOfName(i interface{}, fieldName string) bool {
 	return f.IsValid()
 }
 
+// StructOrPointerHasFieldOfName checks whether the supplied object has a field of the specified name
+func StructOrPointerHasFieldOfName(i interface{}, fieldName string) bool {
+
+	if IsPointer(i) {
+		return HasFieldOfName(i, fieldName)
+	}
+
+	r := reflect.ValueOf(i)
+	f := r.FieldByName(fieldName)
+
+	return f.IsValid()
+
+}
+
 // HasWritableFieldOfName assumes the supplied interface is a pointer to a struct and checks to see if the underlying struct
 // has a writable field of the supplied name.
 func HasWritableFieldOfName(i interface{}, fieldName string) bool {
@@ -234,7 +248,7 @@ func FindNestedField(path []string, v interface{}) (reflect.Value, error) {
 
 	if pl == 1 {
 
-		if !HasFieldOfName(v, head) {
+		if !StructOrPointerHasFieldOfName(v, head) {
 			var zero reflect.Value
 			return zero, fmt.Errorf("field %s does not exist on target object of type %T", head, v)
 		}
