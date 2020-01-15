@@ -1,6 +1,8 @@
 # Enabling and defining validation rules
 [Reference](README.md) | [Automatic Validation](vld-index.md)
 
+---
+
 ## Enabling automatic validation
 Automatic validation is configured on a [per-endpoint](ws-handlers.md) basis. There is no
 specific [facility](fac-index.md) associated with validation, but each validation rule is
@@ -79,6 +81,39 @@ Rules consist of three components:
 
 The field name is the field in the [data capture target](ws-capture.md) that is to be validated.
 The name must be an exact case sensitive match for the field on the target object.
+
+To validate nested fields, you may use the dot notation. For example using the target object
+
+```go
+type Parent struct {
+  Child child
+}
+
+struct child{
+  CheckField string
+}
+```
+
+You would use the field name `Child.CheckField` to define a rule that validates the nested field `CheckField`
+
+
+If you are using the simplest `ProcessPayload` method of [creating a target object](ws-logic.md), any child objects
+need to be a structs, not pointers to a struct, due to the way Granitic initialises target objects.
+
+If you would prefer to nest objects like:
+
+```go
+type Parent struct {
+  Child *child
+}
+
+struct child{
+  CheckField string
+}
+```
+
+You should instead use the method for creating target objects explained in [Capture data into a complex struct](ws-logic.md).
+
 
 ### Field type
 

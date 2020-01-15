@@ -1,5 +1,7 @@
 # Operations Reference
  [Reference](README.md) | [Automatic Validation](vld-index.md)
+
+---
  
 This page describes the operations available as part of a validation rule. 
 
@@ -271,7 +273,23 @@ currently be validated used `ELEM`)
 Each element of the slice/array to be checked will be validated against the supplied rule. Validation of the remaining
 elements will continue even if an element fails validation. 
 
-**Next**: [Custom operations](vld-custom.md)
+If you are using the default formatter for [service errors](ws-error.md), the index of the
+element with a problem will be included in the field name. For example:
+
+```json
+{
+  "ByField":{
+    "SliceCheck[0]":[
+      {
+        "Code": "C-TOOSHORT",
+        "Message": "Length of element must be four or greater"
+      }
+    ]
+  }
+}
+```
+
+**Next**: [Shared rules](vld-custom.md)
 
 **Prev**: [Creating and enabling rules](vld-enable-rules.md)
 
