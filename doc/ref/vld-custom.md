@@ -54,6 +54,6 @@ The auto validator which manages validation for a particular handler must be giv
 }
 ```
 
-**Next**: [Pre and post-processing](vld-pre-post.md)
+**Next**: [Relational databases](db-index.md)
 
 **Prev**: [Operations reference](vld-operations.md)
