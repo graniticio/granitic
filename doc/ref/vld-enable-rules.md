@@ -17,7 +17,7 @@ Your endpoint must be managed by an instance of [handler.WsHandler](https://godo
 (as [described here](ws-handlers.md)) and be configured to provide a [data capture target](ws-capture.md) - this is the 
 object that will actually be validated.
 
-### Adding an Auto Validator
+### Adding an Auto-validator
 
 Automatic validation is enabled by injecting an instance of the built-in 
 [validate.RuleValidator](https://godoc.org/github.com/graniticio/granitic/validate#RuleValidator)
@@ -73,9 +73,10 @@ Note that the formatting above is not required and just used here to improve rea
 ## Rule structure
 
 Rules consist of three components: 
- * The field name
- * A logical type
- * One or more operations
+
+  * A field name
+  * A logical type
+  * One or more operations
 
 ### Field name
 

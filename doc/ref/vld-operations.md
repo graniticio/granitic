@@ -51,7 +51,7 @@ All types
 The `MEX` operation allows you to declare that a field is not allowed to be set if _any_ of the other
 fields specified have been set. 
 
-For example `MEX:WeightLbs,WeightStones` would fail if _either_ `WeightLbs` or `WeightStones` is set. The logic
+For example `MEX:WeightLbs,WeightStones` would fail if _either_  `WeightLbs` or `WeightStones` is set. The logic
 for whether a field is considered to be 'set' is the same as the logic described above in the `REQ` operation.
 
 ---
@@ -153,9 +153,9 @@ that can determine whether or not the field under validation is allowed.
 
 #### Usage
 
-`EXT` allows complex checks that cannot be modelled using Granitic's rules and operations or require access to an external
+`EXT` allows complex checks that cannot be modelled using Granitic's rules/operations or that require access to an external
 data source. For example, you might want to check if an email address is already being used by another user before
-allowing another user to claim it.
+allowing someone to claim it.
 
 The component that is used to perform the check must implement one of [validate.ExternalStringValidator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalStringValidator),
 [validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalFloat64Validator) or
@@ -237,7 +237,7 @@ is passed to your [application logic](ws-logic.md).
 ---
 
 
-#### REG (regular expression)
+### REG (regular expression)
 
 `REG:expression[:ERROR_CODE]`
 

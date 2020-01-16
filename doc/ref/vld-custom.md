@@ -3,9 +3,9 @@
 
 ---
 
-Rules are typically defined in the context of a single endpoint in the auto validator component that is 
+Rules are typically defined in the context of a single endpoint in the auto-validator component that is 
 [injected into a handler](vld-enable-rules.md). There are scenarios in which is is useful to define rules
-in way they can be shared between multiple handlers:
+in way they can be shared between multiple handlers/auto-validators:
 
   * A common rule that is needed by multiple endpoints (email address validation, for example)
   * A rule that is used by another operation (the [ELEM](vld-operations.md) operation for `SLICE` validation)
@@ -38,7 +38,7 @@ The key in the map (`artistExistsRule`) is the name of the rule that can be refe
 and content of the rules are defined in the same way as non-shared rules.
 
 
-## Set rule manager on auto validator
+## Set rule manager on auto-validator
 
 The auto validator which manages validation for a particular handler must be given a reference to the shared rule manager
 

@@ -20,15 +20,12 @@ without recompiling your application and can have their definition changed betwe
 
 Automatic validation is fully integrated with the [web service processing pipeline](ws-pipeline.md). Its goal
 is to deliver a validated [data capture target](ws-capture.md) to your application logic or automatically
-return an [error response](ws-error.md) if validation failed.
-
-It also possible to have the data capture target [modified after is parsed](vld-pre-post.md) or after 
-[validation is successful](vld-pre-post.md), but before it is passed to your application logic. 
+return an [error response](ws-error.md) if validation failed. 
   
 ## Custom operations
 
 Granitic includes a number of common operations for checking various data-types, but also provides a mechanism
-for you to build [custom operations](vld-operations.md) for additional checks (e.g. making sure an email address
+for you to build custom operations for additional checks (e.g. making sure an email address
 is not already being used by another user)
 
 ---
