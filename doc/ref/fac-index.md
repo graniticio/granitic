@@ -1,5 +1,7 @@
 # Facilities
 
+Back to: [Reference](README.md)
+
 ## In this section
   * [HTTP Server](fac-http-server.md)
   * [Logger](fac-logger.md)
@@ -9,3 +11,5 @@
   * [RDBMS](fac-rdbms.md)
   * [Runtime Control](fac-runtime.md)
   * [Service Error Management](fac-service-errors.md)
+
+This section explains how to enable and configuration Granitic's major features, known as facilities.

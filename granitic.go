@@ -100,7 +100,7 @@ func StartGranitic(cs *ioc.ProtoComponents) {
 }
 
 // StartGraniticWithSettings starts the IoC container and populates it with the supplied list of prototype components and using the
-// provided intial settings. This function will run until the application is halted by an interrupt (ctrl+c) or
+// provided initial settings. This function will run until the application is halted by an interrupt (ctrl+c) or
 // a runtime control shutdown command.
 func StartGraniticWithSettings(cs *ioc.ProtoComponents, is *config.InitialSettings) {
 	i := new(initiator)
@@ -252,7 +252,7 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 	bz, err := base64.StdEncoding.DecodeString(*is.BuiltInConfig)
 
 	if err != nil {
-		i.logger.LogFatalf("Unable to deserialize the copy of Grantic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
+		i.logger.LogFatalf("Unable to deserialize the copy of Granitic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
 		instance.ExitError()
 	}
 
@@ -267,7 +267,7 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 	err = dc.Decode(&builtIn)
 
 	if err != nil {
-		i.logger.LogFatalf("Unable to deserialize the copy of Grantic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
+		i.logger.LogFatalf("Unable to deserialize the copy of Granitic's configuration created by grnc-bind. Re-run grnc-bind and re-build: %s", err.Error())
 		instance.ExitError()
 	}
 

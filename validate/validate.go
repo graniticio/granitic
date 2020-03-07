@@ -247,7 +247,7 @@ type ValidationRule interface {
 	// Check the subject provided in the supplied context and return any found errors.
 	Validate(vc *ValidationContext) (result *ValidationResult, unexpected error)
 
-	// Tell the coordinating object that no other rules should be procesed if errors are found by this rule.
+	// Tell the coordinating object that no other rules should be processed if errors are found by this rule.
 	StopAllOnFail() bool
 
 	// Summarise all of the unique error codes referenced by checks in this rule.

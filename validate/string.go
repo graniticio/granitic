@@ -328,7 +328,7 @@ func (sv *StringValidationRule) Break() *StringValidationRule {
 
 }
 
-// Length adds a check to see if the string has a lenght between the supplied min and max values.
+// Length adds a check to see if the string has a length between the supplied min and max values.
 func (sv *StringValidationRule) Length(min, max int, code ...string) *StringValidationRule {
 
 	sv.minLen = min

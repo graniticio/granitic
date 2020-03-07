@@ -1,5 +1,5 @@
 # Component definition files
-Back to: [Reference](README.md) | [Component Container](ioc-index.md)
+[Reference](README.md) | [Component Container](ioc-index.md)
 
 ---
 

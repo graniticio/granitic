@@ -1,5 +1,5 @@
 # Logging principles
-Back to: [Reference](README.md) | [Logging](log-index.md)
+[Reference](README.md) | [Logging](log-index.md)
 
 ---
 ## Logging as a facility

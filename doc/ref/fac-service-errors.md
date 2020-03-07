@@ -1,4 +1,7 @@
 # Service Error Manager (ServiceErrorManager)
+[Reference](README.md) | [Facilities](fac-index.md)
+
+---
 
 Enabling the Service Error Manager facility allows human readable error messages and the categorisation of those errors 
 to be managed in configuration files. This simplifies application logic where errors can
@@ -124,3 +127,8 @@ The following components are created when this facility is enabled:
 | Name | Type |
 | ---- | ---- |
 | grncServiceErrorManager | [grncerror.ServiceErrorManager](https://godoc.org/github.com/graniticio/granitic/grncerror#ServiceErrorManager) |
+
+---
+**Next**: [Runtime Control](rtc-index.md)
+
+**Prev**: [Runtime Control facility](fac-runtime.md)

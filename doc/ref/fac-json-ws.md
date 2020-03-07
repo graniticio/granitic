@@ -1,4 +1,7 @@
 # JSON Web Services (JSONWs)
+[Reference](README.md) | [Facilities](fac-index.md)
+
+---
 
 Enabling the JSON web services facility automatically injects components into your [web service handlers](ws-handlers.md)
 such that HTTP request bodies are parsed as JSON documents and HTTP response bodies are formatted as JSON documents.
@@ -168,3 +171,8 @@ The following components are created when this facility is enabled:
 | ---- | ---- |
 | grncJSONResponseWriter | [ws.MarshallingResponseWriter](https://godoc.org/github.com/graniticio/granitic/ws#MarshallingResponseWriter) |
 | grncJSONUnmarshaller | [json.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/ws/json#Unmarshaller) |
+
+---
+**Next**: [XML Web Services](fac-xml-ws.md)
+
+**Prev**: [Logger](fac-logger.md)

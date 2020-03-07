@@ -1,5 +1,5 @@
 # Configuration files
-Back to: [Reference](README.md) | [Configuration](cfg-index.md)
+[Reference](README.md) | [Configuration](cfg-index.md)
 
 ---
 Granitic applications require one or more configuration files to be made available when the application starts. Those
@@ -54,15 +54,10 @@ Granitic will load configuration files in this order:
 
 JSON configuration files must end with the case-sensitive extension `.json` and be `UTF-8` encoded.
 
-### HTTP URL responses
+### Config from remote URLs
 
-HTTP URLs invoked to provide JSON configuration must return a response with:
-
-  * A content type of `application/json`
-  * A JSON formatted response body
-  * A status code of `200`
-  
-If any of these conditions are not met, your application will fail to start.
+The requirements for retrieving configuration over HTTP are explained in the [remote confguration](adm-remote.md)
+section of the documentation.
 
 
 ## File contents

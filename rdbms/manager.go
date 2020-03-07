@@ -157,7 +157,7 @@ and end your method with:
 	db.CommitTransaction()
 
 
-The deferred Rollback call will do nothing if the transaction has previously been commited.
+The deferred Rollback call will do nothing if the transaction has previously been committed.
 
 
 Direct access to Go DB methods

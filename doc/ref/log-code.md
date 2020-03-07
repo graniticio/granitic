@@ -1,5 +1,5 @@
 # Adding logging to your code
-Back to: [Reference](README.md) | [Logging](log-index.md)
+[Reference](README.md) | [Logging](log-index.md)
 
 ---
 ## Having Granitic inject a logger

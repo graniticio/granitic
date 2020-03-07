@@ -1,5 +1,5 @@
 # Log levels
-Back to: [Reference](README.md) | [Logging](log-index.md)
+[Reference](README.md) | [Logging](log-index.md)
 
 ---
 Controlling which components' messages are output to logs and at which severity level is controlled through the

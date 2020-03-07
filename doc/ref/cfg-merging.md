@@ -1,5 +1,5 @@
 # Configuration merging
-Back to: [Reference](README.md) | [Configuration](cfg-index.md)
+[Reference](README.md) | [Configuration](cfg-index.md)
 
 ---
 A key principle in Granitic's configuration model is that of [configuration layers](cfg-principles.md), where an

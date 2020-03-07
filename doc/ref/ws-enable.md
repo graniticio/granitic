@@ -1,6 +1,6 @@
 # Enabling web services support
 
-Back to: [Reference](README.md) | [Web Services](ws-index.md)
+[Reference](README.md) | [Web Services](ws-index.md)
 
 ---
 

@@ -19,7 +19,7 @@ Any component in your application will have a Logger injected into it if the und
 
 	Log logging.Logger
 
-The Logger is injected during the 'decoration' phase of container startup ( implements package documentation for the ioc pacakge). This
+The Logger is injected during the 'decoration' phase of container startup ( implements package documentation for the ioc package). This
 means the Logger is safe to use in any method in your component.
 
 Log levels
@@ -209,7 +209,7 @@ type Logger interface {
 	//LogAtLevelfCtx log at the specified level
 	LogAtLevelf(level LogLevel, levelLabel string, format string, a ...interface{})
 
-	//IsLevelEnabled returns true if a message at the supplied level would acutally be logged. Useful to check
+	//IsLevelEnabled returns true if a message at the supplied level would actually be logged. Useful to check
 	//if the construction of a message would be expensive or slow.
 	IsLevelEnabled(level LogLevel) bool
 }

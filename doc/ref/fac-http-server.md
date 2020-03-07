@@ -123,9 +123,11 @@ abnormal status writer by creating a component that implements [ws.AbnormalStatu
 and instructing the HTTP server to use it by providing a [framework modifier](ioc-definition-files.md) like:
 
 ```json
-"frameworkModifiers": {
-  "grncHTTPServer": {
-    "AbnormalStatusWriter": "myStatusWriter"
+{
+  "frameworkModifiers": {
+    "grncHTTPServer": {
+      "AbnormalStatusWriter": "myStatusWriter"
+    }
   }
 }
 ``` 
@@ -158,9 +160,11 @@ means that the HTTP server will not automatically look for a component that impl
 Instead you will need to explicit provide an instrumentation manager via a framework modifier like:
 
 ```json
-"frameworkModifiers": {
-  "grncHTTPServer": {
-    "InstrumentationManager": "myInstrumentationManager"
+{
+  "frameworkModifiers": {
+    "grncHTTPServer": {
+      "InstrumentationManager": "myInstrumentationManager"
+    }
   }
 }
 ``` 
@@ -295,3 +299,8 @@ The following components are created when this facility is enabled:
 | ---- | ---- |
 | grncHTTPServer | [httpserver.HTTPServer](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#HTTPServer) |
 | grncAccessLogWriter | [httpserver.AccessLogWriter](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#AccessLogWriter) |
+
+---
+**Next**: [Logger facility](fac-logger.md)
+
+**Prev**: [Facilities index](fac-index.md)

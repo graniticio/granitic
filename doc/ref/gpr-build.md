@@ -1,5 +1,5 @@
 # Building and running a Granitic application
-Back to: [Reference](README.md) | [Granitic Projects](gpr-index.md)
+[Reference](README.md) | [Granitic Projects](gpr-index.md)
 
 ---
 

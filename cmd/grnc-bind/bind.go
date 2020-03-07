@@ -29,7 +29,7 @@ Usage of grnc-bind:
 	-c string
 		A comma separated list of component definition files or directories containing component definition files (default "resource/components")
 	-m string
-		The path of a file where the merged component defintion file should be written to. Execution will halt after writing.
+		The path of a file where the merged component definition file should be written to. Execution will halt after writing.
 	-o string
 		Path to the Go source file that will be generated (default "bindings/bindings.go")
 	-l string
