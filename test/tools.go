@@ -13,6 +13,8 @@ These methods are not recommended for use in user applications or tests.
 package test
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -126,4 +128,47 @@ func determineLine() string {
 	}
 
 	return ""
+}
+
+// FindFacilityConfigFromWD finds the path of the folder containing the facility config based on the current working directory
+func FindFacilityConfigFromWD() (string, error) {
+
+	var err error
+	var files []os.FileInfo
+
+	path, err := os.Getwd()
+
+	if err != nil {
+		return "", err
+	}
+
+	for maxDepth := 8; maxDepth > 0; maxDepth-- {
+
+		if files, err = ioutil.ReadDir(path); err != nil {
+			return "", err
+		}
+
+		rootFilesSeen := 0
+
+		for _, f := range files {
+
+			n := f.Name()
+
+			if n == "granitic.go" || n == "go.mod" || n == "LICENSE" {
+				rootFilesSeen++
+			}
+
+		}
+
+		if rootFilesSeen == 3 {
+			return filepath.Join(path, "facility", "config"), nil
+
+		}
+
+		path = filepath.Dir(path)
+
+	}
+
+	return "", fmt.Errorf("Unable to locate Grantic facility config files")
+
 }
