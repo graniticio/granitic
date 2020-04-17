@@ -7,8 +7,12 @@
       "BufferSize": 50
     },
     "Format": {
+      "Entry": "TEXT",
       "UtcTimes":     true,
-      "Unset": "-"
+      "Unset": "-",
+      "JSON": {
+
+      }
     }
   },
 

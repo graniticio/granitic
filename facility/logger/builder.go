@@ -11,6 +11,7 @@ package logger
 
 import (
 	"errors"
+	"fmt"
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/facility/runtimectl"
 	"github.com/graniticio/granitic/v2/instance"
@@ -20,6 +21,9 @@ import (
 
 const applicationLoggingDecoratorName = instance.FrameworkPrefix + "ApplicationLoggingDecorator"
 const applicationLoggingManagerName = instance.FrameworkPrefix + "ApplicationLoggingManager"
+
+const textEntryMode = "TEXT"
+const jsonEntryMode = "JSON"
 
 // FacilityBuilder creates a new logging.ComponentLoggerManager for application components and updates the framework's ComponentLoggerManager
 // (which was bootstraped with a command-line supplied global log level) with the application's logging configuration.
@@ -108,6 +112,19 @@ func AddRuntimeCommandsForLogging(ca *config.Accessor, alm *logging.ComponentLog
 
 // BuildFormatterFromConfig uses configuration to determine the format for application logs
 func BuildFormatterFromConfig(ca *config.Accessor) (*logging.LogMessageFormatter, error) {
+
+	var mode string
+	var err error
+
+	entryPath := "LogWriting.Format.Entry"
+
+	if mode, err = ca.StringVal(entryPath); err != nil {
+		return nil, err
+	}
+
+	if mode != jsonEntryMode && mode != textEntryMode {
+		return nil, fmt.Errorf("%s is a not a supported value for %s. Should be %s or %s", mode, entryPath, textEntryMode, jsonEntryMode)
+	}
 
 	lmf := new(logging.LogMessageFormatter)
 
