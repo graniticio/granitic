@@ -20,7 +20,7 @@ func TestFacilityNaming(t *testing.T) {
 }
 
 func TestBuilderWithDefaultConfig(t *testing.T) {
-	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter())
+	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
 
 	ca, err := configAccessor(lm)
 
@@ -53,7 +53,7 @@ func TestBuilderWithDefaultConfig(t *testing.T) {
 }
 
 func TestBuilderWithJSONLoggingConfig(t *testing.T) {
-	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter())
+	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
 
 	ca, err := configAccessor(lm, test.FilePath("structured.json"))
 

@@ -3,10 +3,14 @@
 
 package logging
 
+import (
+	"time"
+)
+
 // CreateComponentLoggerManager creates a new ComponentLoggerManager with a global level and default values
 // for named components.
 func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLevels map[string]interface{},
-	writers []LogWriter, formatter StringFormatter) *ComponentLoggerManager {
+	writers []LogWriter, formatter StringFormatter, buffer bool) *ComponentLoggerManager {
 
 	clm := new(ComponentLoggerManager)
 	clm.created = make(map[string]*GraniticLogger)
@@ -15,6 +19,7 @@ func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLe
 
 	clm.writers = writers
 	clm.formatter = formatter
+	clm.deferLogging = buffer
 
 	return clm
 }
@@ -22,6 +27,7 @@ func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLe
 // ComponentLoggerManager creates new Logger instances for a particular scope (e.g. framework or application).
 type ComponentLoggerManager struct {
 	created         map[string]*GraniticLogger
+	deferLogging    bool
 	initialLevels   map[string]interface{}
 	globalThreshold LogLevel
 	writers         []LogWriter
@@ -164,6 +170,10 @@ func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentID string, thres
 	l.writers = clm.writers
 	l.formatter = clm.formatter
 
+	if clm.deferLogging {
+		l.deferred = clm
+	}
+
 	return l
 }
 
@@ -192,6 +202,11 @@ func (clm *ComponentLoggerManager) Stop() error {
 	}
 
 	return nil
+}
+
+// DeferLog buffers a log message until the log formatters and writers are finalised
+func (clm *ComponentLoggerManager) DeferLog(levelLabel string, level LogLevel, message string, when time.Time) {
+
 }
 
 // ComponentLevel pairs a component name and its loglevel for sorting and presentation through RuntimeCtl

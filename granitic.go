@@ -140,7 +140,7 @@ func (i *initiator) Start(customComponents *ioc.ProtoComponents, is *config.Init
 func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSettings) *ioc.ComponentContainer {
 
 	//Bootstrap the logging framework
-	frameworkLoggingManager, logManageProto := facility.BootstrapFrameworkLogging(is.FrameworkLogLevel)
+	frameworkLoggingManager, logManageProto := facility.BootstrapFrameworkLogging(is.FrameworkLogLevel, is.DeferBootstrapLogging)
 	i.logger = frameworkLoggingManager.CreateLogger(initiatorComponentName)
 
 	l := i.logger

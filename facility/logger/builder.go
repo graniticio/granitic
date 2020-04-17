@@ -65,7 +65,7 @@ func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 	//Update the bootstrapped framework logger with the newly configured writers and formatter
 	lm.UpdateWritersAndFormatter(writers, formatter)
 
-	alm := logging.CreateComponentLoggerManager(defaultLogLevel, initialLogLevelsByComponent, writers, formatter)
+	alm := logging.CreateComponentLoggerManager(defaultLogLevel, initialLogLevelsByComponent, writers, formatter, false)
 	cn.WrapAndAddProto(applicationLoggingManagerName, alm)
 
 	ald := new(applicationLogDecorator)
@@ -83,7 +83,7 @@ func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 // out application logging
 func AddRuntimeCommandsForFrameworkLogging(ca *config.Accessor, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
 
-	alm := logging.CreateComponentLoggerManager(logging.Fatal, map[string]interface{}{}, []logging.LogWriter{}, nil)
+	alm := logging.CreateComponentLoggerManager(logging.Fatal, map[string]interface{}{}, []logging.LogWriter{}, nil, false)
 
 	AddRuntimeCommandsForLogging(ca, alm, flm, cn)
 

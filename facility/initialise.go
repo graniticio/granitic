@@ -27,10 +27,10 @@ const configErrorPrefix = "Unable to configure framework logging: "
 
 // BootstrapFrameworkLogging creates a ComponentLoggerManager that can be used to create Loggers used by internal
 // Granitic components during the bootstrap (pre-configuration load) phase of application startup.
-func BootstrapFrameworkLogging(bootStrapLogLevel logging.LogLevel) (*logging.ComponentLoggerManager, *ioc.ProtoComponent) {
+func BootstrapFrameworkLogging(bootStrapLogLevel logging.LogLevel, deferLogging bool) (*logging.ComponentLoggerManager, *ioc.ProtoComponent) {
 
 	flm := logging.CreateComponentLoggerManager(bootStrapLogLevel, nil,
-		[]logging.LogWriter{new(logging.ConsoleWriter)}, logging.NewFrameworkLogMessageFormatter())
+		[]logging.LogWriter{new(logging.ConsoleWriter)}, logging.NewFrameworkLogMessageFormatter(), deferLogging)
 	proto := ioc.CreateProtoComponent(flm, frameworkLoggingManagerName)
 
 	return flm, proto

@@ -7,7 +7,7 @@ import (
 
 func TestControlLogLevelCommand(t *testing.T) {
 
-	fm := logging.CreateComponentLoggerManager(logging.Fatal, map[string]interface{}{"grncComp": "FATAL"}, []logging.LogWriter{}, nil)
+	fm := logging.CreateComponentLoggerManager(logging.Fatal, map[string]interface{}{"grncComp": "FATAL"}, []logging.LogWriter{}, nil, false)
 
 	fm.LoggerByName("grncComp")
 

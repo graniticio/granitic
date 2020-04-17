@@ -11,7 +11,7 @@ func TestInitialLogLevels(t *testing.T) {
 
 	i["X"] = TraceLabel
 
-	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, nil)
+	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, nil, false)
 
 	def := clm.CreateLogger("A")
 
@@ -44,7 +44,7 @@ func TestInitialLogLevelsSetAfterCreation(t *testing.T) {
 	i["X"] = TraceLabel
 	i["A"] = WarnLabel
 
-	clm := CreateComponentLoggerManager(Error, make(map[string]interface{}), []LogWriter{}, nil)
+	clm := CreateComponentLoggerManager(Error, make(map[string]interface{}), []LogWriter{}, nil, false)
 
 	def := clm.CreateLogger("A")
 
@@ -79,7 +79,7 @@ func TestListCurrentLevels(t *testing.T) {
 	i["X"] = TraceLabel
 	i["A"] = WarnLabel
 
-	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, nil)
+	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, nil, false)
 
 	clm.CreateLogger("A")
 	clm.CreateLogger("A")
@@ -111,7 +111,7 @@ func TestRecoverExistingLogger(t *testing.T) {
 
 	i := make(map[string]interface{})
 
-	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, nil)
+	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, nil, false)
 
 	def := clm.CreateLogger("A")
 
@@ -126,7 +126,7 @@ func TestRecoverExistingLogger(t *testing.T) {
 func TestChangeThreshold(t *testing.T) {
 	i := make(map[string]interface{})
 
-	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, nil)
+	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, nil, false)
 
 	def := clm.CreateLogger("A")
 
@@ -145,7 +145,7 @@ func TestDisabling(t *testing.T) {
 
 	i := make(map[string]interface{})
 
-	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, nil)
+	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, nil, false)
 
 	clm.CreateLogger("A")
 
@@ -167,7 +167,7 @@ func TestLifecycle(t *testing.T) {
 
 	i := make(map[string]interface{})
 
-	clm := CreateComponentLoggerManager(Error, i, []LogWriter{w}, nil)
+	clm := CreateComponentLoggerManager(Error, i, []LogWriter{w}, nil, false)
 
 	if b, err := clm.ReadyToStop(); b || err != nil {
 		t.Errorf("Expected no error and not ready got %v %v", err, b)

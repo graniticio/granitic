@@ -13,7 +13,7 @@ func TestSuspendCommand(t *testing.T) {
 	sc := newSuspendCommand()
 	sc.FrameworkLogger = new(logging.ConsoleErrorLogger)
 
-	fm := logging.CreateComponentLoggerManager(logging.Fatal, map[string]interface{}{"grncComp": "FATAL"}, []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter())
+	fm := logging.CreateComponentLoggerManager(logging.Fatal, map[string]interface{}{"grncComp": "FATAL"}, []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
 
 	cc := ioc.NewComponentContainer(fm, new(config.Accessor), new(instance.System))
 	sc.container = cc

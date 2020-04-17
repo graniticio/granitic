@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Granitic. All rights reserved.
+// Copyright 2016-2020 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package config
@@ -41,6 +41,9 @@ type InitialSettings struct {
 
 	// Exit immediately after container has successfully started
 	DryRun bool
+
+	// Buffer messages and only log them when application logging has been configured
+	DeferBootstrapLogging bool
 }
 
 // InitialSettingsFromEnvironment builds an InitialSettings and populates it with defaults or the values of command line
@@ -67,6 +70,7 @@ func processCommandLineArgs(is *InitialSettings) {
 	configFilePtr := flag.String("c", defaultConfLocation, "Path to application configuration files")
 	startupLogLevel := flag.String("l", "INFO", "Logging threshold for messages from components during bootstrap")
 	instanceID := flag.String("i", "", "A unique identifier for this instance of the application")
+	deferLogging := flag.Bool("d", false, "Defer logging messages from until application logging is configured")
 	flag.Parse()
 
 	// If the default location for config is set, but doesn't exist, check to see if the Granitic v1 folder exists instead
@@ -96,6 +100,7 @@ func processCommandLineArgs(is *InitialSettings) {
 	is.Configuration = append(is.Configuration, userConfig...)
 	is.FrameworkLogLevel = ll
 	is.InstanceID = *instanceID
+	is.DeferBootstrapLogging = *deferLogging
 
 }
 
