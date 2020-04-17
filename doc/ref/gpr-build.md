@@ -131,12 +131,23 @@ files are parsed.
 If you need to debug what is happening inside Granitic before that point, you can use the the -l parameter with one 
 of `TRACE, DEBUG, WARNING, ERROR, INFO, FATAL` to control framework logging during the 'bootstrap' phase.
 
+#### Defer startup framework logging -d
+
+Granitic logs some information before it has loaded your application's configuration and applied it to the [logging facility](log-index.md).
+If you are using [custom log formatting](log-format.md), this means those early messages will not be formatted to your 
+requirements. 
+
+Providing the -d flag causes Granitic to hold all logging messages in memory until it has set up the logging facility.
+ 
+
 #### Instance ID -i 
 
 If you are hosting multiple instances of your Granitic application on a single server/VM, or just want to give a 
 logical name to a particular instance, you can specify the name using the -i flag.
 
 Refer to the [instance indentification](adm-instance.md) documentation for more details.
+
+
 
 ---
 **Next**: [JSON and YAML](gpr-json.md) 
