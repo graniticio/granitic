@@ -41,6 +41,15 @@ func TestBuilderWithDefaultConfig(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
+	if err = cc.Populate(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	mc := cc.ComponentByName(applicationLoggingManagerName).Instance
+
+	if err = mc.(*logging.ComponentLoggerManager).StartComponent(); err != nil {
+		t.Fatalf(err.Error())
+	}
 }
 
 func TestBuilderWithJSONLoggingConfig(t *testing.T) {
@@ -62,6 +71,16 @@ func TestBuilderWithJSONLoggingConfig(t *testing.T) {
 	err = fb.BuildAndRegister(lm, ca, cc)
 
 	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if err = cc.Populate(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	mc := cc.ComponentByName(applicationLoggingManagerName).Instance
+
+	if err = mc.(*logging.ComponentLoggerManager).StartComponent(); err != nil {
 		t.Fatalf(err.Error())
 	}
 

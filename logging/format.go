@@ -427,3 +427,19 @@ func (lmf *LogMessageFormatter) mapPlaceholder(ph string) prefixFormatPlaceHolde
 	}
 
 }
+
+// A JsonLogFormatter is a component able to take a message to be written to a log file and format it as JSON document
+type JsonLogFormatter struct {
+	// A component able to extract information from a context.Context into a loggable format
+	ContextFilter ContextFilter
+}
+
+// Format takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset
+func (jlf *JsonLogFormatter) Format(ctx context.Context, levelLabel, loggerName, message string) string {
+	return "{}"
+}
+
+//SetContextFilter provides the formatter with access selected data from a context
+func (jlf *JsonLogFormatter) SetContextFilter(cf ContextFilter) {
+	jlf.ContextFilter = cf
+}

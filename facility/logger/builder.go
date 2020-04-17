@@ -122,21 +122,27 @@ func BuildFormatterFromConfig(ca *config.Accessor) (logging.StringFormatter, err
 		return nil, err
 	}
 
-	if mode != jsonEntryMode && mode != textEntryMode {
-		return nil, fmt.Errorf("%s is a not a supported value for %s. Should be %s or %s", mode, entryPath, textEntryMode, jsonEntryMode)
+	if mode == textEntryMode {
+
+		lmf := new(logging.LogMessageFormatter)
+
+		if err := ca.Populate("LogWriting.Format", lmf); err != nil {
+			return nil, err
+		}
+
+		if lmf.PrefixFormat == "" && lmf.PrefixPreset == "" {
+			lmf.PrefixPreset = logging.FrameworkPresetPrefix
+		}
+
+		return lmf, lmf.Init()
+	} else if mode == jsonEntryMode {
+
+		jmf := new(logging.JsonLogFormatter)
+
+		return jmf, nil
 	}
 
-	lmf := new(logging.LogMessageFormatter)
-
-	if err := ca.Populate("LogWriting.Format", lmf); err != nil {
-		return nil, err
-	}
-
-	if lmf.PrefixFormat == "" && lmf.PrefixPreset == "" {
-		lmf.PrefixPreset = logging.FrameworkPresetPrefix
-	}
-
-	return lmf, lmf.Init()
+	return nil, fmt.Errorf("%s is a not a supported value for %s. Should be %s or %s", mode, entryPath, textEntryMode, jsonEntryMode)
 
 }
 
