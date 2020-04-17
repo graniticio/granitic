@@ -126,6 +126,23 @@ func (clm *ComponentLoggerManager) UpdateWritersAndFormatter(writers []LogWriter
 
 	}
 
+	clm.deferred = make([]deferredLogEntry, 0)
+
+}
+
+// ForceFlush writes any buffered log entries with whatever writers and formatters are currently configured
+func (clm *ComponentLoggerManager) ForceFlush() {
+
+	if clm.deferred != nil {
+
+		for i := 0; i < len(clm.deferred); i++ {
+
+			entry := clm.deferred[i]
+			entry.logger.deferring = false
+			entry.logger.log(context.Background(), entry.levelLabel, entry.level, entry.message)
+		}
+	}
+
 }
 
 // SetGlobalThreshold sets the global log level for the scope (application, framework) that this ComponentLoggerManager is responsible for.

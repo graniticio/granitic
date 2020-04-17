@@ -181,6 +181,12 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 	fi := facility.NewFacilitiesInitialisor(cc, frameworkLoggingManager)
 
 	err := fi.Initialise(ca)
+
+	if err != nil {
+		//Possible intialise failed before logging fully configured so flush any remaining messages
+		frameworkLoggingManager.ForceFlush()
+	}
+
 	i.shutdownIfError(err, cc)
 
 	//Inject configuration and dependencies into all components
