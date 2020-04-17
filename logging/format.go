@@ -436,7 +436,7 @@ type JsonLogFormatter struct {
 
 // Format takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset
 func (jlf *JsonLogFormatter) Format(ctx context.Context, levelLabel, loggerName, message string) string {
-	return "{}"
+	return fmt.Sprintf("{%s %s}", loggerName, message)
 }
 
 //SetContextFilter provides the formatter with access selected data from a context

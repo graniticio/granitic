@@ -1,11 +1,14 @@
-// Copyright 2016-2019 Granitic. All rights reserved.
+// Copyright 2016-2020 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package logging
 
 import (
+	"context"
 	"time"
 )
+
+const deferBufferSize = 50
 
 // CreateComponentLoggerManager creates a new ComponentLoggerManager with a global level and default values
 // for named components.
@@ -21,6 +24,14 @@ func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLe
 	clm.formatter = formatter
 	clm.deferLogging = buffer
 
+	if clm.deferLogging {
+
+		clm.deferBuffer = make(chan deferredLogEntry, deferBufferSize)
+		clm.deferred = make([]deferredLogEntry, 0)
+		go clm.watchDeferBuffer()
+
+	}
+
 	return clm
 }
 
@@ -28,6 +39,8 @@ func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLe
 type ComponentLoggerManager struct {
 	created         map[string]*GraniticLogger
 	deferLogging    bool
+	deferBuffer     chan deferredLogEntry
+	deferred        []deferredLogEntry
 	initialLevels   map[string]interface{}
 	globalThreshold LogLevel
 	writers         []LogWriter
@@ -91,10 +104,28 @@ func (clm *ComponentLoggerManager) GlobalLevel() LogLevel {
 // UpdateWritersAndFormatter updates the writers and formatters of all Loggers managed by this ComponentLoggerManager.
 func (clm *ComponentLoggerManager) UpdateWritersAndFormatter(writers []LogWriter, formatter StringFormatter) {
 	clm.writers = writers
+	clm.formatter = formatter
 
 	for _, v := range clm.created {
+
 		v.UpdateWritersAndFormatter(writers, formatter)
+		v.deferring = false
 	}
+
+	if clm.deferLogging {
+
+		clm.deferLogging = false
+
+		//Flush the logs we've captured
+		for i := 0; i < len(clm.deferred); i++ {
+
+			entry := clm.deferred[i]
+
+			entry.logger.log(context.Background(), entry.levelLabel, entry.level, entry.message)
+		}
+
+	}
+
 }
 
 // SetGlobalThreshold sets the global log level for the scope (application, framework) that this ComponentLoggerManager is responsible for.
@@ -171,7 +202,8 @@ func (clm *ComponentLoggerManager) CreateLoggerAtLevel(componentID string, thres
 	l.formatter = clm.formatter
 
 	if clm.deferLogging {
-		l.deferred = clm
+		l.deferLogger = clm
+		l.deferring = true
 	}
 
 	return l
@@ -197,6 +229,10 @@ func (clm *ComponentLoggerManager) ReadyToStop() (bool, error) {
 // Stop closes all LogWriters attached to this component.
 func (clm *ComponentLoggerManager) Stop() error {
 
+	if clm.deferBuffer != nil {
+		close(clm.deferBuffer)
+	}
+
 	for _, w := range clm.writers {
 		w.Close()
 	}
@@ -205,8 +241,23 @@ func (clm *ComponentLoggerManager) Stop() error {
 }
 
 // DeferLog buffers a log message until the log formatters and writers are finalised
-func (clm *ComponentLoggerManager) DeferLog(levelLabel string, level LogLevel, message string, when time.Time) {
+func (clm *ComponentLoggerManager) DeferLog(levelLabel string, level LogLevel, message string, when time.Time, logger *GraniticLogger) {
 
+	clm.deferBuffer <- deferredLogEntry{message: message, levelLabel: levelLabel, level: level, when: when, logger: logger}
+
+}
+
+func (clm *ComponentLoggerManager) watchDeferBuffer() {
+	for {
+		entry := <-clm.deferBuffer
+
+		if !entry.logger.deferring {
+			entry.logger.log(context.Background(), entry.levelLabel, entry.level, entry.message)
+		} else {
+			clm.deferred = append(clm.deferred, entry)
+
+		}
+	}
 }
 
 // ComponentLevel pairs a component name and its loglevel for sorting and presentation through RuntimeCtl

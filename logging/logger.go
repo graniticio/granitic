@@ -263,10 +263,11 @@ type deferredLogEntry struct {
 	level      LogLevel
 	message    string
 	when       time.Time
+	logger     *GraniticLogger
 }
 
 type deferredLogger interface {
-	DeferLog(levelLabel string, level LogLevel, message string, when time.Time)
+	DeferLog(levelLabel string, level LogLevel, message string, when time.Time, logger *GraniticLogger)
 }
 
 // GraniticLogger is the standard implementation of Logger which respects both a global log level and a specific level for this Logger.
@@ -276,7 +277,8 @@ type GraniticLogger struct {
 	loggerName         string
 	writers            []LogWriter
 	formatter          StringFormatter
-	deferred           deferredLogger
+	deferLogger        deferredLogger
+	deferring          bool
 }
 
 // UpdateWritersAndFormatter implements RuntimeControllableLog.UpdateWritersAndFormatter
@@ -304,10 +306,12 @@ func (grl *GraniticLogger) IsLevelEnabled(level LogLevel) bool {
 
 func (grl *GraniticLogger) log(ctx context.Context, levelLabel string, level LogLevel, message string) {
 
-	if grl.deferred != nil {
-		grl.deferred.DeferLog(levelLabel, level, message, time.Now())
+	if grl.deferring {
+
+		grl.deferLogger.DeferLog(levelLabel, level, message, time.Now(), grl)
 
 	} else if grl.IsLevelEnabled(level) {
+
 		m := grl.formatter.Format(ctx, levelLabel, grl.loggerName, message)
 
 		grl.write(m)
@@ -316,8 +320,8 @@ func (grl *GraniticLogger) log(ctx context.Context, levelLabel string, level Log
 }
 func (grl *GraniticLogger) logf(ctx context.Context, levelLabel string, level LogLevel, format string, a ...interface{}) {
 
-	if grl.deferred != nil {
-		grl.deferred.DeferLog(levelLabel, level, fmt.Sprintf(format, a...), time.Now())
+	if grl.deferring {
+		grl.deferLogger.DeferLog(levelLabel, level, fmt.Sprintf(format, a...), time.Now(), grl)
 	} else if grl.IsLevelEnabled(level) {
 		message := fmt.Sprintf(format, a...)
 		m := grl.formatter.Format(ctx, levelLabel, grl.loggerName, message)
