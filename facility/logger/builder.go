@@ -111,7 +111,7 @@ func AddRuntimeCommandsForLogging(ca *config.Accessor, alm *logging.ComponentLog
 }
 
 // BuildFormatterFromConfig uses configuration to determine the format for application logs
-func BuildFormatterFromConfig(ca *config.Accessor) (*logging.LogMessageFormatter, error) {
+func BuildFormatterFromConfig(ca *config.Accessor) (logging.StringFormatter, error) {
 
 	var mode string
 	var err error

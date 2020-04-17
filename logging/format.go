@@ -102,6 +102,16 @@ func NewNoPrefixFormatter() *LogMessageFormatter {
 	return lmf
 }
 
+// A StringFormatter is a component able to take some logging message and associated data and format it as a string ready
+// to be logged to a file or stream
+type StringFormatter interface {
+	// Format takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset
+	Format(ctx context.Context, levelLabel, loggerName, message string) string
+
+	//SetContextFilter provides the formatter with access selected data from a context
+	SetContextFilter(cf ContextFilter)
+}
+
 // A LogMessageFormatter is a component able to take a message to be written to a log file and prefix it with a formatted template
 // which can include log times, data from a Context etc.
 type LogMessageFormatter struct {
@@ -160,6 +170,11 @@ func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerNa
 	b.WriteString("\n")
 
 	return b.String()
+}
+
+//SetContextFilter provides the formatter with access selected data from a context
+func (lmf *LogMessageFormatter) SetContextFilter(cf ContextFilter) {
+	lmf.ContextFilter = cf
 }
 
 func (lmf *LogMessageFormatter) findValueWithVar(ctx context.Context, fcd FilteredContextData, element *prefixElement, levelLabel, loggerName string, loggedAt *time.Time) string {

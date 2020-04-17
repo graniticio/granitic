@@ -263,11 +263,11 @@ type GraniticLogger struct {
 	localLogThreshhold LogLevel
 	loggerName         string
 	writers            []LogWriter
-	formatter          *LogMessageFormatter
+	formatter          StringFormatter
 }
 
 // UpdateWritersAndFormatter implements RuntimeControllableLog.UpdateWritersAndFormatter
-func (grl *GraniticLogger) UpdateWritersAndFormatter(w []LogWriter, f *LogMessageFormatter) {
+func (grl *GraniticLogger) UpdateWritersAndFormatter(w []LogWriter, f StringFormatter) {
 	grl.writers = w
 	grl.formatter = f
 }

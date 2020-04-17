@@ -6,7 +6,7 @@ package logging
 // CreateComponentLoggerManager creates a new ComponentLoggerManager with a global level and default values
 // for named components.
 func CreateComponentLoggerManager(globalThreshold LogLevel, initalComponentLogLevels map[string]interface{},
-	writers []LogWriter, formatter *LogMessageFormatter) *ComponentLoggerManager {
+	writers []LogWriter, formatter StringFormatter) *ComponentLoggerManager {
 
 	clm := new(ComponentLoggerManager)
 	clm.created = make(map[string]*GraniticLogger)
@@ -25,7 +25,7 @@ type ComponentLoggerManager struct {
 	initialLevels   map[string]interface{}
 	globalThreshold LogLevel
 	writers         []LogWriter
-	formatter       *LogMessageFormatter
+	formatter       StringFormatter
 	disabled        bool
 	nullLogger      Logger
 	ContextFilter   ContextFilter
@@ -59,7 +59,7 @@ func (clm *ComponentLoggerManager) CurrentLevels() []*ComponentLevel {
 func (clm *ComponentLoggerManager) StartComponent() error {
 
 	if clm.ContextFilter != nil && clm.formatter != nil {
-		clm.formatter.ContextFilter = clm.ContextFilter
+		clm.formatter.SetContextFilter(clm.ContextFilter)
 	}
 
 	return nil
@@ -83,7 +83,7 @@ func (clm *ComponentLoggerManager) GlobalLevel() LogLevel {
 }
 
 // UpdateWritersAndFormatter updates the writers and formatters of all Loggers managed by this ComponentLoggerManager.
-func (clm *ComponentLoggerManager) UpdateWritersAndFormatter(writers []LogWriter, formatter *LogMessageFormatter) {
+func (clm *ComponentLoggerManager) UpdateWritersAndFormatter(writers []LogWriter, formatter StringFormatter) {
 	clm.writers = writers
 
 	for _, v := range clm.created {
