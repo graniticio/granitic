@@ -3,6 +3,7 @@ package logging
 import (
 	"sort"
 	"testing"
+	"time"
 )
 
 func TestInitialLogLevels(t *testing.T) {
@@ -34,6 +35,94 @@ func TestInitialLogLevels(t *testing.T) {
 	if !pre.IsLevelEnabled(Trace) {
 		t.Fail()
 	}
+
+}
+
+func TestDeferredLogging(t *testing.T) {
+
+	i := make(map[string]interface{})
+
+	i["X"] = TraceLabel
+
+	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, new(testMessageFomatter), true)
+
+	def := clm.CreateLogger("A")
+
+	if def.IsLevelEnabled(Warn) {
+		t.Fail()
+	}
+
+	if !def.IsLevelEnabled(Error) {
+		t.Fail()
+	}
+
+	cust := clm.CreateLoggerAtLevel("A", Warn)
+
+	if !cust.IsLevelEnabled(Warn) {
+		t.Fail()
+	}
+
+	pre := clm.CreateLogger("X")
+
+	if !pre.IsLevelEnabled(Trace) {
+		t.Fail()
+	}
+
+	pre.LogInfof("INFO1")
+
+	for len(clm.deferred) == 0 {
+		time.Sleep(1000)
+	}
+
+	clm.UpdateWritersAndFormatter(clm.writers, clm.formatter)
+
+	pre.LogInfof("INFO2")
+
+	//clm.Stop()
+
+}
+
+func TestDeferredLoggingFlush(t *testing.T) {
+
+	i := make(map[string]interface{})
+
+	i["X"] = TraceLabel
+
+	clm := CreateComponentLoggerManager(Error, i, []LogWriter{}, new(testMessageFomatter), true)
+
+	def := clm.CreateLogger("A")
+
+	if def.IsLevelEnabled(Warn) {
+		t.Fail()
+	}
+
+	if !def.IsLevelEnabled(Error) {
+		t.Fail()
+	}
+
+	cust := clm.CreateLoggerAtLevel("A", Warn)
+
+	if !cust.IsLevelEnabled(Warn) {
+		t.Fail()
+	}
+
+	pre := clm.CreateLogger("X")
+
+	if !pre.IsLevelEnabled(Trace) {
+		t.Fail()
+	}
+
+	pre.LogInfof("INFO1")
+
+	for len(clm.deferred) == 0 {
+		time.Sleep(1000)
+	}
+
+	clm.ForceFlush()
+
+	pre.LogInfof("INFO2")
+
+	//clm.Stop()
 
 }
 
