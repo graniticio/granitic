@@ -4,6 +4,7 @@
 package logging
 
 import (
+	"context"
 	"testing"
 )
 
@@ -14,7 +15,7 @@ func TestUnsupportedContent(t *testing.T) {
 		Name:    "Unsupported",
 	}
 
-	err := ValidateJSONFields([]JSONField{f})
+	err := ValidateJSONFields([]*JSONField{&f})
 
 	if err == nil {
 		t.Fatalf("Failed to detect invalid content type")
@@ -28,7 +29,7 @@ func TestMissingName(t *testing.T) {
 		Name:    "",
 	}
 
-	err := ValidateJSONFields([]JSONField{f})
+	err := ValidateJSONFields([]*JSONField{&f})
 
 	if err == nil {
 		t.Fatalf("Failed to detect invalid content type")
@@ -42,7 +43,7 @@ func TestMissingContextValueKey(t *testing.T) {
 		Name:    "MissingArg",
 	}
 
-	err := ValidateJSONFields([]JSONField{f})
+	err := ValidateJSONFields([]*JSONField{&f})
 
 	if err == nil {
 		t.Fatalf("Failed to detect missing context value key")
@@ -56,7 +57,7 @@ func TestMissingTimestampLayout(t *testing.T) {
 		Name:    "MissingArg",
 	}
 
-	err := ValidateJSONFields([]JSONField{f})
+	err := ValidateJSONFields([]*JSONField{&f})
 
 	if err == nil {
 		t.Fatalf("Failed to detect missing timestamp layout")
@@ -71,7 +72,7 @@ func TestTimestampLayout(t *testing.T) {
 		Arg:     "Mon Jan 2 15:04:05 MST 2006",
 	}
 
-	err := ValidateJSONFields([]JSONField{f})
+	err := ValidateJSONFields([]*JSONField{&f})
 
 	if err != nil {
 		t.Fatalf("Did not accept valid layout")
@@ -86,9 +87,34 @@ func TestInvalidTimestampLayout(t *testing.T) {
 		Arg:     "Mon Jan 32 15:04:05 MST 2006",
 	}
 
-	err := ValidateJSONFields([]JSONField{f})
+	err := ValidateJSONFields([]*JSONField{&f})
 
 	if err == nil {
 		t.Fatalf("Did not reject invalid layout")
 	}
+}
+
+func TestMapBuilder(t *testing.T) {
+
+	cfg := new(JSONConfig)
+
+	f := new(JSONField)
+
+	f.Content = "MESSAGE"
+	f.Name = "message"
+
+	cfg.Fields = []*JSONField{f}
+
+	mb, err := CreateMapBuilder(cfg)
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	m := mb.Build(context.Background(), "TRACE", "MyComp", "some message")
+
+	if m == nil {
+		t.FailNow()
+	}
+
 }

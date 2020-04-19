@@ -139,6 +139,21 @@ func BuildFormatterFromConfig(ca *config.Accessor) (logging.StringFormatter, err
 
 		jmf := new(logging.JSONLogFormatter)
 
+		cfg := new(logging.JSONConfig)
+
+		ca.Populate("LogWriting.Format.JSON", cfg)
+		jmf.Config = cfg
+
+		if err := logging.ValidateJSONFields(cfg.Fields); err != nil {
+			return nil, err
+		}
+
+		if mb, err := logging.CreateMapBuilder(cfg); err != nil {
+			return nil, err
+		} else {
+			jmf.MapBuilder = mb
+		}
+
 		return jmf, nil
 	}
 

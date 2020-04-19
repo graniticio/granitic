@@ -15,7 +15,7 @@
         "Fields": [
           {
             "Name": "Message",
-            "Content": "CONTENT"
+            "Content": "MESSAGE"
           }
         ],
         "Suffix": "\n"

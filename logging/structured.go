@@ -5,6 +5,7 @@ package logging
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/graniticio/granitic/v2/types"
 	"strings"
@@ -15,11 +16,19 @@ import (
 type JSONLogFormatter struct {
 	// A component able to extract information from a context.Context into a loggable format
 	ContextFilter ContextFilter
+	Config        *JSONConfig
+	MapBuilder    *MapBuilder
 }
 
 // Format takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset
 func (jlf *JSONLogFormatter) Format(ctx context.Context, levelLabel, loggerName, message string) string {
-	return fmt.Sprintf("{%s %s}", loggerName, message)
+
+	m := jlf.MapBuilder.Build(ctx, levelLabel, loggerName, message)
+	cfg := jlf.Config
+
+	entry, _ := json.Marshal(m)
+
+	return cfg.Prefix + string(entry) + cfg.Suffix
 }
 
 //SetContextFilter provides the formatter with access selected data from a context
@@ -30,15 +39,16 @@ func (jlf *JSONLogFormatter) SetContextFilter(cf ContextFilter) {
 // JSONConfig defines the fields to be included in a  JSON-formatted application log entry
 type JSONConfig struct {
 	Prefix string
-	Fields []JSONField
+	Fields []*JSONField
 	Suffix string
 }
 
 // A JSONField defines the rules for outputting a single field in a JSON-formatted application log entry
 type JSONField struct {
-	Name    string
-	Content string
-	Arg     string
+	Name      string
+	Content   string
+	Arg       string
+	generator ValueGenerator
 }
 
 const (
@@ -50,7 +60,7 @@ const (
 )
 
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
-func ValidateJSONFields(fields []JSONField) error {
+func ValidateJSONFields(fields []*JSONField) error {
 
 	allowed := types.NewOrderedStringSet([]string{message, comp, timestamp, level, ctxVal})
 
@@ -86,4 +96,50 @@ func ValidateJSONFields(fields []JSONField) error {
 
 	return nil
 
+}
+
+// CreateMapBuilder builds a component able to generate a log entry based on the rules in the supplied fields.
+func CreateMapBuilder(cfg *JSONConfig) (*MapBuilder, error) {
+
+	mb := new(MapBuilder)
+
+	mb.cfg = cfg
+
+	for _, f := range cfg.Fields {
+
+		switch f.Content {
+		case message:
+			f.generator = messageGenerator
+		}
+
+	}
+
+	return mb, nil
+}
+
+// MapBuilder creates a map[string]interface{} representing a log entry, ready for JSON encoding
+type MapBuilder struct {
+	cfg *JSONConfig
+}
+
+// Build creates a map and populates it
+func (mb *MapBuilder) Build(ctx context.Context, levelLabel, loggerName, message string) map[string]interface{} {
+
+	outer := make(map[string]interface{})
+
+	for _, f := range mb.cfg.Fields {
+
+		outer[f.Name] = f.generator(ctx, levelLabel, loggerName, message, f)
+
+	}
+
+	return outer
+
+}
+
+// ValueGenerator functions are able to
+type ValueGenerator func(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{}
+
+func messageGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
+	return message
 }
