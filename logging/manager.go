@@ -121,7 +121,7 @@ func (clm *ComponentLoggerManager) UpdateWritersAndFormatter(writers []LogWriter
 
 			entry := clm.deferred[i]
 
-			entry.logger.log(context.Background(), entry.levelLabel, entry.level, entry.message)
+			entry.logger.logf(context.Background(), entry.levelLabel, entry.level, entry.message)
 		}
 
 	}
@@ -139,7 +139,7 @@ func (clm *ComponentLoggerManager) ForceFlush() {
 
 			entry := clm.deferred[i]
 			entry.logger.deferring = false
-			entry.logger.log(context.Background(), entry.levelLabel, entry.level, entry.message)
+			entry.logger.logf(context.Background(), entry.levelLabel, entry.level, entry.message)
 		}
 	}
 
@@ -269,7 +269,7 @@ func (clm *ComponentLoggerManager) watchDeferBuffer() {
 		entry := <-clm.deferBuffer
 
 		if !entry.logger.deferring {
-			entry.logger.log(context.Background(), entry.levelLabel, entry.level, entry.message)
+			entry.logger.logf(context.Background(), entry.levelLabel, entry.level, entry.message)
 		} else {
 			clm.deferred = append(clm.deferred, entry)
 

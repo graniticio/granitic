@@ -7,6 +7,7 @@ import (
 	"context"
 	"github.com/graniticio/granitic/v2/test"
 	"testing"
+	"time"
 )
 
 func TestStdoutLoggerCanBeBuilt(t *testing.T) {
@@ -77,4 +78,106 @@ func TestNilLogging(t *testing.T) {
 	l.LogWarnf("")
 	l.LogWarnfCtx(ctx, "")
 
+}
+
+func TestGraniticLoggerNoErrors(t *testing.T) {
+
+	l := new(GraniticLogger)
+
+	l.global = &globalLogSource{level: Trace}
+	l.localLogThreshhold = Trace
+
+	l.formatter = new(testMessageFomatter)
+
+	if !l.IsLevelEnabled(Trace) {
+		t.Error("Trace not enabled")
+	}
+
+	ctx := context.Background()
+
+	l.LogDebugf("")
+	l.LogAtLevelf(Trace, "TRACE", "")
+	l.LogAtLevelfCtx(ctx, Trace, "TRACE", "")
+	l.LogDebugfCtx(ctx, "")
+	l.LogErrorf("")
+	l.LogErrorfCtx(ctx, "")
+	l.LogErrorfCtxWithTrace(ctx, "")
+	l.LogErrorfWithTrace("")
+	l.LogErrorfWithTrace("")
+	l.LogFatalf("")
+	l.LogFatalfCtx(ctx, "")
+	l.LogInfof("")
+	l.LogInfofCtx(ctx, "")
+	l.LogTracef("")
+	l.LogTracefCtx(ctx, "")
+	l.LogWarnf("")
+	l.LogWarnfCtx(ctx, "")
+	//l.logAtLevelCtx(ctx, Trace, "TRACE", "")
+}
+
+func TestCreateAnonymousLoggerNoErrors(t *testing.T) {
+
+	l := CreateAnonymousLogger("ANON", Fatal)
+
+	l.LogInfof("TEST")
+}
+
+type testMessageFomatter struct {
+}
+
+func (tmf *testMessageFomatter) Format(ctx context.Context, levelLabel, loggerName, message string) string {
+	return message
+}
+
+func (tmf *testMessageFomatter) SetContextFilter(cf ContextFilter) {
+
+}
+
+func TestDeferLogging(t *testing.T) {
+
+	l := new(GraniticLogger)
+
+	l.global = &globalLogSource{level: Trace}
+	l.localLogThreshhold = Trace
+
+	l.formatter = new(testMessageFomatter)
+	l.deferring = true
+
+	if !l.IsLevelEnabled(Trace) {
+		t.Error("Trace not enabled")
+	}
+
+	ctx := context.Background()
+
+	dc := new(deferCount)
+	l.deferLogger = dc
+
+	l.LogInfofCtx(ctx, "INFO1")
+
+	if dc.count != 1 {
+		t.FailNow()
+	}
+
+	/*l.LogAtLevelfCtx(ctx, Info,"INFO", "INFO2")
+
+	if dc.count != 2 {
+		t.FailNow()
+	}
+
+	l.deferring = false
+
+	l.LogInfofCtx(ctx, "INFO3")
+
+	if dc.count != 2 {
+		t.FailNow()
+	}*/
+
+}
+
+type deferCount struct {
+	count int
+}
+
+func (dc *deferCount) DeferLog(levelLabel string, level LogLevel, message string, when time.Time, logger *GraniticLogger) {
+	dc.count++
 }

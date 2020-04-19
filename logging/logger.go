@@ -304,20 +304,6 @@ func (grl *GraniticLogger) IsLevelEnabled(level LogLevel) bool {
 	return level >= el
 }
 
-func (grl *GraniticLogger) log(ctx context.Context, levelLabel string, level LogLevel, message string) {
-
-	if grl.deferring {
-
-		grl.deferLogger.DeferLog(levelLabel, level, message, time.Now(), grl)
-
-	} else if grl.IsLevelEnabled(level) {
-
-		m := grl.formatter.Format(ctx, levelLabel, grl.loggerName, message)
-
-		grl.write(m)
-	}
-
-}
 func (grl *GraniticLogger) logf(ctx context.Context, levelLabel string, level LogLevel, format string, a ...interface{}) {
 
 	if grl.deferring {
@@ -337,10 +323,6 @@ func (grl *GraniticLogger) write(m string) {
 		w.WriteMessage(m)
 	}
 
-}
-
-func (grl *GraniticLogger) logAtLevelCtx(ctx context.Context, level LogLevel, levelLabel string, message string) {
-	grl.log(ctx, levelLabel, level, message)
 }
 
 // LogAtLevelfCtx implements Logger.LogAtLevelfCtx
