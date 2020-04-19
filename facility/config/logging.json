@@ -11,7 +11,14 @@
       "UtcTimes":     true,
       "Unset": "-",
       "JSON": {
-
+        "Prefix": "",
+        "Fields": [
+          {
+            "Name": "Message",
+            "Content": "CONTENT"
+          }
+        ],
+        "Suffix": "\n"
       }
     }
   },

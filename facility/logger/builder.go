@@ -137,7 +137,7 @@ func BuildFormatterFromConfig(ca *config.Accessor) (logging.StringFormatter, err
 		return lmf, lmf.Init()
 	} else if mode == jsonEntryMode {
 
-		jmf := new(logging.JsonLogFormatter)
+		jmf := new(logging.JSONLogFormatter)
 
 		return jmf, nil
 	}

@@ -86,6 +86,33 @@ func TestBuilderWithJSONLoggingConfig(t *testing.T) {
 
 }
 
+func TestDefaultJSONFieldConfig(t *testing.T) {
+	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
+
+	ca, err := configAccessor(lm)
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	cfg := new(logging.JSONConfig)
+
+	ca.Populate("LogWriting.Format.JSON", cfg)
+
+	if len(cfg.Fields) != 1 {
+		t.Fatalf("Unexpected number of JSON fields in default configuration %d", len(cfg.Fields))
+	}
+
+	if cfg.Prefix != "" {
+		t.Fatalf("Unexpected prefix value %s", cfg.Prefix)
+	}
+
+	if cfg.Suffix != "\n" {
+		t.Fatalf("Unexpected suffix value %s", cfg.Suffix)
+	}
+
+}
+
 func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...string) (*config.Accessor, error) {
 
 	jm := config.NewJSONMergerWithManagedLogging(lm, new(config.JSONContentParser))
