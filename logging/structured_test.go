@@ -48,3 +48,47 @@ func TestMissingContextValueKey(t *testing.T) {
 		t.Fatalf("Failed to detect missing context value key")
 	}
 }
+
+func TestMissingTimestampLayout(t *testing.T) {
+
+	f := JSONField{
+		Content: "TIMESTAMP",
+		Name:    "MissingArg",
+	}
+
+	err := ValidateJSONFields([]JSONField{f})
+
+	if err == nil {
+		t.Fatalf("Failed to detect missing timestamp layout")
+	}
+}
+
+func TestTimestampLayout(t *testing.T) {
+
+	f := JSONField{
+		Content: "TIMESTAMP",
+		Name:    "Stamp",
+		Arg:     "Mon Jan 2 15:04:05 MST 2006",
+	}
+
+	err := ValidateJSONFields([]JSONField{f})
+
+	if err != nil {
+		t.Fatalf("Did not accept valid layout")
+	}
+}
+
+func TestInvalidTimestampLayout(t *testing.T) {
+
+	f := JSONField{
+		Content: "TIMESTAMP",
+		Name:    "Stamp",
+		Arg:     "Mon Jan 32 15:04:05 MST 2006",
+	}
+
+	err := ValidateJSONFields([]JSONField{f})
+
+	if err == nil {
+		t.Fatalf("Did not reject invalid layout")
+	}
+}

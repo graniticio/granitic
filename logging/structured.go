@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/v2/types"
 	"strings"
+	"time"
 )
 
 // A JSONLogFormatter is a component able to take a message to be written to a log file and format it as JSON document
@@ -70,7 +71,13 @@ func ValidateJSONFields(fields []JSONField) error {
 		if f.Content == timestamp {
 
 			if strings.TrimSpace(f.Arg) == "" {
-				return fmt.Errorf("you must specify an Arg when using JSON fields with the content type %s (a standard Go date/time format string)", timestamp)
+				return fmt.Errorf("you must specify an Arg when using JSON fields with the content type %s (a standard Go date/time layout string)", timestamp)
+			}
+
+			ft := time.Now().Format(f.Arg)
+
+			if _, err := time.Parse(f.Arg, ft); err != nil {
+				return fmt.Errorf("unable to use layout [%s] as a timestamp layout", f.Arg)
 			}
 
 		}
