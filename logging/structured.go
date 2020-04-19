@@ -41,6 +41,7 @@ type JSONConfig struct {
 	Prefix string
 	Fields []*JSONField
 	Suffix string
+	UTC    bool
 }
 
 // A JSONField defines the rules for outputting a single field in a JSON-formatted application log entry
@@ -110,6 +111,17 @@ func CreateMapBuilder(cfg *JSONConfig) (*MapBuilder, error) {
 		switch f.Content {
 		case message:
 			f.generator = messageGenerator
+		case comp:
+			f.generator = componentGenerator
+		case level:
+			f.generator = levelGenerator
+		case timestamp:
+			if cfg.UTC {
+				f.generator = utcTimestampGenerator
+			} else {
+				f.generator = localTimestampGenerator
+			}
+
 		}
 
 	}
@@ -137,9 +149,25 @@ func (mb *MapBuilder) Build(ctx context.Context, levelLabel, loggerName, message
 
 }
 
-// ValueGenerator functions are able to
+// ValueGenerator functions are able to generate a value for a field in a JSON formatted log entry
 type ValueGenerator func(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{}
 
 func messageGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
 	return message
+}
+
+func componentGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
+	return loggerName
+}
+
+func levelGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
+	return levelLabel
+}
+
+func utcTimestampGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
+	return time.Now().UTC().Format(field.Arg)
+}
+
+func localTimestampGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
+	return time.Now().UTC().Format(field.Arg)
 }
