@@ -99,7 +99,7 @@ func TestDefaultJSONFieldConfig(t *testing.T) {
 
 	ca.Populate("LogWriting.Format.JSON", cfg)
 
-	if len(cfg.Fields) != 1 {
+	if len(cfg.Fields) == 0 {
 		t.Fatalf("Unexpected number of JSON fields in default configuration %d", len(cfg.Fields))
 	}
 

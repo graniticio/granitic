@@ -21,6 +21,7 @@ import (
 
 const applicationLoggingDecoratorName = instance.FrameworkPrefix + "ApplicationLoggingDecorator"
 const applicationLoggingManagerName = instance.FrameworkPrefix + "ApplicationLoggingManager"
+const applicationLoggingFormatterName = instance.FrameworkPrefix + "ApplicationLoggingEntryFormatter"
 
 const textEntryMode = "TEXT"
 const jsonEntryMode = "JSON"
@@ -57,6 +58,7 @@ func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 	}
 
 	formatter, err := BuildFormatterFromConfig(ca)
+	cn.WrapAndAddProto(applicationLoggingFormatterName, formatter)
 
 	if err != nil {
 		return alfb.error(err.Error())

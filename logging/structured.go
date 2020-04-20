@@ -14,10 +14,8 @@ import (
 
 // A JSONLogFormatter is a component able to take a message to be written to a log file and format it as JSON document
 type JSONLogFormatter struct {
-	// A component able to extract information from a context.Context into a loggable format
-	ContextFilter ContextFilter
-	Config        *JSONConfig
-	MapBuilder    *MapBuilder
+	Config     *JSONConfig
+	MapBuilder *MapBuilder
 }
 
 // Format takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset
@@ -31,9 +29,21 @@ func (jlf *JSONLogFormatter) Format(ctx context.Context, levelLabel, loggerName,
 	return cfg.Prefix + string(entry) + cfg.Suffix
 }
 
+// StartComponent checks that a context filter has been injected (if the field configuration needs on)
+func (jlf *JSONLogFormatter) StartComponent() error {
+
+	mb := jlf.MapBuilder
+
+	if mb.RequiresContextFilter && mb.contextFilter == nil {
+		return fmt.Errorf("your JSON application logging configuration includes fields that display information from the contecxt, but no component is available that implements logging.ContextFilter")
+	}
+
+	return nil
+}
+
 //SetContextFilter provides the formatter with access selected data from a context
 func (jlf *JSONLogFormatter) SetContextFilter(cf ContextFilter) {
-	jlf.ContextFilter = cf
+	jlf.MapBuilder.contextFilter = cf
 }
 
 // JSONConfig defines the fields to be included in a  JSON-formatted application log entry
@@ -110,20 +120,21 @@ func CreateMapBuilder(cfg *JSONConfig) (*MapBuilder, error) {
 
 		switch f.Content {
 		case message:
-			f.generator = messageGenerator
+			f.generator = mb.messageGenerator
 		case comp:
-			f.generator = componentGenerator
+			f.generator = mb.componentGenerator
 		case level:
-			f.generator = levelGenerator
+			f.generator = mb.levelGenerator
 		case timestamp:
 			if cfg.UTC {
-				f.generator = utcTimestampGenerator
+				f.generator = mb.utcTimestampGenerator
 			} else {
-				f.generator = localTimestampGenerator
+				f.generator = mb.localTimestampGenerator
 			}
-
+		case ctxVal:
+			mb.RequiresContextFilter = true
+			f.generator = mb.ctxValGenerator
 		}
-
 	}
 
 	return mb, nil
@@ -131,17 +142,25 @@ func CreateMapBuilder(cfg *JSONConfig) (*MapBuilder, error) {
 
 // MapBuilder creates a map[string]interface{} representing a log entry, ready for JSON encoding
 type MapBuilder struct {
-	cfg *JSONConfig
+	cfg                   *JSONConfig
+	contextFilter         ContextFilter
+	RequiresContextFilter bool
 }
 
 // Build creates a map and populates it
 func (mb *MapBuilder) Build(ctx context.Context, levelLabel, loggerName, message string) map[string]interface{} {
 
+	var fcd FilteredContextData
+
 	outer := make(map[string]interface{})
+
+	if mb.RequiresContextFilter && mb.contextFilter != nil && ctx != nil {
+		fcd = mb.contextFilter.Extract(ctx)
+	}
 
 	for _, f := range mb.cfg.Fields {
 
-		outer[f.Name] = f.generator(ctx, levelLabel, loggerName, message, f)
+		outer[f.Name] = f.generator(fcd, levelLabel, loggerName, message, f)
 
 	}
 
@@ -150,24 +169,33 @@ func (mb *MapBuilder) Build(ctx context.Context, levelLabel, loggerName, message
 }
 
 // ValueGenerator functions are able to generate a value for a field in a JSON formatted log entry
-type ValueGenerator func(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{}
+type ValueGenerator func(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{}
 
-func messageGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
+func (mb *MapBuilder) messageGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
 	return message
 }
 
-func componentGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
+func (mb *MapBuilder) componentGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
 	return loggerName
 }
 
-func levelGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
+func (mb *MapBuilder) levelGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
 	return levelLabel
 }
 
-func utcTimestampGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
+func (mb *MapBuilder) utcTimestampGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
 	return time.Now().UTC().Format(field.Arg)
 }
 
-func localTimestampGenerator(ctx context.Context, levelLabel, loggerName, message string, field *JSONField) interface{} {
+func (mb *MapBuilder) localTimestampGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
 	return time.Now().UTC().Format(field.Arg)
+}
+
+func (mb *MapBuilder) ctxValGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
+
+	if fcd != nil {
+		return fcd[field.Arg]
+	}
+
+	return ""
 }
