@@ -37,6 +37,31 @@
             "Name": "Received",
             "Content": "RECEIVED",
             "Arg": "02/Jan/2006:15:04:05 Z0700"
+          },
+          {
+            "Name": "Method",
+            "Content": "HTTP_METHOD"
+          },
+          {
+            "Name": "Path",
+            "Content": "PATH"
+          },
+          {
+            "Name": "Query",
+            "Content": "QUERY"
+          },
+          {
+            "Name": "Status",
+            "Content": "STATUS"
+          },
+          {
+            "Name": "BytesReturned",
+            "Content": "BYTES_OUT"
+          },
+          {
+            "Name": "ProcessTimeMicro",
+            "Content": "PROCESS_TIME",
+            "Arg": "MICRO"
           }
         ],
         "Suffix": "\n"

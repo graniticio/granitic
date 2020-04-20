@@ -11,6 +11,7 @@ import (
 	"github.com/graniticio/granitic/v2/logging"
 	"github.com/graniticio/granitic/v2/types"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -66,18 +67,30 @@ type AccessLogJsonField struct {
 }
 
 const (
-	ctxVal    = "CONTEXT_VALUE"
-	remote    = "REMOTE"
-	reqHeader = "REQ_HEADER"
-	received  = "RECEIVED"
+	ctxVal         = "CONTEXT_VALUE"
+	remote         = "REMOTE"
+	reqHeader      = "REQ_HEADER"
+	received       = "RECEIVED"
+	httpMethod     = "HTTP_METHOD"
+	reqPath        = "PATH"
+	queryString    = "QUERY"
+	status         = "STATUS"
+	bytesOut       = "BYTES_OUT"
+	processingTime = "PROCESS_TIME"
+)
+
+const (
+	seconds = "SECONDS"
+	milli   = "MILLI"
+	micro   = "MICRO"
 )
 
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
 func ValidateJSONFields(fields []*AccessLogJsonField) error {
 
-	allowed := types.NewOrderedStringSet([]string{ctxVal, remote, reqHeader, received})
+	allowed := types.NewOrderedStringSet([]string{ctxVal, remote, reqHeader, received, httpMethod, reqPath, queryString, status, bytesOut, processingTime})
 
-	argNeeded := types.NewOrderedStringSet([]string{ctxVal, reqHeader, received})
+	argNeeded := types.NewOrderedStringSet([]string{ctxVal, reqHeader, received, processingTime})
 
 	for _, f := range fields {
 
@@ -88,6 +101,12 @@ func ValidateJSONFields(fields []*AccessLogJsonField) error {
 		if argNeeded.Contains(f.Content) && strings.TrimSpace(f.Arg) == "" {
 
 			return fmt.Errorf("you must specify an Arg when using JSON fields with the content type %s", f.Content)
+
+		}
+
+		if f.Content == processingTime && f.Arg != seconds && f.Arg != milli && f.Arg != micro {
+
+			return fmt.Errorf("the arg for fields of type %s must be one of %s %s %s ", f.Content, seconds, milli, micro)
 
 		}
 
@@ -115,7 +134,25 @@ func CreateMapBuilder(cfg *AccessLogJSONConfig) (*AccessLogMapBuilder, error) {
 		case reqHeader:
 			f.generator = mb.reqHeaderGenerator
 		case received:
-			f.generator = mb.receivedTime
+			f.generator = mb.receivedTimeGenerator
+		case httpMethod:
+			f.generator = mb.methodGenerator
+		case reqPath:
+			f.generator = mb.pathGenerator
+		case queryString:
+			f.generator = mb.queryGenerator
+		case status:
+			f.generator = mb.statusGenerator
+		case bytesOut:
+			f.generator = mb.bytesOutGenerator
+		case processingTime:
+			if f.Arg == seconds {
+				f.generator = mb.processSecondsGenerator
+			} else if f.Arg == milli {
+				f.generator = mb.processMilliGenerator
+			} else {
+				f.generator = mb.processMicroGenerator
+			}
 		}
 	}
 
@@ -188,6 +225,44 @@ func (mb *AccessLogMapBuilder) reqHeaderGenerator(lineContext *LineContext, fiel
 	return lineContext.Request.Header.Get(field.Arg)
 }
 
-func (mb *AccessLogMapBuilder) receivedTime(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) receivedTimeGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
 	return lineContext.Received.Format(field.Arg)
+}
+
+func (mb *AccessLogMapBuilder) methodGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return lineContext.Request.Method
+}
+
+func (mb *AccessLogMapBuilder) pathGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return lineContext.Request.URL.Path
+}
+
+func (mb *AccessLogMapBuilder) queryGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return lineContext.Request.URL.RawQuery
+}
+
+func (mb *AccessLogMapBuilder) statusGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return strconv.Itoa(lineContext.ResponseWriter.Status)
+}
+
+func (mb *AccessLogMapBuilder) bytesOutGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return strconv.Itoa(lineContext.ResponseWriter.BytesServed)
+}
+
+func (mb *AccessLogMapBuilder) processSecondsGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return processTimeGen(lineContext.Received, lineContext.Finished, time.Second)
+}
+
+func (mb *AccessLogMapBuilder) processMilliGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return processTimeGen(lineContext.Received, lineContext.Finished, time.Millisecond)
+}
+
+func (mb *AccessLogMapBuilder) processMicroGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return processTimeGen(lineContext.Received, lineContext.Finished, time.Microsecond)
+}
+
+func processTimeGen(rec *time.Time, fin *time.Time, unit time.Duration) string {
+	spent := fin.Sub(*rec)
+
+	return strconv.FormatInt(int64(spent/unit), 10)
 }
