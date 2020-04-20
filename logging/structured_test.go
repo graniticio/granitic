@@ -118,3 +118,31 @@ func TestMapBuilder(t *testing.T) {
 	}
 
 }
+
+func BenchmarkDefaultJSONFormatter(b *testing.B) {
+
+	fields := []*JSONField{
+		{Name: "Timestamp", Content: "TIMESTAMP", Arg: "02/Jan/2006:15:04:05 Z0700"},
+		{Name: "Level", Content: "LEVEL"},
+		{Name: "Source", Content: "COMPONENT_NAME"},
+		{Name: "Message", Content: "MESSAGE"},
+	}
+
+	cfg := JSONConfig{
+		Prefix: "",
+		Fields: fields,
+		Suffix: "\n",
+		UTC:    true,
+	}
+
+	mb, _ := CreateMapBuilder(&cfg)
+
+	jf := new(JSONLogFormatter)
+
+	jf.Config = &cfg
+	jf.MapBuilder = mb
+
+	for i := 0; i < b.N; i++ {
+		jf.Format(nil, "INFO", "someComp", "A benchmark test message of fixed length")
+	}
+}
