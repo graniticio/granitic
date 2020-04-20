@@ -24,7 +24,21 @@
       "JSON": {
         "Prefix": "",
         "Fields": [
-         ],
+          {
+            "Name": "Remote",
+            "Content": "REMOTE"
+          },
+          {
+            "Name": "ForwardedFor",
+            "Content": "REQ_HEADER",
+            "Arg": "X-Forwarded-For"
+          },
+          {
+            "Name": "Received",
+            "Content": "RECEIVED",
+            "Arg": "02/Jan/2006:15:04:05 Z0700"
+          }
+        ],
         "Suffix": "\n"
       }
     }

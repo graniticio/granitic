@@ -66,13 +66,18 @@ type AccessLogJsonField struct {
 }
 
 const (
-	ctxVal = "CONTEXT_VALUE"
+	ctxVal    = "CONTEXT_VALUE"
+	remote    = "REMOTE"
+	reqHeader = "REQ_HEADER"
+	received  = "RECEIVED"
 )
 
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
 func ValidateJSONFields(fields []*AccessLogJsonField) error {
 
-	allowed := types.NewOrderedStringSet([]string{ctxVal})
+	allowed := types.NewOrderedStringSet([]string{ctxVal, remote, reqHeader, received})
+
+	argNeeded := types.NewOrderedStringSet([]string{ctxVal, reqHeader, received})
 
 	for _, f := range fields {
 
@@ -80,8 +85,10 @@ func ValidateJSONFields(fields []*AccessLogJsonField) error {
 			return fmt.Errorf("%s is not a supported content type for a JSON log field. Allowed values are %v", f.Content, allowed.Contents())
 		}
 
-		if f.Content == ctxVal && strings.TrimSpace(f.Arg) == "" {
-			return fmt.Errorf("you must specify an Arg when using JSON fields with the content type %s (the key of the value to be extracted from the context filter)", ctxVal)
+		if argNeeded.Contains(f.Content) && strings.TrimSpace(f.Arg) == "" {
+
+			return fmt.Errorf("you must specify an Arg when using JSON fields with the content type %s", f.Content)
+
 		}
 
 	}
@@ -103,6 +110,12 @@ func CreateMapBuilder(cfg *AccessLogJSONConfig) (*AccessLogMapBuilder, error) {
 		case ctxVal:
 			mb.RequiresContextFilter = true
 			f.generator = mb.ctxValGenerator
+		case remote:
+			f.generator = mb.remoteGenerator
+		case reqHeader:
+			f.generator = mb.reqHeaderGenerator
+		case received:
+			f.generator = mb.receivedTime
 		}
 	}
 
@@ -133,6 +146,7 @@ func (mb *AccessLogMapBuilder) BuildLine(ctx context.Context, req *http.Request,
 		ResponseWriter:  res,
 		Received:        rec,
 		Finished:        fin,
+		Ctx:             &ctx,
 	}
 
 	for _, f := range mb.cfg.Fields {
@@ -151,6 +165,7 @@ type LineContext struct {
 	ResponseWriter  *httpendpoint.HTTPResponseWriter
 	Received        *time.Time
 	Finished        *time.Time
+	Ctx             *context.Context
 }
 
 // ValueGenerator functions are able to generate a value for a field in a JSON formatted log entry
@@ -163,4 +178,16 @@ func (mb *AccessLogMapBuilder) ctxValGenerator(lineContext *LineContext, field *
 	}
 
 	return ""
+}
+
+func (mb *AccessLogMapBuilder) remoteGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return lineContext.Request.RemoteAddr
+}
+
+func (mb *AccessLogMapBuilder) reqHeaderGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return lineContext.Request.Header.Get(field.Arg)
+}
+
+func (mb *AccessLogMapBuilder) receivedTime(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return lineContext.Received.Format(field.Arg)
 }
