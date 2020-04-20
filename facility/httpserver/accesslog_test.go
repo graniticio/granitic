@@ -23,6 +23,12 @@ func TestAccessLogWriterWithStdout(t *testing.T) {
 
 	alw.LogPath = stdoutMode
 
+	b := new(UnstructuredLineBuilder)
+	b.LogLinePreset = alw.LogLinePreset
+	b.LogLineFormat = alw.LogLineFormat
+
+	alw.builder = b
+
 	if err := alw.StartComponent(); err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -51,6 +57,12 @@ func TestAccessLogWriterWithActualFile(t *testing.T) {
 
 	alw.LogLinePreset = "combined"
 	alw.LineBufferSize = 1
+
+	b := new(UnstructuredLineBuilder)
+	b.LogLinePreset = alw.LogLinePreset
+	b.LogLineFormat = alw.LogLineFormat
+
+	alw.builder = b
 
 	tmp := os.TempDir()
 
@@ -117,6 +129,7 @@ func TestContextValueLogging(t *testing.T) {
 	alw, fs := logWriterWithBuffer(t, "%{set}X %{unset}X")
 
 	alw.ContextFilter = cxf
+	alw.builder.SetContextFilter(cxf)
 
 	ctx := context.Background()
 
@@ -160,6 +173,12 @@ func logWriterWithBuffer(t *testing.T, pattern string) (*AccessLogWriter, *fileS
 	alw := new(AccessLogWriter)
 	//alw.LineBufferSize = 1
 	alw.LogLineFormat = pattern
+
+	b := new(UnstructuredLineBuilder)
+	b.LogLinePreset = alw.LogLinePreset
+	b.LogLineFormat = alw.LogLineFormat
+
+	alw.builder = b
 
 	fs := new(fileSimulator)
 

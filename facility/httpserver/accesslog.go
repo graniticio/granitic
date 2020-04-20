@@ -4,14 +4,11 @@
 package httpserver
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -43,71 +40,6 @@ const commonLogDateFormat = "[02/Jan/2006:15:04:05 -0700]"
 
 const stdoutMode = "STDOUT"
 
-type logFormatPlaceHolder int
-
-const (
-	unsupported = iota
-	remoteHost
-	ctxValue
-	clientID
-	userID
-	receivedTime
-	requestLine
-	statusCode
-	bytesReturned
-	bytesReturnedClf
-	requestHeader
-	percentSymbol
-	method
-	path
-	query
-	processTimeMicro
-	processTime
-)
-
-type logLineTokenType int
-
-const (
-	textToken = iota
-	placeholderToken
-	placeholderWithVar
-)
-
-type logLineToken struct {
-	tokenType       logLineTokenType
-	placeholderType logFormatPlaceHolder
-	content         string
-	variable        string
-}
-
-func newTextLogLineElement(text string) *logLineToken {
-
-	e := new(logLineToken)
-	e.tokenType = textToken
-	e.content = text
-
-	return e
-}
-
-func newPlaceholderLineElement(phType logFormatPlaceHolder) *logLineToken {
-
-	e := new(logLineToken)
-	e.tokenType = placeholderToken
-	e.placeholderType = phType
-
-	return e
-}
-
-func newPlaceholderWithVarLineElement(phType logFormatPlaceHolder, variable string) *logLineToken {
-
-	e := new(logLineToken)
-	e.tokenType = placeholderWithVar
-	e.placeholderType = phType
-	e.variable = variable
-
-	return e
-}
-
 // AccessLogWriter is a component able to asynchronously write an Apache HTTPD style access log. See the top of this GoDoc page for more information.
 type AccessLogWriter struct {
 	logFile closableStringWriter
@@ -133,9 +65,10 @@ type AccessLogWriter struct {
 	// A component able to extract information from a context.Context into a loggable format
 	ContextFilter logging.ContextFilter
 
-	elements []*logLineToken
-	lines    chan string
-	state    ioc.ComponentState
+	builder LineBuilder
+
+	lines chan string
+	state ioc.ComponentState
 }
 
 // LogRequest generates an access log line according the configured format. As long as the number of log lines waiting to
@@ -146,44 +79,14 @@ func (alw *AccessLogWriter) LogRequest(ctx context.Context, req *http.Request, r
 		return
 	}
 
-	alw.lines <- alw.buildLine(ctx, req, res, rec, fin)
+	alw.lines <- alw.builder.BuildLine(ctx, req, res, rec, fin)
 
 }
 
-func (alw *AccessLogWriter) buildLine(ctx context.Context, req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time) string {
-	var b bytes.Buffer
-
-	var cv logging.FilteredContextData
-
-	if alw.ContextFilter != nil {
-		// Extract loggable information from the context
-		cv = alw.ContextFilter.Extract(ctx)
-	}
-
-	if alw.UtcTimes {
-		utcRec := rec.UTC()
-		utcFin := fin.UTC()
-
-		rec = &utcRec
-		fin = &utcFin
-	}
-
-	for _, e := range alw.elements {
-
-		switch e.tokenType {
-		case textToken:
-			b.WriteString(e.content)
-		case placeholderToken:
-			b.WriteString(alw.findValue(ctx, e, req, res, rec, fin))
-		case placeholderWithVar:
-			b.WriteString(alw.findValueWithVar(ctx, cv, e, req, res, rec, fin))
-		}
-	}
-
-	b.WriteString("\n")
-
-	return b.String()
-
+type LineBuilder interface {
+	BuildLine(ctx context.Context, req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time) string
+	SetContextFilter(cf logging.ContextFilter)
+	Init() error
 }
 
 // StartComponent parses the specified log format, sets up a channel to buffer lines for asynchrnous writing and opens the log file. An error
@@ -206,7 +109,8 @@ func (alw *AccessLogWriter) StartComponent() error {
 		alw.lines = make(chan string)
 	}
 
-	err := alw.configureLogFormat()
+	err := alw.builder.Init()
+	alw.builder.SetContextFilter(alw.ContextFilter)
 
 	if err != nil {
 		return err
@@ -258,142 +162,6 @@ func (alw *AccessLogWriter) openFile() (closableStringWriter, error) {
 	return f, nil
 }
 
-func (alw *AccessLogWriter) configureLogFormat() error {
-
-	f := alw.LogLineFormat
-	pre := alw.LogLinePreset
-
-	if f == "" && pre == "" {
-		return errors.New("you must specify either a format for access log lines or the name of a preset format (neither has been provided)")
-	}
-
-	if f != "" {
-		//Custom log mode - ignore the preset
-		pre = ""
-	}
-
-	if pre != "" {
-
-		if pre == presetCommonName {
-			return alw.parseFormat(presetCommonFormat)
-
-		} else if pre == presetCombinedName {
-			return alw.parseFormat(PresetCombinedFormat)
-
-		} else if pre == presetFrameworkName {
-			return alw.parseFormat(PresetFrameworkFormat)
-
-		} else {
-			message := fmt.Sprintf("%s is not a supported preset for access log lines", pre)
-			return errors.New(message)
-		}
-
-	}
-
-	return alw.parseFormat(f)
-}
-
-func (alw *AccessLogWriter) parseFormat(format string) error {
-
-	lineRe := regexp.MustCompile(formatRegex)
-	varRe := regexp.MustCompile(varModifiedRegex)
-
-	placeholders := lineRe.FindAllString(format, -1)
-	textFragments := lineRe.Split(format, -1)
-	firstMatch := lineRe.FindStringIndex(format)
-	var startsWithPh bool
-
-	if len(firstMatch) > 0 {
-		startsWithPh = (firstMatch[0] == 0) && textFragments[0] != ""
-	}
-
-	phCount := len(placeholders)
-	tCount := len(textFragments)
-
-	maxCount := intMax(phCount, tCount)
-
-	for i := 0; i < maxCount; i++ {
-
-		phAvail := i < phCount
-		tAvail := i < tCount
-		var err error
-
-		if phAvail && tAvail {
-
-			ph := placeholders[i]
-			text := textFragments[i]
-
-			if startsWithPh {
-				err = alw.addPlaceholder(ph, varRe)
-				alw.addTextElement(text)
-			} else {
-				alw.addTextElement(text)
-				err = alw.addPlaceholder(ph, varRe)
-			}
-
-		} else if phAvail {
-			ph := placeholders[i]
-			err = alw.addPlaceholder(ph, varRe)
-
-		} else if tAvail {
-			text := textFragments[i]
-			alw.addTextElement(text)
-		}
-
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return nil
-}
-
-func (alw *AccessLogWriter) addTextElement(text string) {
-
-	if text != "" {
-		e := newTextLogLineElement(text)
-		alw.elements = append(alw.elements, e)
-	}
-}
-
-func (alw *AccessLogWriter) addPlaceholder(ph string, re *regexp.Regexp) error {
-
-	if len(ph) == 2 {
-
-		formatTypeCode := ph[1:2]
-
-		lfph := alw.mapPlaceholder(formatTypeCode)
-
-		if lfph == unsupported {
-			message := fmt.Sprintf("%s is not a supported field for formatting access log lines", ph)
-			return errors.New(message)
-		}
-
-		e := newPlaceholderLineElement(lfph)
-		alw.elements = append(alw.elements, e)
-
-	} else {
-
-		v := re.FindStringSubmatch(ph)
-		arg := v[1]
-		formatTypeCode := v[2]
-
-		lfph := alw.mapPlaceholder(formatTypeCode)
-
-		if lfph == unsupported {
-			message := fmt.Sprintf("%s is not a supported field for formatting access log lines", ph)
-			return errors.New(message)
-		}
-
-		e := newPlaceholderWithVarLineElement(lfph, arg)
-		alw.elements = append(alw.elements, e)
-
-	}
-
-	return nil
-}
-
 func intMax(x, y int) int {
 	if x > y {
 		return x
@@ -401,182 +169,6 @@ func intMax(x, y int) int {
 
 	return y
 
-}
-
-func (alw *AccessLogWriter) mapPlaceholder(ph string) logFormatPlaceHolder {
-
-	switch ph {
-	default:
-		return unsupported
-	case "%":
-		return percentSymbol
-	case "b":
-		return bytesReturnedClf
-	case "B":
-		return bytesReturned
-	case "D":
-		return processTimeMicro
-	case "h":
-		return remoteHost
-	case "i":
-		return requestHeader
-	case "l":
-		return clientID
-	case "m":
-		return method
-	case "q":
-		return query
-	case "r":
-		return requestLine
-	case "s":
-		return statusCode
-	case "t":
-		return receivedTime
-	case "T":
-		return processTime
-	case "u":
-		return userID
-	case "U":
-		return path
-	case "X":
-		return ctxValue
-	}
-
-}
-
-func (alw *AccessLogWriter) findValueWithVar(ctx context.Context, cd logging.FilteredContextData, element *logLineToken, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time) string {
-	switch element.placeholderType {
-	case requestHeader:
-		return alw.requestHeader(element.variable, req)
-
-	case receivedTime:
-		return received.Format(element.variable)
-
-	case processTime:
-
-		switch element.variable {
-		case "s":
-			return alw.processTime(received, finished, time.Second)
-		case "us":
-			return alw.processTime(received, finished, time.Microsecond)
-		case "ms":
-			return alw.processTime(received, finished, time.Millisecond)
-		default:
-			return "??"
-
-		}
-	case ctxValue:
-		return alw.ctxValue(cd, element.variable)
-
-	default:
-		return unsupportedPlaceholder
-
-	}
-}
-
-func (alw *AccessLogWriter) findValue(ctx context.Context, element *logLineToken, req *http.Request, res *httpendpoint.HTTPResponseWriter, received *time.Time, finished *time.Time) string {
-
-	switch element.placeholderType {
-
-	case percentSymbol:
-		return percent
-
-	case bytesReturnedClf:
-		if res.BytesServed == 0 {
-			return hyphen
-		}
-
-		return (strconv.Itoa(res.BytesServed))
-
-	case bytesReturned:
-		return (strconv.Itoa(res.BytesServed))
-
-	case remoteHost:
-		return req.RemoteAddr
-
-	case clientID:
-		return hyphen
-
-	case userID:
-		return alw.userID(ctx)
-
-	case method:
-		return req.Method
-
-	case path:
-		return req.URL.Path
-
-	case query:
-		return alw.query(req)
-
-	case requestLine:
-		return alw.requestLine(req)
-
-	case receivedTime:
-		return received.Format(commonLogDateFormat)
-
-	case statusCode:
-		return strconv.Itoa(res.Status)
-
-	case processTimeMicro:
-		return alw.processTime(received, finished, time.Microsecond)
-
-	case processTime:
-		return alw.processTime(received, finished, time.Second)
-
-	default:
-		return unsupportedPlaceholder
-
-	}
-
-}
-
-func (alw *AccessLogWriter) ctxValue(cd logging.FilteredContextData, key string) string {
-
-	if cd == nil || cd[key] == "" {
-		return hyphen
-	}
-
-	return cd[key]
-
-}
-
-func (alw *AccessLogWriter) processTime(rec *time.Time, fin *time.Time, unit time.Duration) string {
-	spent := fin.Sub(*rec)
-
-	return strconv.FormatInt(int64(spent/unit), 10)
-}
-
-func (alw *AccessLogWriter) query(req *http.Request) string {
-
-	q := req.URL.RawQuery
-
-	if q == "" {
-		return q
-	}
-
-	return "?" + q
-
-}
-
-func (alw *AccessLogWriter) requestHeader(name string, req *http.Request) string {
-
-	value := req.Header.Get(name)
-
-	if value == "" {
-		return hyphen
-
-	}
-
-	return value
-}
-
-func (alw *AccessLogWriter) requestLine(req *http.Request) string {
-	return fmt.Sprintf("%s %s %s", req.Method, req.RequestURI, req.Proto)
-}
-
-func (alw *AccessLogWriter) userID(ctx context.Context) string {
-	return hyphen
 }
 
 // PrepareToStop settings state to 'Stopping'

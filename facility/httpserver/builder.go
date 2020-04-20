@@ -48,6 +48,12 @@ func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 		accessLogWriter := new(AccessLogWriter)
 		ca.Populate("HTTPServer.AccessLog", accessLogWriter)
 
+		lb := new(UnstructuredLineBuilder)
+		lb.LogLineFormat = accessLogWriter.LogLineFormat
+		lb.LogLinePreset = accessLogWriter.LogLinePreset
+
+		accessLogWriter.builder = lb
+
 		file := accessLogWriter.LogPath
 
 		file = strings.TrimSpace(file)
