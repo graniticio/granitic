@@ -57,9 +57,8 @@
             "Arg": "SECONDS"
           },
           {
-            "Name": "CtxVal",
-            "Content": "CONTEXT_VALUE",
-            "Arg": "someKey"
+            "Name": "RequestLine",
+            "Content": "REQUEST_LINE"
           }
 
         ]

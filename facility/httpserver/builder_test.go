@@ -2,7 +2,6 @@ package httpserver
 
 import (
 	"context"
-	"fmt"
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/ioc"
@@ -151,13 +150,16 @@ func TestBuilderWithAllFieldsJSONConfig(t *testing.T) {
 
 	req := new(http.Request)
 	req.URL, _ = url.Parse("http://localhost/some/path?a=b")
+	req.Method = "GET"
+	req.Proto = "HTTPS"
+	req.RequestURI = "/some/path"
 	end := time.Now()
 
 	start := end.Add(time.Second * -2)
 
 	rw := responseWriter(true, 200)
 
-	fmt.Println(lb.BuildLine(ctx, req, rw, &start, &end))
+	lb.BuildLine(ctx, req, rw, &start, &end)
 
 }
 
