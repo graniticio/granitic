@@ -1,0 +1,9 @@
+{
+  "HTTPServer": {
+    "AccessLogging": true,
+    "AccessLog": {
+      "Entry": "JSON",
+      "LogPath": "STDOUT"
+    }
+  }
+}

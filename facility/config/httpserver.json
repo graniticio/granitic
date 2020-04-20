@@ -19,7 +19,14 @@
       "LogPath": "./access.log",
       "LogLinePreset": "framework",
       "UtcTimes": true,
-      "LineBufferSize": 10
+      "LineBufferSize": 10,
+      "Entry": "TEXT",
+      "JSON": {
+        "Prefix": "",
+        "Fields": [
+         ],
+        "Suffix": "\n"
+      }
     }
   }
 }

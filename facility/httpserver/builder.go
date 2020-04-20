@@ -21,6 +21,9 @@ const HTTPServerComponentName = instance.FrameworkPrefix + "HTTPServer"
 const contextIDDecoratorName = instance.FrameworkPrefix + "RequestIDContextDecorator"
 const instrumentationDecoratorName = instance.FrameworkPrefix + "RequestInstrumentationDecorator"
 
+const textEntryMode = "TEXT"
+const jsonEntryMode = "JSON"
+
 // HTTPServerAbnormalStatusFieldName is the field on the HTTPServer component into which a ws.AbnormalStatusWriter can be injected. Most applications will use either
 // the JSONWs or XMLWs facility, in which case a AbnormalStatusWriter that will respond to requests with an abnormal result
 // (404, 503 etc) by sending a JSON or XML response respectively.
@@ -45,28 +48,9 @@ func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 	cn.WrapAndAddProto(HTTPServerComponentName, httpServer)
 
 	if httpServer.AccessLogging {
-		accessLogWriter := new(AccessLogWriter)
-		ca.Populate("HTTPServer.AccessLog", accessLogWriter)
-
-		lb := new(UnstructuredLineBuilder)
-		lb.LogLineFormat = accessLogWriter.LogLineFormat
-		lb.LogLinePreset = accessLogWriter.LogLinePreset
-
-		accessLogWriter.builder = lb
-
-		file := accessLogWriter.LogPath
-
-		file = strings.TrimSpace(file)
-		file = strings.ToUpper(file)
-
-		if file == stdoutMode {
-			log.LogDebugf("Access logs will be written to STDOUT")
-			accessLogWriter.LogPath = stdoutMode
+		if err := hsfb.setupAccessLogging(ca, log, httpServer, cn); err != nil {
+			return err
 		}
-
-		httpServer.AccessLogWriter = accessLogWriter
-
-		cn.WrapAndAddProto(accessLogWriterName, accessLogWriter)
 	}
 
 	idbd := new(contextBuilderDecorator)
@@ -93,6 +77,71 @@ func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 	return nil
 
+}
+
+func (hsfb *FacilityBuilder) setupAccessLogging(ca *config.Accessor, log logging.Logger, httpServer *HTTPServer, cn *ioc.ComponentContainer) error {
+	accessLogWriter := new(AccessLogWriter)
+	ca.Populate("HTTPServer.AccessLog", accessLogWriter)
+
+	var lb LineBuilder
+	var mode string
+	var err error
+
+	entryPath := "HTTPServer.AccessLog.Entry"
+
+	if mode, err = ca.StringVal(entryPath); err != nil {
+		return err
+	}
+
+	if mode == textEntryMode {
+		ulb := new(UnstructuredLineBuilder)
+		ulb.LogLineFormat = accessLogWriter.LogLineFormat
+		ulb.LogLinePreset = accessLogWriter.LogLinePreset
+		ulb.utcTimes = accessLogWriter.UtcTimes
+
+		lb = ulb
+	} else if mode == jsonEntryMode {
+
+		jlb := new(JSONLineBuilder)
+
+		jc := new(AccessLogJSONConfig)
+		ca.Populate("HTTPServer.AccessLog.JSON", jc)
+		jlb.Config = jc
+
+		jc.UTC = accessLogWriter.UtcTimes
+
+		if err := ValidateJSONFields(jc.Fields); err != nil {
+			return err
+		}
+
+		if mb, err := CreateMapBuilder(jc); err != nil {
+			return err
+		} else {
+			jlb.MapBuilder = mb
+		}
+
+		lb = jlb
+	} else {
+		return fmt.Errorf("%s is a not a supported value for %s. Should be %s or %s", mode, entryPath, textEntryMode, jsonEntryMode)
+	}
+
+	accessLogWriter.builder = lb
+
+	file := accessLogWriter.LogPath
+
+	file = strings.TrimSpace(file)
+	file = strings.ToUpper(file)
+
+	if file == stdoutMode {
+		log.LogDebugf("Access logs will be written to STDOUT")
+		accessLogWriter.LogPath = stdoutMode
+	}
+
+	httpServer.AccessLogWriter = accessLogWriter
+
+	cn.WrapAndAddProto(accessLogWriterName, accessLogWriter)
+
+	return nil
 }
 
 func configureRequestIDGeneration(ca *config.Accessor, log logging.Logger, s *HTTPServer) error {
