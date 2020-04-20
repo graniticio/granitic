@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"fmt"
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/ioc"
@@ -107,6 +108,59 @@ func TestBuilderWithJSONConfig(t *testing.T) {
 
 }
 
+func TestBuilderWithAllFieldsJSONConfig(t *testing.T) {
+	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
+
+	ca, err := configAccessor(lm, test.FilePath("allfieldvariants.json"))
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	fb := new(FacilityBuilder)
+	cxf := new(testFilter)
+
+	cxf.m = make(logging.FilteredContextData)
+	cxf.m["someKey"] = "someVal"
+
+	s := new(instance.System)
+
+	//Create the IoC container
+	cc := ioc.NewComponentContainer(lm, ca, s)
+
+	err = fb.BuildAndRegister(lm, ca, cc)
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if err = cc.Populate(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	alw := cc.ComponentByName(accessLogWriterName).Instance.(*AccessLogWriter)
+
+	lb := alw.builder
+	lb.SetContextFilter(cxf)
+
+	if _, ok := lb.(*JSONLineBuilder); !ok {
+		t.Fatalf("Unexpected type of LineBuilder %T", lb)
+	}
+
+	ctx := context.Background()
+
+	req := new(http.Request)
+	req.URL, _ = url.Parse("http://localhost/some/path?a=b")
+	end := time.Now()
+
+	start := end.Add(time.Second * -2)
+
+	rw := responseWriter(true, 200)
+
+	fmt.Println(lb.BuildLine(ctx, req, rw, &start, &end))
+
+}
+
 func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...string) (*config.Accessor, error) {
 
 	jm := config.NewJSONMergerWithManagedLogging(lm, new(config.JSONContentParser))
@@ -138,4 +192,12 @@ func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...strin
 	caLogger := lm.CreateLogger("ca")
 	return &config.Accessor{JSONData: mergedJSON, FrameworkLogger: caLogger}, nil
 
+}
+
+type testFilter struct {
+	m logging.FilteredContextData
+}
+
+func (tf testFilter) Extract(ctx context.Context) logging.FilteredContextData {
+	return tf.m
 }

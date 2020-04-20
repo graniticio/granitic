@@ -1,0 +1,69 @@
+{
+  "HTTPServer": {
+    "AccessLogging": true,
+    "AccessLog": {
+      "Entry": "JSON",
+      "LogPath": "STDOUT",
+      "JSON": {
+        "Prefix": "",
+        "Fields": [
+          {
+            "Name": "Remote",
+            "Content": "REMOTE"
+          },
+          {
+            "Name": "ForwardedFor",
+            "Content": "REQ_HEADER",
+            "Arg": "X-Forwarded-For"
+          },
+          {
+            "Name": "Received",
+            "Content": "RECEIVED",
+            "Arg": "02/Jan/2006:15:04:05 Z0700"
+          },
+          {
+            "Name": "Method",
+            "Content": "HTTP_METHOD"
+          },
+          {
+            "Name": "Path",
+            "Content": "PATH"
+          },
+          {
+            "Name": "Query",
+            "Content": "QUERY"
+          },
+          {
+            "Name": "Status",
+            "Content": "STATUS"
+          },
+          {
+            "Name": "BytesReturned",
+            "Content": "BYTES_OUT"
+          },
+          {
+            "Name": "ProcessTimeMicro",
+            "Content": "PROCESS_TIME",
+            "Arg": "MICRO"
+          },
+          {
+            "Name": "ProcessTimeMilli",
+            "Content": "PROCESS_TIME",
+            "Arg": "MILLI"
+          },
+          {
+            "Name": "ProcessTimeSecond",
+            "Content": "PROCESS_TIME",
+            "Arg": "SECONDS"
+          },
+          {
+            "Name": "CtxVal",
+            "Content": "CONTEXT_VALUE",
+            "Arg": "someKey"
+          }
+
+        ]
+      }
+    }
+  }
+}
