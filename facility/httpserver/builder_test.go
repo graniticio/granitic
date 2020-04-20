@@ -1,12 +1,16 @@
 package httpserver
 
 import (
+	"context"
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/ioc"
 	"github.com/graniticio/granitic/v2/logging"
 	"github.com/graniticio/granitic/v2/test"
+	"net/http"
+	"net/url"
 	"testing"
+	"time"
 )
 
 func TestFacilityNaming(t *testing.T) {
@@ -88,6 +92,18 @@ func TestBuilderWithJSONConfig(t *testing.T) {
 	if _, ok := lb.(*JSONLineBuilder); !ok {
 		t.Fatalf("Unexpected type of LineBuilder %T", lb)
 	}
+
+	ctx := context.Background()
+
+	req := new(http.Request)
+	req.URL, _ = url.Parse("http://localhost/some/path?a=b")
+	end := time.Now()
+
+	start := end.Add(time.Second * -2)
+
+	rw := responseWriter(true, 200)
+
+	lb.BuildLine(ctx, req, rw, &start, &end)
 
 }
 
