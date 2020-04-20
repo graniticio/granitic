@@ -64,10 +64,13 @@ type JSONField struct {
 
 const (
 	message   = "MESSAGE"
+	firstLine = "FIRST_LINE"
+	skipFirst = "SKIP_FIRST"
 	comp      = "COMPONENT_NAME"
 	timestamp = "TIMESTAMP"
 	level     = "LEVEL"
 	ctxVal    = "CONTEXT_VALUE"
+	text      = "TEXT"
 )
 
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
@@ -134,6 +137,12 @@ func CreateMapBuilder(cfg *JSONConfig) (*MapBuilder, error) {
 		case ctxVal:
 			mb.RequiresContextFilter = true
 			f.generator = mb.ctxValGenerator
+		case text:
+			f.generator = mb.textGenerator
+		case firstLine:
+			f.generator = mb.firstLineGenerator
+		case skipFirst:
+			f.generator = mb.skipFirstGenerator
 		}
 	}
 
@@ -175,8 +184,27 @@ func (mb *MapBuilder) messageGenerator(fcd FilteredContextData, levelLabel, logg
 	return message
 }
 
+func (mb *MapBuilder) firstLineGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
+	return strings.Split(message, "\n")[0]
+}
+
+func (mb *MapBuilder) skipFirstGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
+
+	l := strings.SplitAfterN(message, "\n", 2)
+
+	if len(l) != 2 {
+		return ""
+	}
+
+	return l[1]
+}
+
 func (mb *MapBuilder) componentGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
 	return loggerName
+}
+
+func (mb *MapBuilder) textGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
+	return field.Arg
 }
 
 func (mb *MapBuilder) levelGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {

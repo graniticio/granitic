@@ -5,6 +5,7 @@ package logging
 
 import (
 	"context"
+	"strings"
 	"testing"
 )
 
@@ -206,4 +207,147 @@ func BenchmarkDefaultJSONFormatter(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		jf.Format(nil, "INFO", "someComp", "A benchmark test message of fixed length")
 	}
+}
+
+func TestTextVal(t *testing.T) {
+
+	fields := []*JSONField{
+		{Name: "Text", Content: "TEXT", Arg: "text"}}
+
+	cfg := JSONConfig{
+		Prefix: "",
+		Fields: fields,
+		Suffix: "\n",
+		UTC:    true,
+	}
+
+	mb, _ := CreateMapBuilder(&cfg)
+
+	jf := new(JSONLogFormatter)
+	jf.Config = &cfg
+	jf.MapBuilder = mb
+
+	s := jf.Format(context.Background(), "", "", "")
+
+	if s != "{\"Text\":\"text\"}\n" {
+		t.Fatalf("Unexpected message")
+	}
+}
+
+func TestMessageFromStackTrace(t *testing.T) {
+
+	fields := []*JSONField{
+		{Name: "Message", Content: "FIRST_LINE"}}
+
+	cfg := JSONConfig{
+		Prefix: "",
+		Fields: fields,
+		Suffix: "\n",
+		UTC:    true,
+	}
+
+	mb, _ := CreateMapBuilder(&cfg)
+
+	cf := testFilter{m: make(FilteredContextData)}
+
+	cf.m["someKey"] = "someVal"
+
+	jf := new(JSONLogFormatter)
+	jf.Config = &cfg
+	jf.MapBuilder = mb
+
+	jf.SetContextFilter(cf)
+
+	if jf.StartComponent() != nil {
+		t.Fatalf("Failed to detect supplied context filter")
+	}
+
+	gl := NewStdoutLogger(Info, "").(*GraniticLogger)
+	w := new(lastLineWriter)
+
+	gl.UpdateWritersAndFormatter([]LogWriter{w}, jf)
+
+	defer func() {
+		if r := recover(); r != nil {
+
+			gl.LogErrorfCtxWithTrace(context.Background(), "STACKTRACE %s %d", "a", 1)
+			gl.LogInfof("ONE LINE")
+
+		}
+	}()
+
+	panic("TESTPANIC")
+
+}
+
+func TestStackTraceNoMessage(t *testing.T) {
+
+	fields := []*JSONField{
+		{Name: "Message", Content: "SKIP_FIRST"}}
+
+	cfg := JSONConfig{
+		Prefix: "",
+		Fields: fields,
+		Suffix: "\n",
+		UTC:    true,
+	}
+
+	mb, _ := CreateMapBuilder(&cfg)
+
+	cf := testFilter{m: make(FilteredContextData)}
+
+	cf.m["someKey"] = "someVal"
+
+	jf := new(JSONLogFormatter)
+	jf.Config = &cfg
+	jf.MapBuilder = mb
+
+	jf.SetContextFilter(cf)
+
+	if jf.StartComponent() != nil {
+		t.Fatalf("Failed to detect supplied context filter")
+	}
+
+	gl := NewStdoutLogger(Info, "").(*GraniticLogger)
+	w := new(lastLineWriter)
+
+	gl.UpdateWritersAndFormatter([]LogWriter{w}, jf)
+
+	defer func() {
+		if r := recover(); r != nil {
+
+			gl.LogErrorfCtxWithTrace(context.Background(), "STACKTRACE %s %d", "a", 1)
+
+			if strings.HasPrefix(w.Last, "{\"Message\":\"STACKTRACE") {
+				t.Fatalf("Failed to strip first line")
+			}
+
+			gl.LogInfof("ONE LINE")
+
+			if w.Last != "{\"Message\":\"\"}\n" {
+				t.Fatalf("Failed to recognise lack of stack trace")
+			}
+		}
+	}()
+
+	panic("TESTPANIC")
+
+}
+
+type lastLineWriter struct {
+	Last string
+}
+
+func (l *lastLineWriter) WriteMessage(m string) {
+	l.Last = m
+}
+
+func (l *lastLineWriter) Close() {
+
+}
+
+func (l *lastLineWriter) Busy() bool {
+
+	return false
+
 }
