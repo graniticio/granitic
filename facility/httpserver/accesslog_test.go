@@ -97,6 +97,10 @@ func TestHTTPRequestLineElements(t *testing.T) {
 
 	alw, fs := logWriterWithBuffer(t, "%U%q %m")
 
+	b := new(UnstructuredLineBuilder)
+	b.LogLinePreset = alw.LogLinePreset
+	b.LogLineFormat = alw.LogLineFormat
+
 	req := new(http.Request)
 	req.Method = "POST"
 	req.URL, _ = url.Parse("http://localhost:80/test?a=b")

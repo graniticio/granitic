@@ -76,7 +76,7 @@ const (
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
 func ValidateJSONFields(fields []*JSONField) error {
 
-	allowed := types.NewOrderedStringSet([]string{message, comp, timestamp, level, ctxVal})
+	allowed := types.NewOrderedStringSet([]string{message, comp, timestamp, level, ctxVal, firstLine, skipFirst, text})
 
 	for i, f := range fields {
 
