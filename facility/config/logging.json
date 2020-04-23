@@ -13,24 +13,10 @@
       "JSON": {
         "Prefix": "",
         "Fields": [
-          {
-            "Name": "Timestamp",
-            "Content": "TIMESTAMP",
-            "Arg": "02/Jan/2006:15:04:05 Z0700"
-          },
-          {
-            "Name": "Level",
-            "Content": "LEVEL"
-          },
-          {
-            "Name": "Source",
-            "Content": "COMPONENT_NAME"
-          },
-          {
-            "Name": "Message",
-            "Content": "MESSAGE"
-          }
-
+          ["Timestamp", "TIMESTAMP", "02/Jan/2006:15:04:05 Z0700"],
+          ["Level", "LEVEL"],
+          ["Source", "COMPONENT_NAME"],
+          ["Message", "MESSAGE"]
         ],
         "Suffix": "\n"
       }

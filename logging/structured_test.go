@@ -105,7 +105,7 @@ func TestMapBuilder(t *testing.T) {
 	f.Content = "MESSAGE"
 	f.Name = "message"
 
-	cfg.Fields = []*JSONField{f}
+	cfg.ParsedFields = []*JSONField{f}
 
 	mb, err := CreateMapBuilder(cfg)
 
@@ -127,10 +127,10 @@ func TestMissingContextFilter(t *testing.T) {
 		{Name: "CtxVal", Content: "CONTEXT_VALUE", Arg: "someKey"}}
 
 	cfg := JSONConfig{
-		Prefix: "",
-		Fields: fields,
-		Suffix: "\n",
-		UTC:    true,
+		Prefix:       "",
+		ParsedFields: fields,
+		Suffix:       "\n",
+		UTC:          true,
 	}
 
 	mb, _ := CreateMapBuilder(&cfg)
@@ -152,10 +152,10 @@ func TestContextVal(t *testing.T) {
 		{Name: "CtxVal", Content: "CONTEXT_VALUE", Arg: "someKey"}}
 
 	cfg := JSONConfig{
-		Prefix: "",
-		Fields: fields,
-		Suffix: "\n",
-		UTC:    true,
+		Prefix:       "",
+		ParsedFields: fields,
+		Suffix:       "\n",
+		UTC:          true,
 	}
 
 	mb, _ := CreateMapBuilder(&cfg)
@@ -191,10 +191,10 @@ func BenchmarkDefaultJSONFormatter(b *testing.B) {
 	}
 
 	cfg := JSONConfig{
-		Prefix: "",
-		Fields: fields,
-		Suffix: "\n",
-		UTC:    true,
+		Prefix:       "",
+		ParsedFields: fields,
+		Suffix:       "\n",
+		UTC:          true,
 	}
 
 	mb, _ := CreateMapBuilder(&cfg)
@@ -215,10 +215,10 @@ func TestTextVal(t *testing.T) {
 		{Name: "Text", Content: "TEXT", Arg: "text"}}
 
 	cfg := JSONConfig{
-		Prefix: "",
-		Fields: fields,
-		Suffix: "\n",
-		UTC:    true,
+		Prefix:       "",
+		ParsedFields: fields,
+		Suffix:       "\n",
+		UTC:          true,
 	}
 
 	mb, _ := CreateMapBuilder(&cfg)
@@ -240,10 +240,10 @@ func TestMessageFromStackTrace(t *testing.T) {
 		{Name: "Message", Content: "FIRST_LINE"}}
 
 	cfg := JSONConfig{
-		Prefix: "",
-		Fields: fields,
-		Suffix: "\n",
-		UTC:    true,
+		Prefix:       "",
+		ParsedFields: fields,
+		Suffix:       "\n",
+		UTC:          true,
 	}
 
 	mb, _ := CreateMapBuilder(&cfg)
@@ -286,10 +286,10 @@ func TestStackTraceNoMessage(t *testing.T) {
 		{Name: "Message", Content: "SKIP_FIRST"}}
 
 	cfg := JSONConfig{
-		Prefix: "",
-		Fields: fields,
-		Suffix: "\n",
-		UTC:    true,
+		Prefix:       "",
+		ParsedFields: fields,
+		Suffix:       "\n",
+		UTC:          true,
 	}
 
 	mb, _ := CreateMapBuilder(&cfg)

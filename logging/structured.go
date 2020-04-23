@@ -48,10 +48,11 @@ func (jlf *JSONLogFormatter) SetContextFilter(cf ContextFilter) {
 
 // JSONConfig defines the fields to be included in a  JSON-formatted application log entry
 type JSONConfig struct {
-	Prefix string
-	Fields []*JSONField
-	Suffix string
-	UTC    bool
+	Prefix       string
+	Fields       [][]string
+	ParsedFields []*JSONField
+	Suffix       string
+	UTC          bool
 }
 
 // A JSONField defines the rules for outputting a single field in a JSON-formatted application log entry
@@ -72,6 +73,41 @@ const (
 	ctxVal    = "CONTEXT_VALUE"
 	text      = "TEXT"
 )
+
+//ConvertFields converts from the config representation of a field list to the internal version
+func ConvertFields(unparsed [][]string) []*JSONField {
+
+	l := len(unparsed)
+
+	if l == 0 {
+		return make([]*JSONField, 0)
+	}
+
+	allParsed := make([]*JSONField, l)
+
+	for i, raw := range unparsed {
+
+		parsed := new(JSONField)
+		fcount := len(raw)
+
+		if fcount > 0 {
+			parsed.Name = raw[0]
+		}
+
+		if fcount > 1 {
+			parsed.Content = raw[1]
+		}
+
+		if fcount > 2 {
+			parsed.Arg = raw[2]
+		}
+
+		allParsed[i] = parsed
+
+	}
+
+	return allParsed
+}
 
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
 func ValidateJSONFields(fields []*JSONField) error {
@@ -119,7 +155,7 @@ func CreateMapBuilder(cfg *JSONConfig) (*MapBuilder, error) {
 
 	mb.cfg = cfg
 
-	for _, f := range cfg.Fields {
+	for _, f := range cfg.ParsedFields {
 
 		switch f.Content {
 		case message:
@@ -167,7 +203,7 @@ func (mb *MapBuilder) Build(ctx context.Context, levelLabel, loggerName, message
 		fcd = mb.contextFilter.Extract(ctx)
 	}
 
-	for _, f := range mb.cfg.Fields {
+	for _, f := range mb.cfg.ParsedFields {
 
 		outer[f.Name] = f.generator(fcd, levelLabel, loggerName, message, f)
 

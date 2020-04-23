@@ -148,7 +148,9 @@ func BuildFormatterFromConfig(ca *config.Accessor) (logging.StringFormatter, err
 
 		cfg.UTC, _ = ca.BoolVal("LogWriting.Format.UtcTimes")
 
-		if err := logging.ValidateJSONFields(cfg.Fields); err != nil {
+		cfg.ParsedFields = logging.ConvertFields(cfg.Fields)
+
+		if err := logging.ValidateJSONFields(cfg.ParsedFields); err != nil {
 			return nil, err
 		}
 
