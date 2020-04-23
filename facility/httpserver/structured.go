@@ -79,6 +79,7 @@ const (
 	bytesOut       = "BYTES_OUT"
 	processingTime = "PROCESS_TIME"
 	reqLine        = "REQUEST_LINE"
+	text           = "TEXT"
 )
 
 const (
@@ -90,9 +91,9 @@ const (
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
 func ValidateJSONFields(fields []*AccessLogJsonField) error {
 
-	allowed := types.NewOrderedStringSet([]string{ctxVal, remote, reqHeader, received, httpMethod, reqPath, queryString, status, bytesOut, processingTime, reqLine})
+	allowed := types.NewOrderedStringSet([]string{ctxVal, remote, reqHeader, received, httpMethod, reqPath, queryString, status, bytesOut, processingTime, reqLine, text})
 
-	argNeeded := types.NewOrderedStringSet([]string{ctxVal, reqHeader, received, processingTime})
+	argNeeded := types.NewOrderedStringSet([]string{ctxVal, reqHeader, received, processingTime, text})
 
 	for _, f := range fields {
 
@@ -192,6 +193,8 @@ func CreateMapBuilder(cfg *AccessLogJSONConfig) (*AccessLogMapBuilder, error) {
 			}
 		case reqLine:
 			f.generator = mb.reqLineGenerator
+		case text:
+			f.generator = mb.textGenerator
 		}
 	}
 
@@ -298,6 +301,10 @@ func (mb *AccessLogMapBuilder) processMilliGenerator(lineContext *LineContext, f
 
 func (mb *AccessLogMapBuilder) processMicroGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
 	return processTimeGen(lineContext.Received, lineContext.Finished, time.Microsecond)
+}
+
+func (mb *AccessLogMapBuilder) textGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+	return field.Arg
 }
 
 func processTimeGen(rec *time.Time, fin *time.Time, unit time.Duration) string {

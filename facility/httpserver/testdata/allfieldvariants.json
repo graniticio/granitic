@@ -18,7 +18,8 @@
           ["ProcessTimeMicro", "PROCESS_TIME", "MICRO"],
           ["ProcessTimeMilli", "PROCESS_TIME", "MILLI"],
           ["ProcessTimeSeconds", "PROCESS_TIME", "SECONDS"],
-          ["RequestLine", "REQUEST_LINE"]
+          ["RequestLine", "REQUEST_LINE"],
+          ["Text", "TEXT", "Text message"]
         ]
       }
     }
