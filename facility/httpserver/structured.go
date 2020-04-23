@@ -52,10 +52,11 @@ func (jlb *JSONLineBuilder) SetContextFilter(cf logging.ContextFilter) {
 
 // AccessLogJSONConfig defines the fields to be included in a  JSON-formatted application log entry
 type AccessLogJSONConfig struct {
-	Prefix string
-	Fields []*AccessLogJsonField
-	Suffix string
-	UTC    bool
+	Prefix       string
+	Fields       [][]string
+	ParsedFields []*AccessLogJsonField
+	Suffix       string
+	UTC          bool
 }
 
 // A AccessLogJsonField defines the rules for outputting a single field in a JSON-formatted application log entry
@@ -117,6 +118,41 @@ func ValidateJSONFields(fields []*AccessLogJsonField) error {
 
 }
 
+//ConvertFields converts from the config representation of a field list to the internal version
+func ConvertFields(unparsed [][]string) []*AccessLogJsonField {
+
+	l := len(unparsed)
+
+	if l == 0 {
+		return make([]*AccessLogJsonField, 0)
+	}
+
+	allParsed := make([]*AccessLogJsonField, l)
+
+	for i, raw := range unparsed {
+
+		parsed := new(AccessLogJsonField)
+		fcount := len(raw)
+
+		if fcount > 0 {
+			parsed.Name = raw[0]
+		}
+
+		if fcount > 1 {
+			parsed.Content = raw[1]
+		}
+
+		if fcount > 2 {
+			parsed.Arg = raw[2]
+		}
+
+		allParsed[i] = parsed
+
+	}
+
+	return allParsed
+}
+
 // CreateMapBuilder builds a component able to generate a log entry based on the rules in the supplied fields.
 func CreateMapBuilder(cfg *AccessLogJSONConfig) (*AccessLogMapBuilder, error) {
 
@@ -124,7 +160,7 @@ func CreateMapBuilder(cfg *AccessLogJSONConfig) (*AccessLogMapBuilder, error) {
 
 	mb.cfg = cfg
 
-	for _, f := range cfg.Fields {
+	for _, f := range cfg.ParsedFields {
 
 		switch f.Content {
 		case ctxVal:
@@ -189,7 +225,7 @@ func (mb *AccessLogMapBuilder) BuildLine(ctx context.Context, req *http.Request,
 		Ctx:             &ctx,
 	}
 
-	for _, f := range mb.cfg.Fields {
+	for _, f := range mb.cfg.ParsedFields {
 
 		outer[f.Name] = f.generator(&c, f)
 

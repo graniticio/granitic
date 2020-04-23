@@ -108,9 +108,11 @@ func (hsfb *FacilityBuilder) setupAccessLogging(ca *config.Accessor, log logging
 		ca.Populate("HTTPServer.AccessLog.JSON", jc)
 		jlb.Config = jc
 
+		jc.ParsedFields = ConvertFields(jc.Fields)
+
 		jc.UTC = accessLogWriter.UtcTimes
 
-		if err := ValidateJSONFields(jc.Fields); err != nil {
+		if err := ValidateJSONFields(jc.ParsedFields); err != nil {
 			return err
 		}
 

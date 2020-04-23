@@ -6,61 +6,19 @@
       "LogPath": "STDOUT",
       "JSON": {
         "Prefix": "",
-        "Fields": [
-          {
-            "Name": "Remote",
-            "Content": "REMOTE"
-          },
-          {
-            "Name": "ForwardedFor",
-            "Content": "REQ_HEADER",
-            "Arg": "X-Forwarded-For"
-          },
-          {
-            "Name": "Received",
-            "Content": "RECEIVED",
-            "Arg": "02/Jan/2006:15:04:05 Z0700"
-          },
-          {
-            "Name": "Method",
-            "Content": "HTTP_METHOD"
-          },
-          {
-            "Name": "Path",
-            "Content": "PATH"
-          },
-          {
-            "Name": "Query",
-            "Content": "QUERY"
-          },
-          {
-            "Name": "Status",
-            "Content": "STATUS"
-          },
-          {
-            "Name": "BytesReturned",
-            "Content": "BYTES_OUT"
-          },
-          {
-            "Name": "ProcessTimeMicro",
-            "Content": "PROCESS_TIME",
-            "Arg": "MICRO"
-          },
-          {
-            "Name": "ProcessTimeMilli",
-            "Content": "PROCESS_TIME",
-            "Arg": "MILLI"
-          },
-          {
-            "Name": "ProcessTimeSecond",
-            "Content": "PROCESS_TIME",
-            "Arg": "SECONDS"
-          },
-          {
-            "Name": "RequestLine",
-            "Content": "REQUEST_LINE"
-          }
-
+        "Fields":  [
+          ["Remote", "REMOTE"],
+          ["ForwardedFor",  "REQ_HEADER", "X-Forwarded-For"],
+          ["Received", "RECEIVED", "02/Jan/2006:15:04:05 Z0700"],
+          ["Method", "HTTP_METHOD"],
+          ["Path", "PATH"],
+          ["Query", "QUERY"],
+          ["Status", "STATUS"],
+          ["BytesReturned", "BYTES_OUT"],
+          ["ProcessTimeMicro", "PROCESS_TIME", "MICRO"],
+          ["ProcessTimeMilli", "PROCESS_TIME", "MILLI"],
+          ["ProcessTimeSeconds", "PROCESS_TIME", "SECONDS"],
+          ["RequestLine", "REQUEST_LINE"]
         ]
       }
     }
