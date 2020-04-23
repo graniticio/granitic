@@ -148,6 +148,14 @@ logical name to a particular instance, you can specify the name using the -i fla
 Refer to the [instance indentification](adm-instance.md) documentation for more details.
 
 
+#### Save merged configuration -m
+
+Supply the `-m` flag and a path to a file when starting your application will cause Granitic to write it's final, merged
+view of your application's configuration to that file (as JSON) and then exit. E.g.:
+
+```json
+-m ./merged-config.json
+```
 
 ---
 **Next**: [JSON and YAML](gpr-json.md) 

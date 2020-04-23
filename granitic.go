@@ -51,6 +51,8 @@ default your application will support the following arguments.
 	-c A comma separated list of files, directories or HTTP URIs in any combination (default resource/config)
 	-l The level of messages that will be logged by the framework while bootstrapping (before logging configuration is loaded; default INFO)
 	-i An optional string that can be used to uniquely identify this instance of your application
+	-d Defer any log messages emitted by the framework until your application's logging configuration has been applied
+	-m [path] Once Granitic has merged all of your configuration files together, write it to this path and exit
 
 If your application needs to perform command line processing and you want to prevent Granitic from attempting to parse command line arguments,
 you should start Granitic using the alternative:
@@ -149,6 +151,18 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 
 	//Merge all configuration files and create a container
 	ca := i.createConfigAccessor(is, frameworkLoggingManager)
+
+	if is.MergedConfigPath != "" {
+
+		if err := config.WriteJSONConfig(ca, is.MergedConfigPath); err != nil {
+
+			l.LogErrorf("Unable to write merged config file to %s: %s", is.MergedConfigPath, err.Error())
+			instance.ExitError()
+		} else {
+
+			instance.ExitNormal()
+		}
+	}
 
 	//Check to see framework logging has been disabled
 	if enabled, err := ca.BoolVal("Facilities.FrameworkLogging"); err != nil {

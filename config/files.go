@@ -4,6 +4,7 @@
 package config
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -102,4 +103,16 @@ func FileListFromPath(path string) ([]string, error) {
 	}
 
 	return files, nil
+}
+
+// WriteJSONConfig writes the contents of a config.Accessor to a file
+func WriteJSONConfig(a *Accessor, f string) error {
+	if content, err := json.MarshalIndent(a.JSONData, "", " "); err != nil {
+		return err
+	} else if err = ioutil.WriteFile(f, content, 0644); err != nil {
+		return err
+	}
+
+	return nil
+
 }
