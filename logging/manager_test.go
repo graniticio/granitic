@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"github.com/graniticio/granitic/v2/instance"
 	"sort"
 	"testing"
 	"time"
@@ -257,6 +258,10 @@ func TestLifecycle(t *testing.T) {
 	i := make(map[string]interface{})
 
 	clm := CreateComponentLoggerManager(Error, i, []LogWriter{w}, nil, false)
+
+	clm.RegisterInstanceID(&instance.Identifier{ID: "myInstance"})
+	clm.ContextFilter = new(testFilter)
+	clm.StartComponent()
 
 	if b, err := clm.ReadyToStop(); b || err != nil {
 		t.Errorf("Expected no error and not ready got %v %v", err, b)

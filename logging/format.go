@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/v2/instance"
 	"regexp"
 	"strconv"
 	"time"
@@ -110,6 +111,8 @@ type StringFormatter interface {
 
 	//SetContextFilter provides the formatter with access selected data from a context
 	SetContextFilter(cf ContextFilter)
+
+	SetInstanceID(i *instance.Identifier)
 }
 
 // A LogMessageFormatter is a component able to take a message to be written to a log file and prefix it with a formatted template
@@ -131,6 +134,13 @@ type LogMessageFormatter struct {
 
 	// A component able to extract information from a context.Context into a loggable format
 	ContextFilter ContextFilter
+
+	instanceId *instance.Identifier
+}
+
+// SetInstanceID accepts the current instance ID
+func (lmf *LogMessageFormatter) SetInstanceID(i *instance.Identifier) {
+	lmf.instanceId = i
 }
 
 // Format takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset

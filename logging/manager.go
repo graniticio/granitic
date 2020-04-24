@@ -5,6 +5,7 @@ package logging
 
 import (
 	"context"
+	"github.com/graniticio/granitic/v2/instance"
 	"time"
 )
 
@@ -47,6 +48,7 @@ type ComponentLoggerManager struct {
 	formatter       StringFormatter
 	disabled        bool
 	nullLogger      Logger
+	instanceID      *instance.Identifier
 	ContextFilter   ContextFilter
 }
 
@@ -74,11 +76,20 @@ func (clm *ComponentLoggerManager) CurrentLevels() []*ComponentLevel {
 	return cls
 }
 
-// StartComponent makes an injected ContextFilter available to the formatters attached to this manager
+// RegisterInstanceID receives the unique iD of the current instance of the application
+func (clm *ComponentLoggerManager) RegisterInstanceID(i *instance.Identifier) {
+	clm.instanceID = i
+}
+
+// StartComponent makes an injected ContextFilter and or InstanceID available to the formatters attached to this manager
 func (clm *ComponentLoggerManager) StartComponent() error {
 
 	if clm.ContextFilter != nil && clm.formatter != nil {
 		clm.formatter.SetContextFilter(clm.ContextFilter)
+	}
+
+	if clm.formatter != nil {
+		clm.formatter.SetInstanceID(clm.instanceID)
 	}
 
 	return nil
@@ -105,6 +116,14 @@ func (clm *ComponentLoggerManager) GlobalLevel() LogLevel {
 func (clm *ComponentLoggerManager) UpdateWritersAndFormatter(writers []LogWriter, formatter StringFormatter) {
 	clm.writers = writers
 	clm.formatter = formatter
+
+	if clm.ContextFilter != nil && formatter != nil {
+		formatter.SetContextFilter(clm.ContextFilter)
+	}
+
+	if clm.formatter != nil {
+		formatter.SetInstanceID(clm.instanceID)
+	}
 
 	for _, v := range clm.created {
 

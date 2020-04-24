@@ -5,6 +5,7 @@ package logging
 
 import (
 	"context"
+	"github.com/graniticio/granitic/v2/instance"
 	"strings"
 	"testing"
 )
@@ -177,6 +178,36 @@ func TestContextVal(t *testing.T) {
 	s := jf.Format(context.Background(), "", "", "")
 
 	if s != "{\"CtxVal\":\"someVal\"}\n" {
+		t.Fatalf("Unexpected message")
+	}
+}
+
+func TestInstanceID(t *testing.T) {
+
+	fields := []*JSONField{
+		{Name: "InstID", Content: "INSTANCE_ID"}}
+
+	cfg := JSONConfig{
+		Prefix:       "",
+		ParsedFields: fields,
+		Suffix:       "\n",
+		UTC:          true,
+	}
+
+	mb, _ := CreateMapBuilder(&cfg)
+
+	i := new(instance.Identifier)
+	i.ID = "myInstance"
+
+	jf := new(JSONLogFormatter)
+	jf.Config = &cfg
+	jf.MapBuilder = mb
+
+	jf.SetInstanceID(i)
+
+	s := jf.Format(context.Background(), "", "", "")
+
+	if s != "{\"InstID\":\"myInstance\"}\n" {
 		t.Fatalf("Unexpected message")
 	}
 }

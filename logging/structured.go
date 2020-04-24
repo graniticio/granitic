@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/types"
 	"strings"
 	"time"
@@ -41,6 +42,13 @@ func (jlf *JSONLogFormatter) StartComponent() error {
 	return nil
 }
 
+// SetInstanceID accepts the current instance ID
+func (jlf *JSONLogFormatter) SetInstanceID(i *instance.Identifier) {
+	if jlf.MapBuilder != nil {
+		jlf.MapBuilder.instanceID = i
+	}
+}
+
 //SetContextFilter provides the formatter with access selected data from a context
 func (jlf *JSONLogFormatter) SetContextFilter(cf ContextFilter) {
 	jlf.MapBuilder.contextFilter = cf
@@ -72,6 +80,7 @@ const (
 	level     = "LEVEL"
 	ctxVal    = "CONTEXT_VALUE"
 	text      = "TEXT"
+	inst      = "INSTANCE_ID"
 )
 
 //ConvertFields converts from the config representation of a field list to the internal version
@@ -112,7 +121,7 @@ func ConvertFields(unparsed [][]string) []*JSONField {
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
 func ValidateJSONFields(fields []*JSONField) error {
 
-	allowed := types.NewOrderedStringSet([]string{message, comp, timestamp, level, ctxVal, firstLine, skipFirst, text})
+	allowed := types.NewOrderedStringSet([]string{message, comp, timestamp, level, ctxVal, firstLine, skipFirst, text, inst})
 
 	for i, f := range fields {
 
@@ -179,6 +188,8 @@ func CreateMapBuilder(cfg *JSONConfig) (*MapBuilder, error) {
 			f.generator = mb.firstLineGenerator
 		case skipFirst:
 			f.generator = mb.skipFirstGenerator
+		case inst:
+			f.generator = mb.instanceIDGenerator
 		}
 	}
 
@@ -190,6 +201,7 @@ type MapBuilder struct {
 	cfg                   *JSONConfig
 	contextFilter         ContextFilter
 	RequiresContextFilter bool
+	instanceID            *instance.Identifier
 }
 
 // Build creates a map and populates it
@@ -262,4 +274,12 @@ func (mb *MapBuilder) ctxValGenerator(fcd FilteredContextData, levelLabel, logge
 	}
 
 	return ""
+}
+
+func (mb *MapBuilder) instanceIDGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
+	if mb.instanceID != nil {
+		return mb.instanceID.ID
+	} else {
+		return ""
+	}
 }

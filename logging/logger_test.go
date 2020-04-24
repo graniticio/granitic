@@ -5,6 +5,7 @@ package logging
 
 import (
 	"context"
+	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/test"
 	"testing"
 	"time"
@@ -123,6 +124,10 @@ func TestCreateAnonymousLoggerNoErrors(t *testing.T) {
 }
 
 type testMessageFomatter struct {
+}
+
+func (tmf *testMessageFomatter) SetInstanceID(i *instance.Identifier) {
+
 }
 
 func (tmf *testMessageFomatter) Format(ctx context.Context, levelLabel, loggerName, message string) string {
