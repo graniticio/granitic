@@ -81,6 +81,7 @@ const (
 	ctxVal    = "CONTEXT_VALUE"
 	text      = "TEXT"
 	inst      = "INSTANCE_ID"
+	levelMap  = "LEVEL_MAP"
 )
 
 //ConvertFields converts from the config representation of a field list to the internal version
@@ -121,7 +122,9 @@ func ConvertFields(unparsed [][]string) []*JSONField {
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
 func ValidateJSONFields(fields []*JSONField) error {
 
-	allowed := types.NewOrderedStringSet([]string{message, comp, timestamp, level, ctxVal, firstLine, skipFirst, text, inst})
+	seenLevelMap := false
+
+	allowed := types.NewOrderedStringSet([]string{message, comp, timestamp, level, ctxVal, firstLine, skipFirst, text, inst, levelMap})
 
 	for i, f := range fields {
 
@@ -151,10 +154,48 @@ func ValidateJSONFields(fields []*JSONField) error {
 
 		}
 
+		if f.Content == levelMap {
+
+			if seenLevelMap {
+				return fmt.Errorf("you can only have one JSON application logging field of type %s", levelMap)
+			}
+
+			if _, err := parseLevelMap(f.Arg); err != nil {
+				return nil
+			}
+		}
+
 	}
 
 	return nil
 
+}
+
+func parseLevelMap(format string) (map[string]string, error) {
+
+	split := strings.Split(format, ",")
+	m := make(map[string]string, len(split))
+
+	for _, mapping := range split {
+
+		kv := strings.Split(mapping, ":")
+
+		if len(kv) != 2 {
+			return nil, fmt.Errorf("%s does not appear to a valid mapping (should be of the form GRANTIC_LEVEL:MAPPED_LEVEL", mapping)
+		}
+
+		k := strings.TrimSpace(kv[0])
+		v := strings.TrimSpace(kv[1])
+
+		if _, present := m[k]; present {
+			return nil, fmt.Errorf("Multiple mappings found for log level %s", k)
+		}
+
+		m[k] = v
+
+	}
+
+	return m, nil
 }
 
 // CreateMapBuilder builds a component able to generate a log entry based on the rules in the supplied fields.
@@ -190,6 +231,10 @@ func CreateMapBuilder(cfg *JSONConfig) (*MapBuilder, error) {
 			f.generator = mb.skipFirstGenerator
 		case inst:
 			f.generator = mb.instanceIDGenerator
+		case levelMap:
+			mb.levelMap, _ = parseLevelMap(f.Arg)
+			f.generator = mb.levelMapGenerator
+
 		}
 	}
 
@@ -202,6 +247,7 @@ type MapBuilder struct {
 	contextFilter         ContextFilter
 	RequiresContextFilter bool
 	instanceID            *instance.Identifier
+	levelMap              map[string]string
 }
 
 // Build creates a map and populates it
@@ -282,4 +328,20 @@ func (mb *MapBuilder) instanceIDGenerator(fcd FilteredContextData, levelLabel, l
 	} else {
 		return ""
 	}
+}
+
+func (mb *MapBuilder) levelMapGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
+
+	lm := mb.levelMap
+
+	if lm == nil {
+		return levelLabel
+	}
+
+	if mapped, okay := lm[levelLabel]; okay {
+		return mapped
+	}
+
+	return levelLabel
+
 }

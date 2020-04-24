@@ -265,6 +265,40 @@ func TestTextVal(t *testing.T) {
 	}
 }
 
+func TestMapLevelParsing(t *testing.T) {
+
+	if _, err := parseLevelMap("a a a"); err == nil {
+		t.Fail()
+	}
+
+	if _, err := parseLevelMap("A,B,C"); err == nil {
+		t.Fail()
+	}
+
+	if _, err := parseLevelMap("A:1,A:2"); err == nil {
+		t.Fail()
+	}
+
+	if m, err := parseLevelMap("A:1,B:2,C:3"); err != nil {
+		t.Fail()
+	} else {
+
+		if m["A"] != "1" {
+			t.Fail()
+		}
+
+		if m["B"] != "2" {
+			t.Fail()
+		}
+
+		if m["C"] != "3" {
+			t.Fail()
+		}
+
+	}
+
+}
+
 func TestMessageFromStackTrace(t *testing.T) {
 
 	fields := []*JSONField{
