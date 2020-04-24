@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/graniticio/granitic/v2/httpendpoint"
+	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/logging"
 	"github.com/graniticio/granitic/v2/types"
 	"net/http"
@@ -22,7 +23,7 @@ type JSONLineBuilder struct {
 	MapBuilder *AccessLogMapBuilder
 }
 
-// Format takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset
+// BuildLine takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset
 func (jlb *JSONLineBuilder) BuildLine(ctx context.Context, req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time) string {
 
 	m := jlb.MapBuilder.BuildLine(ctx, req, res, rec, fin)
@@ -33,7 +34,7 @@ func (jlb *JSONLineBuilder) BuildLine(ctx context.Context, req *http.Request, re
 	return cfg.Prefix + string(entry) + cfg.Suffix
 }
 
-// StartComponent checks that a context filter has been injected (if the field configuration needs on)
+// Init checks that a context filter has been injected (if the field configuration needs one)
 func (jlb *JSONLineBuilder) Init() error {
 
 	mb := jlb.MapBuilder
@@ -45,22 +46,32 @@ func (jlb *JSONLineBuilder) Init() error {
 	return nil
 }
 
+// SetInstanceID makes the ID of the current instance available to the map builder
+func (jlb *JSONLineBuilder) SetInstanceID(i *instance.Identifier) {
+	if jlb.MapBuilder != nil {
+		jlb.MapBuilder.instanceID = i
+	}
+}
+
 //SetContextFilter provides the formatter with access selected data from a context
 func (jlb *JSONLineBuilder) SetContextFilter(cf logging.ContextFilter) {
-	jlb.MapBuilder.contextFilter = cf
+
+	if jlb.MapBuilder != nil {
+		jlb.MapBuilder.contextFilter = cf
+	}
 }
 
 // AccessLogJSONConfig defines the fields to be included in a  JSON-formatted application log entry
 type AccessLogJSONConfig struct {
 	Prefix       string
 	Fields       [][]string
-	ParsedFields []*AccessLogJsonField
+	ParsedFields []*AccessLogJSONField
 	Suffix       string
 	UTC          bool
 }
 
-// A AccessLogJsonField defines the rules for outputting a single field in a JSON-formatted application log entry
-type AccessLogJsonField struct {
+// A AccessLogJSONField defines the rules for outputting a single field in a JSON-formatted application log entry
+type AccessLogJSONField struct {
 	Name      string
 	Content   string
 	Arg       string
@@ -89,7 +100,7 @@ const (
 )
 
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
-func ValidateJSONFields(fields []*AccessLogJsonField) error {
+func ValidateJSONFields(fields []*AccessLogJSONField) error {
 
 	allowed := types.NewOrderedStringSet([]string{ctxVal, remote, reqHeader, received, httpMethod, reqPath, queryString, status, bytesOut, processingTime, reqLine, text})
 
@@ -120,19 +131,19 @@ func ValidateJSONFields(fields []*AccessLogJsonField) error {
 }
 
 //ConvertFields converts from the config representation of a field list to the internal version
-func ConvertFields(unparsed [][]string) []*AccessLogJsonField {
+func ConvertFields(unparsed [][]string) []*AccessLogJSONField {
 
 	l := len(unparsed)
 
 	if l == 0 {
-		return make([]*AccessLogJsonField, 0)
+		return make([]*AccessLogJSONField, 0)
 	}
 
-	allParsed := make([]*AccessLogJsonField, l)
+	allParsed := make([]*AccessLogJSONField, l)
 
 	for i, raw := range unparsed {
 
-		parsed := new(AccessLogJsonField)
+		parsed := new(AccessLogJSONField)
 		fcount := len(raw)
 
 		if fcount > 0 {
@@ -206,9 +217,10 @@ type AccessLogMapBuilder struct {
 	cfg                   *AccessLogJSONConfig
 	contextFilter         logging.ContextFilter
 	RequiresContextFilter bool
+	instanceID            *instance.Identifier
 }
 
-// Build creates a map and populates it
+// BuildLine creates a map and populates it
 func (mb *AccessLogMapBuilder) BuildLine(ctx context.Context, req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time) map[string]interface{} {
 
 	var fcd logging.FilteredContextData
@@ -219,7 +231,7 @@ func (mb *AccessLogMapBuilder) BuildLine(ctx context.Context, req *http.Request,
 		fcd = mb.contextFilter.Extract(ctx)
 	}
 
-	c := LineContext{
+	c := lineContext{
 		FilteredContext: fcd,
 		Request:         req,
 		ResponseWriter:  res,
@@ -238,7 +250,7 @@ func (mb *AccessLogMapBuilder) BuildLine(ctx context.Context, req *http.Request,
 
 }
 
-type LineContext struct {
+type lineContext struct {
 	FilteredContext logging.FilteredContextData
 	Request         *http.Request
 	ResponseWriter  *httpendpoint.HTTPResponseWriter
@@ -247,10 +259,10 @@ type LineContext struct {
 	Ctx             *context.Context
 }
 
-// ValueGenerator functions are able to generate a value for a field in a JSON formatted log entry
-type AccessLogValueGenerator func(lineContext *LineContext, field *AccessLogJsonField) interface{}
+// AccessLogValueGenerator functions are able to generate a value for a field in a JSON formatted log entry
+type AccessLogValueGenerator func(lineContext *lineContext, field *AccessLogJSONField) interface{}
 
-func (mb *AccessLogMapBuilder) ctxValGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) ctxValGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 
 	if lineContext.FilteredContext != nil {
 		return lineContext.FilteredContext[field.Arg]
@@ -259,51 +271,51 @@ func (mb *AccessLogMapBuilder) ctxValGenerator(lineContext *LineContext, field *
 	return ""
 }
 
-func (mb *AccessLogMapBuilder) remoteGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) remoteGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return lineContext.Request.RemoteAddr
 }
 
-func (mb *AccessLogMapBuilder) reqHeaderGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) reqHeaderGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return lineContext.Request.Header.Get(field.Arg)
 }
 
-func (mb *AccessLogMapBuilder) receivedTimeGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) receivedTimeGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return lineContext.Received.Format(field.Arg)
 }
 
-func (mb *AccessLogMapBuilder) methodGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) methodGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return lineContext.Request.Method
 }
 
-func (mb *AccessLogMapBuilder) pathGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) pathGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return lineContext.Request.URL.Path
 }
 
-func (mb *AccessLogMapBuilder) queryGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) queryGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return lineContext.Request.URL.RawQuery
 }
 
-func (mb *AccessLogMapBuilder) statusGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) statusGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return strconv.Itoa(lineContext.ResponseWriter.Status)
 }
 
-func (mb *AccessLogMapBuilder) bytesOutGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) bytesOutGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return strconv.Itoa(lineContext.ResponseWriter.BytesServed)
 }
 
-func (mb *AccessLogMapBuilder) processSecondsGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) processSecondsGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return processTimeGen(lineContext.Received, lineContext.Finished, time.Second)
 }
 
-func (mb *AccessLogMapBuilder) processMilliGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) processMilliGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return processTimeGen(lineContext.Received, lineContext.Finished, time.Millisecond)
 }
 
-func (mb *AccessLogMapBuilder) processMicroGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) processMicroGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return processTimeGen(lineContext.Received, lineContext.Finished, time.Microsecond)
 }
 
-func (mb *AccessLogMapBuilder) textGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) textGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 	return field.Arg
 }
 
@@ -313,7 +325,7 @@ func processTimeGen(rec *time.Time, fin *time.Time, unit time.Duration) string {
 	return strconv.FormatInt(int64(spent/unit), 10)
 }
 
-func (mb *AccessLogMapBuilder) reqLineGenerator(lineContext *LineContext, field *AccessLogJsonField) interface{} {
+func (mb *AccessLogMapBuilder) reqLineGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
 
 	req := lineContext.Request
 

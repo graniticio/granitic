@@ -116,10 +116,10 @@ func (hsfb *FacilityBuilder) setupAccessLogging(ca *config.Accessor, log logging
 			return err
 		}
 
-		if mb, err := CreateMapBuilder(jc); err != nil {
-			return err
-		} else {
+		if mb, err := CreateMapBuilder(jc); err == nil {
 			jlb.MapBuilder = mb
+		} else {
+			return err
 		}
 
 		lb = jlb

@@ -154,10 +154,10 @@ func BuildFormatterFromConfig(ca *config.Accessor) (logging.StringFormatter, err
 			return nil, err
 		}
 
-		if mb, err := logging.CreateMapBuilder(cfg); err != nil {
-			return nil, err
-		} else {
+		if mb, err := logging.CreateMapBuilder(cfg); err == nil {
 			jmf.MapBuilder = mb
+		} else {
+			return nil, err
 		}
 
 		return jmf, nil

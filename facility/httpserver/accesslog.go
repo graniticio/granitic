@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/v2/instance"
 	"net/http"
 	"os"
 	"strings"
@@ -83,10 +84,17 @@ func (alw *AccessLogWriter) LogRequest(ctx context.Context, req *http.Request, r
 
 }
 
+// RegisterInstanceID receives  the instance ID of the current application and passes it down to the LineBuilder
+func (alw *AccessLogWriter) RegisterInstanceID(i *instance.Identifier) {
+
+}
+
+// LineBuilder is a component able to generate an access log entry ready to be written to a file or stream
 type LineBuilder interface {
 	BuildLine(ctx context.Context, req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time) string
 	SetContextFilter(cf logging.ContextFilter)
 	Init() error
+	SetInstanceID(i *instance.Identifier)
 }
 
 // StartComponent parses the specified log format, sets up a channel to buffer lines for asynchrnous writing and opens the log file. An error

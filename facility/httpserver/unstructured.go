@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/graniticio/granitic/v2/httpendpoint"
+	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/logging"
 	"net/http"
 	"regexp"
@@ -91,15 +92,23 @@ type UnstructuredLineBuilder struct {
 	// A pre-defined format. Supported values are framework or combined. Mutually exclusive with LogLineFormat.
 	LogLinePreset string
 
-	cf       logging.ContextFilter
-	elements []*logLineToken
-	utcTimes bool
+	cf         logging.ContextFilter
+	elements   []*logLineToken
+	utcTimes   bool
+	instanceID *instance.Identifier
 }
 
+// SetInstanceID records the ID of the current instance
+func (ulb *UnstructuredLineBuilder) SetInstanceID(i *instance.Identifier) {
+	ulb.instanceID = i
+}
+
+// SetContextFilter provides access to a component that has limited access to data stored in a context.Context
 func (ulb *UnstructuredLineBuilder) SetContextFilter(cf logging.ContextFilter) {
 	ulb.cf = cf
 }
 
+// BuildLine creates a text representation of an access log entry ready to log to a file or stream
 func (ulb *UnstructuredLineBuilder) BuildLine(ctx context.Context, req *http.Request, res *httpendpoint.HTTPResponseWriter, rec *time.Time, fin *time.Time) string {
 	var b bytes.Buffer
 
@@ -237,6 +246,7 @@ func (ulb *UnstructuredLineBuilder) addPlaceholder(ph string, re *regexp.Regexp)
 	return nil
 }
 
+// Init checks that a valid format for access log lines has been provided
 func (ulb *UnstructuredLineBuilder) Init() error {
 
 	f := ulb.LogLineFormat
