@@ -91,6 +91,7 @@ const (
 	processingTime = "PROCESS_TIME"
 	reqLine        = "REQUEST_LINE"
 	text           = "TEXT"
+	inst           = "INSTANCE_ID"
 )
 
 const (
@@ -102,7 +103,7 @@ const (
 // ValidateJSONFields checks that the configuration of a JSON application log entry is correct
 func ValidateJSONFields(fields []*AccessLogJSONField) error {
 
-	allowed := types.NewOrderedStringSet([]string{ctxVal, remote, reqHeader, received, httpMethod, reqPath, queryString, status, bytesOut, processingTime, reqLine, text})
+	allowed := types.NewOrderedStringSet([]string{ctxVal, remote, reqHeader, received, httpMethod, reqPath, queryString, status, bytesOut, processingTime, reqLine, text, inst})
 
 	argNeeded := types.NewOrderedStringSet([]string{ctxVal, reqHeader, received, processingTime, text})
 
@@ -206,6 +207,8 @@ func CreateMapBuilder(cfg *AccessLogJSONConfig) (*AccessLogMapBuilder, error) {
 			f.generator = mb.reqLineGenerator
 		case text:
 			f.generator = mb.textGenerator
+		case inst:
+			f.generator = mb.instanceIDGenerator
 		}
 	}
 
@@ -330,4 +333,14 @@ func (mb *AccessLogMapBuilder) reqLineGenerator(lineContext *lineContext, field 
 	req := lineContext.Request
 
 	return fmt.Sprintf("%s %s %s", req.Method, req.RequestURI, req.Proto)
+}
+
+func (mb *AccessLogMapBuilder) instanceIDGenerator(lineContext *lineContext, field *AccessLogJSONField) interface{} {
+
+	if mb.instanceID != nil {
+		return mb.instanceID.ID
+	} else {
+		return ""
+	}
+
 }

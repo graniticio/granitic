@@ -19,7 +19,8 @@
           ["ProcessTimeMilli", "PROCESS_TIME", "MILLI"],
           ["ProcessTimeSeconds", "PROCESS_TIME", "SECONDS"],
           ["RequestLine", "REQUEST_LINE"],
-          ["Text", "TEXT", "Text message"]
+          ["Text", "TEXT", "Text message"],
+          ["Instance", "INSTANCE_ID"]
         ]
       }
     }

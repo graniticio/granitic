@@ -86,7 +86,9 @@ func (alw *AccessLogWriter) LogRequest(ctx context.Context, req *http.Request, r
 
 // RegisterInstanceID receives  the instance ID of the current application and passes it down to the LineBuilder
 func (alw *AccessLogWriter) RegisterInstanceID(i *instance.Identifier) {
-
+	if alw.builder != nil {
+		alw.builder.SetInstanceID(i)
+	}
 }
 
 // LineBuilder is a component able to generate an access log entry ready to be written to a file or stream
