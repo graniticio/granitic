@@ -5,7 +5,7 @@
 
 ## Console logging to STDOUT
 
-By default, Granitic performs 'console' logging, which is to say it use's Go's [fmt](https://golang.org/pkg/fmt/) functions
+By default, Granitic performs 'console' logging, using Go's [fmt](https://golang.org/pkg/fmt/) functions
 to print to `os.Stdout`.
 
 If you are starting your application from a terminal you will see log messages appear in that terminal as they are raised.
@@ -76,9 +76,9 @@ particularly slow storage. The size of this buffer is controlled with the config
 Granitic does not currently have any built-in log rotation capability. It is compatible with tools like `logrotate` as
 long as the tool is configured to _truncate_ files, rather than move and recreate them.
 
-## Log message prefixes
+## Log line formatting
 
-By default, every message that is logged will be prefixed with a string like:
+By default, every message that is logged will be logged as a semi-structured line of text. prefixed with a string like:
 
 `15/Apr/2019:13:44:23 Z DEBUG [grncQueryManager] `
 
@@ -107,7 +107,72 @@ Formats work similar to `fmt` verb patterns. The available `verbs` are:
 | %{?}X | A value from a context.Context that has been made available to the logger via a component you have written implementing [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) where ? is the key to the value 
 
 
-### UTC
+## Structured JSON logging
+
+Instead of logging each log entry as a line of semi-structured text, Granitic can be configured to use JSON instead.
+
+Setting
+
+```json
+{
+  "LogWriting": {
+    "Format":{
+      "Entry": JSON
+    }
+  }
+}
+```
+will cause messages to be logged like:
+
+```
+{"Level":"INFO","Message":"Listening on 9099","Source":"grncCtlServer","Timestamp":"27/Apr/2020:12:14:07 Z"}
+```
+
+The name of each generated JSON field and the associated value can be changed in configuration. The default is:
+
+```json
+{
+  "LogWriting": {
+    "Format":{
+      "JSON": {
+        "Fields": [
+          ["Timestamp", "TIMESTAMP", "02/Jan/2006:15:04:05 Z0700"],
+          ["Level", "LEVEL"],
+          ["Source", "COMPONENT_NAME"],
+          ["Message", "MESSAGE"]
+        ]
+      }
+    } 
+  }
+}
+```
+
+Each entry in the ```Fields``` array is a string array with two or three elements. 
+  * The name of the field as it will be written in JSON.
+  * The type of data (content type) that should be used to set a value for the field
+  * An optional argument if required by the content type
+  
+The available content types are:
+
+| Content Type | Meaning and usage | Argument |
+| ----- | --- | --- |
+| MESSAGE | The complete message associated with a log entry | N/A |
+| FIRST_LINE | The message associated with a log entry up to the first \n char | N/A |
+| SKIP_FIRST | The message associated with log entry but strips the first line | N/A |
+| COMPONENT_NAME | The full name of the component that logged the message | N/A |
+| TIMESTAMP | The datetime at which the message was logged | Any valid Go datetime format string |
+| TEXT | The static text specified in the argument | The text to use as a value |
+| LEVEL | The full label (DEBUG, ERROR etc) of the logging level at which the entry was logged | N/A |
+| CONTEXT_VALUE | A value from a `context.Context` that has been exposed by a [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) component | The string key of the exposed value
+| INSTANCE_ID | The ID [assigned to the current instance of your application](adm-instance.md) | N/A |
+| LEVEL_MAP | A log level, optionally mapped to a different value. | Comma separated mapping betwen a Granitic log level and some other label (e.g. ```INFO:ANNOUNCE,TRACE:DETAIL```)
+
+### Line prefix and suffix
+
+Each line of JSON formatted log entry can be prefixed or suffixed with a static string by setting `LogWriting.Format.JSON.Prefix`
+(default empty string) or `LogWriting.Format.JSON.Prefix` (default ```\n```)
+
+## UTC
 
 By default, the date and time at which a message is logged is converted to `UTC` before the prefix is printed. To log
 local times set:
