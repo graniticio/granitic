@@ -119,8 +119,8 @@ func (alw *AccessLogWriter) StartComponent() error {
 		alw.lines = make(chan string)
 	}
 
-	err := alw.builder.Init()
 	alw.builder.SetContextFilter(alw.ContextFilter)
+	err := alw.builder.Init()
 
 	if err != nil {
 		return err

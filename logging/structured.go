@@ -36,7 +36,7 @@ func (jlf *JSONLogFormatter) StartComponent() error {
 	mb := jlf.MapBuilder
 
 	if mb.RequiresContextFilter && mb.contextFilter == nil {
-		return fmt.Errorf("your JSON application logging configuration includes fields that display information from the contecxt, but no component is available that implements logging.ContextFilter")
+		return fmt.Errorf("your JSON application logging configuration includes fields that display information from the context, but no component is available that implements logging.ContextFilter")
 	}
 
 	return nil
