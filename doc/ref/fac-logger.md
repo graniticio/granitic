@@ -33,17 +33,27 @@ and is:
       "BufferSize": 50
     },
     "Format": {
+      "Entry": "TEXT",
       "UtcTimes":     true,
-      "Unset": "-"
+      "Unset": "-",
+      "JSON": {
+        "Prefix": "",
+        "Fields": [
+          ["Timestamp", "TIMESTAMP", "02/Jan/2006:15:04:05 Z0700"],
+          ["Level", "LEVEL"],
+          ["Source", "COMPONENT_NAME"],
+          ["Message", "MESSAGE"]
+        ],
+        "Suffix": "\n"
+      }
     }
   },
 
   "FrameworkLogger":{
-     "GlobalLogLevel": "INFO"
+    "GlobalLogLevel": "INFO"
   },
-
   "ApplicationLogger":{
-     "GlobalLogLevel": "INFO"
+    "GlobalLogLevel": "INFO"
   }
 }
 ```
@@ -53,6 +63,10 @@ and is:
 This is explained in the [log-levels section](log-levels.md) section of the reference manual.
 
 ## Controlling the location and format of log files
+
+This is explained in the [formatting and location](log-format.md) section of the reference manual.
+
+## Switching between text and JSON logging
 
 This is explained in the [formatting and location](log-format.md) section of the reference manual.
 
