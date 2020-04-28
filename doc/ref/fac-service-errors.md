@@ -32,44 +32,18 @@ and is:
   "ServiceErrorManager":{
     "PanicOnMissing": true,
     "ErrorDefinitions": "serviceErrors"
-   },
-  "FrameworkServiceErrors":{
-    "Messages": {
-      "UnableToParseRequest": ["PARSE","Unable to parse the body of the request. Please check the content you are sending."],
-      "QueryTargetNotArray":  ["QUERYBIND", "Multiple values for query parameter %s. Only one value supported"],
-      "QueryWrongType": ["QUERYBIND", "Unable to convert the value of query parameter %s to type %s. Value provided was %s"],
-      "QueryNoTargetField": ["QUERYBIND", "No field named %s exists to bind query parameter %s into."],
-      "PathWrongType": ["PATHBIND", "Unable to convert the value of a path parameter (group %s) to type %s. Please check the format of your request path. Value provided was \"%s\""]
-    },
-    "HTTPMessages": {
-      "401": "Access to this resource requires authorization.",
-      "403": "You do not have permission to interact with that resource.",
-      "404": "No such resource.",
-      "500": "An unexpected error occurred.",
-      "503": "The service is too busy to process your request or is temporarily unavailable."
-    }
-  }
+   }
 }
 ```
 
 ### Configuration location
 
 By default, definitions for errors (see below) are expected to be located at the configuration path `serviceErrors`. This can be
-overriden with an alternative location by setting `ServiceErrorManager.ErrorDefinitions` to your preferred location.
+overridden with an alternative location by setting `ServiceErrorManager.ErrorDefinitions` to your preferred location.
 
 If no definitions are found when your application starts and `ServiceErrorManager.PanicOnMissing` is set to `true`
 (the default), your application will shutdown cleanly with an error.
 
-### Framework messages
-
-Some Granitic components will make use of the errors defined at `FrameworkServiceErrors.Messages` even if the 
-`ServiceErrorManager` facility is not enabled. You are free to modify these messages in your own configuration if required.
-
-### HTTP messages
-
-The [web service pipeline](ws-pipeline.md) sometimes must raise HTTP errors before your application code is reached. The
-content of the response body is affected by the messages defined at `FrameworkServiceErrors.HTTPMessages`, even if the 
-`ServiceErrorManager` facility is not enabled. You are free to modify these messages in your own configuration if required.
 
 ## Defining messages
 

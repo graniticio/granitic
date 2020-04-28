@@ -1,0 +1,5 @@
+{
+  "serviceErrors": [
+    ["C", "INVALID_ARTIST", "Cannot create an artist with the information provided."]
+  ]
+}

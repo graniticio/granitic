@@ -71,6 +71,35 @@ For example, a minimal [component definition](ioc-definition-files.md) might loo
 [WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) has a number of fields which are
 used to customise its behaviour. These customisation options will be explained through the rest of this section.
 
+## Framework errors
+
+Errors encountered by Granitic while serving a web request, but outside of your application code, are referred to as
+`framework errors`. The messages that are served to users in those circumstances are defined in configuration. The
+default values are:
+
+```json
+{
+  "FrameworkServiceErrors":{
+    "Messages": {
+      "UnableToParseRequest": ["PARSE","Unable to parse the body of the request. Please check the content you are sending."],
+      "QueryTargetNotArray":  ["QUERYBIND", "Multiple values for query parameter %s. Only one value supported"],
+      "QueryWrongType": ["QUERYBIND", "Unable to convert the value of query parameter %s to type %s. Value provided was %s"],
+      "QueryNoTargetField": ["QUERYBIND", "No field named %s exists to bind query parameter %s into."],
+      "PathWrongType": ["PATHBIND", "Unable to convert the value of a path parameter (group %s) to type %s. Please check the format of your request path. Value provided was \"%s\""]
+    },
+    "HTTPMessages": {
+      "401": "Access to this resource requires authorization.",
+      "403": "You do not have permission to interact with that resource.",
+      "404": "No such resource.",
+      "500": "An unexpected error occurred.",
+      "503": "The service is too busy to process your request or is temporarily unavailable."
+    }
+  }
+}
+``` 
+
+You can override these messages as you would any other configuration value.
+
 ---
 **Next**: [Capturing data](ws-capture.md)
 
