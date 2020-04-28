@@ -47,6 +47,9 @@ type InitialSettings struct {
 
 	// A path to write the merged view of configuration to (then exit)
 	MergedConfigPath string
+
+	// Create a UUID and use it as the instance ID
+	GenerateInstanceUUID bool
 }
 
 // InitialSettingsFromEnvironment builds an InitialSettings and populates it with defaults or the values of command line
@@ -75,6 +78,7 @@ func processCommandLineArgs(is *InitialSettings) {
 	instanceID := flag.String("i", "", "A unique identifier for this instance of the application")
 	deferLogging := flag.Bool("d", false, "Defer logging messages from until application logging is configured")
 	mergeFile := flag.String("m", "", "Path to a file to write merged view of config then exit")
+	uuidInstanceID := flag.Bool("u", false, "Use a generated UUID as the instance ID for this application")
 
 	flag.Parse()
 
@@ -107,6 +111,7 @@ func processCommandLineArgs(is *InitialSettings) {
 	is.InstanceID = *instanceID
 	is.DeferBootstrapLogging = *deferLogging
 	is.MergedConfigPath = *mergeFile
+	is.GenerateInstanceUUID = *uuidInstanceID
 
 }
 

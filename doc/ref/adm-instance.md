@@ -23,6 +23,11 @@ You will see a message similar to:
 29/Oct/2019:11:01:08 Z INFO  [grncInit] Instance ID: myid
 ```
 
+## Generating an instance ID
+
+If you set the flag ```-u``` when starting your application, Granitic will generate a V4 UUID and use that as an instance
+ID.
+
 ## Accessing the ID from your components
 
 If your component implements [instance.Receiver](https://godoc.org/github.com/graniticio/granitic/instance#Receiver)

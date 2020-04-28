@@ -53,6 +53,7 @@ default your application will support the following arguments.
 	-i An optional string that can be used to uniquely identify this instance of your application
 	-d Defer any log messages emitted by the framework until your application's logging configuration has been applied
 	-m [path] Once Granitic has merged all of your configuration files together, write it to this path and exit
+	-u Generate a UUID and use it as the ID for this instance of your application (ignored if -i set)
 
 If your application needs to perform command line processing and you want to prevent Granitic from attempting to parse command line arguments,
 you should start Granitic using the alternative:
@@ -73,6 +74,7 @@ import (
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/ioc"
 	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/uuid"
 	"os"
 	"os/signal"
 	"runtime"
@@ -228,6 +230,11 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 
 func (i *initiator) createInstanceIdentifier(is *config.InitialSettings, cc *ioc.ComponentContainer) {
 	id := is.InstanceID
+
+	if id == "" && is.GenerateInstanceUUID {
+		id = uuid.V4()
+		is.InstanceID = id
+	}
 
 	if id != "" {
 		ii := new(instance.Identifier)
