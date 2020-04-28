@@ -3,8 +3,8 @@
 Enabling the HTTPServer facility makes your [web service endpoints](ws-handlers.md) accessible to callers via HTTP. The 
 HTTP server that is created is a wrapper over Go's [built-in HTTP serving functionality](https://golang.org/pkg/net/http/).
 
-It is agnostic of the content types being accepted or served by your handlers - this is controlled by enabling either the [JSONWS](fac-json-ws.md) 
-or [XMLWs](fac-xml-ws.md) facility and/or defining custom content type handinling in your [endpoints](ws-handlers.md).
+It is agnostic of the content types being accepted or served by your handlers - that is controlled by enabling either the [JSONWS](fac-json-ws.md) 
+or [XMLWs](fac-xml-ws.md) facility and/or defining custom content type handling in your [endpoints](ws-handlers.md).
 
 This page covers the following:
 
@@ -41,18 +41,34 @@ and is:
     "MaxConcurrent": 0,
     "TooBusyStatus": 503,
     "AutoFindHandlers": true,
-    "AccessLogging": false,
-    "AccessLog": {
-      "LogPath": "./access.log",
-      "LogLinePreset": "framework",
-      "UtcTimes": true,
-      "LineBufferSize": 10
-    },
     "RequestID": {
       "Enabled": false,
       "Format": "UUIDV4",
       "UUID":{
         "Encoding": "RFC4122"
+      }
+    },
+    "AccessLogging": false,
+    "AccessLog": {
+      "LogPath": "./access.log",
+      "LogLinePreset": "framework",
+      "UtcTimes": true,
+      "LineBufferSize": 10,
+      "Entry": "TEXT",
+      "JSON": {
+        "Prefix": "",
+        "Fields": [
+          ["Remote", "REMOTE"],
+          ["ForwardedFor",  "REQ_HEADER", "X-Forwarded-For"],
+          ["Received", "RECEIVED", "02/Jan/2006:15:04:05 Z0700"],
+          ["Method", "HTTP_METHOD"],
+          ["Path", "PATH"],
+          ["Query", "QUERY"],
+          ["Status", "STATUS"],
+          ["BytesReturned", "BYTES_OUT"],
+          ["ProcessTimeMicro", "PROCESS_TIME", "MICRO"]
+        ],
+        "Suffix": "\n"
       }
     }
   }
@@ -214,7 +230,7 @@ requests, you might want to adjust this value.
 
 If you want to force blocking writing (useful for tests), set `HTTPServer.AccessLog.LineBufferSize` to zero or less.
 
-## Log line format
+## Text access log line format
 
 The information you want to include in each line of the access log is controlled by a format string comprised of 'verbs'
 and fixed characters similar to [fmt.Printf](https://golang.org/pkg/fmt/) or HTTPD. You may choose from a preset
@@ -253,6 +269,47 @@ or `combined`. The default is `framework`. The `common` and `combined` formats a
 | %u | A string representation of the ID of the user on whose behalf the request is being made. Only available if [IAM is configured](ws-iam.md), otherwise the - symbol is printed |
 | %U | The path portion of the HTTP request line |
 | %{?}X | A value from a context.Context that has been made available to the access logger via a component you have written implementing [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) where ? is the key to the value 
+
+
+## JSON access log line format
+
+As an alternative to the semi-structured lines of plain text described above, Granitic can be configured to write each
+access log entry as a single line JSON document. This feature can be enabled by setting:
+
+```HTTPServer.AccessLog.Entry``` to ```"JSON"``` in your configuration. This will cause your application to log access
+lines like:
+
+```
+{"BytesReturned":"60","ForwardedFor":"","Method":"GET","Path":"/test","ProcessTimeMicro":"33","Query":"","Received":"28/Apr/2020:13:31:05 +0100","Remote":"[::1]:53003","Status":"200"}
+```
+
+The name of each generated JSON field and the associated value can be changed in configuration. The default can be seen
+in the configuration sample at the top of this page at ```HTTPServer.AccessLog.JSON.Fields```
+
+Each entry in the ```Fields``` array is a string array with two or three elements. 
+  * The name of the field as it will be written in JSON.
+  * The type of data (content type) that should be used to set a value for the field
+  * An optional argument if required by the content type
+  
+| Content Type | Meaning and usage | Argument |
+| ----- | --- | --- |
+| CONTEXT_VALUE | A value from a `context.Context` that has been exposed by a [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) component | The string key of the exposed value
+| REMOTE | The equivalent to ```%h``` in text log lines | N/A |
+| REQ_HEADER | The equivalent to ```%{?}i``` in text log lines | The name of the header |
+| RECEIVED | The equivalent to ```%{?}t``` in text log lines | A standard Go datetime format string |
+| HTTP_METHOD | The equivalent to ```%m``` in text log lines | N/A |
+| REQ_PATH | The equivalent to ```%U``` in text log lines | N/A |
+| STATUS | The equivalent to ```%s``` in text log lines | N/A |
+| BYTES_OUT | The equivalent to ```%B``` in text log lines | N/A |
+| PROCESS_TIME | The equivalent to ```%{?}T``` in text log lines | `SECONDS`, `MILLI` or `MICRO` |  
+| REQUEST_LINE | The equivalent to ```%r``` in text log lines | N/A |
+| INSTANCE_ID | The ID [assigned to the current instance of your application](adm-instance.md) | N/A |
+| TEXT | The static text specified in the argument | The text to use as a value |
+
+### Line prefix and suffix
+
+Each line of JSON formatted log entry can be prefixed or suffixed with a static string by setting `HTTPServer.AccessLog.JSON.Prefix`
+(default empty string) or `HTTPServer.AccessLog.JSON.Prefix` (default ```\n```)
 
 ## Lifecycle
 
