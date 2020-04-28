@@ -339,8 +339,7 @@ func (mb *AccessLogMapBuilder) instanceIDGenerator(lineContext *lineContext, fie
 
 	if mb.instanceID != nil {
 		return mb.instanceID.ID
-	} else {
-		return ""
 	}
 
+	return ""
 }

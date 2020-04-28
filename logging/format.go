@@ -135,12 +135,12 @@ type LogMessageFormatter struct {
 	// A component able to extract information from a context.Context into a loggable format
 	ContextFilter ContextFilter
 
-	instanceId *instance.Identifier
+	instanceID *instance.Identifier
 }
 
 // SetInstanceID accepts the current instance ID
 func (lmf *LogMessageFormatter) SetInstanceID(i *instance.Identifier) {
-	lmf.instanceId = i
+	lmf.instanceID = i
 }
 
 // Format takes the message and prefixes it according the the rule specified in PrefixFormat or PrefixPreset

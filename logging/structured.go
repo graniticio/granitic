@@ -325,9 +325,9 @@ func (mb *MapBuilder) ctxValGenerator(fcd FilteredContextData, levelLabel, logge
 func (mb *MapBuilder) instanceIDGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
 	if mb.instanceID != nil {
 		return mb.instanceID.ID
-	} else {
-		return ""
 	}
+
+	return ""
 }
 
 func (mb *MapBuilder) levelMapGenerator(fcd FilteredContextData, levelLabel, loggerName, message string, field *JSONField) interface{} {
