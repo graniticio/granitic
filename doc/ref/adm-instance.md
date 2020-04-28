@@ -29,7 +29,10 @@ If your component implements [instance.Receiver](https://godoc.org/github.com/gr
 (e.g. implements the method `RegisterInstanceID(*instance.Identifier)`), the instance ID will be passed in to that
 method before the [container starts your components](ioc-lifecycle.md).
 
+The instance ID will also be injected into your application's [merged configuration](cfg-merging.md) and can be found at 
+the config path ```System.InstanceID```
+
 ---
 **Next**: [System configuration](adm-system.md)
 
-**Prev**: [Instance identification](adm-index.md)
+**Prev**: [Remote configuration](adm-remote.md)

@@ -310,6 +310,17 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 		instance.ExitError()
 	}
 
+	// Add the command line supplied instance ID to the config object
+	if is.InstanceID != "" {
+
+		sys := mergedJSON["System"]
+
+		if sm, okay := sys.(map[string]interface{}); okay {
+			sm["InstanceID"] = is.InstanceID
+		}
+
+	}
+
 	return &config.Accessor{JSONData: mergedJSON, FrameworkLogger: fl}
 }
 
