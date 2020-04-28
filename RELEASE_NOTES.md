@@ -12,3 +12,10 @@ Supply the `-m` flag and a path to a file when starting your application will ca
 view of your application's configuration to that file (as JSON) and then exit.
 
 This is useful when debugging problems introduced my merging configuration files.
+
+## Instance IDs
+
+Setting the `-u` flag when starting your application will cause Granitic to generate a V4 UUID and use that as the ID
+for that instance your application.
+
+Your application's instance ID is now available as configuration at the path `System.InstanceID`
