@@ -139,6 +139,35 @@ field of your [handler.WsHandler](https://godoc.org/github.com/graniticio/granit
 Your application logic will then have access to the framework errors found via the `FrameworkErrors` field
 of the [ws.Request](https://godoc.org/github.com/graniticio/granitic/ws#Request) passed to it.
 
+
+### Configuration
+
+The messages that are served to users in those circumstances are defined in configuration. The default values are:
+
+```json
+{
+  "FrameworkServiceErrors":{
+    "Messages": {
+      "UnableToParseRequest": ["PARSE","Unable to parse the body of the request. Please check the content you are sending."],
+      "QueryTargetNotArray":  ["QUERYBIND", "Multiple values for query parameter %s. Only one value supported"],
+      "QueryWrongType": ["QUERYBIND", "Unable to convert the value of query parameter %s to type %s. Value provided was %s"],
+      "QueryNoTargetField": ["QUERYBIND", "No field named %s exists to bind query parameter %s into."],
+      "PathWrongType": ["PATHBIND", "Unable to convert the value of a path parameter (group %s) to type %s. Please check the format of your request path. Value provided was \"%s\""]
+    },
+    "HTTPMessages": {
+      "401": "Access to this resource requires authorization.",
+      "403": "You do not have permission to interact with that resource.",
+      "404": "No such resource.",
+      "500": "An unexpected error occurred.",
+      "503": "The service is too busy to process your request or is temporarily unavailable."
+    }
+  }
+}
+``` 
+
+You can override these messages as you would any other configuration value.
+
+
 ---
 **Next**: [Identity Access Management](ws-iam.md)
 
