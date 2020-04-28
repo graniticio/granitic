@@ -159,8 +159,8 @@ view of your application's configuration to that file (as JSON) and then exit. E
 
 #### UUID instance ID -u
 
-If you set the flag ```-u``` when starting your application, Granitic will generate a V4 UUID and use that as an instance
-ID. Ignored if the ```-i``` flag has been set.
+If you set the flag `-u` when starting your application, Granitic will generate a V4 UUID and use that as an instance
+ID. Ignored if the `-i` flag has been set.
 
 ---
 **Next**: [JSON and YAML](gpr-json.md) 
