@@ -201,6 +201,17 @@ func SetString(i interface{}, name string, s string) {
 	t.SetString(s)
 }
 
+// SetSliceElem assumes that the supplied interface is a slice or array and then sets the element at the index to the supplied value
+func SetSliceElem(i interface{}, fieldName string, value interface{}, index int) {
+
+	t := FieldValue(i, fieldName)
+
+	se := t.Index(index)
+
+	se.Set(reflect.ValueOf(value))
+
+}
+
 // FieldValue assumes the supplied interface is a pointer to a struct, an interface or a struct and has a valid field of the supplied
 // name, then returns the reflect value of that field.
 func FieldValue(i interface{}, name string) reflect.Value {

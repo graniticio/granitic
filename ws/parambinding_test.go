@@ -12,6 +12,34 @@ import (
 	"testing"
 )
 
+func TestQueryArrayBinding(t *testing.T) {
+	q := "IA=2,3,5"
+
+	v, _ := url.ParseQuery(q)
+	qp := NewParamsForQuery(v)
+
+	tar := struct {
+		IA []int64
+	}{}
+
+	req := Request{
+		QueryParams: qp,
+		RequestBody: &tar,
+	}
+
+	pb := createParamBinder()
+	pb.AutoBindQueryParameters(&req)
+
+	fe := req.FrameworkErrors
+
+	errorCount := len(fe)
+
+	test.ExpectInt(t, errorCount, 0)
+
+	test.ExpectInt(t, len(tar.IA), 3)
+
+}
+
 func TestQueryAutoBinding(t *testing.T) {
 
 	q := "S=s&I=1&I8=8&I16=16&I32=32&I64=64&F32=32.0&F64=64.0&B=true&NS=ns&NI=-64&NF=-10.0E2&NB=false"
@@ -247,8 +275,8 @@ func createParamBinder() *ParamBinder {
 
 func TestPathBinding(t *testing.T) {
 
-	targets := []string{"S", "I", "I8", "I16", "I32", "I64", "F32", "F64", "B", "NS", "NI", "NF", "NB"}
-	values := []string{"s", "1", "8", "16", "32", "64", "32.0", "64.0", "true", "ns", "-1", "-64.0", "false"}
+	targets := []string{"S", "I", "I8", "I16", "I32", "I64", "F32", "F64", "B", "NS", "NI", "NF", "NB", "IA", "IS"}
+	values := []string{"s", "1", "8", "16", "32", "64", "32.0", "64.0", "true", "ns", "-1", "-64.0", "false", "1,2,3", "A,B,C,D,E"}
 
 	p := NewParamsForPath(targets, values)
 	bt := new(BindingTarget)
@@ -282,6 +310,8 @@ func TestPathBinding(t *testing.T) {
 	test.ExpectInt(t, int(bt.NI.Int64()), -1)
 	test.ExpectFloat(t, bt.NF.Float64(), -64.0)
 
+	test.ExpectInt(t, len(bt.IA), 3)
+	test.ExpectInt(t, len(bt.IS), 5)
 }
 
 func TestMorePathTargetsThanValues(t *testing.T) {
@@ -357,6 +387,8 @@ type BindingTarget struct {
 	NI  *types.NilableInt64
 	NF  *types.NilableFloat64
 	NB  *types.NilableBool
+	IA  []int64
+	IS  []int64
 }
 
 type InvalidTargets struct {

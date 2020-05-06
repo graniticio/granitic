@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 // NewSingleValueParams creates a Params with only one value in it
@@ -164,37 +165,47 @@ type ParamValueInjector struct {
 
 // BindValueToField attempts to take a named parameter from the supplied set of parameters and inject it into a field on the supplied target,
 // converting to the correct data type as it goes.
-func (pb *ParamValueInjector) BindValueToField(paramName string, fieldName string, p *Params, t interface{}, errorFn GenerateMappingError) error {
+func (pb *ParamValueInjector) BindValueToField(paramName string, fieldName string, p *Params, t interface{}, errorFn GenerateMappingError, index ...int) error {
 
-	switch rt.TypeOfField(t, fieldName).Kind() {
+	ft := rt.TypeOfField(t, fieldName)
+	k := ft.Kind()
+
+	if k == reflect.Slice && index != nil {
+		//We're setting a value in a slice
+		k = ft.Elem().Kind()
+	}
+
+	switch k {
 	case reflect.Int:
-		return pb.setIntNField(paramName, fieldName, p, t, 0, errorFn)
+		return pb.setIntNField(paramName, fieldName, p, t, 0, errorFn, index...)
 	case reflect.Int8:
-		return pb.setIntNField(paramName, fieldName, p, t, 8, errorFn)
+		return pb.setIntNField(paramName, fieldName, p, t, 8, errorFn, index...)
 	case reflect.Int16:
-		return pb.setIntNField(paramName, fieldName, p, t, 16, errorFn)
+		return pb.setIntNField(paramName, fieldName, p, t, 16, errorFn, index...)
 	case reflect.Int32:
-		return pb.setIntNField(paramName, fieldName, p, t, 32, errorFn)
+		return pb.setIntNField(paramName, fieldName, p, t, 32, errorFn, index...)
 	case reflect.Int64:
-		return pb.setIntNField(paramName, fieldName, p, t, 64, errorFn)
+		return pb.setIntNField(paramName, fieldName, p, t, 64, errorFn, index...)
 	case reflect.Bool:
-		return pb.setBoolField(paramName, fieldName, p, t, errorFn)
+		return pb.setBoolField(paramName, fieldName, p, t, errorFn, index...)
 	case reflect.String:
-		return pb.setStringField(paramName, fieldName, p, t, errorFn)
+		return pb.setStringField(paramName, fieldName, p, t, errorFn, index...)
 	case reflect.Uint8:
-		return pb.setUintNField(paramName, fieldName, p, t, 8, errorFn)
+		return pb.setUintNField(paramName, fieldName, p, t, 8, errorFn, index...)
 	case reflect.Uint16:
-		return pb.setUintNField(paramName, fieldName, p, t, 16, errorFn)
+		return pb.setUintNField(paramName, fieldName, p, t, 16, errorFn, index...)
 	case reflect.Uint32:
-		return pb.setUintNField(paramName, fieldName, p, t, 32, errorFn)
+		return pb.setUintNField(paramName, fieldName, p, t, 32, errorFn, index...)
 	case reflect.Uint64:
-		return pb.setUintNField(paramName, fieldName, p, t, 64, errorFn)
+		return pb.setUintNField(paramName, fieldName, p, t, 64, errorFn, index...)
 	case reflect.Float32:
-		return pb.setFloatNField(paramName, fieldName, p, t, 32, errorFn)
+		return pb.setFloatNField(paramName, fieldName, p, t, 32, errorFn, index...)
 	case reflect.Float64:
-		return pb.setFloatNField(paramName, fieldName, p, t, 64, errorFn)
+		return pb.setFloatNField(paramName, fieldName, p, t, 64, errorFn, index...)
 	case reflect.Ptr:
-		return pb.considerStructField(paramName, fieldName, p, t, errorFn)
+		return pb.considerStructField(paramName, fieldName, p, t, errorFn, index...)
+	case reflect.Slice:
+		return pb.populateSlice(paramName, fieldName, p, t, errorFn)
 
 	}
 
@@ -202,7 +213,44 @@ func (pb *ParamValueInjector) BindValueToField(paramName string, fieldName strin
 
 }
 
-func (pb *ParamValueInjector) considerStructField(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError) error {
+func (pb *ParamValueInjector) populateSlice(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError) error {
+
+	tf := reflect.ValueOf(t).Elem().FieldByName(fieldName)
+
+	paramValue, err := qp.StringValue(paramName)
+
+	paramValue = strings.TrimSpace(paramValue)
+
+	if err != nil {
+		return err
+	}
+
+	values := strings.Split(paramValue, ",")
+	vlen := len(values)
+
+	if vlen == 1 && len(paramValue) == 0 {
+		vlen = 0
+	}
+
+	refSlice := reflect.MakeSlice(tf.Type(), vlen, vlen)
+	tf.Set(refSlice)
+
+	if vlen == 0 {
+		return nil
+	}
+
+	for i, v := range values {
+		p := NewSingleValueParams(paramName, v)
+
+		pb.BindValueToField(paramName, fieldName, p, t, errorFn, i)
+
+	}
+
+	return nil
+
+}
+
+func (pb *ParamValueInjector) considerStructField(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError, index ...int) error {
 
 	tf := reflect.ValueOf(t).Elem().FieldByName(fieldName)
 	tv := tf.Interface()
@@ -260,7 +308,7 @@ func (pb *ParamValueInjector) setNilableField(paramName string, fieldName string
 	return e
 }
 
-func (pb *ParamValueInjector) setStringField(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError) error {
+func (pb *ParamValueInjector) setStringField(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError, index ...int) error {
 	s, err := qp.StringValue(paramName)
 
 	if err != nil {
@@ -272,7 +320,7 @@ func (pb *ParamValueInjector) setStringField(paramName string, fieldName string,
 	return nil
 }
 
-func (pb *ParamValueInjector) setBoolField(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError) error {
+func (pb *ParamValueInjector) setBoolField(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError, index ...int) error {
 	b, err := qp.BoolValue(paramName)
 
 	if err != nil {
@@ -283,18 +331,23 @@ func (pb *ParamValueInjector) setBoolField(paramName string, fieldName string, q
 	return nil
 }
 
-func (pb *ParamValueInjector) setIntNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn GenerateMappingError) error {
+func (pb *ParamValueInjector) setIntNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn GenerateMappingError, index ...int) error {
 	i, err := qp.IntNValue(paramName, bits)
 
 	if err != nil {
 		return errorFn(paramName, fieldName, pb.intTypeName("int", bits), qp)
 	}
 
-	rt.SetInt64(t, fieldName, i)
+	if index != nil {
+		rt.SetSliceElem(t, fieldName, i, index[0])
+	} else {
+		rt.SetInt64(t, fieldName, i)
+	}
+
 	return nil
 }
 
-func (pb *ParamValueInjector) setFloatNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn GenerateMappingError) error {
+func (pb *ParamValueInjector) setFloatNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn GenerateMappingError, index ...int) error {
 	i, err := qp.FloatNValue(paramName, bits)
 
 	if err != nil {
@@ -305,7 +358,7 @@ func (pb *ParamValueInjector) setFloatNField(paramName string, fieldName string,
 	return nil
 }
 
-func (pb *ParamValueInjector) setUintNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn GenerateMappingError) error {
+func (pb *ParamValueInjector) setUintNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn GenerateMappingError, index ...int) error {
 	i, err := qp.UIntNValue(paramName, bits)
 
 	if err != nil {
