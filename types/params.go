@@ -128,6 +128,40 @@ func (wp *Params) IntNValue(key string, bits int) (int64, error) {
 
 }
 
+// IntNInterfaceValue returns a signed int representation of the specified parameter as the correct basic type (int8, int32 etc), or an error if no value exists for that parameter or
+// if the value could not be converted to an int.
+func (wp *Params) IntNInterfaceValue(i64 int64, bits int) interface{} {
+
+	switch bits {
+	case 8:
+		return int8(i64)
+	case 16:
+		return int16(i64)
+	case 32:
+		return int32(i64)
+	}
+
+	return i64
+
+}
+
+// UIntNInterfaceValue returns an unsigned int representation of the specified parameter as the correct basic type (uint8, uint32 etc), or an error if no value exists for that parameter or
+// if the value could not be converted to an int.
+func (wp *Params) UIntNInterfaceValue(u64 uint64, bits int) interface{} {
+
+	switch bits {
+	case 8:
+		return uint8(u64)
+	case 16:
+		return uint16(u64)
+	case 32:
+		return uint32(u64)
+	}
+
+	return u64
+
+}
+
 // UIntNValue returns an unsigned int representation of the specified parameter with the specified bit size, or an error if no value exists for that parameter or
 // if the value could not be converted to an unsigned int.
 func (wp *Params) UIntNValue(key string, bits int) (uint64, error) {
@@ -315,7 +349,11 @@ func (pb *ParamValueInjector) setStringField(paramName string, fieldName string,
 		return errorFn(paramName, fieldName, "string", qp)
 	}
 
-	rt.SetString(t, fieldName, s)
+	if index != nil {
+		rt.SetSliceElem(t, fieldName, s, index[0])
+	} else {
+		rt.SetString(t, fieldName, s)
+	}
 
 	return nil
 }
@@ -327,7 +365,12 @@ func (pb *ParamValueInjector) setBoolField(paramName string, fieldName string, q
 		return errorFn(paramName, fieldName, "bool", qp)
 	}
 
-	rt.SetBool(t, fieldName, b)
+	if index != nil {
+		rt.SetSliceElem(t, fieldName, b, index[0])
+	} else {
+		rt.SetBool(t, fieldName, b)
+	}
+
 	return nil
 }
 
@@ -339,7 +382,8 @@ func (pb *ParamValueInjector) setIntNField(paramName string, fieldName string, q
 	}
 
 	if index != nil {
-		rt.SetSliceElem(t, fieldName, i, index[0])
+
+		rt.SetSliceElem(t, fieldName, qp.IntNInterfaceValue(i, bits), index[0])
 	} else {
 		rt.SetInt64(t, fieldName, i)
 	}
@@ -348,13 +392,18 @@ func (pb *ParamValueInjector) setIntNField(paramName string, fieldName string, q
 }
 
 func (pb *ParamValueInjector) setFloatNField(paramName string, fieldName string, qp *Params, t interface{}, bits int, errorFn GenerateMappingError, index ...int) error {
-	i, err := qp.FloatNValue(paramName, bits)
+	f, err := qp.FloatNValue(paramName, bits)
 
 	if err != nil {
 		return errorFn(paramName, fieldName, pb.intTypeName("float", bits), qp)
 	}
 
-	rt.SetFloat64(t, fieldName, i)
+	if index != nil {
+		rt.SetSliceElem(t, fieldName, f, index[0])
+	} else {
+		rt.SetFloat64(t, fieldName, f)
+	}
+
 	return nil
 }
 
@@ -365,7 +414,12 @@ func (pb *ParamValueInjector) setUintNField(paramName string, fieldName string, 
 		return errorFn(paramName, fieldName, pb.intTypeName("uint", bits), qp)
 	}
 
-	rt.SetUint64(t, fieldName, i)
+	if index != nil {
+		rt.SetSliceElem(t, fieldName, qp.UIntNInterfaceValue(i, bits), index[0])
+	} else {
+		rt.SetUint64(t, fieldName, i)
+	}
+
 	return nil
 }
 
