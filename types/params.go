@@ -276,7 +276,9 @@ func (pb *ParamValueInjector) populateSlice(paramName string, fieldName string, 
 	for i, v := range values {
 		p := NewSingleValueParams(paramName, v)
 
-		pb.BindValueToField(paramName, fieldName, p, t, errorFn, i)
+		if err := pb.BindValueToField(paramName, fieldName, p, t, errorFn, i); err != nil {
+			return err
+		}
 
 	}
 

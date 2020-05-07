@@ -6,6 +6,25 @@ import (
 	"testing"
 )
 
+func TestInt16SliceUnparseableA(t *testing.T) {
+
+	pvi := new(ParamValueInjector)
+
+	target := struct {
+		IS []int16
+	}{}
+
+	p := NewSingleValueParams("IS", "1,X,3")
+
+	err := pvi.populateSlice("IS", "IS", p, &target, echoParamError)
+
+	if !test.ExpectNotNil(t, err) {
+
+		t.Fatalf("Expected error, got none")
+	}
+
+}
+
 func TestUnsetSlicePopulation(t *testing.T) {
 
 	pvi := new(ParamValueInjector)
@@ -125,19 +144,8 @@ func TestInt8OverflowSlicePopulation(t *testing.T) {
 
 	err := pvi.populateSlice("IS", "IS", p, &target, echoParamError)
 
-	if !test.ExpectNil(t, err) {
-		t.Fatalf("Unexpected error %s", err)
-	}
-	if len(target.IS) != 3 {
-		t.Fatalf("Unexpected length")
-	}
-
-	a := target.IS
-
-	fmt.Println(a[2])
-
-	if a[0] != 1 || a[1] != 2 {
-		t.Fatalf("Unexpected value")
+	if !test.ExpectNotNil(t, err) {
+		t.Fatalf("Expected error, got none")
 	}
 
 }
