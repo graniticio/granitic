@@ -94,7 +94,6 @@ digits.
 The value of the field `BindPathParams` is a list of field names on the target object. The order is significant - the
 first field in the list will be populated with the value from the first capture group and so on.
 
-
 #### Using regular expressions to enforce type safety
 
 In the example above, the handler will _only_ match the client's request if the values provided in the path are integers.
@@ -161,9 +160,22 @@ If a query parameter is provided where the value is incompatible with the type o
 [framework error](ws-error.md) will be raised. 
 
 
+## Path and query supported types
+
+Path and query binding supports the same set of types to parse data into. These can be:
+
+  * Any Go basic type (expect `uintptr`, `complex64` and `complex128`)
+  * Any of Granitic's [nilable struct types](ws-nilable.md)
+  * A slice of any of the above
+  
+For slices, the query/path parameter value should be a comma delimited list of values.
+
+For numeric types a [framework error](ws-error.md) will be raised if the parameter value is numeric, but doesn't fit
+into the target type.
+
 ## HTTP request headers
 
-There is explicit support in Granitic for binding HTTP request headers to target objects. You may choose to allow your
+There is no explicit support in Granitic for binding HTTP request headers to target objects. You may choose to allow your
 [logic component](ws-logic.md) to have access to the headers (and the underlying HTTP request and response objects) by
 setting `AllowDirectHTTPAccess` to `true` on your handler.
 

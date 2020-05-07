@@ -78,6 +78,33 @@ func TestUInt16SlicePopulation(t *testing.T) {
 
 }
 
+func TestWhitesSpaceSlicePopulation(t *testing.T) {
+
+	pvi := new(ParamValueInjector)
+
+	target := struct {
+		IS []uint16
+	}{}
+
+	p := NewSingleValueParams("IS", " 1, 2 ,3")
+
+	err := pvi.populateSlice("IS", "IS", p, &target, echoParamError)
+
+	if !test.ExpectNil(t, err) {
+		t.Fatalf("Unexpected error %s", err)
+	}
+	if len(target.IS) != 3 {
+		t.Fatalf("Unexpected length")
+	}
+
+	a := target.IS
+
+	if a[0] != 1 || a[1] != 2 || a[2] != 3 {
+		t.Fatalf("Unexpected value")
+	}
+
+}
+
 func TestInt16SlicePopulation(t *testing.T) {
 
 	pvi := new(ParamValueInjector)
@@ -146,6 +173,60 @@ func TestInt8OverflowSlicePopulation(t *testing.T) {
 
 	if !test.ExpectNotNil(t, err) {
 		t.Fatalf("Expected error, got none")
+	}
+
+}
+
+func TestRuneSlicePopulation(t *testing.T) {
+
+	pvi := new(ParamValueInjector)
+
+	target := struct {
+		IS []rune
+	}{}
+
+	p := NewSingleValueParams("IS", "1,2,3")
+
+	err := pvi.populateSlice("IS", "IS", p, &target, echoParamError)
+
+	if !test.ExpectNil(t, err) {
+		t.Fatalf("Unexpected error %s", err)
+	}
+	if len(target.IS) != 3 {
+		t.Fatalf("Unexpected length")
+	}
+
+	a := target.IS
+
+	if a[0] != 1 || a[1] != 2 || a[2] != 3 {
+		t.Fatalf("Unexpected value")
+	}
+
+}
+
+func TestByteSlicePopulation(t *testing.T) {
+
+	pvi := new(ParamValueInjector)
+
+	target := struct {
+		IS []byte
+	}{}
+
+	p := NewSingleValueParams("IS", "1,2,3")
+
+	err := pvi.populateSlice("IS", "IS", p, &target, echoParamError)
+
+	if !test.ExpectNil(t, err) {
+		t.Fatalf("Unexpected error %s", err)
+	}
+	if len(target.IS) != 3 {
+		t.Fatalf("Unexpected length")
+	}
+
+	a := target.IS
+
+	if a[0] != 1 || a[1] != 2 || a[2] != 3 {
+		t.Fatalf("Unexpected value")
 	}
 
 }
