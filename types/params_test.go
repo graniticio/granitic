@@ -46,6 +46,29 @@ func TestNilableStringPointerArray(t *testing.T) {
 		t.Fatalf("Expected populated")
 	}
 
+	if target.IS[1].String() != "X" || !target.IS[1].IsSet() {
+		t.Fatalf("Expected ns at [1] to be set to X")
+	}
+
+}
+
+func TestNilableStringNonPointerArray(t *testing.T) {
+
+	pvi := new(ParamValueInjector)
+
+	target := struct {
+		IS []NilableString
+	}{}
+
+	p := NewSingleValueParams("IS", "1,X,3")
+
+	err := pvi.populateSlice("IS", "IS", p, &target, echoParamError)
+
+	if err == nil {
+
+		t.Fatalf("Expected an error, got nothing")
+	}
+
 }
 
 func TestUnsetSlicePopulation(t *testing.T) {

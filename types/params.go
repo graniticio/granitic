@@ -243,7 +243,11 @@ func (pb *ParamValueInjector) BindValueToField(paramName string, fieldName strin
 
 	}
 
-	return nil
+	if index != nil {
+		return fmt.Errorf("field %s[%d] is not a valid type for binding into - make sure it is a basic type or a POINTER to a nilable", fieldName, index[0])
+	}
+
+	return fmt.Errorf("field %s is not a valid type for binding into - make sure it is a basic type or a POINTER to a nilable", fieldName)
 
 }
 
