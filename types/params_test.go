@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestInt16SliceUnparseableA(t *testing.T) {
+func TestInt16SliceUnparseable(t *testing.T) {
 
 	pvi := new(ParamValueInjector)
 
@@ -21,6 +21,29 @@ func TestInt16SliceUnparseableA(t *testing.T) {
 	if !test.ExpectNotNil(t, err) {
 
 		t.Fatalf("Expected error, got none")
+	}
+
+}
+
+func TestNilableStringPointerArray(t *testing.T) {
+
+	pvi := new(ParamValueInjector)
+
+	target := struct {
+		IS []*NilableString
+	}{}
+
+	p := NewSingleValueParams("IS", "1,X,3")
+
+	err := pvi.populateSlice("IS", "IS", p, &target, echoParamError)
+
+	if err != nil {
+
+		t.Fatalf("Expected no error, got %s", err.Error())
+	}
+
+	if target.IS[0] == nil {
+		t.Fatalf("Expected populated")
 	}
 
 }

@@ -288,19 +288,37 @@ func (pb *ParamValueInjector) populateSlice(paramName string, fieldName string, 
 
 func (pb *ParamValueInjector) considerStructField(paramName string, fieldName string, qp *Params, t interface{}, errorFn GenerateMappingError, index ...int) error {
 
+	var tv interface{}
+
 	tf := reflect.ValueOf(t).Elem().FieldByName(fieldName)
-	tv := tf.Interface()
+
+	if index != nil {
+		t := tf.Index(0)
+
+		to := reflect.TypeOf(t.Interface())
+
+		if !(rt.IsPointer(to)) {
+			return fmt.Errorf("Can only bind into arrays of pointers to structs, not arrays of structs")
+		}
+
+		underType := to.Elem()
+
+		tv = reflect.New(underType).Interface()
+
+	} else {
+		tv = tf.Interface()
+	}
 
 	_, found := tv.(Nilable)
 
 	if found {
-		return pb.setNilableField(paramName, fieldName, qp, tf, tv, errorFn, t)
+		return pb.setNilableField(paramName, fieldName, qp, tf, tv, errorFn, t, index...)
 	}
 
 	return nil
 }
 
-func (pb *ParamValueInjector) setNilableField(paramName string, fieldName string, p *Params, tf reflect.Value, tv interface{}, errorFn GenerateMappingError, parent interface{}) error {
+func (pb *ParamValueInjector) setNilableField(paramName string, fieldName string, p *Params, tf reflect.Value, tv interface{}, errorFn GenerateMappingError, parent interface{}, index ...int) error {
 	np := new(nillableProxy)
 
 	var e error
@@ -332,7 +350,13 @@ func (pb *ParamValueInjector) setNilableField(paramName string, fieldName string
 	}
 
 	if e == nil {
-		rt.SetPtrToStruct(parent, fieldName, nv)
+
+		if index == nil {
+			rt.SetPtrToStruct(parent, fieldName, nv)
+		} else {
+			rt.SetSliceElem(parent, fieldName, nv, index[0])
+		}
+
 	} else {
 
 		if fe, okay := e.(FieldAssociatedError); okay {

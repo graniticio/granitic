@@ -388,7 +388,7 @@ type BindingTarget struct {
 	NF  *types.NilableFloat64
 	NB  *types.NilableBool
 	IA  []int64
-	IS  []int64
+	IS  []*types.NilableString
 }
 
 type InvalidTargets struct {
