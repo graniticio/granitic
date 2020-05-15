@@ -11,7 +11,7 @@ func TestSQLProcessor(t *testing.T) {
 	sp.BoolTrue = "TRUE"
 	sp.BoolFalse = "FALSE"
 
-	pvc := paramValueContext{
+	pvc := ParamValueContext{
 		Value: true,
 	}
 
@@ -21,7 +21,7 @@ func TestSQLProcessor(t *testing.T) {
 		t.Error()
 	}
 
-	pvc = paramValueContext{
+	pvc = ParamValueContext{
 		Value: "abc",
 	}
 

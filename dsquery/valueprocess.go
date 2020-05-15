@@ -8,11 +8,12 @@ import (
 
 // ParamValueProcessor is implemented by components able to escape the value of a parameter to a query and handle unset parameters
 type ParamValueProcessor interface {
-	EscapeParamValue(v *paramValueContext)
-	SubstituteUnset(v *paramValueContext) error
+	EscapeParamValue(v *ParamValueContext)
+	SubstituteUnset(v *ParamValueContext) error
 }
 
-type paramValueContext struct {
+// ParamValueContext holds the value of parameter to be injected into a query along with meta-data to aid processing and substitution
+type ParamValueContext struct {
 	Key     string
 	Value   interface{}
 	QueryID string
@@ -43,7 +44,7 @@ type ConfigurableProcessor struct {
 }
 
 // EscapeParamValue implements ParamValueProcessor.EscapeParamValue
-func (cp *ConfigurableProcessor) EscapeParamValue(v *paramValueContext) {
+func (cp *ConfigurableProcessor) EscapeParamValue(v *ParamValueContext) {
 
 	switch t := v.Value.(type) {
 	case string:
@@ -56,14 +57,14 @@ func (cp *ConfigurableProcessor) EscapeParamValue(v *paramValueContext) {
 
 }
 
-func (cp *ConfigurableProcessor) wrapString(v *paramValueContext, s string) {
+func (cp *ConfigurableProcessor) wrapString(v *ParamValueContext, s string) {
 	if cp.WrapStrings && (s != cp.DefaultParameterValue || !cp.DisableWrapWhenDefaultParameterValue) {
 		v.Value = cp.StringWrapWith + s + cp.StringWrapWith
 	}
 }
 
 // SubstituteUnset implements ParamValueProcessor.SubstituteUnset
-func (cp *ConfigurableProcessor) SubstituteUnset(v *paramValueContext) error {
+func (cp *ConfigurableProcessor) SubstituteUnset(v *ParamValueContext) error {
 
 	if cp.UseDefaultForMissingParameter {
 
@@ -87,7 +88,7 @@ type SQLProcessor struct {
 
 // EscapeParamValue modifies the value in the supplied parameter + value so that is beocomes valid SQL
 // (e.g. quotes strings, converts to RDBMS specific representation of booleans)
-func (sp *SQLProcessor) EscapeParamValue(v *paramValueContext) {
+func (sp *SQLProcessor) EscapeParamValue(v *ParamValueContext) {
 	switch t := v.Value.(type) {
 	case string:
 		sp.escapeString(v, t)
@@ -104,14 +105,14 @@ func (sp *SQLProcessor) EscapeParamValue(v *paramValueContext) {
 	}
 }
 
-func (sp *SQLProcessor) escapeString(v *paramValueContext, o string) {
+func (sp *SQLProcessor) escapeString(v *ParamValueContext, o string) {
 
 	if !v.Escaped {
 		v.Value = fmt.Sprintf("'%s'", o)
 	}
 }
 
-func (sp *SQLProcessor) replaceBool(v *paramValueContext, o bool) {
+func (sp *SQLProcessor) replaceBool(v *ParamValueContext, o bool) {
 
 	if o {
 		v.Value = sp.BoolTrue
@@ -122,7 +123,7 @@ func (sp *SQLProcessor) replaceBool(v *paramValueContext, o bool) {
 }
 
 // SubstituteUnset changes the value of a unset parameter value to null
-func (sp *SQLProcessor) SubstituteUnset(v *paramValueContext) error {
+func (sp *SQLProcessor) SubstituteUnset(v *ParamValueContext) error {
 
 	v.Value = "null"
 	v.Escaped = true

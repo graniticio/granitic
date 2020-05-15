@@ -59,7 +59,7 @@ func TestBuilderWithDefaultConfig(t *testing.T) {
 	_, okay = tqm.ValueProcessor.(*dsquery.ConfigurableProcessor)
 
 	if !okay {
-		t.Fatalf("Unexpected type for ValueProcessor %t", tqm.ValueProcessor)
+		t.Fatalf("Unexpected type for ValueProcessor %T", tqm.ValueProcessor)
 	}
 
 	tqm.FrameworkLogger = lm.CreateLogger(QueryManagerComponentName)
@@ -67,6 +67,117 @@ func TestBuilderWithDefaultConfig(t *testing.T) {
 	if err = tqm.StartComponent(); err != nil {
 		t.Fatalf(err.Error())
 	}
+}
+
+func TestBuilderWithJSONValueProcessor(t *testing.T) {
+	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
+
+	qf := test.FilePath("valid")
+	es := test.FilePath("enablesql.json")
+	ca, err := configAccessor(lm, qf, es)
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	fb := new(FacilityBuilder)
+
+	s := new(instance.System)
+
+	//Create the IoC container
+	cc := ioc.NewComponentContainer(lm, ca, s)
+
+	err = fb.BuildAndRegister(lm, ca, cc)
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if err = cc.Populate(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	mc := cc.ComponentByName(QueryManagerComponentName).Instance
+
+	tqm, okay := mc.(*dsquery.TemplatedQueryManager)
+
+	if !okay {
+		t.Fatalf("Unexpected type for %s %t", QueryManagerComponentName, mc)
+	}
+
+	_, okay = tqm.ValueProcessor.(*dsquery.SQLProcessor)
+
+	if !okay {
+		t.Fatalf("Unexpected type for ValueProcessor %T", tqm.ValueProcessor)
+	}
+
+	tqm.FrameworkLogger = lm.CreateLogger(QueryManagerComponentName)
+
+	if err = tqm.StartComponent(); err != nil {
+		t.Fatalf(err.Error())
+	}
+}
+
+func TestBuilderWithInjectedValueProcessor(t *testing.T) {
+	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
+
+	qf := test.FilePath("valid")
+	es := test.FilePath("nostock.json")
+	ca, err := configAccessor(lm, qf, es)
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	fb := new(FacilityBuilder)
+
+	s := new(instance.System)
+
+	//Create the IoC container
+	cc := ioc.NewComponentContainer(lm, ca, s)
+
+	err = fb.BuildAndRegister(lm, ca, cc)
+
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	cc.WrapAndAddProto("valueProc", new(nullValueProcessor))
+
+	if err = cc.Populate(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	mc := cc.ComponentByName(QueryManagerComponentName).Instance
+
+	tqm, okay := mc.(*dsquery.TemplatedQueryManager)
+
+	if !okay {
+		t.Fatalf("Unexpected type for %s %t", QueryManagerComponentName, mc)
+	}
+
+	_, okay = tqm.ValueProcessor.(*nullValueProcessor)
+
+	if !okay {
+		t.Fatalf("Unexpected type for ValueProcessor %T", tqm.ValueProcessor)
+	}
+
+	tqm.FrameworkLogger = lm.CreateLogger(QueryManagerComponentName)
+
+	if err = tqm.StartComponent(); err != nil {
+		t.Fatalf(err.Error())
+	}
+}
+
+type nullValueProcessor struct {
+}
+
+func (nvp *nullValueProcessor) EscapeParamValue(v *dsquery.ParamValueContext) {
+
+}
+
+func (nvp *nullValueProcessor) SubstituteUnset(v *dsquery.ParamValueContext) error {
+	return nil
 }
 
 func configAccessor(lm *logging.ComponentLoggerManager, queryFolder string, additionalFiles ...string) (*config.Accessor, error) {

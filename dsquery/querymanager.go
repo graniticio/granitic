@@ -149,7 +149,7 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 
 			paramValue := params[key]
 
-			vc := paramValueContext{
+			vc := ParamValueContext{
 				Value:   paramValue,
 				Key:     key,
 				QueryID: qid,
