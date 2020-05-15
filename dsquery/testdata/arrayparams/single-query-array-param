@@ -3,6 +3,6 @@ ID:SINGLE_QUERY_IN
 SELECT
     v
 FROM
-    ${Table}
+    ${!Table}
 WHERE
-    id IN (${IDList})
+    id IN (${!IDList})

@@ -13,6 +13,57 @@ import (
 	"testing"
 )
 
+func TestArrayParamVars(t *testing.T) {
+
+	qm := buildQueryManager()
+
+	qm.TemplateLocation = test.FilePath("arrayparams")
+
+	if err := qm.StartComponent(); err != nil {
+		t.Fatalf("Unexpected %s", err.Error())
+	}
+
+	p := make(map[string]interface{})
+
+	p["Table"] = "my_table"
+	p["IDList"] = []int64{1, 2, 3}
+
+	q, err := qm.BuildQueryFromID("SINGLE_QUERY_IN", p)
+
+	if err != nil {
+		t.Fatalf("Unexpected %s", err.Error())
+	}
+
+	if !strings.Contains(q, "(1, 2, 3)") {
+		t.Fatalf("Unexpected resulting query \n%s", q)
+	}
+
+	p["IDList"] = []string{"1", "2", "3"}
+
+	q, err = qm.BuildQueryFromID("SINGLE_QUERY_IN", p)
+
+	if err != nil {
+		t.Fatalf("Unexpected %s", err.Error())
+	}
+
+	if !strings.Contains(q, "('1', '2', '3')") {
+		t.Fatalf("Unexpected resulting query \n%s", q)
+	}
+
+	p["IDList"] = []bool{true, false, true}
+
+	q, err = qm.BuildQueryFromID("SINGLE_QUERY_IN", p)
+
+	if err != nil {
+		t.Fatalf("Unexpected %s", err.Error())
+	}
+
+	if !strings.Contains(q, "(true, false, true)") {
+		t.Fatalf("Unexpected resulting query \n%s", q)
+	}
+
+}
+
 func TestSingleSingleQueryNoVars(t *testing.T) {
 
 	f := filepath.Join("querymanager", "single-query-no-vars")
@@ -143,11 +194,18 @@ func buildQueryManager() *TemplatedQueryManager {
 
 	qm := new(TemplatedQueryManager)
 	qm.QueryIDPrefix = "ID:"
-	qm.ValueProcessor = new(SQLProcessor)
+
+	sp := new(SQLProcessor)
+
+	qm.ValueProcessor = sp
 	qm.TrimIDWhiteSpace = true
 	qm.VarMatchRegEx = "\\$\\{([^\\}]*)\\}"
 	qm.NewLine = "\n"
 	qm.FrameworkLogger = new(logging.ConsoleErrorLogger)
+	qm.ElementSeparator = ", "
+
+	sp.BoolFalse = "false"
+	sp.BoolTrue = "true"
 
 	return qm
 

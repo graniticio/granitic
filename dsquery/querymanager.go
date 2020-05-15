@@ -24,8 +24,10 @@ import (
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/ioc"
 	"github.com/graniticio/granitic/v2/logging"
+	rt "github.com/graniticio/granitic/v2/reflecttools"
 	"github.com/graniticio/granitic/v2/types"
 	"os"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -83,7 +85,11 @@ type TemplatedQueryManager struct {
 	CreateDefaultValueProcessor bool
 
 	// The character sequence that indicates a new line in a template file (e.g. \n)
-	NewLine            string
+	NewLine string
+
+	// The separator string to use been elements of a processed array parameter (e.g , )
+	ElementSeparator string
+
 	tokenisedTemplates map[string]*queryTemplate
 	fragments          map[string]string
 	state              ioc.ComponentState
@@ -173,26 +179,33 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 
 			}
 
-			//Perform any required escaping on the parameter value
-			vp.EscapeParamValue(&vc)
+			var err error
 
-			switch t := vc.Value.(type) {
-			default:
-				return "", fmt.Errorf("value for parameter %s is not a supported type. (type is %T)", key, t)
-			case string:
-				b.WriteString(t)
-			case *types.NilableString:
-				b.WriteString(t.String())
-			case types.NilableString:
-				b.WriteString(t.String())
-			case int:
-				b.WriteString(strconv.Itoa(t))
-			case int64:
-				b.WriteString(strconv.FormatInt(t, 10))
-			case *types.NilableInt64:
-				b.WriteString(strconv.FormatInt(t.Int64(), 10))
-			case types.NilableInt64:
-				b.WriteString(strconv.FormatInt(t.Int64(), 10))
+			if rt.IsSliceOrArray(paramValue) {
+
+				v := reflect.ValueOf(paramValue)
+				l := v.Len()
+
+				for i := 0; i < l; i++ {
+
+					vc.Value = v.Index(i).Interface()
+
+					if err = qm.writeValue(vp, vc, key, &b); err != nil {
+						return "", err
+					}
+
+					if i < (l - 1) {
+						b.WriteString(qm.ElementSeparator)
+					}
+
+				}
+
+			} else {
+				err = qm.writeValue(vp, vc, key, &b)
+			}
+
+			if err != nil {
+				return "", err
 			}
 
 		}
@@ -207,6 +220,31 @@ func (qm *TemplatedQueryManager) buildQueryFromTemplate(qid string, template *qu
 
 	return q, nil
 
+}
+
+func (qm *TemplatedQueryManager) writeValue(vp ParamValueProcessor, vc ParamValueContext, key string, b *bytes.Buffer) error {
+	//Perform any required escaping on the parameter value
+	vp.EscapeParamValue(&vc)
+
+	switch t := vc.Value.(type) {
+	default:
+		return fmt.Errorf("value for parameter %s is not a supported type. (type is %T)", key, t)
+	case string:
+		b.WriteString(t)
+	case *types.NilableString:
+		b.WriteString(t.String())
+	case types.NilableString:
+		b.WriteString(t.String())
+	case int:
+		b.WriteString(strconv.Itoa(t))
+	case int64:
+		b.WriteString(strconv.FormatInt(t, 10))
+	case *types.NilableInt64:
+		b.WriteString(strconv.FormatInt(t.Int64(), 10))
+	case types.NilableInt64:
+		b.WriteString(strconv.FormatInt(t.Int64(), 10))
+	}
+	return nil
 }
 
 // StartComponent is called by the IoC container. Loads, parses and tokenizes query templates. Returns an error
