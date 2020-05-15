@@ -6,7 +6,7 @@
     "VarMatchRegEx": "\\$\\{([^\\}]*)\\}",
     "NewLine": "\n",
     "CreateDefaultValueProcessor": true,
-    "ProcessorName": "configurable",
+    "ProcessorName": "CONFIGURABLE",
     "ValueProcessors": {
       "Configurable": {
         "WrapStrings": true,

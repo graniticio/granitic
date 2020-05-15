@@ -91,6 +91,7 @@ import (
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/ioc"
 	"github.com/graniticio/granitic/v2/logging"
+	"strings"
 )
 
 // QueryManagerComponentName is the name of the query manager in the IoC container.
@@ -101,7 +102,8 @@ const QueryManagerFacilityName = "QueryManager"
 
 const processorDecorator = instance.FrameworkPrefix + "ParamValueProcessorDecorator"
 
-const confValueProcess = "Configurable"
+const confValueProcess = "CONFIGURABLE"
+
 const sqlValueProcess = "SQL"
 
 // FacilityBuilder creates an instance of dsquery.QueryManager and stores it in the IoC container.
@@ -128,11 +130,19 @@ func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 	vpName, err := ca.StringVal("QueryManager.ProcessorName")
 
-	if err != nil || (vpName != confValueProcess && vpName != sqlValueProcess) {
+	if err != nil || !qmfb.checkProcessor(vpName) {
 		return fmt.Errorf("QueryManager.ProcessorName must be set to '%s' or '%s' if you want to use a stock ValueProcessor", confValueProcess, sqlValueProcess)
 	}
 
-	vpConfig := "QueryManager.ValueProcessors." + vpName
+	vpName = strings.ToUpper(vpName)
+
+	var vpConfig string
+
+	if vpName == sqlValueProcess {
+		vpConfig = "QueryManager.ValueProcessors.SQL"
+	} else {
+		vpConfig = "QueryManager.ValueProcessors.Configurable"
+	}
 
 	if !ca.PathExists(vpConfig) {
 		return errors.New("Missing configuration path for ValueProcessor: " + vpConfig)
@@ -153,6 +163,13 @@ func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 	queryManager.ValueProcessor = vp
 
 	return nil
+}
+
+func (qmfb *FacilityBuilder) checkProcessor(value string) bool {
+
+	value = strings.ToUpper(value)
+
+	return value == confValueProcess || value == sqlValueProcess
 }
 
 // FacilityName implements FacilityBuilder.FacilityName
