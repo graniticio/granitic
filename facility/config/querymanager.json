@@ -7,6 +7,7 @@
     "NewLine": "\n",
     "CreateDefaultValueProcessor": true,
     "ProcessorName": "CONFIGURABLE",
+    "ElementSeparator": ", ",
     "ValueProcessors": {
       "Configurable": {
         "WrapStrings": true,
