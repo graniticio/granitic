@@ -54,7 +54,7 @@ func (pcf *PrioritisedContextFilter) sort() {
 
 // Extract takes all of the FilteredContextData from the lowest priority Context filter then overwrites it with data
 // from higher priority instances.
-func (pcf *PrioritisedContextFilter) Extract(ctx context.Context) FilteredContextData {
+func (pcf PrioritisedContextFilter) Extract(ctx context.Context) FilteredContextData {
 
 	filterCount := len(pcf.filters)
 

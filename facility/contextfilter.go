@@ -4,7 +4,6 @@
 package facility
 
 import (
-	"fmt"
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/ioc"
@@ -25,7 +24,11 @@ func (cf *ContextFilterBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 	//Try and find an instance of a component that is a ContextFilter
 	matches := cn.ProtoComponentsByType(cfTypeMatcher)
 
-	if len(matches) == 0 {
+	var filter logging.ContextFilter
+
+	matchCount := len(matches)
+
+	if matchCount == 0 {
 		// No matching components
 
 		log.LogDebugf("No components found that match logging.ContextFilter")
@@ -33,23 +36,31 @@ func (cf *ContextFilterBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 		return nil
 	}
 
-	if len(matches) > 1 {
+	if matchCount == 1 {
+		//Use the filter without wrapping it
 
-		m := "Too many components available that implement logging.ContextFilter should only be one found: "
+		fc := matches[0].Component
 
-		for _, v := range matches {
-			m += v.Component.Name + " "
-		}
+		log.LogDebugf("Found one component %s which implements logging.ContextFilter ", fc.Name)
 
-		return fmt.Errorf(m)
-
+		filter = fc.Instance.(logging.ContextFilter)
 	}
 
-	fc := matches[0].Component
+	if matchCount > 1 {
 
-	log.LogDebugf("Found component %s which implements logging.ContextFilter ", fc.Name)
+		log.LogDebugf("Found %d components that implements logging.ContextFilter. Will wrap in a PrioritisedContextFilter ", matchCount)
 
-	filter := fc.Instance.(logging.ContextFilter)
+		pcf := new(logging.PrioritisedContextFilter)
+
+		for _, v := range matches {
+
+			log.LogDebugf("Adding %s", v.Component.Name)
+
+			pcf.Add(v.Component.Instance.(logging.ContextFilter))
+		}
+
+		filter = pcf
+	}
 
 	dn := instance.FrameworkPrefix + "ContextFilterDecorator"
 
