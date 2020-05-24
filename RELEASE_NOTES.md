@@ -14,6 +14,14 @@ and the [HTTP server facility](https://granitic.io/ref/http-server) for more det
 
 The HTTP Server access log can now write to `STDOUT` if you set `HTTPServer.AccessLog.LogPath` to `STDOUT` in configuration.
 
+### Multiple ContextFilters
+
+Your application can now have as more than one component that implements logging.ContextFilter. If more than
+one component is found, they will be merged into a [logging.PrioritisedContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#PrioritisedContextFilter)
+
+You can control the how keys present in more than one ContextFilter are resolved to a single value by
+having your ContextFilters implement [logging.FilterPriority](https://godoc.org/github.com/graniticio/granitic/logging#FilterPriority)
+
 ## Application start up
 
 ### Save merged configuration
