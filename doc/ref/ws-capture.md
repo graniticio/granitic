@@ -164,7 +164,7 @@ If a query parameter is provided where the value is incompatible with the type o
 
 Path and query binding supports the same set of types to parse data into. These can be:
 
-  * Any Go basic type (expect `uintptr`, `complex64` and `complex128`)
+  * Any Go basic type (except `uintptr`, `complex64` and `complex128`)
   * Any of Granitic's [nilable struct types](ws-nilable.md)
   * A slice of any of the above
   
