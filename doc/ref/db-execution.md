@@ -1,3 +1,9 @@
 # Query execution
 
-This section will explain how to execute queries against relational databases.
+---
+
+---
+**Next**: [Scheduled activities](sch-index.md)
+
+**Prev**: [Query management](db-query.md)
+

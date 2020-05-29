@@ -1,3 +1,10 @@
 # Relational database principles
 
-This section will explain how Granitic manages interactions with relational databases
+[Reference](README.md) | [Relational Databases](db-index.md)
+
+---
+
+---
+**Next**: [Database provider](db-provider.md)
+
+**Prev**: [Relational databases](db-index.md)
