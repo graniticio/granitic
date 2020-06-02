@@ -12,6 +12,8 @@ A database provider is the name Granitic gives to a component in your applicatio
   * Allows your code to implement advanced connection management if needed
   * Allows your code to provide specific alternative to some driver specific behaviour
   
+You need a database provider if you want to connect to a relational (SQL) database from your Granitic application.
+  
 ### Minimal implementation
 
 For the most common use case where your application will connect to a single instance of a database 
@@ -23,7 +25,6 @@ type DatabaseProvider interface {
 }
 ```
  
-
 A minimal implementation (for connecting to a MySQL database), might look like:
 
 ```go
