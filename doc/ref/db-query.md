@@ -54,6 +54,13 @@ for that query. The example above defines two queries: `CREATE_ARTIST` and `ARTI
 All text after a query ID line until the next query ID line (or the end of the file) is consider to be the query template.
 Lines that only contain whitespace will be discarded.
 
+### Fragments
+
+If your query template does not contain any variables, it is considered a fragment. Application
+code using the [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client)
+can recover these text fragments directly.
+
+
 ## Variables
 
 Strings of the form `${Name}` or `${!Name}` are variables that will be substituted with values passed in during 
@@ -62,7 +69,15 @@ for a required variable will result in an error.
 
 Values are provided either as a map or as struct. If the value source is a map, Granitic looks for a key with the exact
 name of the variable (e.g `FirstYearActive` not `firstYearActive`). If the source is a struct, Granitic expects a field to be present that
-shares the exact name of the variable (e.g `FirstYearActive` not `firstYearActive`).
+shares the exact name of the variable (e.g `FirstYearActive` not `firstYearActive`) or for a field to have the
+`dbparam` [struct tag](https://www.digitalocean.com/community/tutorials/how-to-use-struct-tags-in-go) set the 
+exact name of the variable:
+
+```go
+type ArtistQuery struct {
+  StartYear `dbparam:"FirstYearActive"`  
+}
+```
 
 ### Supported types for variable substitution
 
