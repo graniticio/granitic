@@ -68,3 +68,9 @@ Granitic's strict no-dependencies rule extends to tests. You can only use the te
 Go or in Granitic's `test` package.
 
 If your tests require data files, they should be included in a folder named `testdata` in the package you are testing.
+
+## Proposal template
+
+The file [PROPOSAL_TEMPLATE]() contains a Markdown template that can be copy-and-pasted into new [issue]([https://github.com/graniticio/granitic/issues/new) 
+if you are proposing an enhancement to Granitic. Remember to label the newly created issue as `enhancement` but do not set
+`Assignees`, `Project` or `Milestone`
