@@ -15,8 +15,8 @@ import (
 const (
 	graniticHomeEnvVar = "GRANITIC_HOME"
 	goPathEnvVar       = "GOPATH"
-	reqRegex           = ".*github.com/graniticio/granitic/(v[\\d]*)[\\s]*(\\S*)"
-	replaceRegex       = ".*github.com/graniticio/granitic/v[\\d]*[\\s]*=>[\\s]*(\\S*)"
+	reqRegex           = ".*github\\.com/graniticio/granitic/(v[\\d]*)[\\s]*(\\S*)"
+	replaceRegex       = ".*github\\.com/graniticio/granitic/v[\\d]*[\\s]*=>[\\s]*(\\S*)"
 )
 
 // LocateFacilityConfig determines where on your filesystem you have checked out Granitic. This is used when code needs
