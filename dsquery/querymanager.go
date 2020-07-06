@@ -475,9 +475,7 @@ func (qt *queryTemplate) closeFragmentToken() {
 func (qt *queryTemplate) AddIndexedVar(index int) {
 
 	qt.closeFragmentToken()
-	t := qt.currentToken
-
-	t = newQueryTemplateToken(varIndexToken)
+	t := newQueryTemplateToken(varIndexToken)
 	t.Index = index
 
 	qt.Tokens = append(qt.Tokens, t)
@@ -487,9 +485,8 @@ func (qt *queryTemplate) AddIndexedVar(index int) {
 func (qt *queryTemplate) AddLabelledVar(label string) {
 
 	qt.closeFragmentToken()
-	t := qt.currentToken
 
-	t = newQueryTemplateToken(varNameToken)
+	t := newQueryTemplateToken(varNameToken)
 	t.Content = label
 
 	qt.Tokens = append(qt.Tokens, t)
