@@ -24,7 +24,7 @@ grnc-bind will need to be re-run whenever a component definition file is modifie
 
 Usage of grnc-bind:
 
-	grnc-bind [-c component-files] [-m merged-file-out] [-o generated-file] [-l log-level]
+	grnc-bind [-c component-files] [-m merged-file-out] [-o generated-file] [-l log-level] -x
 
 	-c string
 		A comma separated list of component definition files or directories containing component definition files (default "resource/components")
@@ -34,6 +34,9 @@ Usage of grnc-bind:
 		Path to the Go source file that will be generated (default "bindings/bindings.go")
 	-l string
 		The level at which the tool will output messages: TRACE, DEBUG, INFO, ERROR, FATAL (default ERROR)
+    -x
+       Find Granitic facilities included in modules explicitly defined in your project's go.file
+
 
 */
 package main

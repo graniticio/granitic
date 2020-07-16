@@ -33,6 +33,11 @@ func FilePath(file string) string {
 	return filepath.Join("testdata", file)
 }
 
+// TestDataJoin wraps filepath.Join making the testdata folder the first element of the path
+func TestDataJoin(e ...string) string {
+	return filepath.Join("testdata", filepath.Join(e...))
+}
+
 // ExpectString stops a test and logs an error if the string to be checked does not have the expected value.
 func ExpectString(t *testing.T, check, expected string) bool {
 	if expected != check {

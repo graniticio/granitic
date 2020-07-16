@@ -56,6 +56,10 @@ const (
 	logLevelDefault string = "WARN"
 	logLevelHelp    string = "The level at which messages will be logged to the console (TRACE, DEBUG, WARN, INFO, ERROR, FATAL)"
 
+	findExternalFlag    string = "x"
+	findExternalDefault bool   = false
+	findExternalHelp    string = "Find Granitic facilities defined in dependencies explicitly referenced in your go.mod file."
+
 	newline = "\n"
 
 	refPrefix        = "ref:"
@@ -82,6 +86,7 @@ type Settings struct {
 	MergedDebugFile *string
 	LogLevelLabel   *string
 	LogLevel        logging.LogLevel
+	FindExternal    *bool
 }
 
 // SettingsFromArgs uses CLI parameters to populate a Settings object
@@ -93,6 +98,7 @@ func SettingsFromArgs() (Settings, error) {
 	s.BindingsFile = flag.String(bindingsFileFlag, bindingsFileDefault, bindingsFileHelp)
 	s.MergedDebugFile = flag.String(mergeLocationFlag, mergeLocationDefault, mergeLocationHelp)
 	s.LogLevelLabel = flag.String(logLevelFlag, logLevelDefault, logLevelHelp)
+	s.FindExternal = flag.Bool(findExternalFlag, findExternalDefault, findExternalHelp)
 
 	flag.Parse()
 
