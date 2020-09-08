@@ -5,9 +5,10 @@ package logging
 
 import (
 	"context"
-	"github.com/graniticio/granitic/v2/instance"
 	"strings"
 	"testing"
+
+	"github.com/graniticio/granitic/v2/instance"
 )
 
 func TestUnsupportedContent(t *testing.T) {
@@ -141,7 +142,7 @@ func TestMissingContextFilter(t *testing.T) {
 	jf.Config = &cfg
 	jf.MapBuilder = mb
 
-	if jf.StartComponent() == nil {
+	if jf.AllowAccess() == nil {
 		t.Fatalf("Failed to detect missing context filter")
 	}
 

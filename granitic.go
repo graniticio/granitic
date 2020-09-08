@@ -69,22 +69,23 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
+	"os"
+	"os/signal"
+	"runtime"
+	"syscall"
+	"time"
+
 	"github.com/graniticio/granitic/v2/config"
 	"github.com/graniticio/granitic/v2/facility"
 	"github.com/graniticio/granitic/v2/instance"
 	"github.com/graniticio/granitic/v2/ioc"
 	"github.com/graniticio/granitic/v2/logging"
 	"github.com/graniticio/granitic/v2/uuid"
-	"os"
-	"os/signal"
-	"runtime"
-	"syscall"
-	"time"
 )
 
 const (
 	//Version is the semantic version number for this version of Granitic
-	Version                            = "2.2.1"
+	Version                            = "2.2.2"
 	initiatorComponentName      string = instance.FrameworkPrefix + "Init"
 	systemPath                         = "System"
 	configAccessorComponentName string = instance.FrameworkPrefix + "Accessor"
