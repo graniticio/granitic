@@ -172,7 +172,7 @@ func TestContextVal(t *testing.T) {
 
 	jf.SetContextFilter(cf)
 
-	if jf.StartComponent() != nil {
+	if jf.AllowAccess() != nil {
 		t.Fatalf("Failed to detect supplied context filter")
 	}
 
@@ -324,7 +324,7 @@ func TestMessageFromStackTrace(t *testing.T) {
 
 	jf.SetContextFilter(cf)
 
-	if jf.StartComponent() != nil {
+	if jf.AllowAccess() != nil {
 		t.Fatalf("Failed to detect supplied context filter")
 	}
 
@@ -370,7 +370,7 @@ func TestStackTraceNoMessage(t *testing.T) {
 
 	jf.SetContextFilter(cf)
 
-	if jf.StartComponent() != nil {
+	if jf.AllowAccess() != nil {
 		t.Fatalf("Failed to detect supplied context filter")
 	}
 
