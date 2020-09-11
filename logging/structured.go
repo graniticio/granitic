@@ -7,10 +7,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/types"
 	"strings"
 	"time"
+
+	"github.com/graniticio/granitic/v2/instance"
+	"github.com/graniticio/granitic/v2/types"
 )
 
 // A JSONLogFormatter is a component able to take a message to be written to a log file and format it as JSON document
@@ -30,8 +31,8 @@ func (jlf *JSONLogFormatter) Format(ctx context.Context, levelLabel, loggerName,
 	return cfg.Prefix + string(entry) + cfg.Suffix
 }
 
-// StartComponent checks that a context filter has been injected (if the field configuration needs on)
-func (jlf *JSONLogFormatter) StartComponent() error {
+// AllowAccess checks that a context filter has been injected (if the field configuration needs on)
+func (jlf *JSONLogFormatter) AllowAccess() error {
 
 	mb := jlf.MapBuilder
 
