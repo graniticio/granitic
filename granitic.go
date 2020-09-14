@@ -85,7 +85,7 @@ import (
 
 const (
 	//Version is the semantic version number for this version of Granitic
-	Version                            = "2.2.2"
+	Version                            = "2.3.0"
 	initiatorComponentName      string = instance.FrameworkPrefix + "Init"
 	systemPath                         = "System"
 	configAccessorComponentName string = instance.FrameworkPrefix + "Accessor"
