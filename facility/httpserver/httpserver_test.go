@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/v2/httpendpoint"
 	"github.com/graniticio/granitic/v2/instance"
+	"github.com/graniticio/granitic/v2/instrument"
 	"github.com/graniticio/granitic/v2/ioc"
 	"github.com/graniticio/granitic/v2/logging"
 	"github.com/graniticio/granitic/v2/test"
@@ -147,6 +148,102 @@ func TestMatchedRequest(t *testing.T) {
 
 	if !mp.called {
 		t.Errorf("Expected provider to have been called")
+	}
+
+}
+
+func TestIDContextExtraction(t *testing.T) {
+
+	mp := newMockProvider("GET", ".*")
+	p := []httpendpoint.Provider{mp}
+
+	icb := new(mockIDContextBuilder)
+	icb.id = "ID"
+
+	s := buildDefaultConfigServer(t, p)
+	s.IDContextBuilder = icb
+
+	defer s.Stop()
+
+	s.AbnormalStatusWriter = &mockAsw{code: 404}
+
+	if err := s.StartComponent(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if err := s.AllowAccess(); err != nil {
+		t.Errorf("Failed to allow access %s", err.Error())
+	}
+
+	uri := fmt.Sprintf("http://localhost:%d/match", s.Port)
+
+	_, err := http.Get(uri)
+
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if !icb.called {
+		t.Errorf("Expected context builder to have been called")
+	}
+
+	icb.fail = true
+
+	uri = fmt.Sprintf("http://localhost:%d/match", s.Port)
+
+	_, err = http.Get(uri)
+
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+}
+
+func TestInstrumentationHooks(t *testing.T) {
+
+	mp := newMockProvider("GET", ".*")
+	p := []httpendpoint.Provider{mp}
+
+	icb := new(mockIDContextBuilder)
+	icb.id = "ID"
+
+	rim := new(mockRequestInstrumentationManager)
+
+	s := buildDefaultConfigServer(t, p)
+	s.IDContextBuilder = icb
+	s.InstrumentationManager = rim
+
+	defer s.Stop()
+
+	s.AbnormalStatusWriter = &mockAsw{code: 404}
+
+	if err := s.StartComponent(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if err := s.AllowAccess(); err != nil {
+		t.Errorf("Failed to allow access %s", err.Error())
+	}
+
+	uri := fmt.Sprintf("http://localhost:%d/match", s.Port)
+
+	_, err := http.Get(uri)
+
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	inst := rim.i
+
+	if !inst.started {
+		t.Errorf("Expected instrumentation event to have been started")
+	}
+
+	if !inst.ended {
+		t.Errorf("Expected instrumentation event to have been ended")
+	}
+
+	if !inst.Called(instrument.RequestID) {
+		t.Errorf("Expected request ID to have been passed")
 	}
 
 }
@@ -318,4 +415,81 @@ func (mp *mockProvider) SupportsVersion(version httpendpoint.RequiredVersion) bo
 
 func (mp *mockProvider) AutoWireable() bool {
 	return true
+}
+
+type mockIDContextBuilder struct {
+	fail   bool
+	called bool
+	id     string
+}
+
+type mockIDKeyType string
+
+var mockKey mockIDKeyType = "mockkey"
+
+func (cb *mockIDContextBuilder) WithIdentity(ctx context.Context, req *http.Request) (context.Context, error) {
+
+	if cb.fail {
+		return ctx, fmt.Errorf("Forced identity error")
+	}
+
+	nctx := context.WithValue(ctx, mockKey, cb.id)
+	cb.called = true
+
+	return nctx, nil
+
+}
+
+func (cb *mockIDContextBuilder) ID(ctx context.Context) string {
+	i := ctx.Value(mockKey)
+
+	if i == nil {
+		return ""
+	} else {
+		return i.(string)
+	}
+}
+
+type mockRequestInstrumentationManager struct {
+	i *mockRequestInstrumentor
+}
+
+func (nm *mockRequestInstrumentationManager) Begin(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, instrument.Instrumentor, func()) {
+
+	ri := new(mockRequestInstrumentor)
+	ri.amendCalls = make(map[instrument.Additional]bool)
+	nm.i = ri
+	nc := instrument.AddInstrumentorToContext(ctx, ri)
+
+	return nc, ri, ri.StartEvent("mock")
+}
+
+// A default implementation of instrument.Instrumentor that does nothing
+type mockRequestInstrumentor struct {
+	amendCalls map[instrument.Additional]bool
+	started    bool
+	ended      bool
+}
+
+func (ni *mockRequestInstrumentor) StartEvent(id string, metadata ...interface{}) instrument.EndEvent {
+
+	ni.started = true
+
+	return func() { ni.ended = true }
+}
+
+func (ni *mockRequestInstrumentor) Fork(ctx context.Context) (context.Context, instrument.Instrumentor) {
+	return ctx, ni
+}
+
+func (ni *mockRequestInstrumentor) Integrate(instrumentor instrument.Instrumentor) {
+	return
+}
+
+func (ni *mockRequestInstrumentor) Amend(additional instrument.Additional, value interface{}) {
+	ni.amendCalls[additional] = true
+}
+
+func (ni *mockRequestInstrumentor) Called(additional instrument.Additional) bool {
+	return ni.amendCalls[additional]
 }
