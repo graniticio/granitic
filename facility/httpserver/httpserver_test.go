@@ -56,9 +56,83 @@ func TestInvalidStateDetection(t *testing.T) {
 
 }
 
+func TestManualProviderInjection(t *testing.T) {
+	p := newMockProvider("GET", ".*")
+
+	s := buildDefaultConfigServer(t, []httpendpoint.Provider{})
+	s.AutoFindHandlers = false
+
+	m := map[string]httpendpoint.Provider{"GET": p}
+
+	s.SetProvidersManually(m)
+	s.AbnormalStatusWriter = new(mockAsw)
+
+	if err := s.StartComponent(); err != nil {
+		t.Fatalf(err.Error())
+	}
+}
+
+func TestServerFailsWithUnparseableProviderRegex(t *testing.T) {
+	p := []httpendpoint.Provider{
+		newMockProvider("GET", "\\")}
+
+	s := buildDefaultConfigServer(t, p)
+
+	s.AbnormalStatusWriter = new(mockAsw)
+
+	if err := s.StartComponent(); err == nil {
+		t.Fatalf("Expected failure with illegal regex")
+	}
+}
+
+func TestUnrecognised404(t *testing.T) {
+
+	p := []httpendpoint.Provider{}
+
+	s := buildDefaultConfigServer(t, p)
+
+	defer s.Stop()
+
+	if err := s.Suspend(); err != nil {
+		t.Errorf("Failed to suspend %s", err.Error())
+	}
+
+	if err := s.Resume(); err != nil {
+		t.Errorf("Failed to resume %s", err.Error())
+	}
+
+	s.AbnormalStatusWriter = &mockAsw{code: 404}
+
+	if err := s.StartComponent(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if err := s.AllowAccess(); err != nil {
+		t.Errorf("Failed to allow access %s", err.Error())
+	}
+
+	uri := fmt.Sprintf("http://localhost:%d/nomatch", s.Port)
+
+	_, err := http.Get(uri)
+
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	/*if r.StatusCode != 404 {
+		t.Error("Expected 404")
+		fmt.Println(r.StatusCode)
+	}*/
+
+}
+
 func TestServerStartDefaultConfig(t *testing.T) {
 
-	s := buildDefaultConfigServer(t, []httpendpoint.Provider{newMockProvider("GET", "/test")})
+	p := []httpendpoint.Provider{
+		newMockProvider("GET", "/test"),
+		newMockProvider("GET", "/new")}
+
+	s := buildDefaultConfigServer(t, p)
 
 	if err := s.Suspend(); err != nil {
 		t.Errorf("Failed to suspend %s", err.Error())
@@ -169,9 +243,12 @@ func buildDefaultConfigServer(t *testing.T, providers []httpendpoint.Provider, e
 }
 
 type mockAsw struct {
+	code int
 }
 
 func (a *mockAsw) WriteAbnormalStatus(ctx context.Context, state *ws.ProcessState) error {
+
+	state.HTTPResponseWriter.Status = a.code
 	return nil
 }
 
