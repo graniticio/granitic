@@ -82,7 +82,7 @@ when the HTTP request that is being instrumented is closed (more specifically wh
 
 It is highly recommended that any _flushing_ actvitiy (sending the instrumentation data to storage) is handled asynchronously
 when the end function is called, otherwise the underlying HTTP request from your client's web service call will not close
-until the flusing is complete.
+until the flushing is complete.
 
 It is also highly recommended that your  [instrument.RequestInstrumentationManager](https://godoc.org/github.com/graniticio/granitic/instrument#RequestInstrumentationManager)
 implements as many of Granitic's [lifecycle interfaces](ioc-lifecycle.md) as is appropriate, so that connections to 
