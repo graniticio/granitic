@@ -37,6 +37,25 @@ func TestServerStart(t *testing.T) {
 
 }
 
+func TestInvalidStateDetection(t *testing.T) {
+
+	s := new(HTTPServer)
+	s.FrameworkLogger = new(logging.ConsoleErrorLogger)
+
+	s.SetProvidersManually(map[string]httpendpoint.Provider{})
+
+	s.AbnormalStatusWriter = new(mockAsw)
+
+	if err := s.StartComponent(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if err := s.StartComponent(); err == nil {
+		t.Errorf("Allowed start to be called twice")
+	}
+
+}
+
 func TestServerStartDefaultConfig(t *testing.T) {
 
 	s := buildDefaultConfigServer(t, []httpendpoint.Provider{newMockProvider("GET", "/test")})

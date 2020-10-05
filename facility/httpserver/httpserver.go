@@ -141,7 +141,7 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.Provider) er
 func (h *HTTPServer) StartComponent() error {
 
 	if h.state != ioc.StoppedState {
-		return nil
+		return fmt.Errorf("server already started")
 	}
 
 	h.state = ioc.StartingState
