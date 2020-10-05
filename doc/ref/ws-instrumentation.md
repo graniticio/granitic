@@ -69,6 +69,11 @@ Amend(additional Additional, value interface{})
 method as new data is available. Your code must explicitly convert the `interface{}` value passed into `Amend` according to the value of 
 the [instrument.Additional](https://godoc.org/github.com/graniticio/granitic/instrument#Additional) pseudo-enum.
 
+### Manually supplying additional data
+
+If your application needs to supply additional data about an event after it is has been created, you can use
+the `instrument.Amend` helper function. This will find your `Instrumentor` and call its `Amend` function with
+`Custom` as the `additional` parameter.
 
 ## Ending instrumentation
 

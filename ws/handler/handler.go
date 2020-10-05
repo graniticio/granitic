@@ -233,12 +233,16 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 		}
 	}()
 
-	if ri := instrument.InstrumentorFromContext(ctx); ri != nil {
-		//This request is being instrumented, let the instrumentation have access to this handler
-		ri.Amend(instrument.Handler, wh)
-	}
+	ri := instrument.InstrumentorFromContext(ctx)
 
 	wsReq := new(ws.Request)
+
+	if ri != nil {
+		//This request is being instrumented, let the instrumentation have access to this handler and request
+		ri.Amend(instrument.Handler, wh)
+		ri.Amend(instrument.Request, wsReq)
+	}
+
 	wsReq.HTTPMethod = req.Method
 	wsReq.ServingHandler = wh.ComponentName()
 
@@ -264,6 +268,11 @@ func (wh *WsHandler) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPResponse
 	if okay, ctx = wh.identifyAndAuthenticate(ctx, w, req, wsReq); !okay {
 
 		return ctx
+	}
+
+	if ri != nil {
+		// Provided the user's identity to instrumentation
+		ri.Amend(instrument.UserIdentity, wsReq.UserIdentity)
 	}
 
 	//Check caller has permission to use this resource
