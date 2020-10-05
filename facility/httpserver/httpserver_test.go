@@ -93,14 +93,6 @@ func TestUnrecognised404(t *testing.T) {
 
 	defer s.Stop()
 
-	if err := s.Suspend(); err != nil {
-		t.Errorf("Failed to suspend %s", err.Error())
-	}
-
-	if err := s.Resume(); err != nil {
-		t.Errorf("Failed to resume %s", err.Error())
-	}
-
 	s.AbnormalStatusWriter = &mockAsw{code: 404}
 
 	if err := s.StartComponent(); err != nil {
@@ -123,6 +115,39 @@ func TestUnrecognised404(t *testing.T) {
 		t.Error("Expected 404")
 		fmt.Println(r.StatusCode)
 	}*/
+
+}
+
+func TestMatchedRequest(t *testing.T) {
+
+	mp := newMockProvider("GET", ".*")
+	p := []httpendpoint.Provider{mp}
+
+	s := buildDefaultConfigServer(t, p)
+
+	defer s.Stop()
+
+	s.AbnormalStatusWriter = &mockAsw{code: 404}
+
+	if err := s.StartComponent(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if err := s.AllowAccess(); err != nil {
+		t.Errorf("Failed to allow access %s", err.Error())
+	}
+
+	uri := fmt.Sprintf("http://localhost:%d/match", s.Port)
+
+	_, err := http.Get(uri)
+
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if !mp.called {
+		t.Errorf("Expected provider to have been called")
+	}
 
 }
 
@@ -252,7 +277,7 @@ func (a *mockAsw) WriteAbnormalStatus(ctx context.Context, state *ws.ProcessStat
 	return nil
 }
 
-func newMockProvider(method string, pattern string) httpendpoint.Provider {
+func newMockProvider(method string, pattern string) *mockProvider {
 	mp := new(mockProvider)
 
 	mp.methods = []string{method}
