@@ -152,6 +152,54 @@ func TestMatchedRequest(t *testing.T) {
 
 }
 
+func TestVersionMatchedRequest(t *testing.T) {
+
+	mp := newMockProvider("GET", ".*")
+	mp.supported = []string{"1.0.0"}
+	mp.versionEnabled = true
+	p := []httpendpoint.Provider{mp}
+
+	s := buildDefaultConfigServer(t, p)
+
+	defer s.Stop()
+
+	ve := new(mockRequestedVersionExtractor)
+
+	s.AbnormalStatusWriter = &mockAsw{code: 404}
+	s.VersionExtractor = ve
+	s.AllowEarlyInstrumentation = true
+
+	if err := s.StartComponent(); err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if err := s.AllowAccess(); err != nil {
+		t.Errorf("Failed to allow access %s", err.Error())
+	}
+
+	uri := fmt.Sprintf("http://localhost:%d/match", s.Port)
+
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", uri, nil)
+
+	req.Header.Set("version", "1.0.0")
+
+	_, err := client.Do(req)
+
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+
+	if !mp.called {
+		t.Errorf("Expected provider to have been called")
+	}
+
+	if !ve.called {
+		t.Errorf("Expected version extractor to have been called")
+	}
+
+}
+
 func TestIDContextExtraction(t *testing.T) {
 
 	mp := newMockProvider("GET", ".*")
@@ -384,9 +432,11 @@ func newMockProvider(method string, pattern string) *mockProvider {
 }
 
 type mockProvider struct {
-	methods []string
-	pattern string
-	called  bool
+	methods        []string
+	pattern        string
+	called         bool
+	versionEnabled bool
+	supported      []string
 }
 
 func (mp *mockProvider) SupportedHTTPMethods() []string {
@@ -405,12 +455,24 @@ func (mp *mockProvider) ServeHTTP(ctx context.Context, w *httpendpoint.HTTPRespo
 }
 
 func (mp *mockProvider) VersionAware() bool {
-	return false
+	return mp.versionEnabled
 }
 
 func (mp *mockProvider) SupportsVersion(version httpendpoint.RequiredVersion) bool {
 
-	return true
+	v := version["v"]
+
+	if v == "" {
+		return false
+	}
+
+	for _, sv := range mp.supported {
+		if sv == v {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (mp *mockProvider) AutoWireable() bool {
@@ -492,4 +554,22 @@ func (ni *mockRequestInstrumentor) Amend(additional instrument.Additional, value
 
 func (ni *mockRequestInstrumentor) Called(additional instrument.Additional) bool {
 	return ni.amendCalls[additional]
+}
+
+type mockRequestedVersionExtractor struct {
+	called bool
+}
+
+func (ve *mockRequestedVersionExtractor) Extract(r *http.Request) httpendpoint.RequiredVersion {
+
+	ve.called = true
+
+	v := r.Header.Get("version")
+
+	rv := make(httpendpoint.RequiredVersion)
+
+	rv["v"] = v
+
+	return rv
+
 }
