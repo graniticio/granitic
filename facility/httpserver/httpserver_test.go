@@ -200,6 +200,39 @@ func TestVersionMatchedRequest(t *testing.T) {
 
 }
 
+func BenchmarkMinimalRequest(b *testing.B) {
+
+	mp := newMockProvider("GET", ".*")
+	p := []httpendpoint.Provider{mp}
+
+	s := buildDefaultConfigServer(new(testing.T), p)
+	s.AbnormalStatusWriter = &mockAsw{code: 404}
+
+	defer s.Stop()
+
+	if err := s.StartComponent(); err != nil {
+		fmt.Println(err.Error())
+	}
+
+	if err := s.AllowAccess(); err != nil {
+		fmt.Println(err.Error())
+	}
+
+	s.AbnormalStatusWriter = &mockAsw{code: 404}
+
+	uri := fmt.Sprintf("http://localhost:%d/match", s.Port)
+
+	req, _ := http.NewRequest("GET", uri, nil)
+
+	req.Header.Set("version", "1.0.0")
+
+	rw := new(mockResponseWriter)
+
+	for i := 0; i < b.N; i++ {
+		s.handleAll(rw, req)
+	}
+}
+
 func TestIDContextExtraction(t *testing.T) {
 
 	mp := newMockProvider("GET", ".*")
@@ -571,5 +604,20 @@ func (ve *mockRequestedVersionExtractor) Extract(r *http.Request) httpendpoint.R
 	rv["v"] = v
 
 	return rv
+
+}
+
+type mockResponseWriter struct {
+}
+
+func (rw *mockResponseWriter) Header() http.Header {
+	return make(http.Header)
+}
+
+func (rw *mockResponseWriter) Write(b []byte) (int, error) {
+	return len(b), nil
+}
+
+func (rw *mockResponseWriter) WriteHeader(statusCode int) {
 
 }
