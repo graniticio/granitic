@@ -37,12 +37,33 @@ func TestInstrumentorInContext(t *testing.T) {
 
 }
 
+func TestAmendCalled(t *testing.T) {
+
+	ctx := context.Background()
+
+	i := new(testInstrumentor)
+	ctx = AddInstrumentorToContext(ctx, i)
+
+	var d interface{}
+
+	d = 5
+
+	Amend(ctx, d)
+
+	if !i.amendCalled || i.amendFlag != Custom || i.amendData != d {
+		t.Fail()
+	}
+
+}
+
 type testInstrumentor struct {
 	StartCalled     bool
 	endCalled       bool
 	forkCalled      bool
 	integrateCalled bool
 	amendCalled     bool
+	amendData       interface{}
+	amendFlag       Additional
 }
 
 func (ni *testInstrumentor) StartEvent(id string, metadata ...interface{}) EndEvent {
@@ -64,5 +85,10 @@ func (ni *testInstrumentor) Integrate(instrumentor Instrumentor) {
 }
 
 func (ni *testInstrumentor) Amend(additional Additional, value interface{}) {
+
+	ni.amendCalled = true
+	ni.amendFlag = additional
+	ni.amendData = value
+
 	return
 }

@@ -23,7 +23,7 @@ func TestFacilityNaming(t *testing.T) {
 
 }
 
-func TestBuilderWithDefaultConfig(t *testing.T) {
+func TestAccessLoggingWithDefaultConfig(t *testing.T) {
 	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
 
 	ca, err := configAccessor(lm, test.FilePath("accesslog.json"))
@@ -59,7 +59,7 @@ func TestBuilderWithDefaultConfig(t *testing.T) {
 
 }
 
-func TestBuilderWithJSONConfig(t *testing.T) {
+func TestAccessLoggingWithJSONConfig(t *testing.T) {
 	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
 
 	ca, err := configAccessor(lm, test.FilePath("structured.json"))

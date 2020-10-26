@@ -91,6 +91,11 @@ type HTTPServer struct {
 	// A component able to use data in an HTTP request's headers to populate a context
 	IDContextBuilder IdentifiedRequestContextBuilder
 
+	// A series of RegEx patterns used to check if a request should have instrumentation disabled based on its request path
+	NoInstrumentPathPatterns []string
+
+	instrumentIgnoreActive bool
+
 	state  ioc.ComponentState
 	server *http.Server
 }
@@ -100,7 +105,7 @@ func (h *HTTPServer) Container(container *ioc.ComponentContainer) {
 	h.componentContainer = container
 }
 
-func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.Provider) {
+func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.Provider) error {
 
 	for _, method := range endPointProvider.SupportedHTTPMethods() {
 		var compiledRegex *regexp.Regexp
@@ -109,7 +114,7 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.Provider) {
 		pattern := endPointProvider.RegexPattern()
 
 		if compiledRegex, err = regexp.Compile(pattern); err != nil {
-			h.FrameworkLogger.LogErrorf("Unable to compile regular expression from pattern %s: %s", pattern, err.Error())
+			return fmt.Errorf("Unable to compile regular expression from pattern %s: %s", pattern, err.Error())
 		}
 
 		h.FrameworkLogger.LogTracef("Registering %s %s", pattern, method)
@@ -127,6 +132,7 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.Provider) {
 		}
 	}
 
+	return nil
 }
 
 // StartComponent Finds and registers any available components that implement httpendpoint.Provider (normally instances of
@@ -135,7 +141,7 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.Provider) {
 func (h *HTTPServer) StartComponent() error {
 
 	if h.state != ioc.StoppedState {
-		return nil
+		return fmt.Errorf("server already started")
 	}
 
 	h.state = ioc.StartingState
@@ -148,7 +154,10 @@ func (h *HTTPServer) StartComponent() error {
 
 			if provider, found := component.Instance.(httpendpoint.Provider); found && provider.AutoWireable() {
 				h.FrameworkLogger.LogDebugf("Found Provider %s", name)
-				h.registerProvider(provider)
+
+				if err := h.registerProvider(provider); err != nil {
+					return err
+				}
 			}
 		}
 	} else if h.unregisteredProviders != nil {
@@ -264,7 +273,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	defer cancelFunc()
 
 	if h.AllowEarlyInstrumentation {
-		ctx, instrumentor, endInstrumentation = h.InstrumentationManager.Begin(ctx, res, req)
+		ctx, instrumentor, endInstrumentation = h.beginInstrumentation(ctx, res, req)
 		defer endInstrumentation()
 	}
 
@@ -286,7 +295,7 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if instrumentor == nil {
-		ctx, instrumentor, endInstrumentation = h.InstrumentationManager.Begin(ctx, res, req)
+		ctx, instrumentor, endInstrumentation = h.beginInstrumentation(ctx, res, req)
 		defer endInstrumentation()
 	}
 
@@ -350,6 +359,12 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 		finished := time.Now()
 		h.AccessLogWriter.LogRequest(ctx, req, wrw, &received, &finished)
 	}
+
+}
+
+func (h *HTTPServer) beginInstrumentation(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, instrument.Instrumentor, func()) {
+
+	return h.InstrumentationManager.Begin(ctx, res, req)
 
 }
 

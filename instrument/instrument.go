@@ -20,8 +20,13 @@ const (
 	RequestVersion
 	//UserIdentity marks instance of iam.ClientIdentity
 	UserIdentity
-	//Handler is he handler that is processing the request (*ws.Handler)
+	//Handler is the handler that is processing the request (*ws.Handler)
 	Handler
+	//Custom allows application code to pass data to the Instrumentor after an event has been started
+	Custom
+	//Response provides access to a *ws.Request. The reference is supplied as soons as the ws.Request object is created. Implementations need
+	// to be very careful about accessing any fields on this object as they may not be populated.
+	Request
 )
 
 // Instrumentor is implemented by types that can add additional information to a request that is being instrumented in
@@ -99,5 +104,23 @@ func Method(ctx context.Context, metadata ...interface{}) EndEvent {
 	c := strings.Split(frame.Function, "/")
 
 	return Event(ctx, c[len(c)-1], metadata...)
+
+}
+
+// Method is a convenience function that finds an Instrumentor in the supplied context and
+// calls Amend(Custom, data) on that Instrumentor. This allows code to provide data about an event
+// after that event has started
+//
+// This function fails silently if the result of InstrumentorFromContext is nil (e.g there is no Instrumentor in the context)
+
+func Amend(ctx context.Context, data interface{}) {
+
+	var ri Instrumentor
+
+	if ri = InstrumentorFromContext(ctx); ri == nil {
+		return
+	}
+
+	ri.Amend(Custom, data)
 
 }
