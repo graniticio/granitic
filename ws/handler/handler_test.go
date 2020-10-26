@@ -8,6 +8,8 @@ import (
 	"bytes"
 	"context"
 	"github.com/graniticio/granitic/v2/httpendpoint"
+	"github.com/graniticio/granitic/v2/iam"
+	"github.com/graniticio/granitic/v2/instrument"
 	"github.com/graniticio/granitic/v2/test"
 	"github.com/graniticio/granitic/v2/ws"
 	"net/http"
@@ -33,6 +35,34 @@ func TestMinimal(t *testing.T) {
 	h.ServeHTTP(context.Background(), w, req)
 
 	test.ExpectBool(t, l.Called, true)
+
+}
+
+func TestInstrumentation(t *testing.T) {
+
+	l := new(ProcessOnlyLogic)
+
+	h, req := GetHandler(t)
+
+	h.Logic = l
+	err := h.StartComponent()
+
+	test.ExpectNil(t, err)
+
+	uw := NewStringBufferResponseWriter()
+	w := httpendpoint.NewHTTPResponseWriter(uw)
+
+	ti := new(testInstrumentor)
+
+	ctx := instrument.AddInstrumentorToContext(context.Background(), ti)
+
+	h.ServeHTTP(ctx, w, req)
+
+	test.ExpectBool(t, l.Called, true)
+
+	test.ExpectBool(t, ti.identitySeen, true)
+	test.ExpectBool(t, ti.requestSeen, true)
+	test.ExpectBool(t, ti.handlerSeen, true)
 
 }
 
@@ -285,4 +315,47 @@ type mockLogicInvalid struct {
 
 func (ml *mockLogicInvalid) ProcessPayload(ctx context.Context, request *ws.Request, response *ws.Response, target mockTarget) {
 
+}
+
+type testInstrumentor struct {
+	requestSeen  bool
+	identitySeen bool
+	handlerSeen  bool
+}
+
+func (ni *testInstrumentor) StartEvent(id string, metadata ...interface{}) instrument.EndEvent {
+	return ni.endEvent
+}
+
+func (ni *testInstrumentor) endEvent() {
+
+	return
+
+}
+
+func (ni *testInstrumentor) Fork(ctx context.Context) (context.Context, instrument.Instrumentor) {
+	return ctx, ni
+}
+
+func (ni *testInstrumentor) Integrate(instrumentor instrument.Instrumentor) {
+	return
+}
+
+func (ni *testInstrumentor) Amend(additional instrument.Additional, value interface{}) {
+
+	if additional == instrument.Handler {
+		if _, okay := value.(*WsHandler); okay {
+			ni.handlerSeen = true
+		}
+	} else if additional == instrument.Request {
+		if _, okay := value.(*ws.Request); okay {
+			ni.requestSeen = true
+		}
+	} else if additional == instrument.UserIdentity {
+		if _, okay := value.(iam.ClientIdentity); okay {
+			ni.identitySeen = true
+		}
+	}
+
+	return
 }
