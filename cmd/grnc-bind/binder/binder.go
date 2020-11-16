@@ -56,6 +56,9 @@ const (
 	logLevelDefault string = "WARN"
 	logLevelHelp    string = "The level at which messages will be logged to the console (TRACE, DEBUG, WARN, INFO, ERROR, FATAL)"
 
+	externalFacilitiesFlag string = "f"
+	externalFacilitiesHelp        = "Enable the discovery of external facilities in Go modules referenced in this application's go.mod file"
+
 	newline = "\n"
 
 	refPrefix        = "ref:"
@@ -77,11 +80,12 @@ type DefinitionLoader interface {
 
 // Settings contains output/input file locations and other variables for controlling the behaviour of this tool
 type Settings struct {
-	CompDefLocation *string
-	BindingsFile    *string
-	MergedDebugFile *string
-	LogLevelLabel   *string
-	LogLevel        logging.LogLevel
+	CompDefLocation    *string
+	BindingsFile       *string
+	MergedDebugFile    *string
+	LogLevelLabel      *string
+	LogLevel           logging.LogLevel
+	ExternalFacilities *bool
 }
 
 // SettingsFromArgs uses CLI parameters to populate a Settings object
@@ -93,6 +97,7 @@ func SettingsFromArgs() (Settings, error) {
 	s.BindingsFile = flag.String(bindingsFileFlag, bindingsFileDefault, bindingsFileHelp)
 	s.MergedDebugFile = flag.String(mergeLocationFlag, mergeLocationDefault, mergeLocationHelp)
 	s.LogLevelLabel = flag.String(logLevelFlag, logLevelDefault, logLevelHelp)
+	s.ExternalFacilities = flag.Bool(externalFacilitiesFlag, false, externalFacilitiesHelp)
 
 	flag.Parse()
 
@@ -149,6 +154,10 @@ func (b *Binder) Bind(s Settings) {
 		}
 
 		return
+	}
+
+	if *s.ExternalFacilities {
+		b.findExternalFacilities()
 	}
 
 	b.compileRegexes()
@@ -223,6 +232,16 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 	}
 
 	return ""
+}
+
+func (b *Binder) findExternalFacilities() {
+
+	l := b.Log
+
+	l.LogDebugf("Finding external facilities in go.mod dependencies")
+
+	FindExternalFacilities(b.Log)
+
 }
 
 func (b *Binder) writeBindings(w *bufio.Writer, ca *config.Accessor) {

@@ -10,6 +10,29 @@ import (
 	"path/filepath"
 )
 
+// FindExternalFacilities parses the first level of modules imported by this application's go.mod file and
+// tries to find properly defined Granitic external facilities
+func FindExternalFacilities(l logging.Logger) (*ExternalFacilities, error) {
+
+	cwd, _ := os.Getwd()
+
+	if m, err := ParseModFile(cwd, l); err != nil {
+		return nil, err
+	} else {
+
+		return modulesToFacilities(m, l)
+	}
+}
+
+// ExternalFacilities holds information about the code and config defined in Go module
+// dependencies that should be compiled into this application.
+type ExternalFacilities struct {
+}
+
+func modulesToFacilities(file *ModFile, l logging.Logger) (*ExternalFacilities, error) {
+	return nil, nil
+}
+
 //ParseModFile tries to parse the mod file in the supplied directory and returns an error if parsing failed
 func ParseModFile(d string, l logging.Logger) (*ModFile, error) {
 
@@ -41,10 +64,8 @@ func ParseModFile(d string, l logging.Logger) (*ModFile, error) {
 	m := make(map[string]interface{})
 
 	if err := json.NewDecoder(stdout).Decode(&m); err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-
-	fmt.Println(m)
 
 	mf := new(ModFile)
 
@@ -54,6 +75,9 @@ func ParseModFile(d string, l logging.Logger) (*ModFile, error) {
 
 // ModFile represents a mod file on disk
 type ModFile struct {
+	Name         string
+	Version      string
+	ExpectedPath string
 }
 
 // CheckModFileExists makes sure that a go.mod file exists in the supplied directory
