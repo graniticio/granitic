@@ -29,12 +29,12 @@ func FindExternalFacilities(l logging.Logger) (*ExternalFacilities, error) {
 type ExternalFacilities struct {
 }
 
-func modulesToFacilities(file *ModFile, l logging.Logger) (*ExternalFacilities, error) {
+func modulesToFacilities(modules []Module, l logging.Logger) (*ExternalFacilities, error) {
 	return nil, nil
 }
 
 //ParseModFile tries to parse the mod file in the supplied directory and returns an error if parsing failed
-func ParseModFile(d string, l logging.Logger) (*ModFile, error) {
+func ParseModFile(d string, l logging.Logger) ([]Module, error) {
 
 	cwd, _ := os.Getwd()
 	defer os.Chdir(cwd)
@@ -67,14 +67,25 @@ func ParseModFile(d string, l logging.Logger) (*ModFile, error) {
 		return nil, err
 	}
 
-	mf := new(ModFile)
+	modules := make([]Module, 0)
 
-	return mf, nil
+	r := m["Require"]
+
+	if req, okay := r.([]interface{}); okay {
+
+		fmt.Printf("%T\n", req)
+
+	} else {
+		return nil, fmt.Errorf("Unexpected JSON format for required modules in go mod edit output")
+
+	}
+
+	return modules, nil
 
 }
 
-// ModFile represents a mod file on disk
-type ModFile struct {
+// Module represents a mod file on disk
+type Module struct {
 	Name         string
 	Version      string
 	ExpectedPath string

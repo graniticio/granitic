@@ -157,7 +157,9 @@ func (b *Binder) Bind(s Settings) {
 	}
 
 	if *s.ExternalFacilities {
-		b.findExternalFacilities()
+		if err := b.findExternalFacilities(); err != nil {
+			b.exitError(err.Error())
+		}
 	}
 
 	b.compileRegexes()
@@ -234,13 +236,15 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 	return ""
 }
 
-func (b *Binder) findExternalFacilities() {
+func (b *Binder) findExternalFacilities() error {
 
 	l := b.Log
 
 	l.LogDebugf("Finding external facilities in go.mod dependencies")
 
-	FindExternalFacilities(b.Log)
+	_, err := FindExternalFacilities(b.Log)
+
+	return err
 
 }
 
