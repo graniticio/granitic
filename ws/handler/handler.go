@@ -154,6 +154,9 @@ type WsHandler struct {
 	// If true, discard any path parameters found by match the request URI against the PathMatchPattern regex.
 	DisablePathParsing bool
 
+	// If true, signals to request instrumentation components that endpoint associated with this handler should not be instrumented
+	DisableInstrumentation bool
+
 	// An object that provides access to application defined error messages for use during validation.
 	ErrorFinder ws.ServiceErrorFinder
 
@@ -536,6 +539,11 @@ func (wh *WsHandler) SupportsVersion(version httpendpoint.RequiredVersion) bool 
 // that are running in the application.
 func (wh *WsHandler) AutoWireable() bool {
 	return !wh.PreventAutoWiring
+}
+
+// InstrumentationDisabled returns true if this handler's request should not be instrumented
+func (wh *WsHandler) InstrumentationDisabled() bool {
+	return wh.DisableInstrumentation
 }
 
 func (wh *WsHandler) handleFrameworkErrors(ctx context.Context, w *httpendpoint.HTTPResponseWriter, wsReq *ws.Request) {

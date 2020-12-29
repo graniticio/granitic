@@ -41,7 +41,10 @@ type registeredProvider struct {
 type HTTPServer struct {
 	registeredProvidersByMethod map[string][]*registeredProvider
 	unregisteredProviders       map[string]httpendpoint.Provider
+	noInstrumentPaths           []*regexp.Regexp
 	componentContainer          *ioc.ComponentContainer
+	allInstrumented             bool
+	noopInstrumentManager       *noopRequestInstrumentationManager
 
 	// Logger used by Granitic framework components. Automatically injected.
 	FrameworkLogger logging.Logger
@@ -91,9 +94,6 @@ type HTTPServer struct {
 	// A component able to use data in an HTTP request's headers to populate a context
 	IDContextBuilder IdentifiedRequestContextBuilder
 
-	// A series of RegEx patterns used to check if a request should have instrumentation disabled based on its request path
-	NoInstrumentPathPatterns []string
-
 	instrumentIgnoreActive bool
 
 	state  ioc.ComponentState
@@ -115,6 +115,12 @@ func (h *HTTPServer) registerProvider(endPointProvider httpendpoint.Provider) er
 
 		if compiledRegex, err = regexp.Compile(pattern); err != nil {
 			return fmt.Errorf("Unable to compile regular expression from pattern %s: %s", pattern, err.Error())
+		}
+
+		if ih, okay := endPointProvider.(httpendpoint.NoInstrument); okay && ih.InstrumentationDisabled() {
+			h.noInstrumentPaths = append(h.noInstrumentPaths, compiledRegex)
+
+			h.FrameworkLogger.LogTracef("Requests matching %s will not be instrumented", pattern)
 		}
 
 		h.FrameworkLogger.LogTracef("Registering %s %s", pattern, method)
@@ -146,6 +152,7 @@ func (h *HTTPServer) StartComponent() error {
 
 	h.state = ioc.StartingState
 	h.registeredProvidersByMethod = make(map[string][]*registeredProvider)
+	h.noInstrumentPaths = make([]*regexp.Regexp, 0)
 
 	if h.AutoFindHandlers {
 		for _, component := range h.componentContainer.AllComponents() {
@@ -170,6 +177,13 @@ func (h *HTTPServer) StartComponent() error {
 
 	} else {
 		return errors.New("auto finding of handlers is disabled, but handlers have not been set manually")
+	}
+
+	// Optimisations depending on whether all requests are to be instrumented or not
+	h.allInstrumented = len(h.noInstrumentPaths) == 0
+
+	if !h.allInstrumented {
+		h.noopInstrumentManager = new(noopRequestInstrumentationManager)
 	}
 
 	if h.AbnormalStatusWriter == nil {
@@ -363,6 +377,20 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 }
 
 func (h *HTTPServer) beginInstrumentation(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, instrument.Instrumentor, func()) {
+
+	if !h.allInstrumented {
+
+		//Some requests for this service have been excluded from instrumentation
+		rPath := req.URL.Path
+
+		for _, ip := range h.noInstrumentPaths {
+
+			if ip.MatchString(rPath) {
+				return h.noopInstrumentManager.Begin(ctx, res, req)
+			}
+
+		}
+	}
 
 	return h.InstrumentationManager.Begin(ctx, res, req)
 
