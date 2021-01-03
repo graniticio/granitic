@@ -35,6 +35,17 @@ func TestMinimal(t *testing.T) {
 	h.ServeHTTP(context.Background(), w, req)
 
 	test.ExpectBool(t, l.Called, true)
+}
+
+func TestNoInstrumentImplementation(t *testing.T) {
+
+	var ni httpendpoint.NoInstrument
+
+	ni = new(WsHandler)
+
+	if ni.InstrumentationDisabled() {
+		t.Errorf("Expected default behaviour to be false")
+	}
 
 }
 

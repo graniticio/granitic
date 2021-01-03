@@ -89,6 +89,15 @@ implements as many of Granitic's [lifecycle interfaces](ioc-lifecycle.md) as is 
 your instrumentation service are created during application startup and pending data is not lost when your application
 shuts down.
 
+## Disabling instrumentation
+
+Instrumentation can be supressed on a per-handler basis. If you are using [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+you can set the field `DisableInstrumentation` to `true` in configuration for those handlers that should not be
+instrumented.
+
+If you are directly implementing [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/httpendpoint#Provider),
+your component should also implement [httpendpoint.NoInstrument](https://godoc.org/github.com/graniticio/granitic/httpendpoint#NoInstrument)
+and have the `InstrumentationDisabled()` method return `true`.
   
 ---
 **Next**: [Request identification](ws-identity.md)

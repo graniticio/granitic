@@ -200,6 +200,83 @@ func TestVersionMatchedRequest(t *testing.T) {
 
 }
 
+func TestInstrumentationSupression(t *testing.T) {
+
+	ip := newMockProvider("GET", "^/inst")
+	nip := newMockProvider("GET", "^/noinst")
+	nip.noInstrument = true
+
+	p := []httpendpoint.Provider{ip, nip}
+
+	s := buildDefaultConfigServer(new(testing.T), p)
+	s.AbnormalStatusWriter = &mockAsw{code: 404}
+
+	rim := new(mockRequestInstrumentationManager)
+	s.InstrumentationManager = rim
+
+	defer s.Stop()
+
+	if err := s.StartComponent(); err != nil {
+		fmt.Println(err.Error())
+	}
+
+	if err := s.AllowAccess(); err != nil {
+		fmt.Println(err.Error())
+	}
+
+	s.AbnormalStatusWriter = &mockAsw{code: 404}
+
+	if rim.beginCount != 0 {
+		t.Errorf("Did not expect instrumentation to have been called")
+		t.FailNow()
+	}
+
+	uri := fmt.Sprintf("http://localhost:%d/inst", s.Port)
+
+	req, _ := http.NewRequest("GET", uri, nil)
+
+	req.Header.Set("version", "1.0.0")
+
+	rw := new(mockResponseWriter)
+
+	s.handleAll(rw, req)
+
+	if rim.beginCount != 1 {
+		t.Errorf("Expected one call to instrumentation")
+		t.FailNow()
+	}
+
+	rw = new(mockResponseWriter)
+
+	s.handleAll(rw, req)
+
+	if rim.beginCount != 2 {
+		t.Errorf("Expected two calls to instrumentation")
+		t.FailNow()
+	}
+
+	uri = fmt.Sprintf("http://localhost:%d/noinst", s.Port)
+
+	req, _ = http.NewRequest("GET", uri, nil)
+
+	req.Header.Set("version", "1.0.0")
+
+	rw = new(mockResponseWriter)
+
+	s.handleAll(rw, req)
+
+	if rim.beginCount != 2 {
+		t.Errorf("Expected two calls to instrumentation (even after third ws call)")
+		t.FailNow()
+	}
+
+	if !nip.called {
+		t.Errorf("No instrument provider not called")
+		t.FailNow()
+	}
+
+}
+
 func BenchmarkMinimalRequest(b *testing.B) {
 
 	mp := newMockProvider("GET", ".*")
@@ -470,6 +547,11 @@ type mockProvider struct {
 	called         bool
 	versionEnabled bool
 	supported      []string
+	noInstrument   bool
+}
+
+func (mp *mockProvider) InstrumentationDisabled() bool {
+	return mp.noInstrument
 }
 
 func (mp *mockProvider) SupportedHTTPMethods() []string {
@@ -546,7 +628,8 @@ func (cb *mockIDContextBuilder) ID(ctx context.Context) string {
 }
 
 type mockRequestInstrumentationManager struct {
-	i *mockRequestInstrumentor
+	i          *mockRequestInstrumentor
+	beginCount int
 }
 
 func (nm *mockRequestInstrumentationManager) Begin(ctx context.Context, res http.ResponseWriter, req *http.Request) (context.Context, instrument.Instrumentor, func()) {
@@ -555,6 +638,8 @@ func (nm *mockRequestInstrumentationManager) Begin(ctx context.Context, res http
 	ri.amendCalls = make(map[instrument.Additional]bool)
 	nm.i = ri
 	nc := instrument.AddInstrumentorToContext(ctx, ri)
+
+	nm.beginCount++
 
 	return nc, ri, ri.StartEvent("mock")
 }

@@ -61,3 +61,10 @@ type RequestedVersionExtractor interface {
 	// Extract examines an HTTP request to determine what version of functionality is required.
 	Extract(*http.Request) RequiredVersion
 }
+
+// NoInstrument is implemented by http.Provider implementations that want to suppress any instrumentation of the
+// associated web service request
+type NoInstrument interface {
+	// DisableInstrumentation returns true if instrumentation should be turned off for this request
+	InstrumentationDisabled() bool
+}
