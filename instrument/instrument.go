@@ -1,4 +1,4 @@
-// Copyright 2018-2020 Granitic. All rights reserved.
+// Copyright 2018-2021 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package instrument
@@ -24,9 +24,11 @@ const (
 	Handler
 	//Custom allows application code to pass data to the Instrumentor after an event has been started
 	Custom
-	//Response provides access to a *ws.Request. The reference is supplied as soons as the ws.Request object is created. Implementations need
+	//Request provides access to a *ws.Request. The reference is supplied as soons as the ws.Request object is created. Implementations need
 	// to be very careful about accessing any fields on this object as they may not be populated.
 	Request
+	//ResponseWriter provides a reference to an *httpendpoint.HTTPResponseWriter as the last action before instrumentation is stopped
+	ResponseWriter
 )
 
 // Instrumentor is implemented by types that can add additional information to a request that is being instrumented in

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2021 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -282,16 +282,17 @@ func (h *HTTPServer) writeAbnormal(ctx context.Context, status int, wrw *httpend
 func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 
 	var instrumentor instrument.Instrumentor
-	var endInstrumentation func()
+	var end func()
+	var wrw *httpendpoint.HTTPResponseWriter
 	ctx, cancelFunc := context.WithCancel(req.Context())
 	defer cancelFunc()
 
 	if h.AllowEarlyInstrumentation {
-		ctx, instrumentor, endInstrumentation = h.beginInstrumentation(ctx, res, req)
-		defer endInstrumentation()
+		ctx, instrumentor, end = h.beginInstrumentation(ctx, res, req)
+		defer h.endInstrumentation(instrumentor, end, wrw)
 	}
 
-	wrw := httpendpoint.NewHTTPResponseWriter(res)
+	wrw = httpendpoint.NewHTTPResponseWriter(res)
 
 	if h.state != ioc.RunningState {
 		// The HTTP server is suspended - reject the request
@@ -309,8 +310,8 @@ func (h *HTTPServer) handleAll(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if instrumentor == nil {
-		ctx, instrumentor, endInstrumentation = h.beginInstrumentation(ctx, res, req)
-		defer endInstrumentation()
+		ctx, instrumentor, end = h.beginInstrumentation(ctx, res, req)
+		defer h.endInstrumentation(instrumentor, end, wrw)
 	}
 
 	var requestID string
@@ -393,6 +394,15 @@ func (h *HTTPServer) beginInstrumentation(ctx context.Context, res http.Response
 	}
 
 	return h.InstrumentationManager.Begin(ctx, res, req)
+
+}
+
+func (h *HTTPServer) endInstrumentation(i instrument.Instrumentor, end func(), rw *httpendpoint.HTTPResponseWriter) {
+	defer end()
+
+	if rw != nil {
+		i.Amend(instrument.ResponseWriter, rw)
+	}
 
 }
 
