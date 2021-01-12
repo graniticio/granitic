@@ -29,12 +29,48 @@ func FindExternalFacilities(l logging.Logger) (*ExternalFacilities, error) {
 type ExternalFacilities struct {
 }
 
-func modulesToFacilities(modules []Module, l logging.Logger) (*ExternalFacilities, error) {
+func modulesToFacilities(mf *modFile, l logging.Logger) (*ExternalFacilities, error) {
+
+	cp, err := cachePath(l)
+
+	if err != nil {
+		return nil, err
+	}
+
+	l.LogDebugf("Expecting downloaded packages to be in %s\n", cp)
+
 	return nil, nil
 }
 
+func cachePath(l logging.Logger) (string, error) {
+	gmc := os.Getenv("GOMODCACHE")
+
+	if gmc != "" {
+		l.LogDebugf("GOMODCACHE environment variable set. Using as location for downloaded modules")
+		return filepath.Join(gmc, "cache", "download"), nil
+	}
+
+	gmc = os.Getenv("GOPATH")
+
+	if gmc != "" {
+		l.LogDebugf("GOPATH environment variable set. Using $GOPATH/pkg/mod for downloaded modules")
+
+		return filepath.Join(gmc, "pkg", "mod", "cache", "download"), nil
+	}
+
+	l.LogWarnf("Neither GOPATH nor GOMODCACHE environment variable set. Assuming user home directory contains go artifacts")
+
+	hd, err := os.UserHomeDir()
+
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(hd, "go", "pkg", "mod", "cache", "download"), nil
+}
+
 //ParseModFile tries to parse the mod file in the supplied directory and returns an error if parsing failed
-func ParseModFile(d string, l logging.Logger) ([]Module, error) {
+func ParseModFile(d string, l logging.Logger) (*modFile, error) {
 
 	cwd, _ := os.Getwd()
 	defer os.Chdir(cwd)
@@ -46,7 +82,7 @@ func ParseModFile(d string, l logging.Logger) ([]Module, error) {
 	goExec, err := exec.LookPath("go")
 
 	if err != nil {
-		return nil, fmt.Errorf("could not find go on your path. Make sure it is available in your OS PATH environment variable")
+		return nil, fmt.Errorf("could not find the 'go' executable on your path. Make sure it is available in your OS PATH environment variable")
 	}
 
 	cmd := exec.Command(goExec, "mod", "edit", "--json")
@@ -61,26 +97,13 @@ func ParseModFile(d string, l logging.Logger) ([]Module, error) {
 		log.Fatal(err)
 	}
 
-	m := make(map[string]interface{})
+	m := modFile{}
 
 	if err := json.NewDecoder(stdout).Decode(&m); err != nil {
 		return nil, err
 	}
 
-	modules := make([]Module, 0)
-
-	r := m["Require"]
-
-	if req, okay := r.([]interface{}); okay {
-
-		fmt.Printf("%T\n", req)
-
-	} else {
-		return nil, fmt.Errorf("Unexpected JSON format for required modules in go mod edit output")
-
-	}
-
-	return modules, nil
+	return &m, nil
 
 }
 
@@ -103,4 +126,13 @@ func CheckModFileExists(d string) bool {
 	}
 
 	return true
+}
+
+type modFile struct {
+	Require []requirement
+}
+
+type requirement struct {
+	Path    string
+	Version string
 }

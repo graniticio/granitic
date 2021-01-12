@@ -3,6 +3,7 @@ package binder
 import (
 	"github.com/graniticio/granitic/v2/logging"
 	"github.com/graniticio/granitic/v2/test"
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -39,5 +40,24 @@ func TestValidModFileExistsChecking(t *testing.T) {
 	if CheckModFileExists(emptyPath) {
 		t.Errorf("Did not expect a mod file at: %s", modPath)
 	}
+
+}
+
+func TestPathFinding(t *testing.T) {
+
+	const GP = "GOPATH"
+	const GMC = "GOMODCACHE"
+
+	gpi := os.Getenv(GP)
+	gmci := os.Getenv(GMC)
+
+	l := new(logging.NullLogger)
+
+	os.Setenv(GP, "goPathRoot")
+
+	cachePath(l)
+
+	os.Setenv(GP, gpi)
+	os.Setenv(GMC, gmci)
 
 }
