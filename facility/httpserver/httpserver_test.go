@@ -404,6 +404,10 @@ func TestInstrumentationHooks(t *testing.T) {
 		t.Errorf("Expected request ID to have been passed")
 	}
 
+	if !inst.Called(instrument.ResponseWriter) {
+		t.Errorf("Expected ResponseWriter to have been passed")
+	}
+
 }
 
 func TestServerStartDefaultConfig(t *testing.T) {
