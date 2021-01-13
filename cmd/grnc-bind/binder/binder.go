@@ -59,6 +59,10 @@ const (
 	externalFacilitiesFlag string = "f"
 	externalFacilitiesHelp        = "Enable the discovery of external facilities in Go modules referenced in this application's go.mod file"
 
+	ignoreModuleFlag    string = "i"
+	ignoreModuleDefault        = ""
+	ignoreModuleHelp    string = "A comma separated list of module paths (e.g. github.com/someaccount/somemod/someversion) that should be ignored when looking for external facilities"
+
 	newline = "\n"
 
 	refPrefix        = "ref:"
@@ -86,6 +90,7 @@ type Settings struct {
 	LogLevelLabel      *string
 	LogLevel           logging.LogLevel
 	ExternalFacilities *bool
+	IgnoreModules      *string
 }
 
 // SettingsFromArgs uses CLI parameters to populate a Settings object
@@ -98,6 +103,7 @@ func SettingsFromArgs() (Settings, error) {
 	s.MergedDebugFile = flag.String(mergeLocationFlag, mergeLocationDefault, mergeLocationHelp)
 	s.LogLevelLabel = flag.String(logLevelFlag, logLevelDefault, logLevelHelp)
 	s.ExternalFacilities = flag.Bool(externalFacilitiesFlag, false, externalFacilitiesHelp)
+	s.IgnoreModules = flag.String(ignoreModuleFlag, ignoreModuleDefault, ignoreModuleHelp)
 
 	flag.Parse()
 
@@ -157,7 +163,7 @@ func (b *Binder) Bind(s Settings) {
 	}
 
 	if *s.ExternalFacilities {
-		if err := b.findExternalFacilities(); err != nil {
+		if err := b.findExternalFacilities(*s.IgnoreModules); err != nil {
 			b.exitError(err.Error())
 		}
 	}
@@ -236,13 +242,24 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 	return ""
 }
 
-func (b *Binder) findExternalFacilities() error {
+func (b *Binder) findExternalFacilities(ignore string) error {
 
 	l := b.Log
 
 	l.LogDebugf("Finding external facilities in go.mod dependencies")
 
-	_, err := FindExternalFacilities(b.Log)
+	is := types.NewEmptyUnorderedStringSet()
+
+	for _, i := range strings.Split(ignore, ",") {
+
+		p := strings.TrimSpace(i)
+
+		l.LogDebugf("Ignoring module %s", p)
+		is.Add(p)
+
+	}
+
+	_, err := FindExternalFacilities(is, b.Log)
 
 	return err
 

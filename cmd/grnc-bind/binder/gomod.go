@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v2/types"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -11,9 +13,13 @@ import (
 	"strings"
 )
 
+const facComponentFolder = "comp-def"
+const facConfigFolder = "config"
+const manifestPrefix = "manifest."
+
 // FindExternalFacilities parses the first level of modules imported by this application's go.mod file and
 // tries to find properly defined Granitic external facilities
-func FindExternalFacilities(l logging.Logger) (*ExternalFacilities, error) {
+func FindExternalFacilities(is types.StringSet, l logging.Logger) (*ExternalFacilities, error) {
 
 	cwd, _ := os.Getwd()
 
@@ -21,16 +27,25 @@ func FindExternalFacilities(l logging.Logger) (*ExternalFacilities, error) {
 		return nil, err
 	} else {
 
-		return modulesToFacilities(m, l)
+		return modulesToFacilities(is, m, l)
 	}
 }
 
 // ExternalFacilities holds information about the code and config defined in Go module
 // dependencies that should be compiled into this application.
 type ExternalFacilities struct {
+	Info []ExternalFacility
 }
 
-func modulesToFacilities(mf *modFile, l logging.Logger) (*ExternalFacilities, error) {
+type ExternalFacility struct {
+	ModulePath    string
+	ModuleVersion string
+	Manifest      string
+	Components    string
+	Config        string
+}
+
+func modulesToFacilities(is types.StringSet, mf *modFile, l logging.Logger) (*ExternalFacilities, error) {
 
 	cp, err := cachePath(l)
 
@@ -52,8 +67,8 @@ ModLoop:
 
 		l.LogDebugf("Checking module %s %s", mod.Path, mod.Version)
 
-		if moduleIsGranitic(mod.Path) {
-			l.LogDebugf("Skipping Granitic module %s", mod.Path)
+		if moduleIsGranitic(mod.Path) || is.Contains(mod.Path) {
+			l.LogDebugf("Ignoring module %s", mod.Path)
 			continue ModLoop
 		}
 
@@ -71,9 +86,76 @@ ModLoop:
 
 		}
 
+		valid, err := validExternalFacility(p, l)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if valid != nil {
+			l.LogDebugf("External facility found in module %s", mod.Path)
+		} else {
+			l.LogDebugf("Module %s does not contain an external facility", mod.Path)
+		}
+
 	}
 
 	return nil, nil
+}
+
+func validExternalFacility(p string, l logging.Logger) (*ExternalFacility, error) {
+	fp := filepath.Join(p, "facility")
+
+	if !folderExists(fp) {
+		l.LogDebugf("No 'facility' folder found")
+
+		return nil, nil
+	}
+
+	mf, err := locateManifest(fp)
+
+	if err != nil {
+		return nil, fmt.Errorf("problem reading folder %s: %s", fp, err.Error())
+	}
+
+	if mf == "" {
+		l.LogDebugf("No manifest file in %s assuming this is not a Granitic module", fp)
+		return nil, nil
+	}
+
+	ex := new(ExternalFacility)
+	ex.Manifest = mf
+
+	cfPath := filepath.Join(fp, facConfigFolder)
+
+	populated, err := directoryAndNotEmpty(cfPath)
+
+	if err != nil {
+		return nil, fmt.Errorf("problem reading folder %s: %s", cfPath, err.Error())
+	}
+
+	if populated {
+		ex.Config = cfPath
+	}
+
+	cmpPath := filepath.Join(fp, facComponentFolder)
+
+	populated, err = directoryAndNotEmpty(cmpPath)
+
+	if err != nil {
+		return nil, fmt.Errorf("problem reading folder %s: %s", cfPath, err.Error())
+	}
+
+	if populated {
+		ex.Components = cmpPath
+	}
+
+	if ex.Config == "" && ex.Components == "" {
+		return nil, fmt.Errorf("%s appears to be a facility but it is malformed (must have one or both non-empty folders faility/%s and facility/%s", p, facComponentFolder, facConfigFolder)
+	}
+
+	return ex, nil
+
 }
 
 func moduleIsGranitic(p string) bool {
@@ -210,4 +292,37 @@ type replacement struct {
 
 type modPath struct {
 	Path string
+}
+
+func directoryAndNotEmpty(p string) (bool, error) {
+
+	if !folderExists(p) {
+
+		return false, nil
+	}
+
+	d, err := ioutil.ReadDir(p)
+
+	if err != nil {
+		return false, err
+	}
+
+	return len(d) > 0, nil
+}
+
+func locateManifest(p string) (string, error) {
+
+	d, err := ioutil.ReadDir(p)
+
+	if err != nil {
+		return "", err
+	}
+
+	for _, f := range d {
+		if strings.HasPrefix(strings.ToLower(f.Name()), manifestPrefix) {
+			return filepath.Join(p, f.Name()), nil
+		}
+	}
+
+	return "", nil
 }
