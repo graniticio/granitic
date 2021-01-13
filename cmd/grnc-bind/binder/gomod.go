@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 )
 
 // FindExternalFacilities parses the first level of modules imported by this application's go.mod file and
@@ -39,7 +40,58 @@ func modulesToFacilities(mf *modFile, l logging.Logger) (*ExternalFacilities, er
 
 	l.LogDebugf("Expecting downloaded packages to be in %s\n", cp)
 
+	if !folderExists(cp) {
+		return nil, fmt.Errorf("expected to find downloaded modules in %s but that folder does not exist. Check your GOPATH and ensure you have run 'go mod download'", cp)
+	}
+
+ModLoop:
+	for _, mod := range mf.Require {
+
+		var p string
+		var replaced bool
+
+		l.LogDebugf("Checking module %s %s", mod.Path, mod.Version)
+
+		if moduleIsGranitic(mod.Path) {
+			l.LogDebugf("Skipping Granitic module %s", mod.Path)
+			continue ModLoop
+		}
+
+		if replaced, p = mf.replacePath(mod.Path); replaced {
+			l.LogDebugf("Using replaced path %s", p)
+		} else {
+			p = constructPath(p, cp, mod.Version)
+		}
+
+		l.LogDebugf("Module filesystem path is: %s", p)
+
+		if !folderExists(p) {
+
+			return nil, fmt.Errorf("could not find module %s %s at the expected location on the filesystem: %s check you have run 'go mod download'", mod.Path, mod.Version, p)
+
+		}
+
+	}
+
 	return nil, nil
+}
+
+func moduleIsGranitic(p string) bool {
+
+	if strings.HasPrefix(p, "github.com/graniticio/granitic/v") ||
+		strings.HasPrefix(p, "github.com/graniticio/granitic-yaml/v") {
+
+		return true
+	}
+
+	return false
+}
+
+func constructPath(modulePath string, cachePath string, version string) string {
+
+	f := fmt.Sprintf("%s@%s", modulePath, version)
+
+	return filepath.Join(cachePath, f)
 }
 
 func cachePath(l logging.Logger) (string, error) {
@@ -47,7 +99,7 @@ func cachePath(l logging.Logger) (string, error) {
 
 	if gmc != "" {
 		l.LogDebugf("GOMODCACHE environment variable set. Using as location for downloaded modules")
-		return filepath.Join(gmc, "cache", "download"), nil
+		return gmc, nil
 	}
 
 	gmc = os.Getenv("GOPATH")
@@ -55,7 +107,7 @@ func cachePath(l logging.Logger) (string, error) {
 	if gmc != "" {
 		l.LogDebugf("GOPATH environment variable set. Using $GOPATH/pkg/mod for downloaded modules")
 
-		return filepath.Join(gmc, "pkg", "mod", "cache", "download"), nil
+		return filepath.Join(gmc, "pkg", "mod"), nil
 	}
 
 	l.LogWarnf("Neither GOPATH nor GOMODCACHE environment variable set. Assuming user home directory contains go artifacts")
@@ -66,7 +118,7 @@ func cachePath(l logging.Logger) (string, error) {
 		return "", err
 	}
 
-	return filepath.Join(hd, "go", "pkg", "mod", "cache", "download"), nil
+	return filepath.Join(hd, "go", "pkg", "mod"), nil
 }
 
 //ParseModFile tries to parse the mod file in the supplied directory and returns an error if parsing failed
@@ -130,9 +182,32 @@ func CheckModFileExists(d string) bool {
 
 type modFile struct {
 	Require []requirement
+	Replace []replacement
+}
+
+func (mf *modFile) replacePath(p string) (bool, string) {
+
+	for _, r := range mf.Replace {
+
+		if r.Old.Path == p {
+			return true, r.New.Path
+		}
+
+	}
+
+	return false, p
 }
 
 type requirement struct {
 	Path    string
 	Version string
+}
+
+type replacement struct {
+	Old modPath
+	New modPath
+}
+
+type modPath struct {
+	Path string
 }
