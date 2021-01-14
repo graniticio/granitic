@@ -31,20 +31,6 @@ func FindExternalFacilities(is types.StringSet, l logging.Logger) (*ExternalFaci
 	}
 }
 
-// ExternalFacilities holds information about the code and config defined in Go module
-// dependencies that should be compiled into this application.
-type ExternalFacilities struct {
-	Info []ExternalFacility
-}
-
-type ExternalFacility struct {
-	ModulePath    string
-	ModuleVersion string
-	Manifest      string
-	Components    string
-	Config        string
-}
-
 func modulesToFacilities(is types.StringSet, mf *modFile, l logging.Logger) (*ExternalFacilities, error) {
 
 	cp, err := cachePath(l)
@@ -58,6 +44,9 @@ func modulesToFacilities(is types.StringSet, mf *modFile, l logging.Logger) (*Ex
 	if !folderExists(cp) {
 		return nil, fmt.Errorf("expected to find downloaded modules in %s but that folder does not exist. Check your GOPATH and ensure you have run 'go mod download'", cp)
 	}
+
+	ef := new(ExternalFacilities)
+	ef.Info = make([]*ExternalFacility, 0)
 
 ModLoop:
 	for _, mod := range mf.Require {
@@ -95,13 +84,18 @@ ModLoop:
 
 		if valid != nil {
 			l.LogDebugf("External facility found in module %s", mod.Path)
+
+			ef.Info = append(ef.Info, valid)
+
 		} else {
 			l.LogDebugf("Module %s does not contain an external facility", mod.Path)
 		}
 
 	}
 
-	return nil, nil
+	l.LogDebugf("Found %d external facility definition(s)", len(ef.Info))
+
+	return ef, nil
 }
 
 func validExternalFacility(p string, l logging.Logger) (*ExternalFacility, error) {
