@@ -80,6 +80,7 @@ const (
 type DefinitionLoader interface {
 	LoadAndMerge(files []string, log logging.Logger) (map[string]interface{}, error)
 	WriteMerged(data map[string]interface{}, path string, log logging.Logger) error
+	FacilityManifest(path string) (*Manifest, error)
 }
 
 // Settings contains output/input file locations and other variables for controlling the behaviour of this tool

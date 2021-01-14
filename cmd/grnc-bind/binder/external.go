@@ -16,3 +16,12 @@ type ExternalFacility struct {
 	Components    string
 	Config        string
 }
+
+// Manifest is the structure into which an external facility's manifest file is parsed into
+type Manifest struct {
+	ExternalFacilities map[string]*definition
+}
+
+type definition struct {
+	Namespace string
+}

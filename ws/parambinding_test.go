@@ -78,7 +78,7 @@ func TestQueryAutoBinding(t *testing.T) {
 	test.ExpectString(t, bt.NS.String(), "ns")
 	test.ExpectBool(t, bt.NB.Bool(), false)
 	test.ExpectInt(t, int(bt.NI.Int64()), -64)
-	test.ExpectFloat(t, bt.NF.Float64(), -10.0E2)
+	test.ExpectFloat(t, bt.NF.Float64(), -10.0e2)
 
 }
 
@@ -177,7 +177,7 @@ func TestManualBinding(t *testing.T) {
 	test.ExpectString(t, bt.NS.String(), "ns")
 	test.ExpectBool(t, bt.NB.Bool(), false)
 	test.ExpectInt(t, int(bt.NI.Int64()), -64)
-	test.ExpectFloat(t, bt.NF.Float64(), -10.0E2)
+	test.ExpectFloat(t, bt.NF.Float64(), -10.0e2)
 
 }
 

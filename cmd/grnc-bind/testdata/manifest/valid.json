@@ -1,0 +1,7 @@
+{
+  "ExternalFacilities": {
+    "FacilityA": {
+      "Namespace": "MyCompany"
+    }
+  }
+}

@@ -20,15 +20,19 @@ func TestBindProcess(t *testing.T) {
 
 	compDir := test.FilePath("complete")
 	merged := ""
+	ignore := ""
+	extFac := false
 
 	b := new(binder.Binder)
 	b.ToolName = "bind-test"
 	b.Loader = new(jsonDefinitionLoader)
 
 	s := binder.Settings{
-		CompDefLocation: &compDir,
-		BindingsFile:    &bindOut,
-		MergedDebugFile: &merged,
+		CompDefLocation:    &compDir,
+		BindingsFile:       &bindOut,
+		MergedDebugFile:    &merged,
+		IgnoreModules:      &ignore,
+		ExternalFacilities: &extFac,
 	}
 
 	b.Log = new(logging.ConsoleErrorLogger)
@@ -41,6 +45,74 @@ func TestBindProcess(t *testing.T) {
 
 	if b.Failed() {
 		t.Fail()
+	}
+}
+
+func TestManifestParse(t *testing.T) {
+
+	manifestDir := test.FilePath("manifest")
+
+	mfp := filepath.Join(manifestDir, "valid.json")
+
+	b := new(jsonDefinitionLoader)
+
+	m, err := b.FacilityManifest(mfp)
+
+	if m == nil {
+		t.Errorf("Unexpected nil")
+	}
+
+	if err != nil {
+		t.Errorf("Unexpected error %s", err.Error())
+	}
+
+	if m.ExternalFacilities == nil || len(m.ExternalFacilities) == 0 {
+		t.Errorf("Expected definitions")
+	}
+
+	pm := m.ExternalFacilities["FacilityA"]
+
+	if pm == nil {
+		t.Errorf("Expected a definition")
+	}
+
+}
+
+func TestManifestBadPath(t *testing.T) {
+
+	manifestDir := test.FilePath("manifest")
+
+	mfp := filepath.Join(manifestDir, "missing.json")
+
+	b := new(jsonDefinitionLoader)
+
+	m, err := b.FacilityManifest(mfp)
+
+	if m != nil {
+		t.Errorf("Unexpected not nil")
+	}
+
+	if err == nil {
+		t.Errorf("Expected error")
+	}
+}
+
+func TestManifestMalformed(t *testing.T) {
+
+	manifestDir := test.FilePath("manifest")
+
+	mfp := filepath.Join(manifestDir, "malformed.json")
+
+	b := new(jsonDefinitionLoader)
+
+	m, err := b.FacilityManifest(mfp)
+
+	if m != nil {
+		t.Errorf("Unexpected not nil")
+	}
+
+	if err == nil {
+		t.Errorf("Expected error")
 	}
 }
 

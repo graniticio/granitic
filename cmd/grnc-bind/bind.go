@@ -103,3 +103,30 @@ func (jdl *jsonDefinitionLoader) WriteMerged(data map[string]interface{}, path s
 
 	return nil
 }
+
+func (jdl *jsonDefinitionLoader) FacilityManifest(path string) (*binder.Manifest, error) {
+
+	mf, err := os.Open(path)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to open manifest file at %s: %s", path, err.Error())
+	}
+
+	defer mf.Close()
+
+	b, err := ioutil.ReadAll(mf)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to read manifest file at %s: %s", path, err.Error())
+	}
+
+	m := new(binder.Manifest)
+
+	err = json.Unmarshal(b, m)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse manifest file at %s: %s", path, err.Error())
+	}
+
+	return m, nil
+}
