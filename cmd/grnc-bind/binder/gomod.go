@@ -63,8 +63,6 @@ ModLoop:
 	for _, mod := range mf.Require {
 
 		var p string
-		var replaced bool
-
 		l.LogDebugf("Checking module %s %s", mod.Path, mod.Version)
 
 		if moduleIsGranitic(mod.Path) || is.Contains(mod.Path) {
@@ -72,10 +70,13 @@ ModLoop:
 			continue ModLoop
 		}
 
-		if replaced, p = mf.replacePath(mod.Path); replaced {
+		local := replacePath(&mod, mf.Replace)
+
+		if local {
+			p = mod.Path
 			l.LogDebugf("Using replaced path %s", p)
 		} else {
-			p = constructPath(p, cp, mod.Version)
+			p = constructPath(mod.Path, cp, mod.Version)
 		}
 
 		l.LogDebugf("Module filesystem path is: %s", p)
@@ -267,17 +268,38 @@ type modFile struct {
 	Replace []replacement
 }
 
-func (mf *modFile) replacePath(p string) (bool, string) {
+// Honour any replace statements and indicate if the path has been replaced with a local filesystem path
+func replacePath(req *requirement, rep []replacement) bool {
 
-	for _, r := range mf.Replace {
+	for _, r := range rep {
 
-		if r.Old.Path == p {
-			return true, r.New.Path
+		origPath := req.Path
+
+		if r.Old.Path == origPath {
+
+			req.Path = r.New.Path
+
+			if r.New.Version != "" {
+				req.Version = r.New.Version
+			}
+
 		}
 
 	}
 
-	return false, p
+	return localPath(req.Path)
+}
+
+func localPath(p string) bool {
+
+	if len(p) == 0 {
+		return false
+	}
+
+	c := p[0]
+
+	return c == '\\' || c == '/' || c == '.' || (len(p) > 1 && p[1] == ':')
+
 }
 
 type requirement struct {
@@ -291,7 +313,8 @@ type replacement struct {
 }
 
 type modPath struct {
-	Path string
+	Path    string
+	Version string
 }
 
 func directoryAndNotEmpty(p string) (bool, error) {
