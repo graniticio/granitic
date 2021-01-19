@@ -126,12 +126,13 @@ const defaultValuePattern = "(.*)\\((.*)\\)"
 
 // Binder translates the components defined in component definition files into Go source code.
 type Binder struct {
-	Loader            DefinitionLoader
-	ToolName          string
-	Log               logging.Logger
-	defaultValueRegex *regexp.Regexp
-	errorsFound       bool
-	packagesAliases   *packageStore
+	Loader              DefinitionLoader
+	ToolName            string
+	Log                 logging.Logger
+	defaultValueRegex   *regexp.Regexp
+	errorsFound         bool
+	packagesAliases     *packageStore
+	SupportedExtensions []string
 }
 
 // Bind loads component definitions files from disk/network, merges those files into a single
@@ -159,6 +160,7 @@ func (b *Binder) Bind(s Settings) {
 		} else {
 			ex = xf
 		}
+
 	}
 
 	ca := b.loadConfig(compLoc, ex)
@@ -196,7 +198,7 @@ func (b *Binder) compileRegexes() {
 // SerialiseBuiltinConfig takes the configuration files for Granitic's internal components (facilities) found in
 // resource/facility-config and serialises them into a single string that will be embedded into your application's
 // executable.
-func SerialiseBuiltinConfig(log logging.Logger) string {
+func SerialiseBuiltinConfig(log logging.Logger, dl DefinitionLoader, ext []string, additional ...string) string {
 
 	log.LogDebugf("Serialising facility configuration")
 
@@ -207,17 +209,24 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 		instance.ExitError()
 	}
 
-	jm := config.NewJSONMergerWithDirectLogging(log, new(config.JSONContentParser))
-	jm.MergeArrays = true
+	log.LogDebugf("Supported config file extensions: %v", ext)
 
-	jFiles, err := config.FindJSONFilesInDir(gh)
+	se := types.NewEmptyOrderedStringSet()
+
+	for _, e := range ext {
+		se.Add("." + e)
+	}
+
+	jFiles, err := config.FindSupportedFilesInDir(gh, se)
+
+	log.LogDebugf("Config files to serialise: %v", jFiles)
 
 	if err != nil {
 		log.LogFatalf(err.Error())
 		instance.ExitError()
 	}
 
-	if mc, err := jm.LoadAndMergeConfig(jFiles); err != nil {
+	if mc, err := dl.LoadAndMerge(jFiles, log); err != nil {
 
 		log.LogFatalf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
 		instance.ExitError()
@@ -1022,7 +1031,7 @@ func (b *Binder) parseTemplates(ca *config.Accessor) map[string]interface{} {
 
 func (b *Binder) writeSerialisedConfig(w *bufio.Writer) {
 
-	sv := SerialiseBuiltinConfig(b.Log)
+	sv := SerialiseBuiltinConfig(b.Log, b.Loader, b.SupportedExtensions)
 
 	s := fmt.Sprintf("%s := \"%s\"\n", serialisedVar, sv)
 

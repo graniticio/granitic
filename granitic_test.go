@@ -16,7 +16,7 @@ func TestStartWithSettings(t *testing.T) {
 	frameworkModifiers := make(map[string]map[string]string)
 	protoComponents := make([]*ioc.ProtoComponent, 0)
 
-	bic := binder.SerialiseBuiltinConfig(new(logging.ConsoleErrorLogger))
+	bic := binder.SerialiseBuiltinConfig(new(logging.ConsoleErrorLogger), binder.NewJsonDefinitionLoader(), []string{"json"})
 
 	pc := ioc.NewProtoComponents(protoComponents, frameworkModifiers, &bic)
 

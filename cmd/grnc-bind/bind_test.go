@@ -25,7 +25,7 @@ func TestBindProcess(t *testing.T) {
 
 	b := new(binder.Binder)
 	b.ToolName = "bind-test"
-	b.Loader = new(jsonDefinitionLoader)
+	b.Loader = binder.NewJsonDefinitionLoader()
 
 	s := binder.Settings{
 		CompDefLocation:    &compDir,
@@ -54,8 +54,7 @@ func TestManifestParse(t *testing.T) {
 
 	mfp := filepath.Join(manifestDir, "valid.json")
 
-	b := new(jsonDefinitionLoader)
-
+	b := binder.NewJsonDefinitionLoader()
 	m, err := b.FacilityManifest(mfp)
 
 	if m == nil {
@@ -84,7 +83,7 @@ func TestManifestBadPath(t *testing.T) {
 
 	mfp := filepath.Join(manifestDir, "missing.json")
 
-	b := new(jsonDefinitionLoader)
+	b := binder.NewJsonDefinitionLoader()
 
 	m, err := b.FacilityManifest(mfp)
 
@@ -103,7 +102,7 @@ func TestManifestMalformed(t *testing.T) {
 
 	mfp := filepath.Join(manifestDir, "malformed.json")
 
-	b := new(jsonDefinitionLoader)
+	b := binder.NewJsonDefinitionLoader()
 
 	m, err := b.FacilityManifest(mfp)
 
@@ -124,17 +123,17 @@ func TestOutputMerged(t *testing.T) {
 	mergeOut := filepath.Join(tmp, "merged.json")
 
 	compDir := test.FilePath("complete")
-
+	findExternal := false
 	b := new(binder.Binder)
 	b.ToolName = "bind-test"
-	b.Loader = new(jsonDefinitionLoader)
-
+	b.Loader = binder.NewJsonDefinitionLoader()
 	b.Log = new(logging.ConsoleErrorLogger)
 
 	s := binder.Settings{
-		CompDefLocation: &compDir,
-		BindingsFile:    &bindOut,
-		MergedDebugFile: &mergeOut,
+		CompDefLocation:    &compDir,
+		BindingsFile:       &bindOut,
+		MergedDebugFile:    &mergeOut,
+		ExternalFacilities: &findExternal,
 	}
 
 	b.Bind(s)

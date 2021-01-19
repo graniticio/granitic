@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/graniticio/granitic/v2/types"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -17,6 +18,15 @@ import (
 // so any files in a sub-directory 'b' would appear in the resulting list of files before 'c.json'
 func FindJSONFilesInDir(dirPath string) ([]string, error) {
 
+	s := types.NewUnorderedStringSet([]string{".json"})
+
+	return FindSupportedFilesInDir(dirPath, s)
+}
+
+// FindSupportedFilesInDir finds all files with an extension present the supplied set in the supplied directory path, recursively checking
+// sub-directories. Note that each directory's contents are examined and added to the list of files lexicographically,
+// so any files in a sub-directory 'b' would appear in the resulting list of files before 'c.json'
+func FindSupportedFilesInDir(dirPath string, supported types.StringSet) ([]string, error) {
 	contents, err := ioutil.ReadDir(dirPath)
 
 	files := make([]string, 0)
@@ -39,7 +49,7 @@ func FindJSONFilesInDir(dirPath string) ([]string, error) {
 				return nil, err
 			}
 
-		} else if filepath.Ext(fileName) == ".json" {
+		} else if supported.Contains(filepath.Ext(fileName)) {
 
 			f := filepath.Join(dirPath, fileName)
 
