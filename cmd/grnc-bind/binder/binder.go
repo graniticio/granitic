@@ -56,7 +56,7 @@ const (
 	logLevelDefault string = "WARN"
 	logLevelHelp    string = "The level at which messages will be logged to the console (TRACE, DEBUG, WARN, INFO, ERROR, FATAL)"
 
-	externalFacilitiesFlag string = "f"
+	externalFacilitiesFlag string = "x"
 	externalFacilitiesHelp        = "Enable the discovery of external facilities in Go modules referenced in this application's go.mod file"
 
 	ignoreModuleFlag    string = "i"

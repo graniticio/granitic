@@ -34,7 +34,7 @@ Usage of grnc-bind:
 		Path to the Go source file that will be generated (default "bindings/bindings.go")
 	-l string
 		The level at which the tool will output messages: TRACE, DEBUG, INFO, ERROR, FATAL (default ERROR)
-    -f
+    -x
 		Enable the discovery of external facilities in Go modules referenced in this application's go.mod file
     -i string
 		A comma separated list of module paths (e.g. github.com/someaccount/somemod/someversion) that should be ignored when looking for external facilities
