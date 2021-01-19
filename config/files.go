@@ -43,7 +43,7 @@ func FindSupportedFilesInDir(dirPath string, supported types.StringSet) ([]strin
 
 			dp := filepath.Join(dirPath, fileName)
 
-			if sub, err := FindJSONFilesInDir(dp); err == nil {
+			if sub, err := FindSupportedFilesInDir(dp, supported); err == nil {
 				files = append(files, sub...)
 			} else {
 				return nil, err

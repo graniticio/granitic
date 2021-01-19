@@ -143,8 +143,8 @@ func (jm *JSONMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, 
 			ext := jm.extractExtension(fileName)
 
 			if jm.parserByFile[ext] != nil {
-				jm.Logger.LogTracef("Found ContentParser for extension %s", ext)
 				cp = jm.parserByFile[ext]
+				jm.Logger.LogTracef("Found ContentParser for extension %s: %T", ext, cp)
 			} else {
 				jm.Logger.LogTracef("Skipping file with unsupported extension %s", ext)
 				continue

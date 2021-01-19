@@ -198,7 +198,7 @@ func (b *Binder) compileRegexes() {
 // SerialiseBuiltinConfig takes the configuration files for Granitic's internal components (facilities) found in
 // resource/facility-config and serialises them into a single string that will be embedded into your application's
 // executable.
-func SerialiseBuiltinConfig(log logging.Logger, dl DefinitionLoader, ext []string, additional ...string) string {
+func SerialiseBuiltinConfig(log logging.Logger, dl DefinitionLoader, ext []string, additionalFolders ...string) string {
 
 	log.LogDebugf("Serialising facility configuration")
 
@@ -219,14 +219,34 @@ func SerialiseBuiltinConfig(log logging.Logger, dl DefinitionLoader, ext []strin
 
 	jFiles, err := config.FindSupportedFilesInDir(gh, se)
 
-	log.LogDebugf("Config files to serialise: %v", jFiles)
-
 	if err != nil {
 		log.LogFatalf(err.Error())
 		instance.ExitError()
 	}
 
+	if additionalFolders != nil && len(additionalFolders) > 0 {
+		log.LogDebugf("Finding config files in external facilities")
+
+		for _, f := range additionalFolders {
+
+			if exFiles, err := config.FindSupportedFilesInDir(f, se); err == nil {
+
+				jFiles = append(jFiles, exFiles...)
+
+			} else {
+				log.LogFatalf(err.Error())
+				instance.ExitError()
+			}
+
+		}
+
+	}
+
+	log.LogDebugf("Config files to serialise: %v", jFiles)
+
 	if mc, err := dl.LoadAndMerge(jFiles, log); err != nil {
+
+		log.LogDebugf("Using definition loader of type %T", dl)
 
 		log.LogFatalf("Problem serialising Granitic's built-in config files: %s\n", err.Error())
 		instance.ExitError()
@@ -304,7 +324,7 @@ func (b *Binder) writeBindings(w *bufio.Writer, ex *ExternalFacilities, ca *conf
 		i++
 	}
 
-	b.writeSerialisedConfig(w)
+	b.writeSerialisedConfig(w, ex)
 	b.writeFrameworkModifiers(w, ca)
 
 	b.writeEntryFunctionClose(w)
@@ -1029,9 +1049,29 @@ func (b *Binder) parseTemplates(ca *config.Accessor) map[string]interface{} {
 
 }
 
-func (b *Binder) writeSerialisedConfig(w *bufio.Writer) {
+func (b *Binder) writeSerialisedConfig(w *bufio.Writer, ex *ExternalFacilities) {
 
-	sv := SerialiseBuiltinConfig(b.Log, b.Loader, b.SupportedExtensions)
+	l := b.Log
+
+	exConf := make([]string, 0)
+
+	if ex != nil && len(ex.Info) > 0 {
+
+		for _, f := range ex.Info {
+
+			if f.Config == "" {
+				l.LogDebugf("External facility module %s does not contain any additional configuration", f.Name)
+			} else {
+
+				exConf = append(exConf, f.Config)
+
+			}
+
+		}
+
+	}
+
+	sv := SerialiseBuiltinConfig(b.Log, b.Loader, b.SupportedExtensions, exConf...)
 
 	s := fmt.Sprintf("%s := \"%s\"\n", serialisedVar, sv)
 
