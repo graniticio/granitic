@@ -10,6 +10,7 @@ type ExternalFacilities struct {
 }
 
 type ExternalFacility struct {
+	Name          string
 	ModulePath    string
 	ModuleVersion string
 	Manifest      string
@@ -19,6 +20,7 @@ type ExternalFacility struct {
 
 // Manifest is the structure into which an external facility's manifest file is parsed into
 type Manifest struct {
+	Namespace          string
 	ExternalFacilities map[string]*definition
 }
 

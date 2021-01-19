@@ -139,6 +139,7 @@ type Binder struct {
 func (b *Binder) Bind(s Settings) {
 
 	compLoc := *s.CompDefLocation
+	var ex *ExternalFacilities
 
 	// If the default location for components is set, but doesn't exist, check to see if the Granitic v1 folder exists instead
 	if compLoc == compLocationDefault {
@@ -152,7 +153,15 @@ func (b *Binder) Bind(s Settings) {
 		}
 	}
 
-	ca := b.loadConfig(compLoc)
+	if *s.ExternalFacilities {
+		if xf, err := b.findExternalFacilities(*s.IgnoreModules); err != nil {
+			b.exitError(err.Error())
+		} else {
+			ex = xf
+		}
+	}
+
+	ca := b.loadConfig(compLoc, ex)
 
 	if *s.MergedDebugFile != "" {
 		// Write the merged view of components to a file then exit
@@ -161,12 +170,6 @@ func (b *Binder) Bind(s Settings) {
 		}
 
 		return
-	}
-
-	if *s.ExternalFacilities {
-		if err := b.findExternalFacilities(*s.IgnoreModules); err != nil {
-			b.exitError(err.Error())
-		}
 	}
 
 	b.compileRegexes()
@@ -178,7 +181,7 @@ func (b *Binder) Bind(s Settings) {
 	defer f.Close()
 
 	w := bufio.NewWriter(f)
-	b.writeBindings(w, ca)
+	b.writeBindings(w, ex, ca)
 
 	if b.errorsFound {
 		b.exitError("Problems found. Please correct the above and re-run %s", b.ToolName)
@@ -243,7 +246,7 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 	return ""
 }
 
-func (b *Binder) findExternalFacilities(ignore string) error {
+func (b *Binder) findExternalFacilities(ignore string) (*ExternalFacilities, error) {
 
 	l := b.Log
 
@@ -260,13 +263,11 @@ func (b *Binder) findExternalFacilities(ignore string) error {
 
 	}
 
-	_, err := FindExternalFacilities(is, b.Log)
-
-	return err
+	return FindExternalFacilities(is, b.Log)
 
 }
 
-func (b *Binder) writeBindings(w *bufio.Writer, ca *config.Accessor) {
+func (b *Binder) writeBindings(w *bufio.Writer, ex *ExternalFacilities, ca *config.Accessor) {
 	b.writePackage(w)
 	b.writeImportsAndAliases(w, ca)
 
@@ -1143,7 +1144,7 @@ func (b *Binder) contains(a []string, c string) bool {
 	return false
 }
 
-func (b *Binder) loadConfig(l string) *config.Accessor {
+func (b *Binder) loadConfig(l string, ex *ExternalFacilities) *config.Accessor {
 
 	log := b.Log
 
@@ -1155,6 +1156,31 @@ func (b *Binder) loadConfig(l string) *config.Accessor {
 	if err != nil {
 		m := fmt.Sprintf("Problem loading config from %s %s", l, err.Error())
 		b.exitError(m)
+	}
+
+	if ex != nil && len(ex.Info) > 0 {
+
+	ExternalFacilityLoop:
+		for _, f := range ex.Info {
+
+			if f.Components == "" {
+				log.LogDebugf("External facility module %s has no components to add", f.Name)
+				continue ExternalFacilityLoop
+			}
+
+			log.LogDebugf("Adding component files from external facility module %s", f.Name)
+
+			if xfc, err := config.ExpandToFilesAndURLs([]string{f.Components}); err != nil {
+
+				m := fmt.Sprintf("Problem finding component definition files for external facility in %s: %s", f.Components, err.Error())
+				b.exitError(m)
+
+			} else {
+				fl = append(fl, xfc...)
+			}
+
+		}
+
 	}
 
 	mc, err := b.Loader.LoadAndMerge(fl, log)

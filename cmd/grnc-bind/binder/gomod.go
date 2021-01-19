@@ -51,6 +51,8 @@ func modulesToFacilities(is types.StringSet, mf *modFile, l logging.Logger) (*Ex
 ModLoop:
 	for _, mod := range mf.Require {
 
+		modName := mod.Path
+
 		var p string
 		l.LogDebugf("Checking module %s %s", mod.Path, mod.Version)
 
@@ -84,7 +86,9 @@ ModLoop:
 
 		if valid != nil {
 			l.LogDebugf("External facility found in module %s", mod.Path)
-
+			valid.Name = modName
+			valid.ModulePath = p
+			valid.ModuleVersion = mod.Version
 			ef.Info = append(ef.Info, valid)
 
 		} else {
