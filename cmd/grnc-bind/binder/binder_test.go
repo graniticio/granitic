@@ -168,4 +168,40 @@ func TestManifestValidation(t *testing.T) {
 
 	}
 
+	m.ExternalFacilities = make(map[string]*definition)
+
+	m.ExternalFacilities["Valid"] = def
+
+	def.Depends = []string{"Ext.Other.Invalid"}
+
+	if !test.ExpectNotNil(t, validateManifest(m)) {
+
+		t.Errorf("Expected error on too many dots in dependency name")
+
+	}
+
+	def.Depends = []string{"Ext.!Other"}
+
+	if !test.ExpectNotNil(t, validateManifest(m)) {
+
+		t.Errorf("Expected error on invalid second part of dependency name")
+
+	}
+
+	def.Depends = []string{"!Ext.Other"}
+
+	if !test.ExpectNotNil(t, validateManifest(m)) {
+
+		t.Errorf("Expected error on invalid first part of dependency name")
+
+	}
+
+	def.Depends = []string{"JSONWs", "Ext.Other"}
+
+	if !test.ExpectNil(t, validateManifest(m)) {
+
+		t.Errorf("Expected no error with valid dependencies")
+
+	}
+
 }

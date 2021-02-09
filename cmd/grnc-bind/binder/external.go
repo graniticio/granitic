@@ -73,13 +73,12 @@ func validateDefinitions(m *Manifest) error {
 			if len(strings.TrimSpace(def.Builder)) == 0 {
 				return fmt.Errorf("the Builder field for a facility definition is empty once trimmed")
 			}
+		}
 
-			for _, dep := range def.Depends {
+		for _, dep := range def.Depends {
 
-				if err := validDependency(dep); err != nil {
-					return err
-				}
-
+			if err := validDependency(dep); err != nil {
+				return err
 			}
 
 		}
@@ -92,6 +91,20 @@ func validateDefinitions(m *Manifest) error {
 func validDependency(d string) error {
 	if len(strings.TrimSpace(d)) == 0 {
 		return fmt.Errorf("a dependency in a facility defition is emtpy once trimmed")
+	}
+
+	np := strings.Split(d, ".")
+
+	if len(np) > 2 {
+		return fmt.Errorf("%s is not a valid dependency. Should be [Namespace.Dependency] or [Dependency]", d)
+	}
+
+	for _, dp := range np {
+
+		if !validGoName(dp) {
+			return fmt.Errorf("%s is not a valid dependency. %s is not a valid Go identifier", d, dp)
+		}
+
 	}
 
 	return nil
