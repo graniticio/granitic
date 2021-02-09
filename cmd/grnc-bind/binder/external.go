@@ -3,6 +3,11 @@
 
 package binder
 
+import (
+	"fmt"
+	"strings"
+)
+
 // ExternalFacilities holds information about the code and config defined in Go module
 // dependencies that should be compiled into this application.
 type ExternalFacilities struct {
@@ -25,5 +30,70 @@ type Manifest struct {
 }
 
 type definition struct {
-	Namespace string
+	Disabled bool
+	Depends  []string
+	Builder  string
+}
+
+func validateManifest(m *Manifest) error {
+
+	ns := m.Namespace
+
+	if len(ns) == 0 {
+		return fmt.Errorf("manifests must specify a Namespace")
+	}
+
+	if len(ns) != len(strings.TrimSpace(ns)) {
+
+		return fmt.Errorf("the Namespace field in a manifest must not have leading or trailing whitespace (was [%s])", ns)
+	}
+
+	if !validGoName(ns) {
+		return fmt.Errorf("the Namespace should only contain letters and numbers and must start with a letter (was [%s])", ns)
+	}
+
+	return validateDefinitions(m)
+
+}
+
+func validateDefinitions(m *Manifest) error {
+
+	if len(m.ExternalFacilities) == 0 {
+		return nil
+	}
+
+	for name, def := range m.ExternalFacilities {
+
+		if !validGoName(name) {
+			return fmt.Errorf("the external facility named %s is not a valid facility name (should follow same rules as a Go identifier", name)
+		}
+
+		if len(def.Builder) > 0 {
+
+			if len(strings.TrimSpace(def.Builder)) == 0 {
+				return fmt.Errorf("the Builder field for a facility definition is empty once trimmed")
+			}
+
+			for _, dep := range def.Depends {
+
+				if err := validDependency(dep); err != nil {
+					return err
+				}
+
+			}
+
+		}
+
+	}
+
+	return nil
+}
+
+func validDependency(d string) error {
+	if len(strings.TrimSpace(d)) == 0 {
+		return fmt.Errorf("a dependency in a facility defition is emtpy once trimmed")
+	}
+
+	return nil
+
 }

@@ -2,6 +2,7 @@ package binder
 
 import (
 	"fmt"
+	"github.com/graniticio/granitic/v2/test"
 	"testing"
 )
 
@@ -109,6 +110,62 @@ func TestCheckConfDetection(t *testing.T) {
 
 	if b.isPromise("$$MyThing") {
 		t.Error()
+	}
+
+}
+
+func TestManifestValidation(t *testing.T) {
+
+	m := new(Manifest)
+
+	if !test.ExpectNotNil(t, validateManifest(m)) {
+
+		t.Errorf("Expected error on missing namespace")
+
+	}
+
+	m.Namespace = " A "
+
+	if !test.ExpectNotNil(t, validateManifest(m)) {
+
+		t.Errorf("Expected error on string padded namespace")
+
+	}
+
+	m.Namespace = "A#B"
+
+	if !test.ExpectNotNil(t, validateManifest(m)) {
+
+		t.Errorf("Expected error on illegal characters in namespace")
+
+	}
+
+	m.Namespace = "1AB"
+
+	if !test.ExpectNotNil(t, validateManifest(m)) {
+
+		t.Errorf("Expected error on namespace starting with number")
+
+	}
+
+	m.Namespace = "grnc"
+
+	if !test.ExpectNil(t, validateManifest(m)) {
+
+		t.Errorf("Expected no error with valid namespace")
+
+	}
+
+	def := new(definition)
+
+	m.ExternalFacilities = make(map[string]*definition)
+
+	m.ExternalFacilities["2Invalid!"] = def
+
+	if !test.ExpectNotNil(t, validateManifest(m)) {
+
+		t.Errorf("Expected error on invalid facility name")
+
 	}
 
 }

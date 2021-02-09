@@ -509,6 +509,11 @@ func (b *Binder) writeEntryFunctionOpen(w *bufio.Writer, t int) {
 
 func (b *Binder) validName(name string) bool {
 
+	return validGoName(name)
+}
+
+func validGoName(name string) bool {
+
 	if len(name) == 0 {
 		return false
 	}

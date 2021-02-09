@@ -1,7 +1,9 @@
 {
   "ExternalFacilities": {
     "FacilityA": {
-      "Namespace": "MyCompany"
+      "Disabled": true,
+      "Depends": ["HTTPServer", "JSONWs"],
+      "Builder": "mypackage/sub"
     }
   }
 }
