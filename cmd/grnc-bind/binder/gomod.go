@@ -19,7 +19,7 @@ const manifestPrefix = "manifest."
 
 // FindExternalFacilities parses the first level of modules imported by this application's go.mod file and
 // tries to find properly defined Granitic external facilities
-func FindExternalFacilities(is types.StringSet, l logging.Logger) (*ExternalFacilities, error) {
+func FindExternalFacilities(is types.StringSet, l logging.Logger, loader DefinitionLoader) (*ExternalFacilities, error) {
 
 	cwd, _ := os.Getwd()
 
@@ -27,11 +27,11 @@ func FindExternalFacilities(is types.StringSet, l logging.Logger) (*ExternalFaci
 		return nil, err
 	} else {
 
-		return modulesToFacilities(is, m, l)
+		return modulesToFacilities(is, m, l, loader)
 	}
 }
 
-func modulesToFacilities(is types.StringSet, mf *modFile, l logging.Logger) (*ExternalFacilities, error) {
+func modulesToFacilities(is types.StringSet, mf *modFile, l logging.Logger, loader DefinitionLoader) (*ExternalFacilities, error) {
 
 	cp, err := cachePath(l)
 
@@ -78,7 +78,7 @@ ModLoop:
 
 		}
 
-		valid, err := validExternalFacility(p, l)
+		valid, err := validExternalFacility(p, l, loader)
 
 		if err != nil {
 			return nil, err
@@ -86,7 +86,7 @@ ModLoop:
 
 		if valid != nil {
 			l.LogDebugf("External facility found in module %s", mod.Path)
-			valid.Name = modName
+			valid.ModuleName = modName
 			valid.ModulePath = p
 			valid.ModuleVersion = mod.Version
 			ef.Info = append(ef.Info, valid)
@@ -102,7 +102,7 @@ ModLoop:
 	return ef, nil
 }
 
-func validExternalFacility(p string, l logging.Logger) (*ExternalFacility, error) {
+func validExternalFacility(p string, l logging.Logger, loader DefinitionLoader) (*ExternalFacility, error) {
 	fp := filepath.Join(p, "facility")
 
 	if !folderExists(fp) {
@@ -111,6 +111,7 @@ func validExternalFacility(p string, l logging.Logger) (*ExternalFacility, error
 		return nil, nil
 	}
 
+	// Find and parse the manifest file for the facility
 	mf, err := locateManifest(fp)
 
 	if err != nil {
@@ -122,8 +123,14 @@ func validExternalFacility(p string, l logging.Logger) (*ExternalFacility, error
 		return nil, nil
 	}
 
+	mani, err := loader.FacilityManifest(mf)
+
+	if err != nil {
+		return nil, fmt.Errorf("unable to parse manifest file at %s: %s", mf, err.Error())
+	}
+
 	ex := new(ExternalFacility)
-	ex.Manifest = mf
+	ex.Manifest = mani
 
 	cfPath := filepath.Join(fp, facConfigFolder)
 

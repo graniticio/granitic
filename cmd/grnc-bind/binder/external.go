@@ -15,18 +15,19 @@ type ExternalFacilities struct {
 }
 
 type ExternalFacility struct {
-	Name          string
+	Namespace     string
+	ModuleName    string
 	ModulePath    string
 	ModuleVersion string
-	Manifest      string
+	Manifest      *Manifest
 	Components    string
 	Config        string
 }
 
 // Manifest is the structure into which an external facility's manifest file is parsed into
 type Manifest struct {
-	Namespace          string
-	ExternalFacilities map[string]*definition
+	Namespace  string
+	Facilities map[string]*definition
 }
 
 type definition struct {
@@ -58,11 +59,11 @@ func validateManifest(m *Manifest) error {
 
 func validateDefinitions(m *Manifest) error {
 
-	if len(m.ExternalFacilities) == 0 {
+	if len(m.Facilities) == 0 {
 		return nil
 	}
 
-	for name, def := range m.ExternalFacilities {
+	for name, def := range m.Facilities {
 
 		if !validGoName(name) {
 			return fmt.Errorf("the external facility named %s is not a valid facility name (should follow same rules as a Go identifier", name)

@@ -292,7 +292,7 @@ func (b *Binder) findExternalFacilities(ignore string) (*ExternalFacilities, err
 
 	}
 
-	return FindExternalFacilities(is, b.Log)
+	return FindExternalFacilities(is, b.Log, b.Loader)
 
 }
 
@@ -1059,22 +1059,29 @@ func (b *Binder) writeSerialisedConfig(w *bufio.Writer, ex *ExternalFacilities) 
 	l := b.Log
 
 	exConf := make([]string, 0)
+	///enabledMap := make(map[string]interface{})
 
 	if ex != nil && len(ex.Info) > 0 {
 
 		for _, f := range ex.Info {
 
 			if f.Config == "" {
-				l.LogDebugf("External facility module %s does not contain any additional configuration", f.Name)
+				l.LogDebugf("External facility module %s does not contain any additional configuration", f.ModuleName)
 			} else {
 
 				exConf = append(exConf, f.Config)
 
 			}
 
+			/*	ns :=
+
+				if enabledMap[]*/
+
 		}
 
 	}
+
+	// Generate a config file which holds the default enabled/disabled state of each external facility
 
 	sv := SerialiseBuiltinConfig(b.Log, b.Loader, b.SupportedExtensions, exConf...)
 
@@ -1218,11 +1225,11 @@ func (b *Binder) loadConfig(l string, ex *ExternalFacilities) *config.Accessor {
 		for _, f := range ex.Info {
 
 			if f.Components == "" {
-				log.LogDebugf("External facility module %s has no components to add", f.Name)
+				log.LogDebugf("External facility module %s has no components to add", f.ModuleName)
 				continue ExternalFacilityLoop
 			}
 
-			log.LogDebugf("Adding component files from external facility module %s", f.Name)
+			log.LogDebugf("Adding component files from external facility module %s", f.ModuleName)
 
 			if xfc, err := config.ExpandToFilesAndURLs([]string{f.Components}); err != nil {
 

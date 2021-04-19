@@ -65,11 +65,11 @@ func TestManifestParse(t *testing.T) {
 		t.Errorf("Unexpected error %s", err.Error())
 	}
 
-	if m.ExternalFacilities == nil || len(m.ExternalFacilities) == 0 {
+	if m.Facilities == nil || len(m.Facilities) == 0 {
 		t.Errorf("Expected definitions")
 	}
 
-	pm := m.ExternalFacilities["FacilityA"]
+	pm := m.Facilities["FacilityA"]
 
 	if pm == nil {
 		t.Errorf("Expected a definition")

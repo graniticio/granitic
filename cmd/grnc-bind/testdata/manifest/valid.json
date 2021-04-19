@@ -1,5 +1,6 @@
 {
-  "ExternalFacilities": {
+  "Namespace": "SomeVendor",
+  "Facilities": {
     "FacilityA": {
       "Disabled": true,
       "Depends": ["HTTPServer", "JSONWs"],

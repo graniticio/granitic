@@ -158,9 +158,9 @@ func TestManifestValidation(t *testing.T) {
 
 	def := new(definition)
 
-	m.ExternalFacilities = make(map[string]*definition)
+	m.Facilities = make(map[string]*definition)
 
-	m.ExternalFacilities["2Invalid!"] = def
+	m.Facilities["2Invalid!"] = def
 
 	if !test.ExpectNotNil(t, validateManifest(m)) {
 
@@ -168,9 +168,9 @@ func TestManifestValidation(t *testing.T) {
 
 	}
 
-	m.ExternalFacilities = make(map[string]*definition)
+	m.Facilities = make(map[string]*definition)
 
-	m.ExternalFacilities["Valid"] = def
+	m.Facilities["Valid"] = def
 
 	def.Depends = []string{"Ext.Other.Invalid"}
 
