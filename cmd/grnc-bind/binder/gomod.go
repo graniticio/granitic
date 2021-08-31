@@ -129,8 +129,15 @@ func validExternalFacility(p string, l logging.Logger, loader DefinitionLoader) 
 		return nil, fmt.Errorf("unable to parse manifest file at %s: %s", mf, err.Error())
 	}
 
+	if err := validateManifest(mani); err != nil {
+		return nil, err
+	}
+
 	ex := new(ExternalFacility)
 	ex.Manifest = mani
+	ex.Namespace = mani.Namespace
+
+	l.LogDebugf("Valid manifest for namespace %s", mani.Namespace)
 
 	cfPath := filepath.Join(fp, facConfigFolder)
 

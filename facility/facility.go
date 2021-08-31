@@ -92,3 +92,8 @@ type Builder interface {
 	//correctly.
 	DependsOnFacilities() []string
 }
+
+// ExternalBuilder allows Granitic to initialise external facilities defined outside on the core Granitic packages (in
+// third-part libraries or Granitic extensions).
+type ExternalBuilder struct {
+}

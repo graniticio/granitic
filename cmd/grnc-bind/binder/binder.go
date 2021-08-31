@@ -160,6 +160,18 @@ func (b *Binder) Bind(s Settings) {
 		} else {
 			ex = xf
 		}
+	}
+
+	if ex.Found() {
+
+		b.Log.LogDebugf("Writing temporary config and component files for external facility settings")
+
+		if err := WriteTempFacilityFiles(ex); err != nil {
+			b.exitError(err.Error())
+		}
+
+		b.Log.LogDebugf("Temp components file: %s", ex.TempCompFile)
+		b.Log.LogDebugf("Temp config file: %s", ex.TempConfFile)
 
 	}
 

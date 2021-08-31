@@ -4,14 +4,27 @@
 package binder
 
 import (
+	"bufio"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 )
 
 // ExternalFacilities holds information about the code and config defined in Go module
 // dependencies that should be compiled into this application.
 type ExternalFacilities struct {
-	Info []*ExternalFacility
+	Info         []*ExternalFacility
+	TempConfFile string
+	TempCompFile string
+}
+
+// Found returns true if at least on valid external facility has been found
+func (ex *ExternalFacilities) Found() bool {
+
+	return len(ex.Info) > 0
+
 }
 
 type ExternalFacility struct {
@@ -34,6 +47,84 @@ type definition struct {
 	Disabled bool
 	Depends  []string
 	Builder  string
+}
+
+// WriteTempFacilityFiles creates a temporary component and config file containing the builders and default states for
+// external facilities
+func WriteTempFacilityFiles(facilities *ExternalFacilities) (err error) {
+
+	var compFile, confFile *os.File
+
+	if compFile, err = ioutil.TempFile("", "comp.*.json"); err != nil {
+		return fmt.Errorf("unable to create a temporary component file: %s", err.Error())
+	}
+
+	if confFile, err = ioutil.TempFile("", "conf.*.json"); err != nil {
+		return fmt.Errorf("unable to create a temporary config file: %s", err.Error())
+	}
+
+	defer compFile.Close()
+	defer confFile.Close()
+
+	confMap := make(map[string]interface{})
+	facilityStatus := make(map[string]interface{})
+
+	confMap["ExternalFacilities"] = facilityStatus
+
+	for _, ef := range facilities.Info {
+
+		nsm := facilityStatus[ef.Namespace]
+
+		if nsm == nil {
+			facilityStatus[ef.Namespace] = make(map[string]bool)
+
+		}
+
+		tsm := facilityStatus[ef.Namespace].(map[string]bool)
+
+		for fn, fm := range ef.Manifest.Facilities {
+
+			tsm[fn] = !fm.Disabled
+
+		}
+
+	}
+
+	fw := bufio.NewWriter(confFile)
+	cfWriter := json.NewEncoder(fw)
+
+	if err := cfWriter.Encode(confMap); err != nil {
+		return fmt.Errorf("unable to write temporary config file to %s: %s", confFile.Name(), err.Error())
+	} else {
+		fw.Flush()
+	}
+
+	fmt.Println(confFile.Name())
+
+	facilities.TempCompFile = compFile.Name()
+	facilities.TempConfFile = confFile.Name()
+
+	return nil
+}
+
+type confMap map[string]interface{}
+
+func (cm confMap) addExternal(ns, name string, state bool) {
+
+	ex := cm["External"]
+
+	if ex == nil {
+		ex = make(map[string]interface{})
+		cm["External"] = ex
+	}
+
+	ans := ex.(map[string]interface{})[ns]
+
+	if ans == nil {
+		ans = make(map[string]interface{})
+		ex.(map[string]interface{})[ns] = ans
+	}
+
 }
 
 func validateManifest(m *Manifest) error {
