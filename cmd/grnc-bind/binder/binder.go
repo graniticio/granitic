@@ -162,7 +162,7 @@ func (b *Binder) Bind(s Settings) {
 		}
 	}
 
-	if ex.Found() {
+	if ex != nil && ex.Found() {
 
 		b.Log.LogDebugf("Writing temporary config and component files for external facility settings")
 

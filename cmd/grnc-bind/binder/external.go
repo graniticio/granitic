@@ -20,7 +20,7 @@ type ExternalFacilities struct {
 	TempCompFile string
 }
 
-// Found returns true if at least on valid external facility has been found
+// Found returns true if at least one valid external facility has been found
 func (ex *ExternalFacilities) Found() bool {
 
 	return len(ex.Info) > 0
