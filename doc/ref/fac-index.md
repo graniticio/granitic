@@ -11,5 +11,6 @@ Back to: [Reference](README.md)
   * [RDBMS](fac-rdbms.md)
   * [Runtime Control](fac-runtime.md)
   * [Service Error Management](fac-service-errors.md)
+  * [External Facilities](fac-external.md)
 
 This section explains how to enable and configuration Granitic's major features, known as facilities.

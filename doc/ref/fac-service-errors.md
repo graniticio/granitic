@@ -103,6 +103,6 @@ The following components are created when this facility is enabled:
 | grncServiceErrorManager | [grncerror.ServiceErrorManager](https://godoc.org/github.com/graniticio/granitic/grncerror#ServiceErrorManager) |
 
 ---
-**Next**: [Runtime Control](rtc-index.md)
+**Next**: [External Facilities](fac-external.md)
 
 **Prev**: [Runtime Control facility](fac-runtime.md)
