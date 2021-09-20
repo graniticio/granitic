@@ -71,6 +71,8 @@ Usage of grnc-bind:
     	The path of a file where the merged component definition file should be written to. Execution will halt after writing.
   -o string
     	Path to the Go source file that will be generated to instatiate your components (default "bindings/bindings.go")
+  -x	
+        Enable the discovery of external facilities in Go modules referenced in this application's go.mod file 
 ```
 
 ### Debugging grnc-bind
