@@ -35,6 +35,12 @@ sub-folders `comp-def` and `config` for storing component definitions and config
       *.json
 ```
 
+### Components and configuration
+
+All components defined under `facility/comp-def` and all configuration under `facility/config` will be included in your 
+application. Files in this sub-folders will be loaded and merged together in the same depth-first manner as your application's
+component definition and configuration files.
+
 ### Using YAML instead of JSON
 
 If you are using [grnc-yaml](http://github.com/graniticio/granitic-yaml), you can create your external facility's 
@@ -113,6 +119,15 @@ In practical terms, 'disabling' an external facility triggers the following beha
 If your facility is disabled by default, any components declared in the facility's component definition files will still
 be instantiated and any configuration will still be included in your application's executable.
 
+### Depends
+
+The `Depends` field is an array of strings, each of which is an internal Granitic facility or another external facility
+that must be enabled in order to use this external facility correctly.
+
+### Builder 
+
+The builder field is a Go struct that implements the Granitic `facility/ExternalBuilder` interface. The type is specified
+relative to the root of module that contains the manifest file.
 
 ---
 **Next**: [Runtime Control](rtc-index.md)
