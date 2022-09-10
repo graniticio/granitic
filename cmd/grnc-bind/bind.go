@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -34,16 +34,15 @@ Usage of grnc-bind:
 		Path to the Go source file that will be generated (default "bindings/bindings.go")
 	-l string
 		The level at which the tool will output messages: TRACE, DEBUG, INFO, ERROR, FATAL (default ERROR)
-
 */
 package main
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/graniticio/granitic/v2/cmd/grnc-bind/binder"
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v3/cmd/grnc-bind/binder"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/logging"
 	"io/ioutil"
 	"os"
 )

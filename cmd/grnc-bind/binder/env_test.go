@@ -9,7 +9,7 @@ func TestModFileRequireShouldMatch(t *testing.T) {
 
 	reqRe := regexp.MustCompile(reqRegex)
 
-	shouldMatch := "github.com/graniticio/granitic/v2 v2.2.0"
+	shouldMatch := "github.com/graniticio/granitic/v3 v3.0.0"
 
 	reqMatches := reqRe.FindStringSubmatch(shouldMatch)
 
@@ -17,7 +17,7 @@ func TestModFileRequireShouldMatch(t *testing.T) {
 		majorVersion := reqMatches[1]
 		requiredVersion := reqMatches[2]
 
-		if majorVersion != "v2" || requiredVersion != "v2.2.0" {
+		if majorVersion != "v3" || requiredVersion != "v3.0.0" {
 			t.Fail()
 		}
 	} else {

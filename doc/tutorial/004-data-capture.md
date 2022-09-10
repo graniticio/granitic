@@ -64,7 +64,7 @@ type ArtistQuery struct {
 }
 ```
 
-Make sure you add `github.com/graniticio/granitic/v2/types` to that file's list of imports 
+Make sure you add `github.com/graniticio/granitic/v3/types` to that file's list of imports 
 if your IDE hasn't already done it for you.
 
 You should also change the signature for the method:
@@ -263,9 +263,9 @@ package artist
 
 import (
   "context"
-  "github.com/graniticio/granitic/v2/logging"
-  "github.com/graniticio/granitic/v2/types"
-  "github.com/graniticio/granitic/v2/ws"
+  "github.com/graniticio/granitic/v3/logging"
+  "github.com/graniticio/granitic/v3/types"
+  "github.com/graniticio/granitic/v3/ws"
 )
 
 type PostLogic struct {

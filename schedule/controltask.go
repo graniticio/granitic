@@ -1,8 +1,8 @@
 package schedule
 
 import (
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/logging"
 )
 
 const (

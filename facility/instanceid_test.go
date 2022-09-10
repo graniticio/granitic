@@ -1,8 +1,8 @@
 package facility
 
 import (
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/ioc"
 	"testing"
 )
 

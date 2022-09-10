@@ -84,4 +84,4 @@ If you have problems installing or running the support tools. Make sure that:
 
 ## Next steps
 
-For more information on developing Granitic applications, please [work through the tutorials](https://github.com/graniticio/granitic/v2/tree/master/doc/tutorial)
+For more information on developing Granitic applications, please [work through the tutorials](https://github.com/graniticio/granitic/v3/tree/master/doc/tutorial)

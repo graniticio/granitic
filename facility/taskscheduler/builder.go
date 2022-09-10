@@ -1,19 +1,19 @@
-// Copyright 2018-2020 Granitic. All rights reserved.
+// Copyright 2018-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package taskscheduler
 
 import (
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/schedule"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/schedule"
 )
 
 const facilityName = "TaskScheduler"
 
-//TaskSchedulerComponentName is the name of the TaskScheduler component as stored in the IoC framework.
+// TaskSchedulerComponentName is the name of the TaskScheduler component as stored in the IoC framework.
 const TaskSchedulerComponentName = instance.FrameworkPrefix + facilityName
 
 // FacilityBuilder creates the components that make up the TaskScheduler facility

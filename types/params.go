@@ -3,7 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
-	rt "github.com/graniticio/granitic/v2/reflecttools"
+	rt "github.com/graniticio/granitic/v3/reflecttools"
 	"net/url"
 	"reflect"
 	"strconv"

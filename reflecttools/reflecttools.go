@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -119,7 +119,7 @@ func IsPointerToStruct(p interface{}) bool {
 	return true
 }
 
-//IsPointer returns true if the supplied object is a pointer type
+// IsPointer returns true if the supplied object is a pointer type
 func IsPointer(p interface{}) bool {
 	pv := reflect.ValueOf(p)
 	pvk := pv.Kind()

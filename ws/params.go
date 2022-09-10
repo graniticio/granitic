@@ -1,10 +1,10 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package ws
 
 import (
-	"github.com/graniticio/granitic/v2/types"
+	"github.com/graniticio/granitic/v3/types"
 	"net/url"
 	"strconv"
 )

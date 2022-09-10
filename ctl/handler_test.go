@@ -2,8 +2,8 @@ package ctl
 
 import (
 	"context"
-	"github.com/graniticio/granitic/v2/types"
-	"github.com/graniticio/granitic/v2/ws"
+	"github.com/graniticio/granitic/v3/types"
+	"github.com/graniticio/granitic/v3/ws"
 	"testing"
 )
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -32,7 +32,7 @@ The line should be changed to a non-relative path that reflects the layout of yo
 
 	import "github.com/yourGitHubUser/yourPackage/bindings"
 
-Your project's module name will be the same as the project name unless you provide the module name as the second argument to this tool
+# Your project's module name will be the same as the project name unless you provide the module name as the second argument to this tool
 
 The .gitignore file contains:
 
@@ -46,7 +46,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/graniticio/granitic/v2/cmd/grnc-project/generate"
+	"github.com/graniticio/granitic/v3/cmd/grnc-project/generate"
 	"path/filepath"
 )
 
@@ -117,7 +117,7 @@ func writeComponentsFile(compDir string, pg *generate.ProjectGenerator) {
 func writeMainFile(w *bufio.Writer, module string) {
 
 	w.WriteString("package main\n\n")
-	w.WriteString("import \"github.com/graniticio/granitic/v2\"\n")
+	w.WriteString("import \"github.com/graniticio/granitic/v3\"\n")
 	w.WriteString("import \"")
 	w.WriteString(module)
 	w.WriteString("/bindings\"")
@@ -139,7 +139,7 @@ func writeModFile(baseDir string, moduleName string, pg *generate.ProjectGenerat
 	w := bufio.NewWriter(f)
 
 	fmt.Fprintf(w, "module %s\n\n", moduleName)
-	fmt.Fprintf(w, "require github.com/graniticio/granitic/v2 v2\n")
+	fmt.Fprintf(w, "require github.com/graniticio/granitic/v3 v2\n")
 
 	w.Flush()
 

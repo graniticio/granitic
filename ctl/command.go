@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -12,11 +12,10 @@ web services.
 Each command is associated with a component hosted in the IoC container that implements the ctl.Command interface described
 below. Granitic includes a number of built-in commands for common administration tasks, but users can create their own
 commands by implementing the Command interface on any component.
-
 */
 package ctl
 
-import "github.com/graniticio/granitic/v2/ws"
+import "github.com/graniticio/granitic/v3/ws"
 
 // A Command represents an instruction that can be sent to Granitic to operate on a running instance of an application.
 type Command interface {

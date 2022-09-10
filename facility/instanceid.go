@@ -1,11 +1,11 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package facility
 
 import (
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/ioc"
 )
 
 // InstanceIDDecorator injects an Identifier into components that need to be aware of the current application instance's

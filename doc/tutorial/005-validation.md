@@ -126,7 +126,7 @@ for a particular validation operation.
 we haven't referenced before in our `components.json` file, so you'll have to amend the `packages` array at the top of 
 the file to include:
 
-<pre>"github.com/graniticio/granitic/v2/validate"</pre>
+<pre>"github.com/graniticio/granitic/v3/validate"</pre>
 
 ## Component references
 

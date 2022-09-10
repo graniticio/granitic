@@ -2,7 +2,7 @@ package httpserver
 
 import (
 	"context"
-	"github.com/graniticio/granitic/v2/ioc"
+	"github.com/graniticio/granitic/v3/ioc"
 	"net/http"
 	"testing"
 )

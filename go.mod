@@ -1,3 +1,3 @@
-module github.com/graniticio/granitic/v2
+module github.com/graniticio/granitic/v3
 
-go 1.14
+go 1.19

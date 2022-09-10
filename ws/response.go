@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -7,7 +7,7 @@ on how web services work in Granitic, see https://granitic.io/ref/web-services
 
 A brief explanation of the key types and concepts follows.
 
-Requests and responses
+# Requests and responses
 
 Request and Response are abstractions of the HTTP request and response associated with a call to a web service
 endpoint. By default your application logic will not have access to the underlying HTTP objects (this can be overridden
@@ -20,7 +20,7 @@ in a Response are rendered to the caller. This is instead handled by the JSONWs 
 HTTP status codes are determined automatically based on the type (or lack of) errors in the Response object, but
 this behaviour can be overridden by setting an HTTP status code manually on the Response.
 
-Errors
+# Errors
 
 Errors can be detected or occur during all the phases of request processing (see https://granitic.io/ref/web-services-principles ).
 If errors are encountered during the parsing
@@ -33,24 +33,24 @@ If an error occurs during or after parsing and binding is complete, it will be r
 field. These types of errors are called service errors. For more information on service errors, refer to the GoDoc for
 CategorisedError below or https://granitic.io/ref/service-error-management
 
-Response writing
+# Response writing
 
 The serialisation of the data in a Response to an HTTP response is handled by a component implementing ResponseWriter.
 A component of this type will be automatically created for you when you enable the JSONWs or XMLWs facility.
 
-Parameter binding
+# Parameter binding
 
 Parameter binding refers to the process of automatically capturing request query parameters and injecting them into fields
 on the Request Body. It also refers to a similar process for extracting information from a request's path using regular expressions.
 See https://granitic.io/ref/capture-web-service-data for more details.
 
-IAM and versioning
+# IAM and versioning
 
 Granitic does not provide implementations of Identity Access Management or request versioning, but instead provides
 highly generic types to allow your application's implementations of these concepts to be integrated with Grantic's web
 service request processing. See the GoDoc for Identifier, AccessChecker and handler/WsVersionAssessor and the iam package for more details.
 
-HTTP status code determination
+# HTTP status code determination
 
 Unless your application defines its own HTTPStatusCodeDeterminer, the eventual HTTP status code set on the response
 to a web service request it determined by examining the state of a Response using the following logic:
@@ -72,14 +72,13 @@ d) Contains one or more 'Client' errors, use HTTP 400.
 e) Contains one or more 'Logic' errors, use HTTP 409.
 
 4. Return HTTP 200.
-
 */
 package ws
 
 import (
 	"context"
-	"github.com/graniticio/granitic/v2/httpendpoint"
-	"github.com/graniticio/granitic/v2/iam"
+	"github.com/graniticio/granitic/v3/httpendpoint"
+	"github.com/graniticio/granitic/v3/iam"
 	"net/http"
 )
 

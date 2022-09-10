@@ -1,14 +1,14 @@
-// Copyright 2018-2020 Granitic. All rights reserved.
+// Copyright 2018-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package granitic
 
 import (
-	"github.com/graniticio/granitic/v2/cmd/grnc-bind/binder"
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/test"
+	"github.com/graniticio/granitic/v3/cmd/grnc-bind/binder"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/test"
 	"testing"
 )
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -17,7 +17,6 @@ are strongly encouraged to use nilable types instead of native types wherever po
 
 This package also defines a number of simple implmentations of a 'set'. Caution should be used when using these types in
 your own application as they are not goroutine safe or intended to store large numbers of strings.
-
 */
 package types
 

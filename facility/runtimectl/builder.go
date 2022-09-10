@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -7,7 +7,7 @@ Package runtimectl provides the RuntimeCtl facility which allows external runtim
 This facility is described in detail at https://granitic.io/ref/runtime-control Refer to the ctl package documentation
 for information on how to implement your own commands.
 
-Enabling runtime control
+# Enabling runtime control
 
 Enabling the RuntimeCtl facility creates an HTTP server that allows instructions to be issued to
 any component in the IoC container which implements the ctl.Command interface from the grnc-ctl command line tool.
@@ -27,38 +27,37 @@ different port. The listen port defaults to 9099 but can be changed with the fol
 
 Note that by default the server only listens on the IPV4 localhost. To listen on all interfaces, change address to ""
 
-Disabling individual commands
+# Disabling individual commands
 
 You can disable individual commands (either builtin commands or your own application commands) with configuration. For
 example:
 
-{
-  "RuntimeCtl": {
-	"Manager":{
-	  "Disabled": ["shutdown"]
+	{
+	  "RuntimeCtl": {
+		"Manager":{
+		  "Disabled": ["shutdown"]
+		}
+	  }
 	}
-  }
-}
 
 Disables the shutdown command, preventing your application being stopped remotely.
-
 */
 package runtimectl
 
 import (
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/ctl"
-	"github.com/graniticio/granitic/v2/facility/httpserver"
-	ge "github.com/graniticio/granitic/v2/grncerror"
-	"github.com/graniticio/granitic/v2/httpendpoint"
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/types"
-	"github.com/graniticio/granitic/v2/validate"
-	"github.com/graniticio/granitic/v2/ws"
-	"github.com/graniticio/granitic/v2/ws/handler"
-	"github.com/graniticio/granitic/v2/ws/json"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/ctl"
+	"github.com/graniticio/granitic/v3/facility/httpserver"
+	ge "github.com/graniticio/granitic/v3/grncerror"
+	"github.com/graniticio/granitic/v3/httpendpoint"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/types"
+	"github.com/graniticio/granitic/v3/validate"
+	"github.com/graniticio/granitic/v3/ws"
+	"github.com/graniticio/granitic/v3/ws/handler"
+	"github.com/graniticio/granitic/v3/ws/json"
 )
 
 const (
@@ -82,7 +81,7 @@ const (
 	defaultValidationCode      = "INV_CTL_REQUEST"
 )
 
-//FacilityBuilder creates and configures the RuntimeCtl facility.
+// FacilityBuilder creates and configures the RuntimeCtl facility.
 type FacilityBuilder struct {
 }
 

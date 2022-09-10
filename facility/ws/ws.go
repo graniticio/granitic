@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -6,7 +6,7 @@ Package ws provides the JSONWs and XMLWs facilities which support JSON and XML w
 
 This facility is documented in detail at https://granitic.io/ref/web-services
 
-Web-services
+# Web-services
 
 Enabling the JSONWs or XMLWs facility allows the creation of web service endpoints where inbound and outbound data is automatically converted from and to JSON/XML.
 
@@ -26,8 +26,7 @@ An endpoint is created by adding an instance of handler.WsHandler with a corresp
 
 See the ws and ws/handler package documentation for more information.
 
-
-JSON
+# JSON
 
 If JSONWs is enabled, any requests to a registered endpoint will have their request body parsed as JSON and any response rendered as JSON.
 This is handled with Go's built-in json package.
@@ -35,7 +34,7 @@ This is handled with Go's built-in json package.
 Many aspects of the parsing and rendering process (including content types, formatting of errors, pretty-printing and
 camel-case mapping) is configurable. Refer to https://granitic.io/ref/json-web-services for more details.
 
-XML
+# XML
 
 Once the XMLWs facility is enabled, requests to an endpoint will, by default, be parsed as XML and rendered using
 user defined templates. Refer to https://granitic.io/ref/xml-web-services for more details.
@@ -49,7 +48,6 @@ XML marshalling components by setting the following configuration in your applic
 	  }
 	}
 
-
 Refer to https://granitic.io/ref/xml-web-services for more information.
 
 Many aspects of the parsing and rendering process (including content types and formatting of errors) is configurable.
@@ -58,13 +56,13 @@ Refer to https://granitic.io/ref/xml-web-services for more details.
 package ws
 
 import (
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/facility/httpserver"
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/ws"
-	"github.com/graniticio/granitic/v2/ws/handler"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/facility/httpserver"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/ws"
+	"github.com/graniticio/granitic/v3/ws/handler"
 )
 
 const wsHTTPStatusDeterminerComponentName = instance.FrameworkPrefix + "HTTPStatusDeterminer"

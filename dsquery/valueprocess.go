@@ -3,7 +3,7 @@ package dsquery
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v2/types"
+	"github.com/graniticio/granitic/v3/types"
 )
 
 // ParamValueProcessor is implemented by components able to escape the value of a parameter to a query and handle unset parameters

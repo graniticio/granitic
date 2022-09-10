@@ -1,12 +1,12 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package config
 
 import (
 	"encoding/json"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/test"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/test"
 	"io/ioutil"
 	"path/filepath"
 	"testing"

@@ -1,8 +1,8 @@
 package xml
 
 import (
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/test"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/test"
 	"testing"
 )
 

@@ -44,8 +44,8 @@ package artist
 import (
 	"context"
 	"fmt"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/ws"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/ws"
 )
 
 type GetLogic struct {

@@ -3,8 +3,8 @@ package binder
 import (
 	"bufio"
 	"fmt"
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/logging"
 	"io/ioutil"
 	"os"
 	"path/filepath"

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package httpserver
@@ -7,10 +7,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/graniticio/granitic/v2/httpendpoint"
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/types"
+	"github.com/graniticio/granitic/v3/httpendpoint"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/types"
 	"net/http"
 	"strconv"
 	"strings"
@@ -53,7 +53,7 @@ func (jlb *JSONLineBuilder) SetInstanceID(i *instance.Identifier) {
 	}
 }
 
-//SetContextFilter provides the formatter with access selected data from a context
+// SetContextFilter provides the formatter with access selected data from a context
 func (jlb *JSONLineBuilder) SetContextFilter(cf logging.ContextFilter) {
 
 	if jlb.MapBuilder != nil {
@@ -131,7 +131,7 @@ func ValidateJSONFields(fields []*AccessLogJSONField) error {
 
 }
 
-//ConvertFields converts from the config representation of a field list to the internal version
+// ConvertFields converts from the config representation of a field list to the internal version
 func ConvertFields(unparsed [][]string) []*AccessLogJSONField {
 
 	l := len(unparsed)

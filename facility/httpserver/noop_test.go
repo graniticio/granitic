@@ -2,7 +2,7 @@ package httpserver
 
 import (
 	"context"
-	"github.com/graniticio/granitic/v2/instrument"
+	"github.com/graniticio/granitic/v3/instrument"
 	"testing"
 )
 

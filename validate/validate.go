@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -14,11 +14,11 @@ can clutter application code.
 Granitic's validation framework and patterns are covered in detail at https://granitic.io/ref/validation but a brief overview of
 the key types and concepts follows.
 
-RuleValidator
+# RuleValidator
 
 Each instance of handler.WsHandler in your application has an optional field
 
-		RuleValidator *validate.RuleValidator
+	RuleValidator *validate.RuleValidator
 
 If an AutoValidator is provided, its Validate method will be invoked before your handler's Logic.Process method is called. If errors
 are detected by the RuleValidator, processing stops and an error response will be served to the web service caller.
@@ -54,7 +54,7 @@ Each RuleValidator requires a set of rules, which must be defined in your applic
 
 (The spacing in the example above is to illustrate the components of a rule and has no effect on behaviour.)
 
-Rule structure
+# Rule structure
 
 Rules consist of three components: a field name, type and one or more operations.
 
@@ -68,20 +68,20 @@ https://granitic.io/ref/validation for more detail.
 
 For checks and processing instructions, the order in which they appear in the rule is significant as checks are made from left to right.
 
-Error codes
+# Error codes
 
 Error codes determine what error is sent to a web service caller if a check fails. Error codes can be defined in three
 levels of granularity - on an operation, on a rule or on a RuleValidator. The most specific error available is always used.
 
 Using the validation framework requires the ServiceErrorManager facility to be enabled (see https://granitic.io/ref/service-error-management )
 
-Sharing rules
+# Sharing rules
 
 Sometimes it is useful for a rule to be defined once and re-used by multiple RuleValidators. This is also required
 to use some advanced techniques for deep validation of the elements of a slice. This technique is described in detail at
 https://granitic.io/ref/validation rule manager.
 
-Decomposing the application of a rule
+# Decomposing the application of a rule
 
 The first rule in the example above is:
 
@@ -104,12 +104,12 @@ is not permanently modified.
 6. The value of CatalogRef is compared to the regex ^[A-Z]{3}-[\\d]{6}$ If there is no match, the error CATALOG_REF will be included
 in the eventual response to the web service call.
 
-Advanced techniques
+# Advanced techniques
 
 The Granitic validation framework is deep and flexible and you are encouraged to read the reference at https://granitic.io/ref/validation
 Advanced techniques include cross field mutual exclusivity, deep validation of slice elements and cross-field dependencies.
 
-Programmatic creation of rules
+# Programmatic creation of rules
 
 It is possible to define rules in your application code. Each type of rule supports a fluent-style interface to make application code more readable in this case. The rule
 above could be expressed as
@@ -126,9 +126,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/types"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/types"
 	"regexp"
 	"strconv"
 	"strings"

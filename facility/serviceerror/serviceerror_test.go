@@ -1,9 +1,9 @@
 package serviceerror
 
 import (
-	"github.com/graniticio/granitic/v2/grncerror"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/ws"
+	"github.com/graniticio/granitic/v3/grncerror"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/ws"
 	"testing"
 )
 

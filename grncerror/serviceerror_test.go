@@ -1,8 +1,8 @@
 package grncerror
 
 import (
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/types"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/types"
 	"testing"
 )
 

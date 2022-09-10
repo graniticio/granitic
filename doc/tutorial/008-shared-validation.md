@@ -98,8 +98,8 @@ and set its contents to:
 package db
 
 import (
-  "github.com/graniticio/granitic/v2/rdbms"
-  "github.com/graniticio/granitic/v2/logging"
+  "github.com/graniticio/granitic/v3/rdbms"
+  "github.com/graniticio/granitic/v3/logging"
 )
 
 type ArtistExistsChecker struct{

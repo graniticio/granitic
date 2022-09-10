@@ -2,9 +2,9 @@ package httpserver
 
 import (
 	"context"
-	"github.com/graniticio/granitic/v2/httpendpoint"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/ws"
+	"github.com/graniticio/granitic/v3/httpendpoint"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/ws"
 	"testing"
 )
 

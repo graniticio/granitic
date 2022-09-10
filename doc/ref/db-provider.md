@@ -33,7 +33,7 @@ package db
 import (
   "database/sql"
   "github.com/go-sql-driver/mysql"
-  "github.com/graniticio/granitic/v2/logging"
+  "github.com/graniticio/granitic/v3/logging"
 )
 
 type MySQLProvider struct {

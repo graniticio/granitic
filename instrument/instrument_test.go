@@ -1,10 +1,10 @@
-// Copyright 2018-2020 Granitic. All rights reserved.
+// Copyright 2018-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 package instrument
 
 import (
 	"context"
-	"github.com/graniticio/granitic/v2/test"
+	"github.com/graniticio/granitic/v3/test"
 	"testing"
 )
 

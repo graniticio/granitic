@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package httpserver
@@ -6,12 +6,12 @@ package httpserver
 import (
 	"context"
 	"fmt"
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/instrument"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/uuid"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/instrument"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/uuid"
 	"net/http"
 	"strings"
 )

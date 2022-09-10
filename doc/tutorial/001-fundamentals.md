@@ -150,7 +150,7 @@ Create the file `artist/get.go` in your `recordstore` project and set the conten
 package artist
 
 import (
-  "github.com/graniticio/granitic/v2/ws"
+  "github.com/graniticio/granitic/v3/ws"
   "context"
 )
 
@@ -189,7 +189,7 @@ Open the file `comp-def/common.json` and set the content to:
 ```json
 {
   "packages": [
-    "github.com/graniticio/granitic/v2/ws/handler",
+    "github.com/graniticio/granitic/v3/ws/handler",
     "recordstore/artist"
   ],
 
@@ -250,7 +250,7 @@ project. For this tutorial, this file will look like:
 ```go
 package main
 
-import "github.com/graniticio/granitic/v2"
+import "github.com/graniticio/granitic/v3"
 import "recordstore/bindings"
 
 func main() {

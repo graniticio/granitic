@@ -101,10 +101,10 @@ The import section of this file should now look something like:
 ```go
 import (
   "context"
-  "github.com/graniticio/granitic/v2/logging"
-  "github.com/graniticio/granitic/v2/rdbms"
-  "github.com/graniticio/granitic/v2/types"
-  "github.com/graniticio/granitic/v2/ws"
+  "github.com/graniticio/granitic/v3/logging"
+  "github.com/graniticio/granitic/v3/rdbms"
+  "github.com/graniticio/granitic/v3/types"
+  "github.com/graniticio/granitic/v3/ws"
   "net/http"
 )
 ```

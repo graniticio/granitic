@@ -2,10 +2,10 @@ package ws
 
 import (
 	"context"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/ws"
-	"github.com/graniticio/granitic/v2/ws/handler"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/ws"
+	"github.com/graniticio/granitic/v3/ws/handler"
 	"net/http"
 	"testing"
 )

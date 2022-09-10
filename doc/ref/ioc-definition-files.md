@@ -34,8 +34,8 @@ file's JSON structure.
 ```json
 {
   "packages": [
-    "github.com/graniticio/granitic/v2/ws/handler",
-    "github.com/graniticio/granitic/v2/validate",
+    "github.com/graniticio/granitic/v3/ws/handler",
+    "github.com/graniticio/granitic/v3/validate",
     "recordstore/artist",
     "recordstore/db",
     "github.com/go-sql-driver/mysql"
@@ -49,7 +49,7 @@ import is merged together by `grnc-bind` and any duplicates are discarded.
 ## Aliases
 
 If you import two or more packages where the final part of the package names clash (e.g `"myapp/handler"` and 
-`github.com/graniticio/granitic/v2/ws/handler"`) you can assign an alias to one of the clashing packages in the JSON 
+`github.com/graniticio/granitic/v3/ws/handler"`) you can assign an alias to one of the clashing packages in the JSON 
 object/map `packageAliases` at the root of your component definition file's JSON structure:
 
 ```json

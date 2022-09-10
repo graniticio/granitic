@@ -1,14 +1,14 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package facility
 
 import (
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/reflecttools"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/reflecttools"
 	"reflect"
 )
 
@@ -16,7 +16,7 @@ import (
 // components that might use them
 type ContextFilterBuilder struct{}
 
-//BuildAndRegister constructs the components that together constitute the facility and stores them in the IoC container.
+// BuildAndRegister constructs the components that together constitute the facility and stores them in the IoC container.
 func (cf *ContextFilterBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
 
 	log := lm.CreateLogger(instance.FrameworkPrefix + "ContextFilterBuilder")
@@ -76,12 +76,12 @@ func (cf *ContextFilterBuilder) BuildAndRegister(lm *logging.ComponentLoggerMana
 
 }
 
-//FacilityName returns the facility's unique name. Used to check whether the facility is enabled in configuration.
+// FacilityName returns the facility's unique name. Used to check whether the facility is enabled in configuration.
 func (cf *ContextFilterBuilder) FacilityName() string {
 	return "ContextFilterDecorator"
 }
 
-//DependsOnFacilities returns the names of other facilities that must be enabled in order for this facility to run correctly.
+// DependsOnFacilities returns the names of other facilities that must be enabled in order for this facility to run correctly.
 func (cf *ContextFilterBuilder) DependsOnFacilities() []string {
 	return []string{}
 }

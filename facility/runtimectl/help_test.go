@@ -1,7 +1,7 @@
 package runtimectl
 
 import (
-	"github.com/graniticio/granitic/v2/ctl"
+	"github.com/graniticio/granitic/v3/ctl"
 	"testing"
 )
 

@@ -3,14 +3,14 @@ package binder
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v3/logging"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 )
 
-//ParseModFile tries to parse the mod file in the supplied directory and returns an error if parsing failed
+// ParseModFile tries to parse the mod file in the supplied directory and returns an error if parsing failed
 func ParseModFile(d string, l logging.Logger) (*ModFile, error) {
 
 	cwd, _ := os.Getwd()

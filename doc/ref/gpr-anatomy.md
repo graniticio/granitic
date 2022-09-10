@@ -23,7 +23,7 @@ on how you structure your code in terms of packages and source files. The only t
 ```go
 package main
 
-import "github.com/graniticio/granitic/v2"
+import "github.com/graniticio/granitic/v3"
 import "project/bindings"  
 
 func main() {

@@ -2,7 +2,7 @@ package json
 
 import (
 	"context"
-	"github.com/graniticio/granitic/v2/ws"
+	"github.com/graniticio/granitic/v3/ws"
 	"io/ioutil"
 	"net/http"
 	"strings"

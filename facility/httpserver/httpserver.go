@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -12,7 +12,6 @@ and mapping of requests to instances of ws.Handler. AccessLogWriter supports Apa
 
 Most applications will only need to enable this facility (probably changing the listen Port) and define mappings between incoming paths and application logic in their
 component definition files. See handler.WsHandler for more details.
-
 */
 package httpserver
 
@@ -20,11 +19,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v2/httpendpoint"
-	"github.com/graniticio/granitic/v2/instrument"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/ws"
+	"github.com/graniticio/granitic/v3/httpendpoint"
+	"github.com/graniticio/granitic/v3/instrument"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/ws"
 	"net"
 	"net/http"
 	"regexp"

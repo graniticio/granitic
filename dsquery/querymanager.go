@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -12,7 +12,6 @@ Most Granitic applications requiring access to a data source will enable the Que
 to an instance of the TemplatedQueryManager type defined in this package. Instructions on configuring and using the
 QueryManager facility can be found at https://granitic.io/ref/query-management also see the package documentation for the
 facility/querymanager package for some basic examples.
-
 */
 package dsquery
 
@@ -21,11 +20,11 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	rt "github.com/graniticio/granitic/v2/reflecttools"
-	"github.com/graniticio/granitic/v2/types"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	rt "github.com/graniticio/granitic/v3/reflecttools"
+	"github.com/graniticio/granitic/v3/types"
 	"os"
 	"reflect"
 	"regexp"

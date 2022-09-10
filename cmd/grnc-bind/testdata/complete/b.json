@@ -1,8 +1,8 @@
 {
   "packages": [
-    "github.com/graniticio/granitic/v2/ws/handler",
+    "github.com/graniticio/granitic/v3/ws/handler",
     "granitic-tutorial/recordstore/endpoint",
-    "github.com/graniticio/granitic/v2/validate",
+    "github.com/graniticio/granitic/v3/validate",
     "github.com/go-sql-driver/mysql",
     "granitic-tutorial/recordstore/db"
   ],

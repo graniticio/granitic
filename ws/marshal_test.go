@@ -3,8 +3,8 @@ package ws
 import (
 	"bytes"
 	"context"
-	"github.com/graniticio/granitic/v2/httpendpoint"
-	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v3/httpendpoint"
+	"github.com/graniticio/granitic/v3/logging"
 	"net/http"
 	"testing"
 )

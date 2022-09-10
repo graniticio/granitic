@@ -1,9 +1,9 @@
 {
   "packages": [
-    "github.com/graniticio/granitic/v2/ws/handler"
+    "github.com/graniticio/granitic/v3/ws/handler"
   ],
   "packageAliases": {
-    "gg": "github.com/graniticio/granitic/v2/ws/handler"
+    "gg": "github.com/graniticio/granitic/v3/ws/handler"
   },
   "templates": {
     "handler": {

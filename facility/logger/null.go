@@ -1,15 +1,15 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package logger
 
 import (
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
 )
 
-//NullLoggingFacilityBuilder creates a minimal set of components to allow applications to run even if the application logging facility has been disabled
+// NullLoggingFacilityBuilder creates a minimal set of components to allow applications to run even if the application logging facility has been disabled
 type NullLoggingFacilityBuilder struct {
 }
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -10,7 +10,7 @@ lookup templated queries by an ID and have those queries populated with supplied
 A full description of this facility and how to configure it can be found at https://granitic.io/ref/query-management-facility . Also refer to the GoDoc for the
 GoDoc for the dsquery package.
 
-Template locations and template formats
+# Template locations and template formats
 
 The QueryManager manager facility is configured with the QueryManager configuration element. For most applications, only the
 TemplateLocation might need changing from it's default. The default setting is:
@@ -60,18 +60,18 @@ This file defines three query templates. A new template is signified by a line s
 
 In this example, an application would use the query ID ARTIST_ID_SELECT to recover the first query.
 
-Parameters
+# Parameters
 
 A query template may optionally include parameters. Any string inside a ${} structure is considered a parameter name. In the example
 above, query ID RECORD_INSERT defines three parameters catRef, recordName, artistID. The query manager can be supplied with a map
 containing keys that match those parameter names and will populate the template with the values associated with those keys.
 
-Required parameters
+# Required parameters
 
 If you put a ! character before a parameter name in your template (e.g. ${!artistID}), an error will be returned if that parameter is
 not available when a query is built.
 
-Parameter Values
+# Parameter Values
 
 Parameter values are injected into the query using a component called a ParamValueProcessor. Granitic includes two
 built-in implementations - ConfigurableProcessor and SQLProcessor. These components a) decide how to handle missing parameter
@@ -86,11 +86,11 @@ package querymanager
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/dsquery"
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/dsquery"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
 	"strings"
 )
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -10,7 +10,6 @@ the Granitic ws and handler packages that define web-services.
 In most cases, user applications will not need to interact with the types in this package. Instead they will define
 components of type handler.WsHandler (which already implements the key Provider interface below) and the
 framework will automatically register them with the HTTPServer facility.
-
 */
 package httpendpoint
 

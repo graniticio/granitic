@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -16,13 +16,13 @@ package rdbms
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v2/config"
-	"github.com/graniticio/granitic/v2/facility/querymanager"
-	"github.com/graniticio/granitic/v2/instance"
-	"github.com/graniticio/granitic/v2/ioc"
-	"github.com/graniticio/granitic/v2/logging"
-	"github.com/graniticio/granitic/v2/rdbms"
-	"github.com/graniticio/granitic/v2/types"
+	"github.com/graniticio/granitic/v3/config"
+	"github.com/graniticio/granitic/v3/facility/querymanager"
+	"github.com/graniticio/granitic/v3/instance"
+	"github.com/graniticio/granitic/v3/ioc"
+	"github.com/graniticio/granitic/v3/logging"
+	"github.com/graniticio/granitic/v3/rdbms"
+	"github.com/graniticio/granitic/v3/types"
 )
 
 const rdbmsClientManagerConfigName = instance.FrameworkPrefix + "ClientManagerConfig"

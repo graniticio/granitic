@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2022 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -39,16 +39,14 @@ Built-in commands:
 	start         Starts one component or all components.
 	stop          Stops one component or all components.
 	suspend       Suspends one component or all components.
-
-
 */
 package main
 
 import (
-//"fmt"
-//"github.com/graniticio/granitic/v2/initiation"
-//"github.com/graniticio/granitic/v2/ioc"
-//"github.com/graniticio/granitic/v2/initiation"
+// "fmt"
+// "github.com/graniticio/granitic/v3/initiation"
+// "github.com/graniticio/granitic/v3/ioc"
+// "github.com/graniticio/granitic/v3/initiation"
 )
 import (
 	"bytes"

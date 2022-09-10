@@ -105,7 +105,7 @@ package db
 import (
   "database/sql"
   "github.com/go-sql-driver/mysql"
-  "github.com/graniticio/granitic/v2/logging"
+  "github.com/graniticio/granitic/v3/logging"
 )
 
 type MySQLProvider struct {
@@ -254,10 +254,10 @@ The imports section of this file should now be:
 ```go
 import (
   "context"
-  "github.com/graniticio/granitic/v2/logging"
-  "github.com/graniticio/granitic/v2/types"
-  "github.com/graniticio/granitic/v2/ws"
-  "github.com/graniticio/granitic/v2/rdbms"
+  "github.com/graniticio/granitic/v3/logging"
+  "github.com/graniticio/granitic/v3/types"
+  "github.com/graniticio/granitic/v3/ws"
+  "github.com/graniticio/granitic/v3/rdbms"
   "net/http"
 )
 ```
