@@ -1,64 +1,51 @@
-# Granitic 2.2 Release Notes
+# Granitic 3.0
 
-Granitic 2.2 adds features and fixes that are backwards-compatible with code based on Granitic 2.0.x 
+Granitic 3.0 makes changes that may not be compatible with your version 2.x projects. See the
+'Breaking Changes' section at the end of this document.
 
-## Logging
+## Go 1.19
 
-### JSON structured access and application logging
+Granitic 3.0 requires Go 1.19 or later.
 
-Application logs and access logs can now configured to output a user-defined JSON structure for each log event. 
-Refer to the reference manual for [application logging](https://granitic.io/ref/logging-format-output) 
-and the [HTTP server facility](https://granitic.io/ref/http-server) for more details. 
+## YAML configuration as default
 
-### STDOUT access logging
+Granitic 3.0 now uses YAML files as the default for both configuration files and component definition files.
+JSON files are still supported in user applications and third party libaries and your project may include
+a mix of JSON and YAML files as required.
 
-The HTTP Server access log can now write to `STDOUT` if you set `HTTPServer.AccessLog.LogPath` to `STDOUT` in configuration.
+## Change to 'no dependencies' policy
 
-### Multiple ContextFilters
+In order to modernise Granitic, we have had to relax our policy on importing third party libraries into the 
+core Granitic source code. Our policy is now to minimise the use of third party libraries and only use those
+libraries that are trusted by major Go projects such as Kubernetes.
 
-Your application can now have as more than one component that implements logging.ContextFilter. If more than
-one component is found, they will be merged into a [logging.PrioritisedContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#PrioritisedContextFilter)
+Version 3 now imports [YAML](https://pkg.go.dev/gopkg.in/yaml.v3) and [gocheck](https://labix.org/gocheck)
 
-You can control the how keys present in more than one ContextFilter are resolved to a single value by
-having your ContextFilters implement [logging.FilterPriority](https://godoc.org/github.com/graniticio/granitic/logging#FilterPriority)
+## External facilities
 
-## Application start up
+Version 3 now allows you to include component definitions and default configuration for external libraries
+in your application. This allows teams building services that rely on shared or third libraries to avoid having to
+manually import component definition files into every service that uses that library.
 
-### Save merged configuration
+## Change of focus
 
-Supply the `-m` flag and a path to a file when starting your application will cause Granitic to write it's final, merged
-view of your application's configuration to that file (as JSON) and then exit.
+Since Granitic was originally created, the way micro services are built, deployed and run has fundamentally
+changed. The original purpose of Granitic was to help Java developers to migrate large, XML-centric Spring
+applications into Go.
 
-This is useful when debugging problems introduced my merging configuration files.
+While that is still a supported use case, the most common use of Granitic is to build small micro services running
+in containers or as a Function-as-a-Service wrapper like AWS Lambda.
 
-### Instance IDs
+For that reason, several built-in facilities have been moved into external facilities:
 
-Setting the `-u` flag when starting your application will cause Granitic to generate a V4 UUID and use that as the ID
-for that instance your application.
+  * Runtime Control (`RuntimeCtl`)
+  * Task Scheduler (`TaskScheduler`)
+  * XML Web Services (`XMLWs`)
 
-Your application's instance ID is now available as configuration at the path `System.InstanceID`
 
-## Query Manager
+You will need to change your application if you want to keep using them (information on how to do this is 
+in the Breaking Changes) section.
 
-## Slices as parameters
+## Breaking Changes
 
-When using the query manager (either directly or via the RDBMS interfaces) to construct a parameterised query, you
-may now provide slices/arrays of some types as parameters. The default behaviour is to format the slice as a comma separated
-list. Slices may contain any of the types supported as individual parameters - basic int types, booleans, strings and their
-[nilable equivalents](https://granitic.io/ref/nilable-types).
-
-## Web Services
-
-### Slices as parameters in query strings and request paths
-
-[Request path and query binding](https://granitic.io/ref/capture-web-service-data) now supports binding into a slice. 
-The parameter value should be expressed as a comma-separated list (e.g. `/some/p,a,t,h` or `/path?a=1,2,3&b=true,false`)
-
-Target slices can be a slice of any Go basic type (except `uintptr`, `complex64` and `complex128`) and any 
-[nilable type](https://granitic.io/ref/nilable-types).
-
-## Bug fixes
-
-### Query manager default configuration
-
-Enabling the query manager facility with its default configuration was causing a fatal error on application startup.
+TBC
