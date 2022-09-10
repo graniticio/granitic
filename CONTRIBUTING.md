@@ -64,8 +64,7 @@ must not lower the coverage percentage of the file or package you are modifying.
 If you are creating a new Go file as part of your submission, the expectation is that your tests will provide
 100% coverage for that file.
 
-Granitic's strict no-dependencies rule extends to tests. You can only use the test libraries included as part of
-Go or in Granitic's `test` package.
+As of Granitic 3.0, new tests should be written using [gocheck](http://labix.org/gocheck)
 
 If your tests require data files, they should be included in a folder named `testdata` in the package you are testing.
 
