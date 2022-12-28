@@ -1,7 +1,6 @@
 package logging
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -106,7 +105,7 @@ func TestAsynchFileLogging(t *testing.T) {
 	for alw.Busy() {
 	}
 
-	b, err := ioutil.ReadFile(fn)
+	b, err := os.ReadFile(fn)
 
 	if err != nil {
 		t.Fatalf("Unable to read tmp file for logging test %s", err.Error())

@@ -3,7 +3,7 @@ package json
 import (
 	"context"
 	"github.com/graniticio/granitic/v3/ws"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -31,7 +31,7 @@ func TestUnmarshalling(t *testing.T) {
 	r := new(http.Request)
 	sr := strings.NewReader("{\"A\": 1}")
 
-	rc := ioutil.NopCloser(sr)
+	rc := io.NopCloser(sr)
 
 	r.Body = rc
 

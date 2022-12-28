@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -17,7 +16,7 @@ import (
 // so any files in a sub-directory 'b' would appear in the resulting list of files before 'c.json'
 func FindJSONFilesInDir(dirPath string) ([]string, error) {
 
-	contents, err := ioutil.ReadDir(dirPath)
+	contents, err := os.ReadDir(dirPath)
 
 	files := make([]string, 0)
 
@@ -29,7 +28,7 @@ func FindJSONFilesInDir(dirPath string) ([]string, error) {
 
 		fileName := info.Name()
 
-		if info.Mode().IsDir() {
+		if info.IsDir() {
 
 			dp := filepath.Join(dirPath, fileName)
 
@@ -74,7 +73,7 @@ func FileListFromPath(path string) ([]string, error) {
 	}
 
 	if fileInfo.IsDir() {
-		contents, err := ioutil.ReadDir(path)
+		contents, err := os.ReadDir(path)
 
 		if err != nil {
 			err := errors.New("Unable to read contents of directory " + path)
@@ -109,7 +108,7 @@ func FileListFromPath(path string) ([]string, error) {
 func WriteJSONConfig(a *Accessor, f string) error {
 	if content, err := json.MarshalIndent(a.JSONData, "", " "); err != nil {
 		return err
-	} else if err = ioutil.WriteFile(f, content, 0644); err != nil {
+	} else if err = os.WriteFile(f, content, 0644); err != nil {
 		return err
 	}
 

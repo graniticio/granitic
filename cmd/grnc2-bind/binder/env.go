@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/logging"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -47,7 +46,7 @@ func LocateFacilityConfig(log logging.Logger) (string, error) {
 		// See if Granitic is checked out in a standard location under GOPATH
 		possiblePath := filepath.Join(goPath, "src", "github.com", "graniticio", "granitic")
 
-		if _, readErr := ioutil.ReadDir(possiblePath); readErr == nil {
+		if _, readErr := os.ReadDir(possiblePath); readErr == nil {
 
 			log.LogDebugf("Using standard checkout location under %s environment variable", goPathEnvVar)
 

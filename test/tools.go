@@ -14,7 +14,6 @@ package test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -134,7 +133,7 @@ func determineLine() string {
 func FindFacilityConfigFromWD() (string, error) {
 
 	var err error
-	var files []os.FileInfo
+	var files []os.DirEntry
 
 	path, err := os.Getwd()
 
@@ -144,7 +143,7 @@ func FindFacilityConfigFromWD() (string, error) {
 
 	for maxDepth := 8; maxDepth > 0; maxDepth-- {
 
-		if files, err = ioutil.ReadDir(path); err != nil {
+		if files, err = os.ReadDir(path); err != nil {
 			return "", err
 		}
 

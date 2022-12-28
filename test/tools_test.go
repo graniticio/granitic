@@ -1,7 +1,7 @@
 package test
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 )
 
@@ -13,7 +13,7 @@ func TestDefaultConfig(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	files, err := ioutil.ReadDir(p)
+	files, err := os.ReadDir(p)
 
 	if err != nil {
 		t.Fatalf(err.Error())

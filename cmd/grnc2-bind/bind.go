@@ -43,7 +43,6 @@ import (
 	"github.com/graniticio/granitic/v3/cmd/grnc2-bind/binder"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/logging"
-	"io/ioutil"
 	"os"
 )
 
@@ -89,7 +88,7 @@ func (jdl *jsonDefinitionLoader) WriteMerged(data map[string]interface{}, path s
 		return err
 	}
 
-	err = ioutil.WriteFile(path, b, 0644)
+	err = os.WriteFile(path, b, 0644)
 
 	if err != nil {
 		return err

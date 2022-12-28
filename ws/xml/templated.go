@@ -11,7 +11,6 @@ import (
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
 	"github.com/graniticio/granitic/v3/ws"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -211,12 +210,12 @@ func (rw *TemplatedXMLResponseWriter) preLoadTemplates(baseDir string) error {
 }
 
 func (rw *TemplatedXMLResponseWriter) templatePaths(baseDir string) ([]string, error) {
-	var di []os.FileInfo
+	var di []os.DirEntry
 	var err error
 
 	tp := make([]string, 0)
 
-	if di, err = ioutil.ReadDir(baseDir); err != nil {
+	if di, err = os.ReadDir(baseDir); err != nil {
 		m := fmt.Sprintf("Problem opening template directory or sub-directory %s: %s", baseDir, err.Error())
 		return nil, errors.New(m)
 	}

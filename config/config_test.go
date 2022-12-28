@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"github.com/graniticio/granitic/v3/logging"
 	"github.com/graniticio/granitic/v3/test"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -56,7 +56,7 @@ func LoadConfigFromFile(f string) *Accessor {
 	l := logging.CreateAnonymousLogger("config_test", 0)
 
 	var d interface{}
-	b, _ := ioutil.ReadFile(p)
+	b, _ := os.ReadFile(p)
 	json.Unmarshal(b, &d)
 
 	ca := new(Accessor)

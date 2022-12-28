@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"github.com/graniticio/granitic/v3/logging"
 	"github.com/graniticio/granitic/v3/test"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -174,7 +174,7 @@ func VisibleWhitespace(query string) string {
 func LoadRefFile(path string) string {
 
 	f := test.FilePath(path)
-	bytes, _ := ioutil.ReadFile(f)
+	bytes, _ := os.ReadFile(f)
 
 	return string(bytes)
 }

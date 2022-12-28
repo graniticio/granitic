@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/xml"
 	"github.com/graniticio/granitic/v3/ws"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -29,7 +29,7 @@ func TestUnmarshalling(t *testing.T) {
 	r := new(http.Request)
 	sr := strings.NewReader("<content><a>1</a></content>")
 
-	rc := ioutil.NopCloser(sr)
+	rc := io.NopCloser(sr)
 
 	r.Body = rc
 

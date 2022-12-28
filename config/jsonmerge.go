@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/logging"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -150,7 +150,7 @@ func (jm *JSONMerger) LoadAndMergeConfigWithBase(config map[string]interface{}, 
 				continue
 			}
 
-			jsonData, err = ioutil.ReadFile(fileName)
+			jsonData, err = os.ReadFile(fileName)
 		}
 
 		if err != nil {
