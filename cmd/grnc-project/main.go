@@ -12,25 +12,14 @@ Will create the following files and directories:
 
 	project-name
 	project-name/.gitignore
-	project-name/service.go
-	project-name/resource/components/components.yaml
-	project-name/resource/config/config.yaml
+	project-name/main.go
+	project-name/comp-def/base.yaml
+	project-name/config/base.yaml
 	project-name/go.mod
 
 This will allow a minimal Granitic application to be built and started by running:
 
 	cd project-name && grnc-bind && go build && ./project-name
-
-Developers should pay attention to the import statements in the generated project-name.go file. It will contain a line similar
-to:
-
-	import "./bindings"
-
-This is a relative import path, which will allow the project to be built and run with no knowledge of your workspace
-layout, but will prevent your application being installed with 'go install' and isn't considered good Go practice.
-The line should be changed to a non-relative path that reflects the layout of your Go workspace, which is most often:
-
-	import "github.com/yourGitHubUser/yourPackage/bindings"
 
 # Your project's module name will be the same as the project name unless you provide the module name as the second argument to this tool
 
@@ -38,6 +27,7 @@ The .gitignore file contains:
 
 	bindings*
 	project-name
+	project-name.exe
 
 Which prevents the output of 'grnc-bind' and 'go build' being included in your repository.
 */
@@ -87,50 +77,16 @@ func main() {
 	m["FullVersion"] = granitic.Version
 	m["MajorVersion"] = grncMajorVersion()
 
-	createModuleFile(s, m)
-	createMainFile(s, m)
-	createIgnoreFile(s, m)
-	createComponentFile(s, m)
-	createConfigFile(s, m)
+	createResourceFile(m, goModTemplate, filepath.Join(s.projectDir, "go.mod"))
+	createResourceFile(m, mainGoTemplate, filepath.Join(s.projectDir, "main.go"))
+	createResourceFile(m, ignoreTemplate, filepath.Join(s.projectDir, ".gitignore"))
+	createResourceFile(m, configTemplate, filepath.Join(s.projectDir, configDir, "base.yaml"))
+	createResourceFile(m, compTemplate, filepath.Join(s.projectDir, compDir, "base.yaml"))
 }
 
-func createModuleFile(s Settings, m map[string]string) {
+func createResourceFile(m map[string]string, template string, path string) {
 
-	modFile := filepath.Join(s.projectDir, "go.mod")
-
-	fileFromTemplate(modFile, goModTemplate, m)
-
-}
-
-func createMainFile(s Settings, m map[string]string) {
-
-	modFile := filepath.Join(s.projectDir, "main.go")
-
-	fileFromTemplate(modFile, mainGoTemplate, m)
-
-}
-
-func createIgnoreFile(s Settings, m map[string]string) {
-
-	modFile := filepath.Join(s.projectDir, ".gitignore")
-
-	fileFromTemplate(modFile, ignoreTemplate, m)
-
-}
-
-func createConfigFile(s Settings, m map[string]string) {
-
-	modFile := filepath.Join(s.projectDir, configDir, "base.yaml")
-
-	fileFromTemplate(modFile, configTemplate, m)
-
-}
-
-func createComponentFile(s Settings, m map[string]string) {
-
-	modFile := filepath.Join(s.projectDir, compDir, "base.yaml")
-
-	fileFromTemplate(modFile, compTemplate, m)
+	fileFromTemplate(path, template, m)
 
 }
 
@@ -152,7 +108,7 @@ func fileFromTemplate(path string, templateContent string, data any) {
 	w.Flush()
 }
 
-func createDirStructure(s *Settings) {
+func createDirStructure(s *settings) {
 
 	s.projectDir = s.ProjectName
 
@@ -164,8 +120,8 @@ func createDirStructure(s *Settings) {
 	mkDir(s.compDir)
 }
 
-// Settings contains the arguments for this tool
-type Settings struct {
+// settings contains the arguments for this tool
+type settings struct {
 	ProjectName string
 	ModuleName  string
 	projectDir  string
@@ -173,8 +129,8 @@ type Settings struct {
 	confDir     string
 }
 
-// settingsFromArgs uses CLI parameters to populate a Settings object
-func settingsFromArgs() Settings {
+// settingsFromArgs uses CLI parameters to populate a settings object
+func settingsFromArgs() settings {
 
 	a := os.Args
 
@@ -192,7 +148,7 @@ func settingsFromArgs() Settings {
 		module = a[2]
 	}
 
-	return Settings{
+	return settings{
 		ModuleName:  module,
 		ProjectName: project,
 	}
