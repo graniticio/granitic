@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/graniticio/granitic/v3/cmd/grnc-project/generate"
+	"github.com/graniticio/granitic/v3/cmd/grnc2-project/generate"
 	"os"
 	"path/filepath"
 	"testing"

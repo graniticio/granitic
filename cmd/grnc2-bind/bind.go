@@ -40,7 +40,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/graniticio/granitic/v3/cmd/grnc-bind/binder"
+	"github.com/graniticio/granitic/v3/cmd/grnc2-bind/binder"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/logging"
 	"io/ioutil"

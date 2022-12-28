@@ -4,7 +4,7 @@
 package main
 
 import (
-	"github.com/graniticio/granitic/v3/cmd/grnc-bind/binder"
+	"github.com/graniticio/granitic/v3/cmd/grnc2-bind/binder"
 	"github.com/graniticio/granitic/v3/logging"
 	"github.com/graniticio/granitic/v3/test"
 	"os"

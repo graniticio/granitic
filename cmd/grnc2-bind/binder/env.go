@@ -17,6 +17,7 @@ const (
 	goPathEnvVar       = "GOPATH"
 	reqRegex           = ".*github\\.com/graniticio/granitic/(v[\\d]*)[\\s]*(\\S*)"
 	replaceRegex       = ".*github\\.com/graniticio/granitic/v[\\d]*[\\s]*=>[\\s]*(\\S*)"
+	pathSuffix         = "/granitic"
 )
 
 // LocateFacilityConfig determines where on your filesystem you have checked out Granitic. This is used when code needs
@@ -56,6 +57,23 @@ func LocateFacilityConfig(log logging.Logger) (string, error) {
 		}
 	} else {
 		err = notFound
+	}
+
+	//For developers of Granitic or users running tests of their Granitic installation, check if we're inside the Granitic folders
+	if err != nil {
+
+		if wd, fileErr := os.Getwd(); fileErr == nil {
+
+			fmt.Println(wd)
+
+			if pos := strings.LastIndex(wd, pathSuffix); pos > 0 {
+
+				graniticPath = wd[:pos+len(pathSuffix)]
+
+				err = nil
+
+			}
+		}
 	}
 
 	if graniticPath != "" {

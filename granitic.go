@@ -22,7 +22,7 @@ will have a single, minimal file in its main package similar to:
 		granitic.StartGranitic(bindings.Components())
 	}
 
-You can build a skeleton Granitic application by running the grnc-project tool, which will generate a main file, empty
+You can build a skeleton Granitic application by running the grnc2-project tool, which will generate a main file, empty
 configuration file and empty component definition file. The uses and syntax of these files are described in the config and ioc packages respectively.
 
 # Components and configuration

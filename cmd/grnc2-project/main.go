@@ -2,11 +2,11 @@
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
-The grnc-project tool, used to generate skeleton project files for a new Granitic application. The generated project is module aware.
+The grnc2-project tool, used to generate skeleton project files for a new Granitic application. The generated project is module aware.
 
 Running
 
-	grnc-project project-name [module-name]
+	grnc2-project project-name [module-name]
 
 Will create the following files and directories:
 
@@ -46,7 +46,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"github.com/graniticio/granitic/v3/cmd/grnc-project/generate"
+	"github.com/graniticio/granitic/v3/cmd/grnc2-project/generate"
 	"path/filepath"
 )
 
@@ -66,7 +66,7 @@ func newJSONProjectGenerator() *generate.ProjectGenerator {
 	pg.ConfWriterFunc = writeConfigFile
 	pg.MainFileFunc = writeMainFile
 	pg.ModFileFunc = writeModFile
-	pg.ToolName = "grnc-project"
+	pg.ToolName = "grnc2-project"
 
 	return pg
 }

@@ -4,7 +4,7 @@
 package granitic
 
 import (
-	"github.com/graniticio/granitic/v3/cmd/grnc-bind/binder"
+	"github.com/graniticio/granitic/v3/cmd/grnc2-bind/binder"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
