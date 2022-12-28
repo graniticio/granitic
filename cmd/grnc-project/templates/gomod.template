@@ -1,0 +1,3 @@
+module {{ .Module }}
+
+require github.com/graniticio/granitic/v{{ .MajorVersion}} v{{.FullVersion}}

@@ -1,0 +1,8 @@
+package main
+
+import "github.com/graniticio/granitic/v{{ .MajorVersion }}"
+import "{{ .Module }}/bindings"
+
+func main() {
+	granitic.StartGranitic(bindings.Components())
+}

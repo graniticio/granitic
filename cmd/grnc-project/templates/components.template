@@ -1,0 +1,4 @@
+packages:
+  # List of package names (e.g granitic.ws) referenced by components in this file.
+components:
+  # Definition of components you want to be managed by Granitic
