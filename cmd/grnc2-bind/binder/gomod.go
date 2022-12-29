@@ -56,10 +56,10 @@ func ParseModFile(d string, l logging.Logger) (*ModFile, error) {
 type ModFile struct {
 }
 
-// CheckModFileExists makes sure that a go.mod file exists in the supplied directory
+// CheckModFileExists makes sure that a go.mod.old file exists in the supplied directory
 func CheckModFileExists(d string) bool {
 
-	f := filepath.Join(d, "go.mod")
+	f := filepath.Join(d, "go.mod.old")
 
 	info, err := os.Stat(f)
 

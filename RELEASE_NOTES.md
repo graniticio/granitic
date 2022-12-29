@@ -19,7 +19,7 @@ In order to modernise Granitic, we have had to relax our policy on importing thi
 core Granitic source code. Our policy is now to minimise the use of third party libraries and only use those
 libraries that are trusted by major Go projects such as Kubernetes.
 
-Version 3 now imports [YAML](https://pkg.go.dev/gopkg.in/yaml.v3) and [gocheck](https://labix.org/gocheck)
+Version 3 now imports [YAML](https://pkg.go.dev/gopkg.in/yaml.v3) and [Testify](https://github.com/stretchr/testify)
 
 ## External facilities
 
@@ -48,4 +48,20 @@ in the Breaking Changes) section.
 
 ## Breaking Changes
 
-TBC
+### Default location of component definition and config files
+```grnc-bind``` no longer supports the Granitic v1 default location for component definition and configuration files.
+Your project must now store these in folders named ```comp-def``` and ```config``` respectively.
+
+These folders should be stored at the root of your project.
+
+
+### Location of Granitic installation
+
+Tools that need to find your Granitic installation on disk (notably ```grnc-bind```) no longer use the ```GRANITIC_HOME```
+environment variable. Instead these tools:
+
+  * Check your project's go.mod file and either:
+    * Looks for the referenced version in your ```GOMODCACHE``` or
+    * Respects any ```replace``` directive.
+
+Additionally ```grnc-bind``` now has a ```-g``` flag to allow you to specify the location of a specific Granitic installation.

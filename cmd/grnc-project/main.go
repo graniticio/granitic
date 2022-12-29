@@ -15,7 +15,7 @@ Will create the following files and directories:
 	project-name/main.go
 	project-name/comp-def/base.yaml
 	project-name/config/base.yaml
-	project-name/go.mod
+	project-name/go.mod.old
 
 This will allow a minimal Granitic application to be built and started by running:
 
@@ -77,7 +77,7 @@ func main() {
 	m["FullVersion"] = granitic.Version
 	m["MajorVersion"] = grncMajorVersion()
 
-	createResourceFile(m, goModTemplate, filepath.Join(s.projectDir, "go.mod"))
+	createResourceFile(m, goModTemplate, filepath.Join(s.projectDir, "go.mod.old"))
 	createResourceFile(m, mainGoTemplate, filepath.Join(s.projectDir, "main.go"))
 	createResourceFile(m, ignoreTemplate, filepath.Join(s.projectDir, ".gitignore"))
 	createResourceFile(m, configTemplate, filepath.Join(s.projectDir, configDir, "base.yaml"))
