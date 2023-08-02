@@ -28,10 +28,10 @@ Additionally, Granitic is designed to be 'DevOps friendly' and offers:
 
 ## Getting started
 
-Read and follow the [installation instructions](https://github.com/graniticio/granitic/blob/master/doc/installation.md)
-then work through [the tutorials](https://github.com/graniticio/granitic/tree/master/doc/tutorial)
+Read and follow the [installation instructions](https://github.com/graniticio/granitic/v2/blob/master/doc/installation.md)
+then work through [the tutorials](https://github.com/graniticio/granitic/v2/tree/master/doc/tutorial)
 
-The GoDoc for Granitic can be [found here](https://godoc.org/github.com/graniticio/granitic)
+The GoDoc for Granitic can be [found here](https://godoc.org/github.com/graniticio/granitic/v2)
 
 Visit the [granitic.io](https://granitic.io) website to read the complete [reference manual](https://granitic.io/ref)
 
@@ -40,7 +40,7 @@ Visit the [granitic.io](https://granitic.io) website to read the complete [refer
 Once you have followed the installation instructions, you can run Granitic's unit tests by running
 
 ```
-cd $GOPATH/src/github.com/graniticio/granitic
+cd $GRANITIC_HOME
 go test ./...
 ```
 ## Contributing
