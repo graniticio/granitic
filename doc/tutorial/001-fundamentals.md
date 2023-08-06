@@ -46,7 +46,7 @@ This will create the following files under your home directory:
 recordstore
   .gitignore
   main.go
-  go mod
+  go.mod
   comp-def/
     common.json
   config/
