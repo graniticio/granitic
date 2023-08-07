@@ -62,30 +62,31 @@ Start the application by returning to your terminal and running
 
 <pre>
 cd recordstore
-go mod download
-grnc-bind
-go build
+go mod tidy
+grnc-bind && go build
 ./recordstore
 </pre>
 
 You should see output similar to:
 
 <pre>
-01/Mar/2019:14:59:52 Z INFO  [grncInit] Starting components
-01/Mar/2019:14:59:52 Z INFO  [grncInit] Ready (startup time 1.68654ms)
+06/Aug/2023:15:16:28 Z INFO  [grncInit] Granitic v2.2.2
+06/Aug/2023:15:16:28 Z INFO  [grncInit] Starting components
+06/Aug/2023:15:16:28 Z INFO  [grncInit] Ready (startup time 2.436292ms)
+
 </pre>
 
 This means your application has started and is waiting. You can stop it with `CTRL+C` and will see output similar to
 
 <pre>
-01/Mar/2019:15:00:36 Z INFO  [grncInit] Shutting down (system signal)
+06/Aug/2023:15:16:32 Z INFO  [grncInit] Shutting down (system signal)
 </pre>
 
 ## Facilities
 
 A `facility` is Granitic's name for a high-level feature that your application can enable or disable. By default,
 most of the features are disabled. You can see which features are available to your applications and whether or not they're enabled 
-by inspecting the file `facility/config/active.json` in your Granitic installation folder:
+by inspecting the file `facility/config/active.json` in your Granitic installation folder [or here on GitHub](https://github.com/graniticio/granitic/blob/master/facility/config/active.json)
 
 ```json
 {
@@ -104,11 +105,11 @@ by inspecting the file `facility/config/active.json` in your Granitic installati
 }
 ```
 
-In order to build a JSON web service that will listen for an handler HTTP requests, you will need to enable two facilities: 
+In order to build a JSON web service that will listen for and handle HTTP requests, you will need to enable two facilities: 
 `HTTPServer` and `JSONWs` (JSON Web Services).
 
 We do this by <i>overriding</i> the default setting for each facility. To do this, open the JSON `config/base.json` 
-that was generated for you and change it so it looks like:
+that was generated for you and change it so that it looks like:
 
 ```json
 {
@@ -129,7 +130,7 @@ grnc-bind && go build && ./recordstore
 You'll see an additional line of logging on startup similar to:
 
 <pre>
-01/Mar/2019:15:12:29 Z INFO  [grncHTTPServer] Listening on 8080
+06/Aug/2023:15:20:45 Z INFO  [grncHTTPServer] Listening on 8080
 </pre>
 
 Which shows that an HTTP server is listening for web service requests on the default port of 8080. Stop the running 
@@ -169,18 +170,19 @@ type Info struct {
 }
 ```
 
-This code defines an object implementing the `ws.WsRequestProcessor` interface and another object that will 
+This code defines an object implementing the [ws.WsRequestProcessor](https://pkg.go.dev/github.com/graniticio/granitic/v2/ws/handler#WsRequestProcessor) interface and another object that will 
 be used to store the results of the web service call, in this case a recording artist with the unlikely name "Hello, World!"
 
 
 ## Turning your code into a component
 
-At the core of Granitic is an Inversion of Control (IoC) container, sometimes also called a Dependency Injection framework. 
+At the core of Granitic is an [Inversion of Control](https://en.wikipedia.org/wiki/Inversion_of_control) (IoC) container, 
+sometimes also called a Dependency Injection framework. 
 Granitic looks after the lifecycle (creating and destroying) of the Go objects you define, but needs to be told which 
 objects should be included in your application and how they should be configured. 
 
 These definitions are stored in JSON _component definition files_ which, by default, are stored in your project in a folder called `comp-def`. 
-You can have as many files as you like in this folder, and it is recommend you group related components in to separate
+You can have as many files as you like in this folder, and it is recommended that you group related components in to separate
 named files.
 
 
@@ -210,8 +212,8 @@ A component definition file has two sections. The `packages` section declares th
 code that you intend to use as components. The `components` section declares uniquely named components that 
 you want to be managed by Granitic.
 
-The sole component in this file, `artistHandler`, is an instance of `handler.WsHandler`, a built-in Granitic 
-type. A `ws.WsHandler` coordinates the bulk of the request processing lifecycle as well as managing error-handling 
+The sole component in this file, `artistHandler`, is an instance of [handler.WsHandler](https://pkg.go.dev/github.com/graniticio/granitic/v2/ws/handler#WsHandler), a built-in Granitic 
+type. A `handler.WsHandler` coordinates the bulk of the request processing lifecycle as well as managing error-handling 
 for a web service request.
 
 One of the fields on this component, `Logic`, expects another component to be injected into to it. In this case
@@ -238,7 +240,8 @@ Return to your terminal and run
 You will notice that a Go source file `bindings/bindings.go` has been created. You will not 
 (and in fact should not) edit this file directly, but feel free to examine it to see what is happening.
 
-*You will need to re-run `grnc-bind` whenever you change your component definition file*
+*You will need to re-run `grnc-bind` whenever you change your component definition file - i.e. the files under your 
+comp-def folder*
 
 
 ## Building and testing your application
@@ -265,7 +268,7 @@ Granitic applications you will not need to modify or even look at this file.
 Return to your terminal and run:
 
 <pre>
-go build && ./recordstore
+grnc-bind && go build && ./recordstore
 </pre>
 
 Now open a browser and visit:
