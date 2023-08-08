@@ -111,7 +111,7 @@ receive an error response with the HTTP Status code defined in `TooBusyStatus` (
 
 ### Finding endpoints
 
-By default any [component](ioc-principles.md) you have created that implements the [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/httpendpoint#Provider)
+By default any [component](ioc-principles.md) you have created that implements the [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/v2/httpendpoint#Provider)
 interface will automatically found and added to the list of endpoints that can be matched against incoming HTTP
 requests.
 
@@ -126,7 +126,7 @@ generally required when you are running multiple custom instances of the Graniti
 ### Handling abnormal statuses
 
 Granitic's [web service processing pipeline](ws-pipeline.md) delegates the responsibility for writing HTTP responses
-to the [web service handlers](ws-handlers.md), or more specifically the [ws.ResponseWriter](https://godoc.org/github.com/graniticio/granitic/ws#ResponseWriter)
+to the [web service handlers](ws-handlers.md), or more specifically the [ws.ResponseWriter](https://godoc.org/github.com/graniticio/granitic/v2/ws#ResponseWriter)
 attached to the handler.
 
 There many circumstances under which the HTTP server will reject an inbound request before it reaches a handler, most
@@ -135,7 +135,7 @@ to be able to construct an HTTP response body that is consistent with 'normal' r
 
 If you are using the [JSONWS](fac-json-ws.md) or [XMLWs](fac-xml-ws.md) facility, this is handled automatically. If you
 not using either of those facilities (or want different behaviour) you must provide the HTTP server with an
-abnormal status writer by creating a component that implements [ws.AbnormalStatusWriter](https://godoc.org/github.com/graniticio/granitic/ws#AbnormalStatusWriter)
+abnormal status writer by creating a component that implements [ws.AbnormalStatusWriter](https://godoc.org/github.com/graniticio/granitic/v2/ws#AbnormalStatusWriter)
 and instructing the HTTP server to use it by providing a [framework modifier](ioc-definition-files.md) like:
 
 ```json
@@ -148,11 +148,11 @@ and instructing the HTTP server to use it by providing a [framework modifier](io
 }
 ``` 
 
-where `myStatusWriter` is the name of your component that implements [ws.AbnormalStatusWriter](https://godoc.org/github.com/graniticio/granitic/ws#AbnormalStatusWriter).
+where `myStatusWriter` is the name of your component that implements [ws.AbnormalStatusWriter](https://godoc.org/github.com/graniticio/granitic/v2/ws#AbnormalStatusWriter).
 
 ### Request identification
 
-If you have created a component that implements [httpserver.IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#IdentifiedRequestContextBuilder)
+If you have created a component that implements [httpserver.IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/v2/facility/httpserver#IdentifiedRequestContextBuilder)
 that component will be automatically be used to create, derive or inherit a ID for the current request using information included in the HTTP request.
 
 See [request identification](ws-identity.md) for more information.
@@ -165,14 +165,14 @@ can choose to alter the formatting by setting `HTTPServer.RequestID.UUID.Encodin
 ### Instrumentation
 
 The HTTP server supports and coordinates the [instrumentation of web service requests](ws-instrumentation.md) automatically
-finding a component you have registered that implements [instrument.RequestInstrumentationManager](https://godoc.org/github.com/graniticio/granitic/instrument#RequestInstrumentationManager).
+finding a component you have registered that implements [instrument.RequestInstrumentationManager](https://godoc.org/github.com/graniticio/granitic/v2/instrument#RequestInstrumentationManager).
 
 There are two configuration settings that affect this behaviour. 
 
 #### Auto-wiring
 
 Setting `HTTPServer.DisableInstrumentationAutoWire` to `true`
-means that the HTTP server will not automatically look for a component that implements [instrument.RequestInstrumentationManager](https://godoc.org/github.com/graniticio/granitic/instrument#RequestInstrumentationManager).
+means that the HTTP server will not automatically look for a component that implements [instrument.RequestInstrumentationManager](https://godoc.org/github.com/graniticio/granitic/v2/instrument#RequestInstrumentationManager).
 Instead you will need to explicit provide an instrumentation manager via a framework modifier like:
 
 ```json
@@ -268,7 +268,7 @@ or `combined`. The default is `framework`. The `common` and `combined` formats a
 | %{?}T | The wall-clock time the service spent processing the request in a unit specified by ? where s gives seconds, ms gives milliseconds and us gives microseconds |
 | %u | A string representation of the ID of the user on whose behalf the request is being made. Only available if [IAM is configured](ws-iam.md), otherwise the - symbol is printed |
 | %U | The path portion of the HTTP request line |
-| %{?}X | A value from a context.Context that has been made available to the access logger via a component you have written implementing [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) where ? is the key to the value 
+| %{?}X | A value from a context.Context that has been made available to the access logger via a component you have written implementing [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/v2/logging#ContextFilter) where ? is the key to the value 
 
 
 ## JSON access log line format
@@ -291,20 +291,20 @@ Each entry in the ```Fields``` array is a string array with two or three element
   * The type of data (content type) that should be used to set a value for the field
   * An optional argument if required by the content type
   
-| Content Type | Meaning and usage | Argument |
-| ----- | --- | --- |
-| CONTEXT_VALUE | A value from a `context.Context` that has been exposed by a [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) component | The string key of the exposed value
-| REMOTE | The equivalent to ```%h``` in text log lines | N/A |
-| REQ_HEADER | The equivalent to ```%{?}i``` in text log lines | The name of the header |
-| RECEIVED | The equivalent to ```%{?}t``` in text log lines | A standard Go datetime format string |
-| HTTP_METHOD | The equivalent to ```%m``` in text log lines | N/A |
-| REQ_PATH | The equivalent to ```%U``` in text log lines | N/A |
-| STATUS | The equivalent to ```%s``` in text log lines | N/A |
-| BYTES_OUT | The equivalent to ```%B``` in text log lines | N/A |
-| PROCESS_TIME | The equivalent to ```%{?}T``` in text log lines | `SECONDS`, `MILLI` or `MICRO` |  
-| REQUEST_LINE | The equivalent to ```%r``` in text log lines | N/A |
-| INSTANCE_ID | The ID [assigned to the current instance of your application](adm-instance.md) | N/A |
-| TEXT | The static text specified in the argument | The text to use as a value |
+| Content Type | Meaning and usage                                                                                                                                                        | Argument |
+| ----- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------| --- |
+| CONTEXT_VALUE | A value from a `context.Context` that has been exposed by a [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/v2/logging#ContextFilter) component | The string key of the exposed value
+| REMOTE | The equivalent to ```%h``` in text log lines                                                                                                                             | N/A |
+| REQ_HEADER | The equivalent to ```%{?}i``` in text log lines                                                                                                                          | The name of the header |
+| RECEIVED | The equivalent to ```%{?}t``` in text log lines                                                                                                                          | A standard Go datetime format string |
+| HTTP_METHOD | The equivalent to ```%m``` in text log lines                                                                                                                             | N/A |
+| REQ_PATH | The equivalent to ```%U``` in text log lines                                                                                                                             | N/A |
+| STATUS | The equivalent to ```%s``` in text log lines                                                                                                                             | N/A |
+| BYTES_OUT | The equivalent to ```%B``` in text log lines                                                                                                                             | N/A |
+| PROCESS_TIME | The equivalent to ```%{?}T``` in text log lines                                                                                                                          | `SECONDS`, `MILLI` or `MICRO` |  
+| REQUEST_LINE | The equivalent to ```%r``` in text log lines                                                                                                                             | N/A |
+| INSTANCE_ID | The ID [assigned to the current instance of your application](adm-instance.md)                                                                                           | N/A |
+| TEXT | The static text specified in the argument                                                                                                                                | The text to use as a value |
 
 ### Line prefix and suffix
 
@@ -352,10 +352,10 @@ The server can be suspended and resumed using [runtime control](rtc-index.md)
 
 The following components are created when this facility is enabled:
 
-| Name | Type |
-| ---- | ---- |
-| grncHTTPServer | [httpserver.HTTPServer](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#HTTPServer) |
-| grncAccessLogWriter | [httpserver.AccessLogWriter](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#AccessLogWriter) |
+| Name | Type                                                                                                                  |
+| ---- |-----------------------------------------------------------------------------------------------------------------------|
+| grncHTTPServer | [httpserver.HTTPServer](https://godoc.org/github.com/graniticio/granitic/v2/facility/httpserver#HTTPServer)           |
+| grncAccessLogWriter | [httpserver.AccessLogWriter](https://godoc.org/github.com/graniticio/granitic/v2/facility/httpserver#AccessLogWriter) |
 
 ---
 **Next**: [Logger facility](fac-logger.md)

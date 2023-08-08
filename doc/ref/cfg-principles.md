@@ -7,7 +7,7 @@
 
 Any value that modifies how your application code works is considered to be configuration. A small portion of this
 configuration is considered to be 'static' configuration which is effectively part of your code. For example, the configuration
-that tells a [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) whether it should
+that tells a [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) whether it should
 listen for `GET` or `POST` requests is fundamental and will never change.
 
 The vast majority of configuration is dynamic configuration that _could_ or _will_ change depending on the environment

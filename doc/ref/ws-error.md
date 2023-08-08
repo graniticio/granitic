@@ -6,14 +6,14 @@
 
 Granitic provides components, patterns and interfaces that allow you to provide a consistent way of communicating errors
 to your web service clients. The core types involved in Granitic error handling are the 
-[ws.CategorisedError](https://godoc.org/github.com/graniticio/granitic/ws#CategorisedError) and 
-[ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors).
+[ws.CategorisedError](https://godoc.org/github.com/graniticio/granitic/v2/ws#CategorisedError) and 
+[ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/v2/ws#ServiceErrors).
 
 These two types are used by both Granitic itself and your application logic.
 
 ## Categorised errors
 
-A [ws.CategorisedError](https://godoc.org/github.com/graniticio/granitic/ws#CategorisedError) has four elements:
+A [ws.CategorisedError](https://godoc.org/github.com/graniticio/granitic/v2/ws#CategorisedError) has four elements:
 
   * A category to which the error belongs
   * A unique text code to identify the error
@@ -29,7 +29,7 @@ Granitic has a system of categorisation for errors encountered during web servic
   * Security - the caller is not allowed to make the request
   * Unexpected - an internal problem (e.g. connectivity outage) was encountered
   
-These categories are programmatically represented by constants in the [ws package](https://godoc.org/github.com/graniticio/granitic/ws)
+These categories are programmatically represented by constants in the [ws package](https://godoc.org/github.com/graniticio/granitic/v2/ws)
 
 The purpose of the categories is to:
 
@@ -58,10 +58,10 @@ field.
 
 ## Service Errors
 
-Your web service's [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) creates
-a data structure of type [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors) to collect
+Your web service's [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) creates
+a data structure of type [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/v2/ws#ServiceErrors) to collect
 errors. It is made available to your [application logic](ws-logic.md) via the `Errors` field of the 
-[ws.Response](https://godoc.org/github.com/graniticio/granitic/ws#Response) object passed to your code.
+[ws.Response](https://godoc.org/github.com/graniticio/granitic/v2/ws#Response) object passed to your code.
 
 It provides an interface for recording errors as they are encountered. For example:
 
@@ -76,13 +76,13 @@ func (l *Logic) ProcessPayload(ctx context.Context, req *ws.Request, res *ws.Res
 
 ### Predefined errors
 
-Using the `AddPredefinedError` method on [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors)
+Using the `AddPredefinedError` method on [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/v2/ws#ServiceErrors)
 requires you to have enabled the  [ServiceErrorManager facility](fac-service-errors.md)
 
 ## Representing errors in HTTP responses
 
 If no errors are encountered while processing a request, Granitic will set the HTTP status to `200 Okay` and 
-use the `Body` field of the [ws.Response](https://godoc.org/github.com/graniticio/granitic/ws#Response) as the HTTP
+use the `Body` field of the [ws.Response](https://godoc.org/github.com/graniticio/granitic/v2/ws#Response) as the HTTP
 response body.
 
 If errors have been found, Granitic will examine the categories of the errors to determine the correct response code to
@@ -109,7 +109,7 @@ standards.
 
 ### HTTP status codes
 
-Granitic examines the [ws.Response](https://godoc.org/github.com/graniticio/granitic/ws#Response) at the end 
+Granitic examines the [ws.Response](https://godoc.org/github.com/graniticio/granitic/v2/ws#Response) at the end 
 of request processing and chooses the most appropriate HTTP status code according to the  following rules:
 
   1. If the `Response.HTTPStatus` field is non-zero, use that
@@ -126,7 +126,7 @@ Otherwise, if the `Response.Errors` structure:
 ## Framework errors
 
 Before Granitic passes control to your [logic component](ws-logic.md) any errors encountered while performing
-the early phases of request processing are recorded using the [ws.FrameworkError](https://godoc.org/github.com/graniticio/granitic/ws#FrameworkError)
+the early phases of request processing are recorded using the [ws.FrameworkError](https://godoc.org/github.com/graniticio/granitic/v2/ws#FrameworkError)
 type. 
 
 Generally this process is transparent to your application - errors encountered before your logic are generally due
@@ -134,10 +134,10 @@ to malformed client requests that cannot be easily recovered from and Granitic w
 `HTTP 400 - Bad Request` response.
 
 But if, you choose, you can disable automatic handling of these errors by setting the `DeferFrameworkErrors`
-field of your [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) to `false`.
+field of your [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) to `false`.
 
 Your application logic will then have access to the framework errors found via the `FrameworkErrors` field
-of the [ws.Request](https://godoc.org/github.com/graniticio/granitic/ws#Request) passed to it.
+of the [ws.Request](https://godoc.org/github.com/graniticio/granitic/v2/ws#Request) passed to it.
 
 
 ### Configuration

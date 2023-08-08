@@ -115,7 +115,7 @@ If you open the file `comp-def/common.json` you will see:
 }
 ```
 
-The component `artistHandler` is an instance of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) 
+The component `artistHandler` is an instance of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) 
 It provides all of the automatic web-service processing features supported by Granitic.
 
 We can define how path binding will work by configuring this component. Change the definition of your `artistHandler` component so it looks like:
@@ -351,12 +351,12 @@ In Postman:
 
  * Granitic can extract data from the path, query and body of an HTTP request and bind it to your custom Go structs.
  * All this behaviour is configurable by changing the configuration of your handler components
- * Handler components are instances of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+ * Handler components are instances of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
  
 ## Further reading
 
- * [Granitic web service processing GoDoc](https://godoc.org/github.com/graniticio/granitic/ws)
- * [Granitic web service facility GoDoc](https://godoc.org/github.com/graniticio/granitic/facility/ws)
+ * [Granitic web service processing GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/ws)
+ * [Granitic web service facility GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/facility/ws)
  
  
 ## Next

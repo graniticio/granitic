@@ -36,4 +36,4 @@ override this by running:
 ---
 **Next**: [Building and running your application](gpr-build.md) 
 
-**Prev**: [Anatomy of a Granitic project](grp-anatomy.md)
+**Prev**: [Anatomy of a Granitic project](gpr-anatomy.md)

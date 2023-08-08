@@ -23,7 +23,7 @@ concepts for you to become familiar with:
  * Severity - the importance of a message to be logged.
  
 Severities are (in ascending order of importance)  <code>TRACE, DEBUG, INFO, WARN, ERROR, FATAL</code>. 
-See the [GoDoc for more detail](https://godoc.org/github.com/graniticio/v2/granitic/logging)
+See the [GoDoc for more detail](https://godoc.org/github.com/graniticio/granitic/v2/logging)
 
 Your code will log messages through a Granitic component called a <code>Logger</code>. Granitic has two built-in Loggers 
 the <code>ApplicationLogger</code> and the <code>FrameworkLogger</code>. 
@@ -207,7 +207,7 @@ Restart <code>recordstore</code> and you will see a new line in the startup logs
 
 <pre>07/Aug/2023:18:44:05 Z INFO  [grncCtlServer] Listening on 9099</pre>
 
-You can now use the [grnc-ctrl command line tool](https://godoc.org/github.com/graniticio/granitic/cmd/grnc-ctl) to issue
+You can now use the [grnc-ctrl command line tool](https://godoc.org/github.com/graniticio/granitic/v2/cmd/grnc-ctl) to issue
 commands to <code>recordstore</code> while it is running.
 
 To get a list of the high level actions you can perform with this tool, open a new terminal and run:

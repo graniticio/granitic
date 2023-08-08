@@ -157,9 +157,9 @@ that can determine whether or not the field under validation is allowed.
 data source. For example, you might want to check if an email address is already being used by another user before
 allowing someone to claim it.
 
-The component that is used to perform the check must implement one of [validate.ExternalStringValidator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalStringValidator),
-[validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalFloat64Validator) or
-[validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator) according to 
+The component that is used to perform the check must implement one of [validate.ExternalStringValidator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalStringValidator),
+[validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalFloat64Validator) or
+[validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalInt64Validator) according to 
 the type of the field under consideration.
 
 ---

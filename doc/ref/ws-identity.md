@@ -13,14 +13,14 @@ These IDs are often generated at the edge of a web architecture in the first ser
 logical request to be traced down through your whole architecture.
 
 
-Granitic provides an interface [httpserver.IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#IdentifiedRequestContextBuilder)
+Granitic provides an interface [httpserver.IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/v2/facility/httpserver#IdentifiedRequestContextBuilder)
 which allows you to define a component that:
 
  * Generates new IDs or recovers them from an inbound HTTP request
  * Store that ID in a new [context.Context](https://golang.org/pkg/context/) 
  * Provide a way of extracting an ID from an existing context
  
-If you create a component that implements [httpserver.IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/facility/httpserver#IdentifiedRequestContextBuilder),
+If you create a component that implements [httpserver.IdentifiedRequestContextBuilder](https://godoc.org/github.com/graniticio/granitic/v2/facility/httpserver#IdentifiedRequestContextBuilder),
 it will automatically be injected into your [HTTPServer](fac-http-server.md) using a [decorator](ioc-decorators.md).
 
 ## Default request ID
@@ -30,7 +30,7 @@ for more details.
 
 ## Accessing the request ID
 
-If your code has access to the [ws.Request](https://godoc.org/github.com/graniticio/granitic/ws#Request) object, it can
+If your code has access to the [ws.Request](https://godoc.org/github.com/graniticio/granitic/v2/ws#Request) object, it can
 use the `ID()` function on that object to recover the string representation of the ID, given a context.
 
 The ID will also be automatically be made available to any [request instrumentation](ws-instrumentation.md) you have set up and,

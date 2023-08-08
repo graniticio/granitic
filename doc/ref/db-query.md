@@ -57,7 +57,7 @@ Lines that only contain whitespace will be discarded.
 ### Fragments
 
 If your query template does not contain any variables, it is considered a fragment. Application
-code using the [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client)
+code using the [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#Client)
 can recover these text fragments directly.
 
 
@@ -103,7 +103,7 @@ query construction (with the use of conditional statements) is not supported.
 It is possible to avoid embedding queries in your code by:
 
   * Creating templates for fragments of queries and combining them at runtime
-  * Making use of the `FindFragment` and `RegisterTempQuery` methods on the [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client)
+  * Making use of the `FindFragment` and `RegisterTempQuery` methods on the [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#Client)
   interface made available to your code.
 
 

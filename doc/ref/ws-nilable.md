@@ -8,11 +8,11 @@ A drawback of Go's system of [zero values](https://tour.golang.org/basics/12) is
 is the value of a field on your target object `false` because the web service client set the value to false, or because
 the value wasn't supplied at all and Go defaulted the value to false?
 
-Granitic gets around this problem by providing a set of ['nilable' types](https://godoc.org/github.com/graniticio/granitic/types)
-for [bool](https://godoc.org/github.com/graniticio/granitic/types#NilableBool), [string](https://godoc.org/github.com/graniticio/granitic/types#NilableString),
-[int64](https://godoc.org/github.com/graniticio/granitic/types#NilableInt64) and [float64](https://godoc.org/github.com/graniticio/granitic/types#NilableFloat64).
+Granitic gets around this problem by providing a set of ['nilable' types](https://godoc.org/github.com/graniticio/granitic/v2/types)
+for [bool](https://godoc.org/github.com/graniticio/granitic/v2/types#NilableBool), [string](https://godoc.org/github.com/graniticio/granitic/v2/types#NilableString),
+[int64](https://godoc.org/github.com/graniticio/granitic/v2/types#NilableInt64) and [float64](https://godoc.org/github.com/graniticio/granitic/v2/types#NilableFloat64).
 
-These types all implement the interface [types.Nilable](https://godoc.org/github.com/graniticio/granitic/types#Nilable)
+These types all implement the interface [types.Nilable](https://godoc.org/github.com/graniticio/granitic/v2/types#Nilable)
 which provides a method `IsSet() bool` which can tell you if the value was provided by the client (true) or not (false).
 
 Granitic has deep support for these types and the framework can use them interchangeably in the whole [web request processing cycle](ws-pipeline.md), 
@@ -49,7 +49,7 @@ Note that the fields must be declared as _pointers_ to the nilable types.
 ## Using values
 
 Each of the nilable types provides a method to recover the value it contains. The method is named according to the type
-it returns - e.g. [types.NilableBool.Bool()](https://godoc.org/github.com/graniticio/granitic/types#NilableBool.Bool)
+it returns - e.g. [types.NilableBool.Bool()](https://godoc.org/github.com/graniticio/granitic/v2/types#NilableBool.Bool)
 
 
 

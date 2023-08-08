@@ -15,7 +15,7 @@ FrameworkLogging and ApplicationLogging are _enabled_ by default. They can be di
 and/or `Facilities.ApplicationLogging` to `false` in your configuration.
 
 Disabling logging causes Granitic to inject 'null' loggers into code that expects an instance of 
-[logging.Logger](https://godoc.org/github.com/graniticio/granitic/logging#Logger). This means your code does not need
+[logging.Logger](https://godoc.org/github.com/graniticio/granitic/v2/logging#Logger). This means your code does not need
 to worry if logging is disabled or not.
 
 ## Configuration
@@ -76,8 +76,8 @@ The following components are created when both facilities are enabled
 
 | Name | Type |
 | ---- | ---- |
-| grncApplicationLoggingManager | [logging.ComponentLoggerManager](https://godoc.org/github.com/graniticio/granitic/logging#ComponentLoggerManager) |
-| grncFrameworkLoggingManager | [logging.ComponentLoggerManager](https://godoc.org/github.com/graniticio/granitic/logging#ComponentLoggerManager) |
+| grncApplicationLoggingManager | [logging.ComponentLoggerManager](https://godoc.org/github.com/graniticio/granitic/v2/logging#ComponentLoggerManager) |
+| grncFrameworkLoggingManager | [logging.ComponentLoggerManager](https://godoc.org/github.com/graniticio/granitic/v2/logging#ComponentLoggerManager) |
 
 ---
 **Next**: [JSON Web Services](fac-json-ws.md)

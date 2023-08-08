@@ -79,7 +79,7 @@ changing the value of `JSONWs.ResponseWriter.RequestIDHeader`.
 
 ### JSON formatting
 
-The value of your [ws.Response.Body](https://godoc.org/github.com/graniticio/granitic/ws#Response) field will be marshalled
+The value of your [ws.Response.Body](https://godoc.org/github.com/graniticio/granitic/v2/ws#Response) field will be marshalled
 into JSON using Go's standard [json.Marshal](https://golang.org/pkg/encoding/json/#Marshal) function.
 
 If you set `JSONWs.Marshal.PrettyPrint` to `true`, [json.MarshalIndent](https://golang.org/pkg/encoding/json/#MarshalIndent)
@@ -88,7 +88,7 @@ that function.
 
 ### Response wrapping
 
-By default, Granitic will use the JSON representation of your [ws.Response.Body](https://godoc.org/github.com/graniticio/granitic/ws#Response)
+By default, Granitic will use the JSON representation of your [ws.Response.Body](https://godoc.org/github.com/graniticio/granitic/v2/ws#Response)
 field as the entire HTTP response body. If an [error](ws-error.md) is found, the entire HTTP body is replaced with
 the error document structure described below.
 
@@ -110,13 +110,13 @@ found. The labels `Response` and `Errors` can be modified by changing the `JSONW
 ## Behaviour
 
 Enabling this facility causes several components to be created and automatically injected into any [handlers](ws-handlers.md)
-that you have defined that are of the type [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler).
+that you have defined that are of the type [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler).
 
 ### ResponseWriter
 
-Your handler's `ResponseWriter` field will be set to an instance of [ws.MarshallingResponseWriter](https://godoc.org/github.com/graniticio/granitic/ws#MarshallingResponseWriter).
+Your handler's `ResponseWriter` field will be set to an instance of [ws.MarshallingResponseWriter](https://godoc.org/github.com/graniticio/granitic/v2/ws#MarshallingResponseWriter).
 This type is agnostic of the serialisation format, so it is customised for JSON serialisation using the
-types defined in the [ws/json package](https://godoc.org/github.com/graniticio/granitic/ws/json).
+types defined in the [ws/json package](https://godoc.org/github.com/graniticio/granitic/v2/ws/json).
 
 Together these types are responsible for populating the body, headers and status code of the HTTP responses
 to your webservice request.
@@ -126,7 +126,7 @@ than are not matched to a handler (not found, too busy etc).
 
 ### Unmarshaller
 
-Your handler's `Unmarshaller` field will be set to an instance of [json.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/ws/json#Unmarshaller),
+Your handler's `Unmarshaller` field will be set to an instance of [json.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/v2/ws/json#Unmarshaller),
 which is a simple wrapper over Go's built-in JSON decoding functions.
 
 ## Customisation
@@ -169,8 +169,8 @@ The following components are created when this facility is enabled:
 
 | Name | Type |
 | ---- | ---- |
-| grncJSONResponseWriter | [ws.MarshallingResponseWriter](https://godoc.org/github.com/graniticio/granitic/ws#MarshallingResponseWriter) |
-| grncJSONUnmarshaller | [json.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/ws/json#Unmarshaller) |
+| grncJSONResponseWriter | [ws.MarshallingResponseWriter](https://godoc.org/github.com/graniticio/granitic/v2/ws#MarshallingResponseWriter) |
+| grncJSONUnmarshaller | [json.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/v2/ws/json#Unmarshaller) |
 
 ---
 **Next**: [XML Web Services](fac-xml-ws.md)

@@ -13,14 +13,14 @@ facility so this facility must be enabled.
 
 ### Configuring your handler
 
-Your endpoint must be managed by an instance of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+Your endpoint must be managed by an instance of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
 (as [described here](ws-handlers.md)) and be configured to provide a [data capture target](ws-capture.md) - this is the 
 object that will actually be validated.
 
 ### Adding an Auto-validator
 
 Automatic validation is enabled by injecting an instance of the built-in 
-[validate.RuleValidator](https://godoc.org/github.com/graniticio/granitic/validate#RuleValidator)
+[validate.RuleValidator](https://godoc.org/github.com/graniticio/granitic/v2/validate#RuleValidator)
 struct into the `AutoValidator` field of your handler. This is generally performed inline like:
 
 ```json

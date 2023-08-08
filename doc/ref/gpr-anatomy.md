@@ -34,7 +34,7 @@ func main() {
 This example file provides a `main` function for Go and passes control to Granitic using the `StartGranitic` function. 
 This allows Granitic to have full control over the parsing of [command line arguments](gpr-build.md). 
 If your application needs to parse it's own command line arguments, refer to the GoDoc for 
-[alternative ways to start Granitic](https://godoc.org/github.com/graniticio/granitic)
+[alternative ways to start Granitic](https://godoc.org/github.com/graniticio/granitic/v2)
 
 ## Component definition files
  

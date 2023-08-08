@@ -1,6 +1,6 @@
 # Tutorial - Before you start
 
-Make sure you have followed the Granitic [installation instructions](../installation.md)
+Make sure you have followed the Granitic [installation instructions](installation.md)
 
 ## Starting points for tutorials 
 

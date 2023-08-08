@@ -14,7 +14,7 @@ which you can plug-in your own IAM implementations (or interact with a third par
 
 ## Handler fields
 
-[handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) provides a number of fields
+[handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) provides a number of fields
 you can use to configure the IAM behaviour of your endpoints. These are all covered in detail below:
 
 ```go
@@ -35,7 +35,7 @@ UserIdentifier ws.Identifier
 
 ## Identifying and authenticating a caller
 
-A component implementing [ws.Identifier](https://godoc.org/github.com/graniticio/granitic/ws#Identifier) is responsible
+A component implementing [ws.Identifier](https://godoc.org/github.com/graniticio/granitic/v2/ws#Identifier) is responsible
 for examining an HTTP request to determine who is making the web service call. The information required to do this is
 generally (but not always) encoded in HTTP request headers.
 
@@ -45,18 +45,18 @@ You component needs to have a method:
  func Identify(ctx context.Context, req *http.Request) (iam.ClientIdentity, context.Context)
 ```
 
-And you make this component available to your [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+And you make this component available to your [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
 by setting a reference to it via the `UserIdentifier` field.
 
 ### ClientIdentity
 
-Your `Identify` method returns an instance of [iam.ClientIdentity](https://godoc.org/github.com/graniticio/granitic/iam#ClientIdentity)
+Your `Identify` method returns an instance of [iam.ClientIdentity](https://godoc.org/github.com/graniticio/granitic/v2/iam#ClientIdentity)
 which should be set up to reflect the current state of the user - whether or not the user has been authenticated and 
 providing some string representation of the user's ID that can be used in application and access log files.
 
-As [iam.ClientIdentity](https://godoc.org/github.com/graniticio/granitic/iam#ClientIdentity) is of type `map[string]interface{}`
+As [iam.ClientIdentity](https://godoc.org/github.com/graniticio/granitic/v2/iam#ClientIdentity) is of type `map[string]interface{}`
 you can also store any data you like about the user, which your application code can retrieve later. The `ClientIdentity` 
-is passed into your [logic component](ws-logic.md) as part of the [ws.Request](https://godoc.org/github.com/graniticio/granitic/ws#Request)
+is passed into your [logic component](ws-logic.md) as part of the [ws.Request](https://godoc.org/github.com/graniticio/granitic/v2/ws#Request)
 
 ### Context
 
@@ -70,16 +70,16 @@ information to recreate the HTTP encoded representation of a user identity when 
 ## Requiring authentication
 
 You can require a user to be authenticated to use an endpoint. If you set the `RequireAuthentication` field to `true`
-on your [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler), Granitic will automatically
-return a `401 Unauthorized` HTTP response code if the [iam.ClientIdentity](https://godoc.org/github.com/graniticio/granitic/iam#ClientIdentity) 
+on your [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler), Granitic will automatically
+return a `401 Unauthorized` HTTP response code if the [iam.ClientIdentity](https://godoc.org/github.com/graniticio/granitic/v2/iam#ClientIdentity) 
 you constructed in your `Identify` method has had it's `SetAuthenticated` method set to `false`.
 
 
 ## Checking authorisation
 
 Once a user has been identified, you can optionally provide a component to check if they are authorised to access the
-current endpoint. You should create a component that implements [ws.AccessChecker](https://godoc.org/github.com/graniticio/granitic/ws#AccessChecker)
-and set a reference to it on the `AccessChecker` field of your [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+current endpoint. You should create a component that implements [ws.AccessChecker](https://godoc.org/github.com/graniticio/granitic/v2/ws#AccessChecker)
+and set a reference to it on the `AccessChecker` field of your [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
 
 Your component needs to implement the method:
 
@@ -95,7 +95,7 @@ response code being sent to the caller.
 By default, the authorisation check occurs before the body of the inbound request is [parsed](ws-capture.md). If your
 code needs access to the data embedded in the HTTP request's body to determine whether a user is authorised or not, you 
 can set the `CheckAccessAfterParse` field on your handler to `true`. If the body is successfully parsed, it will be
-available in the [ws.Request](https://godoc.org/github.com/graniticio/granitic/ws#Request) passed into your `Allowed`
+available in the [ws.Request](https://godoc.org/github.com/graniticio/granitic/v2/ws#Request) passed into your `Allowed`
 method.
 
 Be aware that this is potentially a security risk - callers can pass in invalid bodies in an attempt to use the resulting

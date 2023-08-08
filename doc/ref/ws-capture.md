@@ -1,4 +1,4 @@
-# Capturing data
+q# Capturing data
 
 [Reference](README.md) | [Web Services](ws-index.md)
 
@@ -13,7 +13,7 @@ This data can be included in four parts of the HTTP request:
  * Request headers
  
 Granitic provides functionality to automatically capture path, query parameter and body data and parse it into any Go struct
-that you nominate, assuming that you are using an instance of [ws.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+that you nominate, assuming that you are using an instance of [ws.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
 as your handler component.
 
 ## Data capture target
@@ -25,15 +25,15 @@ explains this in detail.
 
 ## Request body parsing
 
-Data encoded in the HTTP request's body is parsed by a component implementing [ws.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/ws#Unmarshaller)
-that is injected into the `Unmarshaller` field on your [handler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler).
+Data encoded in the HTTP request's body is parsed by a component implementing [ws.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/v2/ws#Unmarshaller)
+that is injected into the `Unmarshaller` field on your [handler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler).
 
 If you have enabled the [JSONWs](fac-json-ws.md) or [XMLWs](fac-xml-ws.md) facility, Granitic will automatically inject 
 an `Unmarshaller` into your handler.
 
 ### Mapping body data to struct fields
 
-How data in the body is mapped to fields in your target struct depends on the implemention of [ws.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/ws#Unmarshaller).
+How data in the body is mapped to fields in your target struct depends on the implemention of [ws.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/v2/ws#Unmarshaller).
 The built-in `Unmarshaller`s for JSON and XML are documented in the  JSONWs](fac-json-ws.md) and [XMLWs](fac-xml-ws.md) 
 facility documentation.
 
@@ -42,13 +42,13 @@ facility documentation.
 A common pattern for web-services is that the majority of endpoints on a service support a single text-based standard for
 request and response bodies (e.g. all JSON). It is also common for a small number of endpoints to use a different standard
 (e.g. receiving binary or HTML form encoded data). For those cases you can write your own component implementing 
-[ws.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/ws#Unmarshaller) and explicit inject them into
+[ws.Unmarshaller](https://godoc.org/github.com/graniticio/granitic/v2/ws#Unmarshaller) and explicit inject them into
 your handler in your [component definition files](ioc-definition-files.md).
 
 
 ### Errors during parsing
 
-If the request body cannot be parsed into your target object, a [FrameworkError](https://godoc.org/github.com/graniticio/granitic/ws#FrameworkError)
+If the request body cannot be parsed into your target object, a [FrameworkError](https://godoc.org/github.com/graniticio/granitic/v2/ws#FrameworkError)
 will be recorded. Framework errors are explained in the web service [error handling documentation](ws-error.md) documentation,
 but the practical effect is the the client will receive an `HTTP 400` response.
 

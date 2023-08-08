@@ -16,7 +16,7 @@
 
 ## Related GoDoc
 
-https://godoc.org/github.com/graniticio/granitic/config
+https://godoc.org/github.com/graniticio/granitic/v2/config
 
 ## Configuration
 

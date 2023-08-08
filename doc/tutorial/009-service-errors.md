@@ -31,10 +31,10 @@ The error conditions that a web service has to cope with can be broadly divided 
 ## Service errors
 
 Granitic provides a mechanism for dealing with all these types of error in a consistent way - the 
-[service error](https://godoc.org/github.com/graniticio/granitic/ws)
+[service error](https://godoc.org/github.com/graniticio/granitic/v2/ws)
 
-The [ws.Response](https://godoc.org/github.com/graniticio/granitic/ws#Response) object passed to your logic components' 
-[Process](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsRequestProcessor) or `ProcessPayload` 
+The [ws.Response](https://godoc.org/github.com/graniticio/granitic/v2/ws#Response) object passed to your logic components' 
+[Process](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsRequestProcessor) or `ProcessPayload` 
 method represents the data and state that will be returned to your client (via HTTP) when the request has been processed. 
 
 It has a field:
@@ -43,7 +43,7 @@ It has a field:
    Errors *ServiceErrors
 ```
 
-that provides access to a [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors) struct. 
+that provides access to a [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/v2/ws#ServiceErrors) struct. 
 Your code should add errors to this structure as they are encountered. When processing is complete, Granitic will 
 evaluate the errors in this structure to determine what type of response and HTTP status code (200, 500 etc) should be sent to your client. 
 
@@ -88,7 +88,7 @@ We need to add another entry to that list:
 ```
 
 The type of error in this case is "U" or `unexpected`. If Granitic finds an 'unexpected' error in the response, it will set the HTTP status
-code to `500 - Internal server error`. Determining which HTTP status code is set follows the rules defined here under [HTTP status code determination](https://godoc.org/github.com/graniticio/granitic/ws)
+code to `500 - Internal server error`. Determining which HTTP status code is set follows the rules defined here under [HTTP status code determination](https://godoc.org/github.com/graniticio/granitic/v2/ws)
 
 ## Building and testing
 

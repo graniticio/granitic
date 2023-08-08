@@ -52,7 +52,7 @@ so a new ID will be generated automatically. We'll show you how to capture that 
 ### Required parameters
 
 You might have noticed that the `Name` parameter is referenced in the template as `${!Name}`. The exclamation mark
-indicates that the parameter is required and the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) 
+indicates that the parameter is required and the [QueryManager](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager) 
 will return an error if this parameter is missing.
 
 As the `FirstYearActive` parameter maps to the nullable column:
@@ -62,8 +62,8 @@ As the `FirstYearActive` parameter maps to the nullable column:
 ```
 
 in the database, it is _not_ marked as required. If the `FirstYearActive` parameter is missing (or set to `nil`),
-the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) will substitute the value 
-`null` when generating the query, because we configured the [QueryManager](https://godoc.org/github.com/graniticio/granitic/facility/querymanager) 
+the [QueryManager](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager) will substitute the value 
+`null` when generating the query, because we configured the [QueryManager](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager) 
 to run in `SQL` mode in the previous tutorial.
 
 
@@ -266,7 +266,7 @@ ERROR submitArtistLogic Error 1452: Cannot add or update a child row: a foreign 
 ```
 
 Although the integrity of the data in the database has been protected, this isn't very elegant. What we'd like is to
-have the submitted IDs checked during validation. We can do this by creating a component that implements the [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator)
+have the submitted IDs checked during validation. We can do this by creating a component that implements the [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalInt64Validator)
 interface.
 
 The [next tutorial](008-shared-validation.md) explains how to do this, but if you haven't followed the [validation tutorial](005-validation.md) now would be a good time to familiarise yourself with it.
@@ -274,15 +274,15 @@ The [next tutorial](008-shared-validation.md) explains how to do this, but if yo
 
 ## Recap
   * Parameters in query templates can be marked as required by prefixing the parameter name with !
-  * [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/rdbms#RdbmsClient) provides the methods for 
+  * [RdbmsClient](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#RdbmsClient) provides the methods for 
     managing transactions
   * It is good practice to `defer` a call to `Rollback()` to make sure transactions are explicitly rolled back if 
     something goes wrong.
   
 ## Further reading
 
- * [RDBMS GoDoc](https://godoc.org/github.com/graniticio/granitic/rdbms)
- * [QueryManager GoDoc](https://godoc.org/github.com/graniticio/granitic/facility/querymanager)
+ * [RDBMS GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/rdbms)
+ * [QueryManager GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager)
  
 ## Next
 

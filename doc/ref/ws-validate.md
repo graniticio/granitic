@@ -5,7 +5,7 @@
 ---
 
 After data is [captured](ws-capture.md) from a client's HTTP request into a target object, 
-[handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) next performs validation
+[handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) next performs validation
 of the captured data before it is passed onto your [logic component](ws-logic.md).
 
 Each step of the validation process is optional and by default no validation is peformed. The logical steps are:
@@ -23,12 +23,12 @@ Possible reasons to do this include:
   * Cleanup of messy data if your API is quite permissive about what is submitted
   
 If your code requires this step, you must create a component that implements 
-[handler.WsPreValidateManipulator](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsPreValidateManipulator)
+[handler.WsPreValidateManipulator](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsPreValidateManipulator)
 and set a reference to that component on the `PreValidateManipulator` field of your handler.
 
 Granitic will call the `PreValidate` method you define. If your code encounters problems and decides that
 validation should not proceed, it should return `false` - and ideally add [service errors](ws-error.md) to
-the [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors) object that is passed in.
+the [ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/v2/ws#ServiceErrors) object that is passed in.
 
 
 ## Auto-validation
@@ -43,11 +43,11 @@ that automatic validation does not support, you can perform manual validation wh
 checks you need to make.
 
 To do this, your [logic component](ws-logic.md) must implement 
-[handler.WsRequestValidator](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsRequestValidator)
+[handler.WsRequestValidator](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsRequestValidator)
 
 Granitic will call the `Validate` method you define. Any validation errors encountered should be recorded
 by adding [service errors](ws-error.md) to the 
-[ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors) object that is passed in.
+[ws.ServiceErrors](https://godoc.org/github.com/graniticio/granitic/v2/ws#ServiceErrors) object that is passed in.
           
 ### Automatic and manual validation
 
@@ -56,7 +56,7 @@ applied and some additional validation to be applied manually. This is supported
 be aware of the `DeferAutoErrors bool` field on your handler.
 
 The default setting is `false` which means that if automatic validation fails, manual validation will not be 
-applied and your [handler.WsRequestValidator.Validate()](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsRequestValidator)
+applied and your [handler.WsRequestValidator.Validate()](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsRequestValidator)
 method will not be called.
 
 Setting the field to `true` means that your manual validation will always be called after automatic validation (pass or fail),

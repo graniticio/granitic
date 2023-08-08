@@ -5,7 +5,7 @@
 ## Obtaining a Client interface
 
 Queries can be executed against an RDBMS by any code that has access to a [client manager](db-provider.md). Typically your code
-will be part of a struct which has a member variable of type [rdbms.ClientManager](https://godoc.org/github.com/graniticio/granitic/rdbms#ClientManager)
+will be part of a struct which has a member variable of type [rdbms.ClientManager](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#ClientManager)
 into which Granitic will inject a client manager.
 
 ```go
@@ -14,7 +14,7 @@ type ArtistDAO struct {
 } 
 ```
 
-A method in your application can then use this manager to obtain a [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client),
+A method in your application can then use this manager to obtain a [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#Client),
 which is the interface that allows you to execute queries:
 
 ```go
@@ -41,12 +41,12 @@ func (ad *ArtistDAO) FindAll(ctx context.Context) ([]*Artist,error) {
 }
 ```
 
-Note that a [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client) is **not** goroutine safe as
+Note that a [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#Client) is **not** goroutine safe as
 it holds information about transaction state and implicitly about a connection to a database.
 
 ## Executing templated queries
 
-The [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client) interface is designed to work
+The [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#Client) interface is designed to work
 closely with the [query manager](db-query.md) and provides a series of methods to execute templated queries.
 Those methods are named in a similar way to those on [regexp.Regexp](https://golang.org/pkg/regexp/#Regexp) and are 
 generally of the form:
@@ -113,7 +113,7 @@ See the [Variables section](db-query.md) of the query manager documentation for 
 
 ## Executing non-templated queries
 
-If you are not using the [query manager](db-query.md), [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client)
+If you are not using the [query manager](db-query.md), [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#Client)
 provides pass through access to the `Exec`, `Query` and `QueryRow` methods on [sql.DB](https://golang.org/pkg/database/sql/#DB)
 
 Not that these direct methods can be freely mixed with calls to the templated-query methods, even inside a transaction
@@ -142,7 +142,7 @@ inside a 'transaction' as defined by your RDBMS.
 
 ## Utility methods
 
-The [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/rdbms#Client) interface provides a number of utility
+The [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#Client) interface provides a number of utility
 methods to support templated query execution.
 
 `FindFragment` returns the text of a query template that does not have any variables.

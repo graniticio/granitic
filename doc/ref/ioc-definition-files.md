@@ -299,7 +299,7 @@ Once you have the name of the component you want to modify, you need to add a ne
 ```
 
 Here we are telling Granitic to override the component that is injected into the `StatusDeterminer` field of `grncJSONResponseWriter`
-(which is an instance of [ws.MarshallingResponseWriter](https://godoc.org/github.com/graniticio/granitic/ws#MarshallingResponseWriter))
+(which is an instance of [ws.MarshallingResponseWriter](https://godoc.org/github.com/graniticio/granitic/v2/ws#MarshallingResponseWriter))
 with a different component. The component you inject can be any component that you have defined in the `components` section
 of your component definition file.
 
