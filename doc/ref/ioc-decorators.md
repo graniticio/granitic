@@ -3,7 +3,7 @@
 
 ---
 
-If your component implements [ioc.ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/ioc#ComponentDecorator)
+If your component implements [ioc.ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/v2/ioc#ComponentDecorator)
 it will be considered a _decorator_ and will be integrated into the container startup process.
 
 After the container has instantiated and configured all registered components, but before any [StartComponent()](ioc-lifecycle.md)
@@ -20,7 +20,7 @@ The interface requires you to implement two methods:
 ## OfInterest
 
 Your decorator will have every registered component passed (one at a time) to its `OfInterest` method. The component
-is represented by an [ioc.Component struct](https://godoc.org/github.com/graniticio/granitic/ioc#Component) which
+is represented by an [ioc.Component struct](https://godoc.org/github.com/graniticio/granitic/v2/ioc#Component) which
 provides access to the component's name and the instance of the struct the component represents.
 
 Your decorator can decide whether the supplied component is something the decorator wants to either modify or gain

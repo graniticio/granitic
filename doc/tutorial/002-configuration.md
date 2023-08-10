@@ -16,7 +16,7 @@
 
 ## Related GoDoc
 
-https://godoc.org/github.com/graniticio/granitic/config
+https://godoc.org/github.com/graniticio/granitic/v2/config
 
 ## Configuration
 
@@ -76,7 +76,7 @@ grnc-bind && go build
 </pre>
 
 This runs your recordstore application, specifically stating that a single configuration file 
-`resource/config/config.json` should be used. Stop the application with `CTRL+C`
+`config/config.json` should be used. Stop the application with `CTRL+C`
 
 ## Injecting configuration into your components
 
@@ -138,7 +138,7 @@ If you now run:
 you will see an error message similar to:
 
 <pre>
-01/Mar/2019:17:41:16 Z FATAL [grncContainer] No value found at environment.label
+07/Aug/2023:11:40:47 Z FATAL [grncContainer] No value found at environment.label
 </pre>
 
 Granitic adopts a fail-fast model for configuration and will not allow an application to start if it relies on configuration
@@ -183,7 +183,7 @@ values are compiled into your application executable.
 
 Only the simplest applications will use a single configuration file. Complex applications will split their configuration into
 multiple files to improve readability and maintainability, but all applications will want to separate the configuration that
-is common to each deployment of an application from that configuration that changes across different deployment environments
+is common to each deployment of an application from the configuration that changes across different deployment environments
 and from one instance of an application to another.
 
 Generally you would expect only your application's common (or 'base') configuration to be checked into source control with 
@@ -292,7 +292,8 @@ And you now have two separate instances of your `recordstore` application runnin
 
 In previous examples, you will have noticed that the default HTTP port for Granitic applications is 8080. This is not
 hard-coded, it is defined in another configuration file that is included with Granitic itself called a 
-`facility configuration file`, which can be found under the `facility/config` folder of your Granitic installation.
+`facility configuration file`, which can be found under the `facility/config` folder of your Granitic installation
+[or here on GitHub](https://github.com/graniticio/granitic/blob/master/facility/config/active.json).
 
 These files are serialised into your application's executable so you don't need to have Granitic installed on the environment
 you are running your application on. During application startup, Granitic merges this serialised view with your application's configuration files . 
@@ -302,7 +303,7 @@ value of `HTTPServer.Port` in `facility/config/httpserver.json`  is replaced wit
 
 ### Merging rules
 
-The rules by which configuration two files are merged together are specified in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic/config), 
+The rules by which configuration two files are merged together are specified in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/config), 
 but the following example illustrates the key rules (note the configuration items are an illustration and do not relate to any specific Granitic features)
 
 `a.json`

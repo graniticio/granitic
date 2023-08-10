@@ -10,13 +10,13 @@ and versioning strategies differ substantially between service implementations, 
 representing versions, extracting requested versions from requests or assessing which version best matches a given handler.
 
 Instead it provides a series of interfaces which, when implemented by your components, allow different instances of
-[handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) to be selected to serve 
+[handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) to be selected to serve 
 a request according to the client requested version.
 
 ## Extracting a version from the request
 
 You will need to create a component that implements 
-[httpendpoint.RequestedVersionExtractor](https://godoc.org/github.com/graniticio/granitic/httpendpoint#RequestedVersionExtractor) 
+[httpendpoint.RequestedVersionExtractor](https://godoc.org/github.com/graniticio/granitic/v2/httpendpoint#RequestedVersionExtractor) 
 by defining a method:
 
 ```go

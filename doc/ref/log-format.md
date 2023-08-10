@@ -104,7 +104,7 @@ Formats work similar to `fmt` verb patterns. The available `verbs` are:
 | %P | The log level (`DEBUG`, `ERROR`, etc) at which the message was logged right-padded with spaces so each label takes up five characters. |
 | %c | The name of the component which logged the message. |
 | %{?}C | The name of the component which logged the message with a fixed length. If the name of the component is longer than ?, it will be truncated to that length. If it is longer, it will be right-padded with spaces. |
-| %{?}X | A value from a context.Context that has been made available to the logger via a component you have written implementing [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) where ? is the key to the value 
+| %{?}X | A value from a context.Context that has been made available to the logger via a component you have written implementing [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/v2/logging#ContextFilter) where ? is the key to the value 
 
 
 ## Structured JSON logging
@@ -163,7 +163,7 @@ The available content types are:
 | TIMESTAMP | The datetime at which the message was logged | Any valid Go datetime format string |
 | TEXT | The static text specified in the argument | The text to use as a value |
 | LEVEL | The full label (DEBUG, ERROR etc) of the logging level at which the entry was logged | N/A |
-| CONTEXT_VALUE | A value from a `context.Context` that has been exposed by a [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/logging#ContextFilter) component | The string key of the exposed value
+| CONTEXT_VALUE | A value from a `context.Context` that has been exposed by a [logging.ContextFilter](https://godoc.org/github.com/graniticio/granitic/v2/logging#ContextFilter) component | The string key of the exposed value
 | INSTANCE_ID | The ID [assigned to the current instance of your application](adm-instance.md) | N/A |
 | LEVEL_MAP | A log level, optionally mapped to a different value. | Comma separated mapping betwen a Granitic log level and some other label (e.g. ```INFO:ANNOUNCE,TRACE:DETAIL```)
 

@@ -18,18 +18,21 @@
 Logging in Granitic gives developers fine-grained control over which components output logging information. There are two main
 concepts for you to become familiar with:
 
- * Loggers - the components that format log messages and choose whether or not to write them to a console or file them 
+ * Loggers - the components that format log messages and choose whether or not to write them to a console or file, 
  based on the severity assigned to the message.
  * Severity - the importance of a message to be logged.
  
 Severities are (in ascending order of importance)  <code>TRACE, DEBUG, INFO, WARN, ERROR, FATAL</code>. 
-See the [GoDoc for more detail](https://godoc.org/github.com/graniticio/granitic/logging)
+See the [GoDoc for more detail](https://godoc.org/github.com/graniticio/granitic/v2/logging)
 
-Your code will dispatch log messages through a Granitic component called a <code>Logger</code>. Granitic has two built-in Loggers 
-- the <code>ApplicationLogger</code> and the <code>FrameworkLogger</code>. As the names suggest, the <code>FrameworkLogger</code> 
+Your code will log messages through a Granitic component called a <code>Logger</code>. Granitic has two built-in Loggers 
+the <code>ApplicationLogger</code> and the <code>FrameworkLogger</code>. 
+
+As the names suggest, the <code>FrameworkLogger</code> 
 is used by internal Granitic components and the <code>ApplicationLogger</code> is for your application's code.
 
-As the majority of components that you build will need access to the <code>ApplicationLogger</code>, Granitic has a built-in [ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/ioc#ComponentDecorator) that automatically
+As the majority of components that you build will need access to the <code>ApplicationLogger</code>, Granitic has a built-in 
+[ComponentDecorator](https://godoc.org/github.com/graniticio/granitic/v2/ioc#ComponentDecorator) that automatically
 injects a reference to the <code>ApplicationLogger</code> into any of your components with a struct field that is exactly:
 
 ```go
@@ -55,7 +58,7 @@ type GetLogic struct {
 
 func (gl *GetLogic) Process(ctx context.Context, req *ws.Request, res *ws.Response) {
 
-	an :=  fmt.Sprintf("Hello, %s!", gl.EnvLabel)
+	an := fmt.Sprintf("Hello, %s!", gl.EnvLabel)
 
 	res.Body = Info{
 		Name: an,
@@ -83,7 +86,7 @@ Keep the terminal window visible and visit [http://localhost:8080/artist](http:/
 a line appear in your terminal similar to:
 
 <pre>
-07/Mar/2019:15:16:17 Z INFO  [artistHandlerLogic] Environment is set to 'DEV'
+07/Aug/2023:18:37:16 Z INFO  [artistHandlerLogic] Environment is set to 'TEST'
 </pre>
 
 This line shows:
@@ -95,8 +98,8 @@ This line shows:
 
 ### Unit tests
 
-You may find the types [logging.ConsoleErrorLogger](https://godoc.org/github.com/graniticio/granitic/logging#ConsoleErrorLogger) 
-useful when writing unit tests for code that needs a [logging.Logger](https://godoc.org/github.com/graniticio/granitic/logging#Logger)
+You may find the type [logging.ConsoleErrorLogger](https://godoc.org/github.com/graniticio/granitic/v2/logging#ConsoleErrorLogger) 
+useful when writing unit tests for code that needs a [logging.Logger](https://godoc.org/github.com/graniticio/granitic/v2/logging#Logger)
 
 ## Global log level
 
@@ -130,8 +133,7 @@ file <pre>facility/config/logging.json</pre> which looks something like:
 
 The global log level means that only messages with a severity equal to or greater than the global log level with be logged.
 
-You can override the global log level for you own application. Open <pre>config/base.json</pre> and edit it
-so it looks like:
+You can override the global log level for you own application. Open <code>config/base.json</code> and set the contents to:
 
 ```json
 {
@@ -145,20 +147,20 @@ so it looks like:
   },
 
   "environment": {
-    "label": "UNSET"
+    "label": "DEV"
   }
 }
 ```
 
 If you stop and restart your recordstore application and refresh or re-visit 
-[http://localhost:8080/artist](http://localhost:8080/artist), you'll see that the INFO message is no longer displayed.
+[http://localhost:8080/artist](http://localhost:8080/artist), you'll see that the <code>INFO</code> message is no longer displayed.
 
 Notice that you are still seeing other INFO messages from components whose names start <code>grnc</code>. These components
-are built-in Granitic components so use the <code>FrameworkLogger</code> which has its own <code>GlobalLogLevel</code>
+are built-in Granitic components and use the <code>FrameworkLogger</code> component which has its own <code>GlobalLogLevel</code>
 
 ### File logging
 
-By default Granitic only logs messages to the console. Look at <pre>facility/config/logging.json</pre> to
+By default Granitic only logs messages to the console. Look at the file <code>facility/config/logging.json</code> to
 see how you can enable logging to a file.
 
 
@@ -177,13 +179,12 @@ squelch a component that is too noisy. This can be achieved by setting a log lev
 }
 ```
 
-If you stop and restart your recordstore application and refresh or re-visit [http://localhost:8080/artist](http://localhost:8080/artist),
+If you stop and restart your <code>recordstore</code> application and refresh or re-visit [http://localhost:8080/artist](http://localhost:8080/artist),
 you'll see an additional message displayed:
 
 <pre>
-07/Mar/2019:15:25:55 Z INFO  [artistHandlerLogic] Environment is set to 'DEV'
-07/Mar/2019:15:25:55 Z TRACE [artistHandlerLogic] Request served
-
+07/Aug/2023:18:43:03 Z INFO  [artistHandlerLogic] Environment is set to 'UNSET'
+07/Aug/2023:18:43:03 Z TRACE [artistHandlerLogic] Request served
 </pre>
 
 ### Runtime control of logging
@@ -204,16 +205,16 @@ section looks like:
 
 Restart <code>recordstore</code> and you will see a new line in the startup logs:
 
-<pre>07/Mar/2019:15:28:12 Z INFO  [grncCtlServer] Listening on 9099</pre>
+<pre>07/Aug/2023:18:44:05 Z INFO  [grncCtlServer] Listening on 9099</pre>
 
-You can now use the [grnc-ctrl command line tool](https://godoc.org/github.com/graniticio/granitic/cmd/grnc-ctl) to issue
+You can now use the [grnc-ctrl command line tool](https://godoc.org/github.com/graniticio/granitic/v2/cmd/grnc-ctl) to issue
 commands to <code>recordstore</code> while it is running.
 
-Open a seperate terminal and run:
+To get a list of the high level actions you can perform with this tool, open a new terminal and run:
 
 <pre>grnc-ctl help</pre>
 
-To get a list of the high level actions you can perform with this tool and then:
+and for more detailled help about the commands relating to log-level management:
 
 <pre>
 grnc-ctl help global-level
@@ -233,7 +234,7 @@ your application.
 
 ## Recap
 
- * Granitic can inject a <code>Logger</code> into your application code.
+ * Granitic can automatically inject a <code>Logger</code> into your application code.
  * You can log at different levels of severity.
  * You can set the global severity level at which messages will be logged in configuration.
  * You can override this global level for individual components.
@@ -241,8 +242,8 @@ your application.
  
 ## Further reading
 
- * [Logging GoDoc](https://godoc.org/github.com/graniticio/granitic/logging)
- * [grnc-ctrl usage](https://godoc.org/github.com/graniticio/granitic/cmd/grnc-ctl)
+ * [Logging GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/logging)
+ * [grnc-ctrl usage](https://godoc.org/github.com/graniticio/granitic/v2/cmd/grnc-ctl)
  
  
 ## Next

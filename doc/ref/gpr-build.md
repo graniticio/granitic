@@ -11,7 +11,7 @@ Granitic's core feature is a [component container](ioc-index.md) which allows Gr
 those objects (structs) that a developer wants to treat as components. This is an implementation of the well-known 
 [inversion of control and dependency injection patterns](https://martinfowler.com/articles/injection.html).
 
-Refer to the [component container principles](ioc-principles) for more information about the concepts around components.
+Refer to the [component container principles](ioc-principles.md) for more information about the concepts around components.
 
 Developers define the behaviour and relationships between components in [JSON files](ioc-definition-files.md). 
 In intepreted lanaguges (Python, Ruby etc) or virtual machine langauges (Java, .NET) these files could be loaded at 

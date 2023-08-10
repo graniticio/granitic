@@ -5,7 +5,7 @@
 
 Enabling the Service Error Manager facility allows human readable error messages and the categorisation of those errors 
 to be managed in configuration files. This simplifies application logic where errors can
-be raised using the [ws.ServiceErrors.AddPredefinedError](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors)
+be raised using the [ws.ServiceErrors.AddPredefinedError](https://godoc.org/github.com/graniticio/granitic/v2/ws#ServiceErrors)
 method without having to manage messages and categories in Go source code.
 
 This facility must be enabled to make use of [automatic validation](vld-index.md).
@@ -47,7 +47,7 @@ If no definitions are found when your application starts and `ServiceErrorManage
 
 ## Defining messages
 
-A Granitic web service error is represented in code as a [CategorisedError](https://godoc.org/github.com/graniticio/granitic/ws#CategorisedError) 
+A Granitic web service error is represented in code as a [CategorisedError](https://godoc.org/github.com/graniticio/granitic/v2/ws#CategorisedError) 
 which has three common components a category, a code and a message. You can define these in configuration using the following
 format (a two-dimensional string array):
 
@@ -60,8 +60,8 @@ format (a two-dimensional string array):
 
 ### Category
 
-The first element of each error is a [category](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrorCategory). 
-The category affects the [resulting HTTP status code](https://godoc.org/github.com/graniticio/granitic/ws) used when returning a web service response that contains one or
+The first element of each error is a [category](https://godoc.org/github.com/graniticio/granitic/v2/ws#ServiceErrorCategory). 
+The category affects the [resulting HTTP status code](https://godoc.org/github.com/graniticio/granitic/v2/ws) used when returning a web service response that contains one or
 more errors.
 
 The valid categories for errors defined in configuration are:
@@ -77,7 +77,7 @@ The valid categories for errors defined in configuration are:
 
 A code is short text identifier for a particular error that must be unique across all error messages defined in configuration.
 The code may be used in application logic to raise an error against a request using the 
-[ws.ServiceErrors.AddPredefinedError](https://godoc.org/github.com/graniticio/granitic/ws#ServiceErrors) method.
+[ws.ServiceErrors.AddPredefinedError](https://godoc.org/github.com/graniticio/granitic/v2/ws#ServiceErrors) method.
 
 ### Message
 
@@ -91,7 +91,7 @@ announce which error codes they are using. If no corresponding message is found 
 at application startup.
 
 If you want your own components to be able to announce which codes they are using they should implement
-[grncerror.ErrorCodeUser](https://godoc.org/github.com/graniticio/granitic/grncerror#ErrorCodeUser)
+[grncerror.ErrorCodeUser](https://godoc.org/github.com/graniticio/granitic/v2/grncerror#ErrorCodeUser)
 
 
 ## Component reference
@@ -100,7 +100,7 @@ The following components are created when this facility is enabled:
 
 | Name | Type |
 | ---- | ---- |
-| grncServiceErrorManager | [grncerror.ServiceErrorManager](https://godoc.org/github.com/graniticio/granitic/grncerror#ServiceErrorManager) |
+| grncServiceErrorManager | [grncerror.ServiceErrorManager](https://godoc.org/github.com/graniticio/granitic/v2/grncerror#ServiceErrorManager) |
 
 ---
 **Next**: [Runtime Control](rtc-index.md)

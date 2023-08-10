@@ -28,12 +28,12 @@ or
 ```
 
 Granitic will then automatically detect any [components](ioc-definition-files.md) that implement 
-[httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/httpendpoint#Provider) and route HTTP requests
+[httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/v2/httpendpoint#Provider) and route HTTP requests
 to them according to their URI and HTTP method.
 
-In practise, you will generally define components of type [handler.WsHandler]((https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler))
-which implements [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/httpendpoint#Provider). Custom
-implementations of [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/httpendpoint#Provider) are covered
+In practise, you will generally define components of type [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
+which implements [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/v2/httpendpoint#Provider). Custom
+implementations of [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/v2/httpendpoint#Provider) are covered
 in [handlers and endpoints](ws-handlers.md)
 
 Granitic's web service implementation is designed to minimise the amount of boilerplate code you need to write to handle

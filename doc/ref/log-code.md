@@ -4,7 +4,7 @@
 ---
 ## Having Granitic inject a logger
 
-Your code can send log messages via the [logging.Log interface](https://godoc.org/github.com/graniticio/granitic/logging#Logger)
+Your code can send log messages via the [logging.Log interface](https://godoc.org/github.com/graniticio/granitic/v2/logging#Logger)
 if the struct that provides the implementation for your component has a field with exactly this name and
 type:
 
@@ -17,7 +17,7 @@ Granitic will automatically inject a configured and ready to use logger into you
 ## Logging messages
 
 Your code can send messages to be logged using one of the `LogXXXX` methods on 
-[logging.Log](https://godoc.org/github.com/graniticio/granitic/logging#Logger). Convenience methods
+[logging.Log](https://godoc.org/github.com/graniticio/granitic/v2/logging#Logger). Convenience methods
 are provided to log messages at each of the standard logging severity levels.
 
 For example, to log a message at the `INFO` level, a method on your component might look like

@@ -1,6 +1,6 @@
 # Granitic Reference Documentation
 
-The Granitic reference documentation complements the information available in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic)
+The Granitic reference documentation complements the information available in the [Granitic GoDoc](https://godoc.org/github.com/graniticio/granitic/v2)
 
   * [Introduction](int-index.md)
   * [Granitic Projects](gpr-index.md)

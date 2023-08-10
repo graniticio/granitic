@@ -18,7 +18,7 @@ For example:
 
 are three different endpoints.
 
-Components that provide endpoints for requests implement the [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/httpendpoint#Provider)
+Components that provide endpoints for requests implement the [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/v2/httpendpoint#Provider)
 interface. 
 
 ### Regular expressions
@@ -34,21 +34,21 @@ is vital for REST-like APIs where IDs are often included as part of paths.
 ## Handlers
 
 Once Granitic has found an component that defines an endpoint matching the request, it calls the `ServeHTTP` method
-on that component. Depending on the implementation of [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/httpendpoint#Provider)
+on that component. Depending on the implementation of [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/v2/httpendpoint#Provider)
 in use, that method may be fully implemented by the component in question, or it might defer it to another component.
 
 Whatever the arrangement, Granitic refers to the component which performs the mechanical parts of web service processing 
 (parsing, validating, error handling etc) as a _handler_.
 
 For some non-standard endpoints (serving binary data, for example), you may write your own handler, but the vast majority
-of handler components you create will use Granitic's built-in [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+of handler components you create will use Granitic's built-in [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
 
 ## WsHandler
 
-[WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) supports the bulk of Granitic's
-[web processing phases](ws-pipeline.md). It also implements [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/httpendpoint#Provider)
+[WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) supports the bulk of Granitic's
+[web processing phases](ws-pipeline.md). It also implements [httpendpoint.Provider](https://godoc.org/github.com/graniticio/granitic/v2/httpendpoint#Provider)
 
-A component using [WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) as a type requires:
+A component using [WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) as a type requires:
 
   * A regex to match a path
   * An HTTP method
@@ -68,7 +68,7 @@ For example, a minimal [component definition](ioc-definition-files.md) might loo
 
 ```
 
-[WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) has a number of fields which are
+[WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) has a number of fields which are
 used to customise its behaviour. These customisation options will be explained through the rest of this section.
 
 

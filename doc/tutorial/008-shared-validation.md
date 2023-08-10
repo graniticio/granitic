@@ -61,10 +61,10 @@ We now need to edit `config/base.json` to add some shared rules. Add the followi
 
 `EXT` (short for external) is an operation that delegates validation of a field to another Granitic component, in this case
 a component named `artistExistsChecker` that will need to implement the 
-[validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator)
+[validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalInt64Validator)
 interface.
 
-We need to alter the existing `submitArtistRules` in `config/base.json` so that they use the shared we've just defined when 
+We need to alter the existing `submitArtistRules` in `config/base.json` so that they use the shared rule we've just defined when 
 checking the set of 'related artists' that are provided when creating a new artist:
 
 ```json
@@ -75,13 +75,12 @@ checking the set of 'related artists' that are provided when creating a new arti
 ]
 ```
 
-`ELEM` is an operation that causes a shared rule to be applied to each _element_ of a slice. We have introduced an new error code
+`ELEM` is an operation that causes a shared rule to be applied to each _element_ of a slice. We have introduced a new error code
 `NO_SUCH_RELATED`, so we'll need to add that to our `serviceErrors` in `config/base.json`. Add the following:
 
 ```json
   ["C", "NO_SUCH_RELATED", "Related artist does not exist"]
 ```
-
 
 ### Optional exercise
 
@@ -123,7 +122,7 @@ func (aec *ArtistExistsChecker) ValidInt64(id int64) (bool, error) {
 }
 ```
 
-An we'll need to add a new query to `resource/queries/artist`:
+And we'll need to add a new query to `resource/queries/artist`:
 
 ```sql
 ID:CHECK_ARTIST
@@ -152,7 +151,7 @@ Previous examples have shown how to bind database results into a struct or slice
   dbc.SelectBindSingleQIDParam("CHECK_ARTIST", "ID", id, &count)
 ```
 
-we are binding the results of the database call to an int64. You may supply a basic type (string, int etc) instead of a
+we are binding the results of the database call to an int64. You may supply a basic type (string, int etc.) instead of a
 struct when your query is _guaranteed_ to return a single row with a single column.
 
 ## Building and testing
@@ -194,13 +193,15 @@ get a result like:
 }
 ```
 
+Notice that the error data is showing you which field and (for slice types) the index of the problem element.
+
 
 ## Recap
 
- * Validation rules can be defined globally so they can be re-used by multiple endpoints
+ * Validation rules can be defined globally so that they can be re-used by multiple endpoints
  * When validating slices, the validation of each element can be delegated to another validation rule
  * When validating ints, floats and strings your validation rule can delegate to another component, as long as it implements
- [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalInt64Validator), [validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalFloat64Validator)
-  or [validate.ExternalStringValidator](https://godoc.org/github.com/graniticio/granitic/validate#ExternalStringValidator)
+ [validate.ExternalInt64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalInt64Validator), [validate.ExternalFloat64Validator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalFloat64Validator)
+  or [validate.ExternalStringValidator](https://godoc.org/github.com/graniticio/granitic/v2/validate#ExternalStringValidator)
  * Database results can be bound to a basic type as long as your query returns one row with one column.
  

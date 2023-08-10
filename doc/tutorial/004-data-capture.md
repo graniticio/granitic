@@ -14,7 +14,7 @@
 ## Data capture
 
 Granitic's core purpose is to streamline the process of building web and micro services in Go. 
-One of the most time consuming aspects of buliding web services is writing code to read inbound data from an HTTP request 
+One of the most time-consuming aspects of building web services is writing code to read inbound data from an HTTP request 
 and binding that data to your application's data structures. This tutorial explains how Granitic makes this easier 
 (the next tutorial will cover the [validation](005-validation.md) of the data you capture).
 
@@ -31,7 +31,7 @@ request and mapping the data to fields on your application's data structures.
 
 ### Web service design patterns
 
-Granitic is agnostic as to which web service design pattern (REST, RPC etc) your application follows. The majority of 
+Granitic is agnostic as to which web service design pattern (REST, RPC etc.) your application implements. The majority of 
 the examples in these tutorials are 'REST-like', but that is not to suggest that Granitic favours REST over other patterns.
 
 ### Meta-data
@@ -92,7 +92,7 @@ the value of the boolean is `false`, how does your code know if it's false becau
  * The caller didn't supply that parameter at all, so the variable just defaulted to false.
  
 Granitic's solution this problem is to provide a set of 'nilable' struct versions of primitive types 
-([see the Godoc](https://godoc.org/github.com/graniticio/granitic/types)) that provide additional methods to 
+([see the Godoc](https://godoc.org/github.com/graniticio/granitic/v2/types)) that provide additional methods to 
 indicate whether the value was explicitly set by the caller or was an automatic zero value.
 
 ## Configuring path binding
@@ -115,7 +115,7 @@ If you open the file `comp-def/common.json` you will see:
 }
 ```
 
-The component `artistHandler` is an instance of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler) 
+The component `artistHandler` is an instance of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler) 
 It provides all of the automatic web-service processing features supported by Granitic.
 
 We can define how path binding will work by configuring this component. Change the definition of your `artistHandler` component so it looks like:
@@ -150,14 +150,14 @@ the _target_.
 Change your `GetLogic` struct to look like:
 
 ```go
-type ArtistLogic struct {
+type GetLogic struct {
   EnvLabel string
   Log      logging.Logger
 }
 
-func (al *ArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, ar *ArtistRequest) {
+func (gl *GetLogic) ProcessPayload(ctx context.Context, req *ws.Request, res *ws.Response, aq *ArtistQuery) {
 
-	gl.Log.LogTracef("Request for artist with ID %d", q.ID)
+	gl.Log.LogTracef("Request for artist with ID %d", aq.ID)
 
 	name := "Some Artist"
 
@@ -183,7 +183,7 @@ so that in order to match an incoming request that request's path:
 
 
 We've defined a [regular expression group](https://www.regular-expressions.info/refcapture.html) (round brackets) around 
-the part of the path that will be considered as representing the requested ID.
+the part of the path that will contain the requested ID.
 
 We've also added a new field `BindPathParams` and set it to an array of strings. The number of strings in this
 array should match the number of groups in the `PathPattern` regex. Here we are saying that the value of the first regex group
@@ -203,7 +203,7 @@ but visiting [http://localhost:8080/artist/1234](http://localhost:8080/artist/12
 log line similar to:
 
 <pre>
-14/Mar/2019:08:19:19 Z TRACE [artistHandlerLogic] Request for artist with ID 1234
+08/Aug/2023:10:28:10 Z TRACE [artistHandlerLogic] Request for artist with ID 1234
 </pre>
 
 
@@ -226,16 +226,16 @@ This is instructing Granitic to populate a field (`NormaliseName`) on your targe
 parameter (`normalise`). 
 
 
-Modify your `ArtistLogic.ProcessPayload` method to look like
+Modify your `GetLogic.ProcessPayload` method to look like
 
 ```go
-func (al *ArtistLogic) ProcessPayload(ctx context.Context, req *ws.WsRequest, res *ws.WsResponse, ar *ArtistRequest) {
+func (al *GetLogic) ProcessPayload(ctx context.Context, req *ws.Request, res *ws.Response, aq *ArtistQuery) {
 
-	gl.Log.LogTracef("Request for artist with ID %d", q.ID)
+	al.Log.LogTracef("Request for artist with ID %d", aq.ID)
 
 	name := "Some Artist"
 
-	if q.NormaliseName.Bool() {
+	if aq.NormaliseName.Bool() {
 		name = strings.ToUpper(name)
 	}
 
@@ -251,8 +251,8 @@ will now cause the returned artist's name to be capitalised.
 ## Extracting data from the request body
 
 Path parameters and query parameters are only useful for submitting limited amounts of semi-structured data to a web service. More common is to use a POST or PUT request to include more complex data in the body of an HTTP request. Granitic has built-in support for accepting data in an HTTP request
-body as JSON or XML. The following examples all use JSON, refer to the [facility/ws](https://godoc.org/github.com/graniticio/granitic/facility/ws) and
-[ws/xml](https://godoc.org/github.com/graniticio/granitic/facility/ws) GoDoc to discover how to use XML instead.
+body as JSON or XML. The following examples all use JSON, refer to the [facility/ws](https://godoc.org/github.com/graniticio/granitic/v2/facility/ws) and
+[ws/xml](https://godoc.org/github.com/graniticio/granitic/v2/facility/ws) GoDoc to discover how to use XML instead.
 
 We will create a new endpoint to accept details of a new artist as POSTed JSON. 
 
@@ -289,7 +289,7 @@ type CreatedResource struct{
 ```
 
 This defines new endpoint logic that will expect a populated `Submission` to be supplied
-as the [ws.WsRequest](https://godoc.org/github.com/graniticio/granitic/ws#WsRequest).RequestBody. 
+as the [ws.WsRequest](https://godoc.org/github.com/graniticio/granitic/v2/ws#WsRequest).RequestBody. 
 
 In order to have this code invoked, we will need to add the following to the `components` section of our 
 `comp-def/common.json` file:
@@ -305,7 +305,7 @@ In order to have this code invoked, we will need to add the following to the `co
 }
 ```
 
-Check your `config/common.json` file and make sure the `GlobalLogLevel` is set to `INFO`
+Check your `config/base.json` file and make sure that `ApplicationLogger.GlobalLogLevel` is set to `INFO`
 
 <pre>
 grnc-bind && go build && ./recordstore
@@ -315,19 +315,19 @@ grnc-bind && go build && ./recordstore
 
 Testing POST and PUT services is more complex than GET services as browsers don't generally have built-in mechanisms for 
 setting the body of a request. There are several browser extensions available that facilitate this sort of testing. The following
-instructions are based on [Advanced Rest Client (ARC) for Chrome](https://chrome.google.com/webstore/detail/advanced-rest-client/hgmloofddffdnphfgcellkdfbfbjeloo)
+instructions are based on [Postman](https://www.postman.com/)
 
 ## POST a new  artist
 
 
-1. Open ARC
-1. Set 'Request URL' to  `http://localhost:8080/artist`
-1. Change the method picklist to `POST`
-1. Click on **Body** and set *Body content type* to `application/json`
+1. Open Postman
+2. Press the 'New' button next to 'My Workspace' in the top-left of the screen
+3. Choose 'HTTP'
+4. Set the HTTP method to `POST` and the URL to `http://localhost:8080/artist`
+1. Click on **Body** and click on the `raw` radio button
 1. Enter the 'test JSON' below into the large grey text area
 1. Press `SEND`
-1. You should receive a JSON formatted response with an ID of 0 and see a log line similar to: `14/Mar/2019:09:24:06 Z INFO  [submitArtistHandlerLogic] New artist: 'Another Artist'`
-
+1. You should receive a JSON formatted response with an ID of 0 and see a log line similar to: `08/Aug/2023:11:44:54 Z INFO  [submitArtistHandlerLogic] New artist: 'Another Artist'`
 
 ### Test JSON
 
@@ -337,17 +337,26 @@ instructions are based on [Advanced Rest Client (ARC) for Chrome](https://chrome
   "FirstYearActive": 2010
 }
 ```
+### Saving this request for later tutorials
+
+In Postman:
+
+1. Click on the dropdown next to the `Save` button and choose `Save As`
+2. Set the request name to 'Artist POST'
+3. Click on `New Collection` at the bottom of the dialog
+4. Name the new collection 'Granitic Tutorials' and press create
+5. Press `Save`
 
 ## Recap
 
  * Granitic can extract data from the path, query and body of an HTTP request and bind it to your custom Go structs.
  * All this behaviour is configurable by changing the configuration of your handler components
- * Handler components are instances of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+ * Handler components are instances of [handler.WsHandler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
  
 ## Further reading
 
- * [Granitic web service processing GoDoc](https://godoc.org/github.com/graniticio/granitic/ws)
- * [Granitic web service facility GoDoc](https://godoc.org/github.com/graniticio/granitic/facility/ws)
+ * [Granitic web service processing GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/ws)
+ * [Granitic web service facility GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/facility/ws)
  
  
 ## Next

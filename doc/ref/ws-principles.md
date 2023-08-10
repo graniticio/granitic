@@ -15,7 +15,7 @@ You are free to substitute your own components for those created and managed by 
 ## Configurable handler
 
 The core orchestration component in Grantic web service request handling is the [handler](ws-handlers.md). 
-Granitic provides a highly configurable default handler [ws.Handler](https://godoc.org/github.com/graniticio/granitic/ws/handler#WsHandler)
+Granitic provides a highly configurable default handler [ws.Handler](https://godoc.org/github.com/graniticio/granitic/v2/ws/handler#WsHandler)
 that meets the needs of most (non-binary) web service requests.
 
 ## Minimal code boilerplate

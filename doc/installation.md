@@ -2,74 +2,58 @@
 
 ## Requirements
 
- * Go 1.11 or later
+ * Go 1.17 or later
  * Git
- 
- It is highly recommended that you have installed Go according to the [standard Go installation instructions](https://golang.org/doc/install) 
- and have set your `GOPATH` environment variable correctly.
- 
-#### Note for Windows users
- 
-The below instructions were tested on Windows 10 having followed the [Go MSI installation instructions for Windows](https://golang.org/doc/install)
- 
-You must [set the GOPATH environment variable](https://golang.org/doc/code.html#GOPATH) and have the Git command 
-line tools installed and configured to work with Command Prompt
- 
-## Installing and testing
 
-### Installing the current version of Granitic
 
-Open a terminal and run:
+## GOPATH
+
+Granitic relies on your [GOPATH environment variable](https://go.dev/doc/gopath_code#GOPATH) being set correctly. This should be set to the directory where Go 
+downloads packages and installs binaries and is normally set to `$HOME/go`.
+
+## Downloading Granitic and setting GRANITIC_HOME
+
+When building Granitic applciations, you will need to have the Granitic source tree checked out to your local filesytem
+and that location defined in an environment variable `GRANITIC_HOME`. Open a terminal and run:
 
 <pre>
-go get github.com/graniticio/granitic
+git clone https://github.com/graniticio/granitic ~/granitic
+export GRANITIC_HOME=~/granitic
 </pre>
- 
-### Install the support tools
 
-Open a terminal and run:
+Make sure to also define `GRANITIC_HOME` in your shell's environment scripts (`.bash_profile`, `.zshenv` etc)
+
+You can now install Granitic's command line tools by running:
 
 <pre>
-cd $GOPATH/src/github.com/graniticio/granitic
+cd $GRANITIC_HOME
 cmd/install-tools.sh
 </pre>
- 
 
-### Testing your installation
 
-The following commands make use of all the environment variables and some of the support tools used when developing 
-Granitic applications.
- 
-#### UNIX-type operating systems 
- 
+Which will install the tools `grnc-bind` and `grnc-project` in `$GOPATH/bin` or in `$HOME/go/bin`, Make sure that 
+`$GOPATH/bin` is included in your `PATH` environment variable. 
+
+
+### Building and running a test application
+
 Open a terminal and run:
 
 <pre>
 cd /tmp
 grnc-project install-test
 cd install-test
-grnc-bind
-go build
+go mod tidy
+grnc-bind && go build
 ./install-test
 </pre>
-
-### Windows
-
-<pre>
-cd %GOPATH%\src
-grnc-project install-test
-cd install-test
-grnc-bind
-go build service.go
-service
-</pre>
-
 
 If your installation has been successful, you'll see command line output similar to:
 
 <pre>
-04/Jan/2019:11:14:19 Z INFO  grncInit Starting components
-04/Jan/2019:11:14:19 Z INFO  grncInit Ready (startup time 1.749365ms)
+02/Aug/2023:09:11:19 Z INFO  [grncInit] Granitic v2.2.2
+02/Aug/2023:09:11:19 Z INFO  [grncInit] Starting components
+02/Aug/2023:09:11:19 Z INFO  [grncInit] Ready (startup time 2.090459ms)
 </pre>
 
 You can stop the program with CTRL+C and can safely delete the /tmp/install-test folder.

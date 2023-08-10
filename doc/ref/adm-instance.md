@@ -30,7 +30,7 @@ ID.
 
 ## Accessing the ID from your components
 
-If your component implements [instance.Receiver](https://godoc.org/github.com/graniticio/granitic/instance#Receiver)
+If your component implements [instance.Receiver](https://godoc.org/github.com/graniticio/granitic/v2/instance#Receiver)
 (e.g. implements the method `RegisterInstanceID(*instance.Identifier)`), the instance ID will be passed in to that
 method before the [container starts your components](ioc-lifecycle.md).
 
