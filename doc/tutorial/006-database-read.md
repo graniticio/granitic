@@ -44,19 +44,27 @@ cd $GOPATH/src/github.com/graniticio/tutorial/docker
 docker-compose up --build --detach 
 </pre>
 
-This will build and start a new docker image with the name `docker_recordstore-db_1` and bind that image's port 3306 
+This will build and start a new docker image with the name `docker-recordstore-db-1` and bind that image's port 3306 
 to your host machine's port 3306. 
 
 If you want to stop the image you can run:
 
 <pre>
-docker stop docker_recordstore-db_1
+docker stop docker-recordstore-db-1
 </pre>
 
 and destroy it permanently with
 
 <pre>
-docker rm docker_recordstore-db_1
+docker rm docker-recordstore-db-1
+</pre>
+
+### Note for Apple Silicon users
+
+Set this environment variable before running `docker compose`:
+
+<pre>
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
 </pre>
 
 ### MySQL workbench
@@ -75,10 +83,11 @@ Schema:   recordstore
 
 ## Creating a DatabaseProvider
 
-Go's SQL abstraction and 'driver management' models are much looser than some other languages' RDBMS access layers. In
+Go's SQL abstraction and 'driver management' models are much looser than in some other languages. In
 order to allow Granitic's components and facilities to be agnostic of the underlying RDBMS, an additional layer of abstraction
 has been defined - the [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#DatabaseProvider) interface.
-Your application will have to define a component that implements this interface. 
+
+our application will have to define a component that implements this interface. 
 
 The [DatabaseProvider's](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#DatabaseProvider) 
 role is to create instances of [sql.DB](https://golang.org/pkg/database/sql/#DB) (Go's connection/driver abstraction) and 
@@ -91,7 +100,7 @@ whichever package provides the database driver that you require
 Open the `go.mod` file in the root of your tutorial project and add the line
 
 ```json
-  require github.com/go-sql-driver/mysql v1.4.1
+  require github.com/go-sql-driver/mysql v1.7.1
 ```
 
 
@@ -155,7 +164,7 @@ You've added components that rely on two new packages, so make sure you add:
 "recordstore/db"
 ```
 
-to the packages section at the start of `components.json`
+to the packages section at the start of `common.json`
 
 
 ### Configuration in component definition is bad practice
@@ -185,13 +194,15 @@ and [RdbmsAccess](https://godoc.org/github.com/graniticio/granitic/v2/facility/r
 ### RdbmsAccess
 
 This facility is the bridge between Granitic's database framework and your application code. 
-It uses the [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#DatabaseProvider)
+It uses the [DatabaseProvider](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#DatabaseProvider) you created
 to obtain connections to your database and injects an instance of [RdbmsClientManager](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#RdbmsClientManager) 
 into any of your application components that have the field:
 
 ```go
   DbClientManager rdbms.ClientManager
 ```
+
+To find out more, refer to the [reference manual](https://granitic.io/ref/rdbms-facility)
 
 ### QueryManager
 
@@ -209,6 +220,8 @@ However, it can be configured to provide additional support for SQL queries, so 
   "ProcessorName": "sql"
  }
 ```
+
+To find out more, refer to the [reference manual](https://granitic.io/ref/query-management-facility)
 
 ## Artist GET
 
@@ -265,7 +278,7 @@ import (
 ### rdbms.Client
 
 [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#Client) is the interface your code uses to 
-execute queries and manage transasctions. It is *not* goroutine-safe and should not be shared, which is why
+execute queries and manage transactions. It is *not* goroutine-safe and should not be shared, which is why
 we use the `rdbms.ClientManager` to create a new instance on every request. 
 
 The methods on [rdbms.Client](https://godoc.org/github.com/graniticio/granitic/v2/rdbms#Client) are named to make the 
@@ -326,10 +339,10 @@ names of the map keys.
 ### Matching column names and aliases
 
 Granitic automatically populates the fields on the supplied target object (in this case an instance of `artist.Info`) by 
-finding a field whose name and type matches a column name or alias in the SQL query's results. This process is case sensitive, 
+finding a field whose name and type matches a column name or alias in the SQL query's results. This process is case-sensitive, 
 which is why we've had to define the column alias `Name` in the query to match it to the `ArtistDetail.Name` field.
 
-If you'd prefer not to use aliases in your query or want the the name of the field on the struct to be very different to 
+If you'd prefer not to use aliases in your query or want the name of the field on the struct to be very different to 
 the column name, you can use the `column` tag on your target object, e.g.:
 
 ```go
@@ -393,6 +406,7 @@ and your editor will stop complaining.
 At this point your service can be started. Open a terminal, navigate to your tutorial project and run:
 
 ```
+go mod tidy
 grnc-bind && go build && ./recordstore
 ``` 
 
@@ -416,6 +430,8 @@ and visiting `http://localhost:8080/artist/1` will yield a response like:
 
  * [RDBMS GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/rdbms)
  * [QueryManager GoDoc](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager)
+ * [RDBMS facility reference manual](https://granitic.io/ref/rdbms-facility)
+ * [Query Management facility reference manual](https://granitic.io/ref/query-management-facility)
  
 ## Next
 
