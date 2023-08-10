@@ -62,9 +62,8 @@ As the `FirstYearActive` parameter maps to the nullable column:
 ```
 
 in the database, it is _not_ marked as required. If the `FirstYearActive` parameter is missing (or set to `nil`),
-the [QueryManager](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager) will substitute the value 
-`null` when generating the query, because we configured the [QueryManager](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager) 
-to run in `SQL` mode in the previous tutorial.
+the [QueryManager](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager) will substitute the value `null` when generating the SQL query, because we configured the 
+[QueryManager](https://godoc.org/github.com/graniticio/granitic/v2/facility/querymanager) to run in `SQL` mode in the previous tutorial.
 
 
 ## Executing the query and capturing the ID
@@ -126,7 +125,7 @@ and POST the following JSON to `http://localhost:8080/artist`
 }
 ```
 
-(see the [data capture tutorial](004-data-capture.md) for instructions on using a browser plugin to do this)
+(see the [data capture tutorial](004-data-capture.md) for instructions on using Postman to do this)
 
 You should see a response like:
 
@@ -234,7 +233,7 @@ A few things are worth noting here:
 
   1. When using transactions, it's good practice to call `defer dbc.Rollback()` as this means that the transaction 
   will be explicitly rolled back if we return from the function or if there is a panic.
-  1. Calling `Rollback` has no effect if the tranasction has already been commited.
+  1. Calling `Rollback` has no effect if the transaction has already been committed.
   1. `StartTransaction`, `Rollback` and `Commit` can all return errors which are being ignored in
   this example.
   
@@ -286,5 +285,5 @@ The [next tutorial](008-shared-validation.md) explains how to do this, but if yo
  
 ## Next
 
-The next tutorial covers [sharing validation rules](008-shared-validation.md) between endpoints and using custom 
-Granitic components to validate fields. 
+The next tutorial covers [sharing validation rules](008-shared-validation.md) between endpoints and using custom Granitic components to 
+validate fields. 
