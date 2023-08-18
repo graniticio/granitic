@@ -226,7 +226,7 @@ func (im *invocationManager) setFirstInvocation() {
 	t := im.Task
 
 	if t.MaxRetries > 0 {
-		im.Log.LogDebugf("Task '%s' can be retried a maxium of %d time(s) with an interval of %v between retries", t.FullName(), t.MaxRetries, t.retryWait)
+		im.Log.LogDebugf("Task '%s' can be retried a maximum of %d time(s) with an interval of %v between retries", t.FullName(), t.MaxRetries, t.retryWait)
 	}
 
 	im.scheduled.EnqueueAtTail(i)
