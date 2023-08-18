@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -8,7 +8,7 @@ The core type in this package is WsHandler. A handler (an instance of WsHandler)
 endpoint in your application. The behaviour and configuration of handlers is described in detail at
 https://granitic.io/ref/web-service-handlers but a brief description follows.
 
-Declaring handlers
+# Declaring handlers
 
 A handler is declared in your component definition file like:
 
@@ -34,7 +34,6 @@ standard or custom HTTP method can be used.
 
 3. A 'logic' component that implements at least WsRequestProcessor (additional WsXXX interfaces can be implemented
 to support advanced behaviour) OR has a method with the signature ProcessPayload(ctx context.Context, request *ws.Request, response *ws.Response, payload *YourStruct)
-
 */
 package handler
 

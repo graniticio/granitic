@@ -1,4 +1,4 @@
-// Copyright 2018-2020 Granitic. All rights reserved.
+// Copyright 2018-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package httpserver
@@ -13,7 +13,7 @@ import (
 // It is an opportunity to extract information from the HTTP request to add an ID for this request to the context that
 // will be passed to the handler.
 //
-// It is the responsibility of the implementor to control the uniqueness of the allocated ID
+// # It is the responsibility of the implementor to control the uniqueness of the allocated ID
 //
 // It is recommended that only the request meta data (headers, path, parameters) are accessed by implementations, as
 // loading the request body will interfere with later phases of the request processing.

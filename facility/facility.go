@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -11,7 +11,7 @@ enabled and configured by user applications.
 A full description of how facilities can be enabled and configured can be found at https://granitic.io/ref/facilities but a basic description
 of how they work follows:
 
-Enabling and disabling facilities
+# Enabling and disabling facilities
 
 The features that are available to applications, and whether they are enabled by default or not, are enumerated in the file:
 
@@ -43,7 +43,7 @@ off. If you wanted to enable the HTTPServer facility, you'd add the following to
 	  }
 	}
 
-Configuring facilities
+# Configuring facilities
 
 Each facility has a number of default settings that can be found in the file:
 
@@ -51,24 +51,23 @@ Each facility has a number of default settings that can be found in the file:
 
 For example, the default configuration for the HTTPServer facility will look something like:
 
-  {
-    "HTTPServer":{
-      "Port": 8080,
-	  "AccessLogging": false,
-	  "TooBusyStatus": 503,
-	  "AutoFindHandlers": true
-    }
-  }
+	  {
+	    "HTTPServer":{
+	      "Port": 8080,
+		  "AccessLogging": false,
+		  "TooBusyStatus": 503,
+		  "AutoFindHandlers": true
+	    }
+	  }
 
 Any of these settings can be changed by overriding one or more of the fields in your application's configuration file. For example, to
 change the port on which your application's HTTP server listens on, you could add the following to any of your application's configuration files:
 
-  {
-    "HTTPServer":{
-      "Port": 9000
-    }
-  }
-
+	{
+	  "HTTPServer":{
+	    "Port": 9000
+	  }
+	}
 */
 package facility
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -6,7 +6,7 @@ Package rdbms provides types for interacting with relational (SQL) databases.
 
 A full explanation of Grantic's patterns for relational database access management system (RDBMS) access can be found at https://granitic.io/ref/relational-databases
 
-Principles
+# Principles
 
 Granitic's RDBMS access types and components adhere to a number of principles:
 
@@ -18,16 +18,16 @@ Granitic's RDBMS access types and components adhere to a number of principles:
 
 4. Code that is executing queries against a database should be readable and have obvious intent.
 
-Facilities
+# Facilities
 
 To use Granitic's RDBMS access, your application will need to enable both the QueryManager and RdbmsAccess facilities.
- implements https://granitic.io/ref/facilities for more details.
 
-Components and types
+	implements https://granitic.io/ref/facilities for more details.
+
+# Components and types
 
 Enabling these facilities creates the QueryManager and ClientManager components. Your application must provide
 a DatabaseProvider ( implements below)
-
 
 	DatabaseProvider    A component able to provide connections to an RDBMS by creating
 						and managing Go sql.DB objects.
@@ -41,8 +41,7 @@ a DatabaseProvider ( implements below)
 
 	RowBinder           A type able to map SQL query results into Go structs.
 
-
-DatabaseProvider
+# DatabaseProvider
 
 Because of the way Go applications are built (statically linked), drivers for individual RDBMSs cannot be dynamically
 loaded at runtime. To avoid the Granitic framework importing large numbers of third-party libraries,
@@ -64,11 +63,11 @@ file similar to:
 As long as you only have one implementation of DatabaseProvider registered as a component, it will automatically
 be injected into the ClientManager component.
 
-QueryManager
+# QueryManager
 
-Refer to the dsquery package for more details on how QueryManagers work.5
+# Refer to the dsquery package for more details on how QueryManagers work.5
 
-ClientManager
+# ClientManager
 
 Granitic applications are discouraged from directly interacting with sql.DB objects (although of course they are
 free to do so). Instead, they use instances of ManagedClient. ManagedClient objects are not reusable across goroutines,
@@ -77,7 +76,7 @@ a web services application).
 
 The component that is able to provide these clients is ClientManager.
 
-Auto-injection of an ClientManager
+# Auto-injection of an ClientManager
 
 Any component that needs an ManagedClient should have a field:
 
@@ -98,7 +97,7 @@ Your code then obtains an ManagedClient in a manner similar to:
 	  return err
 	}
 
-ManagedClient
+# ManagedClient
 
 Application code executes SQL (either directly or via a templated query) and interacts with transactions via an
 instance of ManagedClient. Refer to the GoDoc for ManagedClient for information on the methods available, but the general pattern
@@ -112,16 +111,16 @@ Where
 	BindingType       Is optional and can be Bind or BindSingle
 	ParameterSource   Is optional and can be either Param or Params
 
-QID
+# QID
 
 A QID is the ID of query stored in the QueryManager.
 
-Parameter sources
+# Parameter sources
 
 Parameters to populate template queries can either be supplied via a pair of values (Param), a map[string]interface{} (Params) or a struct whose
 fields are optionally annotated with the `dbparam` tag. If the dbparam tag is not present on a field, the field's name is used a the parameter key.
 
-Binding
+# Binding
 
 ManagedClient provides a mechanism for automatically copying result data into structs or slices of structs. If the
 ManagedClient method name contains BindSingle, you will pass a pointer to a struct into the method and its fields will be populated:
@@ -144,8 +143,7 @@ If the method contains the word Bind (not BindSingle), you will supply an exampl
 	  return id.artistResults(r), nil
 	}
 
-
-Transactions
+# Transactions
 
 To call start a transaction, invoke the StartTransaction method on the RDBMSCLient like:
 
@@ -156,17 +154,14 @@ and end your method with:
 
 	db.CommitTransaction()
 
-
 The deferred Rollback call will do nothing if the transaction has previously been committed.
 
-
-Direct access to Go DB methods
+# Direct access to Go DB methods
 
 ManagedClient provides pass-through access to sql.DB's Exec, Query and QueryRow methods. Note that these methods are compatible
 with Granitic's transaction pattern as described above.
 
-
-Multiple databases
+# Multiple databases
 
 This iteration of Granitic is optimised for the most common use-case for RDBMS access, where a particular Granitic
 application will access a single logical database. It is fully acknowledged that there are many situations where an application

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package validate
@@ -17,7 +17,7 @@ func TestFloatTypeSupportDetection(t *testing.T) {
 
 	sub.F32 = 32.00
 	sub.F64 = 64.1
-	sub.NF = types.NewNilableFloat64(128E10)
+	sub.NF = types.NewNilableFloat64(128e10)
 	sub.S = "NAN"
 
 	vc := new(ValidationContext)
@@ -71,7 +71,7 @@ func TestFloatInSet(t *testing.T) {
 
 	test.ExpectInt(t, len(c[field]), 0)
 
-	sub.F64 = 2.1E10
+	sub.F64 = 2.1e10
 
 	r, err = bv.Validate(vc)
 	test.ExpectNil(t, err)

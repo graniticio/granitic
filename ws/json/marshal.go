@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -6,23 +6,23 @@ Package json defines types that are specific to handling web service requests an
 implementing this type will be created when you enable the JSONWs facility. For more information on JSON web services
 in Granitic, see https://granitic.io/ref/json-web-services
 
-Marshalling and unmarshalling
+# Marshalling and unmarshalling
 
 The response writer and unmarshaller defined in this package are thin wrappers over the Go's built-in json handling
 types. See https://golang.org/pkg/encoding/json
 
-Response wrapping
+# Response wrapping
 
 By default, any data serialised to JSON will first be wrapped with a containing data structure by an instance of GraniticJSONResponseWrapper. This
 means that all responses share a common top level structure for finding the body of the response or errors if they exist.
 For more information on this behaviour (and how to override it) see: https://granitic.io/ref/json-web-services
 
-Error formatting
+# Error formatting
 
 Any service errors found in a response are formatted by GraniticJSONErrorFormatter before being serialised to JSON.
 For more information on this behaviour (and how to override it) see: https://granitic.io/ref/json-web-services
 
-Compatibility with existing service APIs
+# Compatibility with existing service APIs
 
 A hurdle to migrating existing Java and .NET services to Go is that those languages allow JSON frameworks to write and
 read from member variables that start with lowercase characters. Go's rules for json decoding will map a JSON field with a
@@ -37,7 +37,6 @@ The method must be explicitly called in your handler's logic like:
 	wsResponse.Body = json.CamelCase(body)
 
 This feature should be considered experimental.
-
 */
 package json
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package logging
@@ -182,7 +182,7 @@ func (lmf *LogMessageFormatter) Format(ctx context.Context, levelLabel, loggerNa
 	return b.String()
 }
 
-//SetContextFilter provides the formatter with access selected data from a context
+// SetContextFilter provides the formatter with access selected data from a context
 func (lmf *LogMessageFormatter) SetContextFilter(cf ContextFilter) {
 	lmf.ContextFilter = cf
 }

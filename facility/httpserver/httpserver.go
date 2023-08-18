@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -12,7 +12,6 @@ and mapping of requests to instances of ws.Handler. AccessLogWriter supports Apa
 
 Most applications will only need to enable this facility (probably changing the listen Port) and define mappings between incoming paths and application logic in their
 component definition files. See handler.WsHandler for more details.
-
 */
 package httpserver
 

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Granitic. All rights reserved.
+// Copyright 2019-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -8,7 +8,6 @@ https://tools.ietf.org/html/rfc4122
 
 Default V4 UUID generation is benchmarked at ~500ns per generation (2.6 GHz Core i7 (I7-8850H))
 and does not benefit from any buffering/pre-generation.
-
 */
 package uuid
 

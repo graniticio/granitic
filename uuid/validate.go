@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Granitic. All rights reserved.
+// Copyright 2019-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package uuid
@@ -17,7 +17,7 @@ const dashFourIndex = 23
 
 const v4Version = "0100"
 
-//ValidV4 returns true if the supplied string is a valid version 4 UUID according to RFC 4122
+// ValidV4 returns true if the supplied string is a valid version 4 UUID according to RFC 4122
 func ValidV4(uuid string) bool {
 	if !ValidFormat(uuid) {
 

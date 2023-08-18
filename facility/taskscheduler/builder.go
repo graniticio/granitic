@@ -1,4 +1,4 @@
-// Copyright 2018-2020 Granitic. All rights reserved.
+// Copyright 2018-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package taskscheduler
@@ -13,7 +13,7 @@ import (
 
 const facilityName = "TaskScheduler"
 
-//TaskSchedulerComponentName is the name of the TaskScheduler component as stored in the IoC framework.
+// TaskSchedulerComponentName is the name of the TaskScheduler component as stored in the IoC framework.
 const TaskSchedulerComponentName = instance.FrameworkPrefix + facilityName
 
 // FacilityBuilder creates the components that make up the TaskScheduler facility

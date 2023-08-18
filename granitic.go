@@ -1,14 +1,14 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
 Package granitic provides methods for configuring and starting a Granitic application.
 
-Granitic is a framework for building micro-services in Go
+# Granitic is a framework for building micro-services in Go
 
 To get started with Granitic, visit https://granitic.io/getting-started-installing-granitic
 
-Entry points
+# Entry points
 
 This package provides entry point functions for your application to hand control over to Granitic. Typically your application
 will have a single, minimal file in its main package similar to:
@@ -25,7 +25,7 @@ will have a single, minimal file in its main package similar to:
 You can build a skeleton Granitic application by running the grnc-project tool, which will generate a main file, empty
 configuration file and empty component definition file. The uses and syntax of these files are described in the config and ioc packages respectively.
 
-Components and configuration
+# Components and configuration
 
 A Granitic application needs two things to start:
 
@@ -33,7 +33,7 @@ A Granitic application needs two things to start:
 
 2. One or more JSON configuration files containing environment-specific settings for your application (passwords, hostnames etc.)
 
-Configuration files
+# Configuration files
 
 Folders and files containing configuration are by default expected to be stored in
 
@@ -43,7 +43,7 @@ This folder can contain any number of files or sub-directories. This location ca
 when starting your application from the command line. This argument is expected to be a comma separated list of file paths,
 directories or HTTP URLs to JSON files or any mixture of the above.
 
-Command line arguments
+# Command line arguments
 
 When starting your application from the command, Granitic takes control of processing command line arguments. By
 default your application will support the following arguments.
@@ -61,7 +61,6 @@ you should start Granitic using the alternative:
 	StartGraniticWithSettings(cs *ioc.ProtoComponents, is *config.InitialSettings)
 
 where you are expected to programmatically define the initial settings.
-
 */
 package granitic
 

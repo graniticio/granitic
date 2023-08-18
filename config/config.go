@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -13,6 +13,7 @@ This package defines functionality for loading a JSON file (from a filesystem or
 a single view. This is a key concept in Granitic.
 
 Given a folder of configuration files called conf:
+
 	conf/x.json
 	conf/sub/a.json
 	conf/sub/b.json

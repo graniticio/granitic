@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -6,7 +6,7 @@ Package serviceerror provides the ServiceErrorManager facility which provides er
 
 This facility is documented in detail at https://granitic.io/ref/service-error-management
 
-Error definitions
+# Error definitions
 
 The purpose of the ServiceErrorManager is to allow error messages to be defined in a single place rather than be embedded in code.
 When application code needs to raise or work with an error, a short code is used to refer to the error and is used to lookup its related message.
@@ -25,7 +25,7 @@ This example defines three errors with three parts that correspond to the fields
 of each definition is the short-hand form of the error category (see ws.ServiceErrorCategory), the second is a unique code for the error
 and the third is a (normally human readable) error message.
 
-Changing config location
+# Changing config location
 
 By default, the ServiceErrorManager expects definitions to be available at the config path
 
@@ -39,7 +39,7 @@ as in the example above. This can be overridden by modifying the ServiceErrorMan
 	  }
 	}
 
-Panic on missing
+# Panic on missing
 
 If your application code uses an error code that has no corresponding definition, you can choose how the ServiceErrorManager will
 react. By default, the ServiceErrorManager will panic -  this should be a development/test phase failure. If for some reason your
@@ -52,7 +52,6 @@ application might reach production with error codes with missing definitions, yo
 	}
 
 In this case, ServiceErrorManager will return nil when asked for the definition of an unknown code.
-
 */
 package serviceerror
 

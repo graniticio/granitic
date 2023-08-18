@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 package ws
@@ -78,7 +78,7 @@ func TestQueryAutoBinding(t *testing.T) {
 	test.ExpectString(t, bt.NS.String(), "ns")
 	test.ExpectBool(t, bt.NB.Bool(), false)
 	test.ExpectInt(t, int(bt.NI.Int64()), -64)
-	test.ExpectFloat(t, bt.NF.Float64(), -10.0E2)
+	test.ExpectFloat(t, bt.NF.Float64(), -10.0e2)
 
 }
 
@@ -177,7 +177,7 @@ func TestManualBinding(t *testing.T) {
 	test.ExpectString(t, bt.NS.String(), "ns")
 	test.ExpectBool(t, bt.NB.Bool(), false)
 	test.ExpectInt(t, int(bt.NI.Int64()), -64)
-	test.ExpectFloat(t, bt.NF.Float64(), -10.0E2)
+	test.ExpectFloat(t, bt.NF.Float64(), -10.0e2)
 
 }
 

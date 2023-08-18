@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Granitic. All rights reserved.
+// Copyright 2016-2023 Granitic. All rights reserved.
 // Use of this source code is governed by an Apache 2.0 license that can be found in the LICENSE file at the root of this project.
 
 /*
@@ -32,7 +32,7 @@ The line should be changed to a non-relative path that reflects the layout of yo
 
 	import "github.com/yourGitHubUser/yourPackage/bindings"
 
-Your project's module name will be the same as the project name unless you provide the module name as the second argument to this tool
+# Your project's module name will be the same as the project name unless you provide the module name as the second argument to this tool
 
 The .gitignore file contains:
 
