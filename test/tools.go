@@ -153,7 +153,7 @@ func FindFacilityConfigFromWD() (string, error) {
 
 			n := f.Name()
 
-			if n == "granitic.go" || n == "go.mod.old" || n == "LICENSE" {
+			if n == "granitic.go" || n == "go.mod" || n == "LICENSE" {
 				rootFilesSeen++
 			}
 
