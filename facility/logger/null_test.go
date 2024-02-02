@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
@@ -13,7 +13,7 @@ func TestNullLoggingComponents(t *testing.T) {
 	lm := new(logging.ComponentLoggerManager)
 	lm.Disable()
 
-	ca := new(config.Accessor)
+	ca := config_access.NewGraniticSelector(make(config_access.ConfigNode))
 	s := new(instance.System)
 
 	cn := ioc.NewComponentContainer(lm, ca, s)

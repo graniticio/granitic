@@ -68,6 +68,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/gob"
+	config_access "github.com/graniticio/config-access"
 	"os"
 	"os/signal"
 	"runtime"
@@ -176,7 +177,6 @@ func (i *initiator) buildContainer(ac *ioc.ProtoComponents, is *config.InitialSe
 		nl := new(logging.NullLogger)
 		l = nl
 		i.logger = nl
-		ca.FrameworkLogger = nl
 	}
 
 	//Load system settings from config
@@ -272,7 +272,7 @@ func (i *initiator) shutdown(cc *ioc.ComponentContainer) {
 
 // Merge together all of the local and remote JSON configuration files and wrap them in a *config.Accessor
 // which allows programmatic access to the merged config.
-func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *logging.ComponentLoggerManager) *config.Accessor {
+func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *logging.ComponentLoggerManager) config_access.Selector {
 
 	builtIn := map[string]interface{}{}
 
@@ -300,8 +300,6 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 
 	i.logConfigLocations(is.Configuration)
 
-	fl := flm.CreateLogger(configAccessorComponentName)
-
 	jm := config.NewJSONMergerWithManagedLogging(flm, new(config.JSONContentParser))
 
 	for _, cp := range is.ConfigParsers {
@@ -328,7 +326,7 @@ func (i *initiator) createConfigAccessor(is *config.InitialSettings, flm *loggin
 
 	}
 
-	return &config.Accessor{JSONData: mergedJSON, FrameworkLogger: fl}
+	return config_access.NewGraniticSelector(mergedJSON)
 }
 
 // Record the files and URLs used to create a merged configuration (in the order in which they will be merged)
@@ -344,14 +342,14 @@ func (i *initiator) logConfigLocations(configPaths []string) {
 }
 
 // Load system settings covering memory management and start/stop behaviour from configuration
-func (i *initiator) loadSystemsSettings(ca *config.Accessor) *instance.System {
+func (i *initiator) loadSystemsSettings(ca config_access.Selector) *instance.System {
 
 	s := new(instance.System)
 	l := i.logger
 
 	if ca.PathExists(systemPath) {
 
-		if err := ca.Populate(systemPath, s); err != nil {
+		if err := config_access.Populate(systemPath, s, ca.Config()); err != nil {
 			l.LogFatalf("Problem loading system settings from config: " + err.Error())
 			instance.ExitError()
 		}

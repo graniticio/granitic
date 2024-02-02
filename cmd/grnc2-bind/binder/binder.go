@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 	"flag"
 	"fmt"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/logging"
@@ -144,7 +145,7 @@ func (b *Binder) Bind(s Settings) {
 
 	if *s.MergedDebugFile != "" {
 		// Write the merged view of components to a file then exit
-		if err := b.Loader.WriteMerged(ca.JSONData, *s.MergedDebugFile, b.Log); err != nil {
+		if err := b.Loader.WriteMerged(ca.Config(), *s.MergedDebugFile, b.Log); err != nil {
 			b.exitError(err.Error())
 		}
 
@@ -225,7 +226,7 @@ func SerialiseBuiltinConfig(log logging.Logger) string {
 	return ""
 }
 
-func (b *Binder) writeBindings(w *bufio.Writer, ca *config.Accessor) {
+func (b *Binder) writeBindings(w *bufio.Writer, ca config_access.Selector) {
 	b.writePackage(w)
 	b.writeImportsAndAliases(w, ca)
 
@@ -343,11 +344,11 @@ func (b *Binder) writePackage(w *bufio.Writer) {
 	w.WriteString(l)
 }
 
-func (b *Binder) writeImportsAndAliases(w *bufio.Writer, configAccessor *config.Accessor) {
+func (b *Binder) writeImportsAndAliases(w *bufio.Writer, ca config_access.Selector) {
 
 	b.Log.LogDebugf("Gathering and writing import statements")
 
-	packages, err := configAccessor.Array(packagesField)
+	packages, err := ca.Array(packagesField)
 
 	if err != nil {
 		b.Log.LogFatalf("Unable to find a %s field in the merged configuration: %s", packagesField, err.Error())
@@ -361,7 +362,7 @@ func (b *Binder) writeImportsAndAliases(w *bufio.Writer, configAccessor *config.
 	w.WriteString(iocImp + newline)
 
 	b.writeImports(packages, b.packagesAliases, w)
-	b.writePackageAliases(configAccessor, b.packagesAliases, w)
+	b.writePackageAliases(ca, b.packagesAliases, w)
 
 	w.WriteString(")\n\n")
 
@@ -390,7 +391,7 @@ func (b *Binder) writeImports(packages []interface{}, ps *packageStore, w *bufio
 	}
 }
 
-func (b *Binder) writePackageAliases(configAccessor *config.Accessor, ps *packageStore, w *bufio.Writer) {
+func (b *Binder) writePackageAliases(configAccessor config_access.Selector, ps *packageStore, w *bufio.Writer) {
 
 	aliases, err := configAccessor.ObjectVal(packageAliasesField)
 
@@ -937,7 +938,7 @@ func (b *Binder) openOutputFile(p string) *os.File {
 	return f
 }
 
-func (b *Binder) parseTemplates(ca *config.Accessor) map[string]interface{} {
+func (b *Binder) parseTemplates(ca config_access.Selector) map[string]interface{} {
 
 	b.Log.LogDebugf("Processing component templates")
 
@@ -988,7 +989,7 @@ func (b *Binder) writeSerialisedConfig(w *bufio.Writer) {
 
 }
 
-func (b *Binder) writeFrameworkModifiers(w *bufio.Writer, ca *config.Accessor) {
+func (b *Binder) writeFrameworkModifiers(w *bufio.Writer, ca config_access.Selector) {
 
 	tabs := 1
 
@@ -1102,7 +1103,7 @@ func (b *Binder) contains(a []string, c string) bool {
 	return false
 }
 
-func (b *Binder) loadConfig(l string) *config.Accessor {
+func (b *Binder) loadConfig(l string) config_access.Selector {
 
 	log := b.Log
 
@@ -1123,18 +1124,16 @@ func (b *Binder) loadConfig(l string) *config.Accessor {
 		b.exitError(m)
 	}
 
-	ca := new(config.Accessor)
-	ca.JSONData = mc
-	ca.FrameworkLogger = b.Log
+	ca := config_access.NewGraniticSelector(mc)
 
 	if !ca.PathExists(packagesField) {
 		// Add the missing packages section
-		ca.JSONData[packagesField] = []interface{}{}
+		mc[packagesField] = []interface{}{}
 	}
 
 	if !ca.PathExists(componentsField) {
 		// Add the missing components section
-		ca.JSONData[componentsField] = map[string]interface{}{}
+		mc[componentsField] = map[string]interface{}{}
 
 	}
 

@@ -1,6 +1,7 @@
 package logger
 
 import (
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
@@ -97,7 +98,7 @@ func TestDefaultJSONFieldConfig(t *testing.T) {
 
 	cfg := new(logging.JSONConfig)
 
-	ca.Populate("LogWriting.Format.JSON", cfg)
+	config_access.Populate("LogWriting.Format.JSON", cfg, ca.Config())
 
 	if len(cfg.Fields) == 0 {
 		t.Fatalf("Unexpected number of JSON fields in default configuration %d", len(cfg.ParsedFields))
@@ -113,7 +114,7 @@ func TestDefaultJSONFieldConfig(t *testing.T) {
 
 }
 
-func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...string) (*config.Accessor, error) {
+func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...string) (config_access.Selector, error) {
 
 	jm := config.NewJSONMergerWithManagedLogging(lm, new(config.JSONContentParser))
 
@@ -141,7 +142,6 @@ func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...strin
 		return nil, err
 	}
 
-	caLogger := lm.CreateLogger("ca")
-	return &config.Accessor{JSONData: mergedJSON, FrameworkLogger: caLogger}, nil
+	return config_access.NewGraniticSelector(mergedJSON), nil
 
 }

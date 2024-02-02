@@ -86,7 +86,7 @@ package querymanager
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/dsquery"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
@@ -111,10 +111,10 @@ type FacilityBuilder struct {
 }
 
 // BuildAndRegister implements FacilityBuilder.BuildAndRegister
-func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) error {
 
 	queryManager := new(dsquery.TemplatedQueryManager)
-	ca.Populate("QueryManager", queryManager)
+	config_access.Populate("QueryManager", queryManager, ca.Config())
 
 	cn.WrapAndAddProto(QueryManagerComponentName, queryManager)
 
@@ -158,7 +158,7 @@ func (qmfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 	}
 
-	ca.Populate(vpConfig, vp)
+	config_access.Populate(vpConfig, vp, ca.Config())
 
 	queryManager.ValueProcessor = vp
 

@@ -5,7 +5,7 @@ package ws
 
 import (
 	"errors"
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
@@ -25,7 +25,7 @@ type XMLFacilityBuilder struct {
 }
 
 // BuildAndRegister implements FacilityBuilder.BuildAndRegister
-func (fb *XMLFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
+func (fb *XMLFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cc *ioc.ComponentContainer) error {
 
 	wc, err := buildAndRegisterWsCommon(lm, ca, cc)
 
@@ -55,10 +55,10 @@ func (fb *XMLFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManage
 	return nil
 }
 
-func (fb *XMLFacilityBuilder) createTemplateComponents(ca *config.Accessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.ResponseWriter {
+func (fb *XMLFacilityBuilder) createTemplateComponents(ca config_access.Selector, cc *ioc.ComponentContainer, wc *wsCommon) ws.ResponseWriter {
 
 	rw := new(xml.TemplatedXMLResponseWriter)
-	ca.Populate("XMLWs.ResponseWriter", rw)
+	config_access.Populate("XMLWs.ResponseWriter", rw, ca.Config())
 	cc.WrapAndAddProto(xmlResponseWriterName, rw)
 
 	rw.FrameworkErrors = wc.FrameworkErrors
@@ -68,10 +68,10 @@ func (fb *XMLFacilityBuilder) createTemplateComponents(ca *config.Accessor, cc *
 
 }
 
-func (fb *XMLFacilityBuilder) createMarshalComponents(ca *config.Accessor, cc *ioc.ComponentContainer, wc *wsCommon) ws.ResponseWriter {
+func (fb *XMLFacilityBuilder) createMarshalComponents(ca config_access.Selector, cc *ioc.ComponentContainer, wc *wsCommon) ws.ResponseWriter {
 
 	rw := new(ws.MarshallingResponseWriter)
-	ca.Populate("XMLWs.ResponseWriter", rw)
+	config_access.Populate("XMLWs.ResponseWriter", rw, ca.Config())
 	cc.WrapAndAddProto(xmlResponseWriterName, rw)
 
 	rw.StatusDeterminer = wc.StatusDeterminer
@@ -89,7 +89,7 @@ func (fb *XMLFacilityBuilder) createMarshalComponents(ca *config.Accessor, cc *i
 	if !cc.ModifierExists(xmlResponseWriterName, "MarshalingWriter") {
 
 		mw := new(xml.MarshalingWriter)
-		ca.Populate("XMLWs.Marshal", mw)
+		config_access.Populate("XMLWs.Marshal", mw, ca.Config())
 		rw.MarshalingWriter = mw
 	}
 

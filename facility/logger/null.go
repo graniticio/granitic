@@ -4,7 +4,7 @@
 package logger
 
 import (
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
 )
@@ -14,7 +14,7 @@ type NullLoggingFacilityBuilder struct {
 }
 
 // BuildAndRegister creates a decorator that will inject a 'null' logger into any component that asks for a an application logger
-func (nlfb *NullLoggingFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (nlfb *NullLoggingFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) error {
 
 	ald := new(applicationLogDecorator)
 	ald.FrameworkLogger = lm.CreateLogger(applicationLoggingDecoratorName)

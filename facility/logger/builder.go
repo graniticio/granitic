@@ -12,7 +12,7 @@ package logger
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/facility/runtimectl"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
@@ -32,7 +32,7 @@ type FacilityBuilder struct {
 }
 
 // BuildAndRegister implements FacilityBuilder.BuildAndRegister
-func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) error {
 	globalLogLevelLabel, err := ca.StringVal("ApplicationLogger.GlobalLogLevel")
 
 	if err != nil {
@@ -83,7 +83,7 @@ func (alfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 // AddRuntimeCommandsForFrameworkLogging registers the runtime control commands related to logging with stubbed
 // out application logging
-func AddRuntimeCommandsForFrameworkLogging(ca *config.Accessor, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
+func AddRuntimeCommandsForFrameworkLogging(ca config_access.Selector, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
 
 	alm := logging.CreateComponentLoggerManager(logging.Fatal, map[string]interface{}{}, []logging.LogWriter{}, nil, false)
 
@@ -92,7 +92,7 @@ func AddRuntimeCommandsForFrameworkLogging(ca *config.Accessor, flm *logging.Com
 }
 
 // AddRuntimeCommandsForLogging registers the runtime control commands related to logging
-func AddRuntimeCommandsForLogging(ca *config.Accessor, alm *logging.ComponentLoggerManager, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
+func AddRuntimeCommandsForLogging(ca config_access.Selector, alm *logging.ComponentLoggerManager, flm *logging.ComponentLoggerManager, cn *ioc.ComponentContainer) {
 
 	if !runtimectl.Enabled(ca) {
 		return
@@ -113,7 +113,7 @@ func AddRuntimeCommandsForLogging(ca *config.Accessor, alm *logging.ComponentLog
 }
 
 // BuildFormatterFromConfig uses configuration to determine the format for application logs
-func BuildFormatterFromConfig(ca *config.Accessor) (logging.StringFormatter, error) {
+func BuildFormatterFromConfig(ca config_access.Selector) (logging.StringFormatter, error) {
 
 	var mode string
 	var err error
@@ -128,7 +128,7 @@ func BuildFormatterFromConfig(ca *config.Accessor) (logging.StringFormatter, err
 
 		lmf := new(logging.LogMessageFormatter)
 
-		if err := ca.Populate("LogWriting.Format", lmf); err != nil {
+		if err := config_access.Populate("LogWriting.Format", lmf, ca.Config()); err != nil {
 			return nil, err
 		}
 
@@ -143,7 +143,7 @@ func BuildFormatterFromConfig(ca *config.Accessor) (logging.StringFormatter, err
 
 		cfg := new(logging.JSONConfig)
 
-		ca.Populate("LogWriting.Format.JSON", cfg)
+		config_access.Populate("LogWriting.Format.JSON", cfg, ca.Config())
 		jmf.Config = cfg
 
 		cfg.UTC, _ = ca.BoolVal("LogWriting.Format.UtcTimes")
@@ -168,7 +168,7 @@ func BuildFormatterFromConfig(ca *config.Accessor) (logging.StringFormatter, err
 }
 
 // BuildWritersFromConfig uses configuration to determine the writers for logging
-func BuildWritersFromConfig(ca *config.Accessor) ([]logging.LogWriter, error) {
+func BuildWritersFromConfig(ca config_access.Selector) ([]logging.LogWriter, error) {
 	writers := make([]logging.LogWriter, 0)
 
 	if console, err := ca.BoolVal("LogWriting.EnableConsoleLogging"); err != nil {
@@ -182,7 +182,7 @@ func BuildWritersFromConfig(ca *config.Accessor) ([]logging.LogWriter, error) {
 	} else if file {
 		fileWriter := new(logging.AsynchFileWriter)
 
-		if err = ca.Populate("LogWriting.File", fileWriter); err != nil {
+		if err = config_access.Populate("LogWriting.File", fileWriter, ca.Config()); err != nil {
 			return nil, err
 		}
 

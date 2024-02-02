@@ -16,7 +16,7 @@ package rdbms
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/facility/querymanager"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
@@ -35,7 +35,7 @@ type FacilityBuilder struct {
 }
 
 // BuildAndRegister implements FacilityBuilder.BuildAndRegister
-func (rafb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (rafb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) error {
 
 	log := lm.CreateLogger(instance.FrameworkPrefix + "FacilityBuilder")
 	rafb.Log = log
@@ -63,7 +63,7 @@ func (rafb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 		// Create config for a default ClientManager
 		mc := new(rdbms.ClientManagerConfig)
-		ca.Populate("RdbmsAccess.Default", mc)
+		config_access.Populate("RdbmsAccess.Default", mc, ca.Config())
 
 		proto := ioc.CreateProtoComponent(mc, rdbmsClientManagerConfigName)
 

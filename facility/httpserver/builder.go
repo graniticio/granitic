@@ -6,7 +6,7 @@ package httpserver
 import (
 	"context"
 	"fmt"
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/instrument"
 	"github.com/graniticio/granitic/v3/ioc"
@@ -38,12 +38,12 @@ type FacilityBuilder struct {
 }
 
 // BuildAndRegister implements FacilityBuilder.BuildAndRegister
-func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) error {
 
 	log := lm.CreateLogger(instance.FrameworkPrefix + "FacilityBuilder")
 
 	httpServer := new(HTTPServer)
-	ca.Populate("HTTPServer", httpServer)
+	config_access.Populate("HTTPServer", httpServer, config_access.ConfigNode{})
 
 	cn.WrapAndAddProto(HTTPServerComponentName, httpServer)
 
@@ -79,9 +79,9 @@ func (hsfb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager
 
 }
 
-func (hsfb *FacilityBuilder) setupAccessLogging(ca *config.Accessor, log logging.Logger, httpServer *HTTPServer, cn *ioc.ComponentContainer) error {
+func (hsfb *FacilityBuilder) setupAccessLogging(ca config_access.Selector, log logging.Logger, httpServer *HTTPServer, cn *ioc.ComponentContainer) error {
 	accessLogWriter := new(AccessLogWriter)
-	ca.Populate("HTTPServer.AccessLog", accessLogWriter)
+	config_access.Populate("HTTPServer.AccessLog", accessLogWriter, ca.Config())
 
 	var lb LineBuilder
 	var mode string
@@ -105,7 +105,7 @@ func (hsfb *FacilityBuilder) setupAccessLogging(ca *config.Accessor, log logging
 		jlb := new(JSONLineBuilder)
 
 		jc := new(AccessLogJSONConfig)
-		ca.Populate("HTTPServer.AccessLog.JSON", jc)
+		config_access.Populate("HTTPServer.AccessLog.JSON", jc, ca.Config())
 		jlb.Config = jc
 
 		jc.ParsedFields = ConvertFields(jc.Fields)
@@ -146,12 +146,12 @@ func (hsfb *FacilityBuilder) setupAccessLogging(ca *config.Accessor, log logging
 	return nil
 }
 
-func configureRequestIDGeneration(ca *config.Accessor, log logging.Logger, s *HTTPServer) error {
+func configureRequestIDGeneration(ca config_access.Selector, log logging.Logger, s *HTTPServer) error {
 
 	cfg := new(requestIDConfig)
 	basePath := "HTTPServer.RequestID"
 
-	if err := ca.Populate(basePath, cfg); err != nil {
+	if err := config_access.Populate(basePath, cfg, ca.Config()); err != nil {
 		return fmt.Errorf("Unable to read configuration for request ID generation %s", err.Error())
 	} else if !cfg.Enabled {
 		return nil

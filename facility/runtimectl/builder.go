@@ -45,7 +45,7 @@ Disables the shutdown command, preventing your application being stopped remotel
 package runtimectl
 
 import (
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/ctl"
 	"github.com/graniticio/granitic/v3/facility/httpserver"
 	ge "github.com/graniticio/granitic/v3/grncerror"
@@ -86,24 +86,25 @@ type FacilityBuilder struct {
 }
 
 // BuildAndRegister creates new instances of the structs that make up the RuntimeCtl facility, configures them and adds them to the IOC container.
-func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cc *ioc.ComponentContainer) error {
+func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cc *ioc.ComponentContainer) error {
 
 	sv := new(httpserver.HTTPServer)
-	ca.Populate("RuntimeCtl.Server", sv)
+
+	config_access.Populate("RuntimeCtl.Server", sv, ca.Config())
 
 	cc.WrapAndAddProto(Server, sv)
 
 	rw := new(ws.MarshallingResponseWriter)
-	ca.Populate("RuntimeCtl.ResponseWriter", rw)
+	config_access.Populate("RuntimeCtl.ResponseWriter", rw, ca.Config())
 	rw.FrameworkLogger = lm.CreateLogger(runtimeCtlResponseWriter)
 	sv.AbnormalStatusWriter = rw
 
 	mw := new(json.MarshalingWriter)
-	ca.Populate("RuntimeCtl.Marshal", mw)
+	config_access.Populate("RuntimeCtl.Marshal", mw, ca.Config())
 	rw.MarshalingWriter = mw
 
 	wr := new(json.GraniticJSONResponseWrapper)
-	ca.Populate("RuntimeCtl.ResponseWrapper", wr)
+	config_access.Populate("RuntimeCtl.ResponseWrapper", wr, ca.Config())
 	rw.ResponseWrapper = wr
 
 	rw.ErrorFormatter = new(json.GraniticJSONErrorFormatter)
@@ -113,14 +114,14 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 	feg := new(ws.FrameworkErrorGenerator)
 	feg.FrameworkLogger = lm.CreateLogger(runtimeCtlFrameworkErrors)
 
-	ca.Populate("FrameworkServiceErrors", feg)
+	config_access.Populate("FrameworkServiceErrors", feg, ca.Config())
 
 	rw.FrameworkErrors = feg
 
 	//Handler
 	h := new(handler.WsHandler)
 	h.PreventAutoWiring = true
-	ca.Populate("RuntimeCtl.CommandHandler", h)
+	config_access.Populate("RuntimeCtl.CommandHandler", h, ca.Config())
 	h.Log = lm.CreateLogger(runtimeCtlCommandHandler)
 	h.DisablePathParsing = true
 	h.DisableQueryParsing = true
@@ -145,14 +146,14 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 	v.Log = lm.CreateLogger(runtimeCtlValidator)
 	v.DisableCodeValidation = true
 
-	ca.SetField("Rules", "RuntimeCtl.CommandValidation", v)
+	config_access.SetField("Rules", "RuntimeCtl.CommandValidation", v, ca.Config())
 
 	cc.WrapAndAddProto(runtimeCtlValidator, v)
 
 	h.AutoValidator = v
 
 	rm := new(validate.UnparsedRuleManager)
-	ca.SetField("Rules", "RuntimeCtl.SharedRules", rm)
+	config_access.SetField("Rules", "RuntimeCtl.SharedRules", rm, ca.Config())
 
 	v.RuleManager = rm
 
@@ -161,7 +162,7 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 	sem.PanicOnMissing = true
 
 	e := new(errorsWrapper)
-	ca.SetField("Unparsed", "RuntimeCtl.Errors", e)
+	config_access.SetField("Unparsed", "RuntimeCtl.Errors", e, ca.Config())
 
 	sem.LoadErrors(e.Unparsed)
 
@@ -172,7 +173,7 @@ func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, 
 	//Command manager
 	cm := new(ctl.CommandManager)
 
-	ca.Populate("RuntimeCtl.Manager", cm)
+	config_access.Populate("RuntimeCtl.Manager", cm, ca.Config())
 
 	if cm.Disabled == nil {
 		cm.DisabledLookup = types.NewEmptyOrderedStringSet()

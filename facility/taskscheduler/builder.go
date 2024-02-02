@@ -4,7 +4,7 @@
 package taskscheduler
 
 import (
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
@@ -21,14 +21,14 @@ type FacilityBuilder struct {
 }
 
 // BuildAndRegister implements FacilityBuilder.BuildAndRegister
-func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) error {
 
 	ts := new(schedule.TaskScheduler)
 	ts.FrameworkLogManager = lm
 	ts.State = ioc.StoppedState
 
 	//Inject JSON config
-	ca.Populate(facilityName, ts)
+	config_access.Populate(facilityName, ts, ca.Config())
 
 	cn.WrapAndAddProto(TaskSchedulerComponentName, ts)
 

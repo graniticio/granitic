@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	config_access "github.com/graniticio/config-access"
 	"os"
 	"path/filepath"
 )
@@ -105,8 +106,8 @@ func FileListFromPath(path string) ([]string, error) {
 }
 
 // WriteJSONConfig writes the contents of a config.Accessor to a file
-func WriteJSONConfig(a *Accessor, f string) error {
-	if content, err := json.MarshalIndent(a.JSONData, "", " "); err != nil {
+func WriteJSONConfig(a config_access.Selector, f string) error {
+	if content, err := json.MarshalIndent(a.Config(), "", " "); err != nil {
 		return err
 	} else if err = os.WriteFile(f, content, 0644); err != nil {
 		return err

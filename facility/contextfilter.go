@@ -4,7 +4,7 @@
 package facility
 
 import (
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
@@ -17,7 +17,7 @@ import (
 type ContextFilterBuilder struct{}
 
 // BuildAndRegister constructs the components that together constitute the facility and stores them in the IoC container.
-func (cf *ContextFilterBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (cf *ContextFilterBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) error {
 
 	log := lm.CreateLogger(instance.FrameworkPrefix + "ContextFilterBuilder")
 

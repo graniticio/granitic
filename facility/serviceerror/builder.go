@@ -6,6 +6,7 @@ package serviceerror
 import (
 	"errors"
 	"fmt"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/config"
 	ge "github.com/graniticio/granitic/v3/grncerror"
 	"github.com/graniticio/granitic/v3/instance"
@@ -24,7 +25,7 @@ type FacilityBuilder struct {
 }
 
 // BuildAndRegister implements FacilityBuilder.BuildAndRegister
-func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (fb *FacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) error {
 
 	manager := new(ge.ServiceErrorManager)
 	manager.FrameworkLogger = lm.CreateLogger(serviceErrorManagerComponentName)
@@ -73,7 +74,7 @@ func (fb *FacilityBuilder) DependsOnFacilities() []string {
 	return []string{}
 }
 
-func (fb *FacilityBuilder) loadMessagesFromConfig(dPath string, ca *config.Accessor) ([]interface{}, error) {
+func (fb *FacilityBuilder) loadMessagesFromConfig(dPath string, ca config_access.Selector) ([]interface{}, error) {
 
 	if !ca.PathExists(dPath) {
 		return nil, fmt.Errorf("no error definitions found at config path %s", dPath)

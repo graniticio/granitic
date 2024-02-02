@@ -1,6 +1,7 @@
 package querymanager
 
 import (
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/dsquery"
 	"github.com/graniticio/granitic/v3/instance"
@@ -180,7 +181,7 @@ func (nvp *nullValueProcessor) SubstituteUnset(v *dsquery.ParamValueContext) err
 	return nil
 }
 
-func configAccessor(lm *logging.ComponentLoggerManager, queryFolder string, additionalFiles ...string) (*config.Accessor, error) {
+func configAccessor(lm *logging.ComponentLoggerManager, queryFolder string, additionalFiles ...string) (config_access.Selector, error) {
 
 	jm := config.NewJSONMergerWithManagedLogging(lm, new(config.JSONContentParser))
 
@@ -212,7 +213,5 @@ func configAccessor(lm *logging.ComponentLoggerManager, queryFolder string, addi
 
 	qmConfig["TemplateLocation"] = queryFolder
 
-	caLogger := lm.CreateLogger("ca")
-	return &config.Accessor{JSONData: mergedJSON, FrameworkLogger: caLogger}, nil
-
+	return config_access.NewGraniticSelector(mergedJSON), nil
 }

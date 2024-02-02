@@ -6,7 +6,7 @@ package runtimectl
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/types"
@@ -34,7 +34,7 @@ func findLifecycleFilter(args map[string]string) (ioc.LifecycleSupport, error) {
 }
 
 // Enabled checks to see if the RuntimeCtl facility is enabled in configuration.
-func Enabled(ca *config.Accessor) bool {
+func Enabled(ca config_access.Selector) bool {
 
 	p := "Facilities.RuntimeCtl"
 

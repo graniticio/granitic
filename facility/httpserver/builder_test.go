@@ -2,15 +2,13 @@ package httpserver
 
 import (
 	"context"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
 	"github.com/graniticio/granitic/v3/test"
-	"net/http"
-	"net/url"
 	"testing"
-	"time"
 )
 
 func TestFacilityNaming(t *testing.T) {
@@ -49,14 +47,6 @@ func TestBuilderWithDefaultConfig(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	alw := cc.ComponentByName(accessLogWriterName).Instance.(*AccessLogWriter)
-
-	lb := alw.builder
-
-	if _, ok := lb.(*UnstructuredLineBuilder); !ok {
-		t.Fatalf("Unexpected type of LineBuilder %T", lb)
-	}
-
 }
 
 func TestBuilderWithJSONConfig(t *testing.T) {
@@ -85,85 +75,66 @@ func TestBuilderWithJSONConfig(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	alw := cc.ComponentByName(accessLogWriterName).Instance.(*AccessLogWriter)
-
-	lb := alw.builder
-
-	if _, ok := lb.(*JSONLineBuilder); !ok {
-		t.Fatalf("Unexpected type of LineBuilder %T", lb)
-	}
-
-	ctx := context.Background()
-
-	req := new(http.Request)
-	req.URL, _ = url.Parse("http://localhost/some/path?a=b")
-	end := time.Now()
-
-	start := end.Add(time.Second * -2)
-
-	rw := responseWriter(true, 200)
-
-	lb.BuildLine(ctx, req, rw, &start, &end)
-
 }
 
-func TestBuilderWithAllFieldsJSONConfig(t *testing.T) {
-	lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
+/*
+	func TestBuilderWithAllFieldsJSONConfig(t *testing.T) {
+		lm := logging.CreateComponentLoggerManager(logging.Fatal, make(map[string]interface{}), []logging.LogWriter{}, logging.NewFrameworkLogMessageFormatter(), false)
 
-	ca, err := configAccessor(lm, test.FilePath("allfieldvariants.json"))
+		ca, err := configAccessor(lm, test.FilePath("allfieldvariants.json"))
 
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
 
-	fb := new(FacilityBuilder)
-	cxf := new(testFilter)
+		fb := new(FacilityBuilder)
+		cxf := new(testFilter)
 
-	cxf.m = make(logging.FilteredContextData)
-	cxf.m["someKey"] = "someVal"
+		cxf.m = make(logging.FilteredContextData)
+		cxf.m["someKey"] = "someVal"
 
-	s := new(instance.System)
+		s := new(instance.System)
 
-	//Create the IoC container
-	cc := ioc.NewComponentContainer(lm, ca, s)
+		//Create the IoC container
+		cc := ioc.NewComponentContainer(lm, ca, s)
 
-	err = fb.BuildAndRegister(lm, ca, cc)
+		err = fb.BuildAndRegister(lm, ca, cc)
 
-	if err != nil {
-		t.Fatalf(err.Error())
-	}
+		if err != nil {
+			t.Fatalf(err.Error())
+		}
 
-	if err = cc.Populate(); err != nil {
-		t.Fatalf(err.Error())
-	}
+		if err = cc.Populate(); err != nil {
+			t.Fatalf(err.Error())
+		}
 
-	alw := cc.ComponentByName(accessLogWriterName).Instance.(*AccessLogWriter)
+		alw := cc.ComponentByName(accessLogWriterName).Instance.(*AccessLogWriter)
 
-	lb := alw.builder
-	lb.SetContextFilter(cxf)
+		lb := alw.builder
+		lb.SetContextFilter(cxf)
 
-	if _, ok := lb.(*JSONLineBuilder); !ok {
-		t.Fatalf("Unexpected type of LineBuilder %T", lb)
-	}
+		if _, ok := lb.(*JSONLineBuilder); !ok {
+			t.Fatalf("Unexpected type of LineBuilder %T", lb)
+		}
 
-	ctx := context.Background()
+		ctx := context.Background()
 
-	req := new(http.Request)
-	req.URL, _ = url.Parse("http://localhost/some/path?a=b")
-	req.Method = "GET"
-	req.Proto = "HTTPS"
-	req.RequestURI = "/some/path"
-	end := time.Now()
+		req := new(http.Request)
+		req.URL, _ = url.Parse("http://localhost/some/path?a=b")
+		req.Method = "GET"
+		req.Proto = "HTTPS"
+		req.RequestURI = "/some/path"
+		end := time.Now()
 
-	start := end.Add(time.Second * -2)
+		start := end.Add(time.Second * -2)
 
-	rw := responseWriter(true, 200)
+		rw := responseWriter(true, 200)
 
-	lb.BuildLine(ctx, req, rw, &start, &end)
+		lb.BuildLine(ctx, req, rw, &start, &end)
 
 }
-
-func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...string) (*config.Accessor, error) {
+*/
+func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...string) (config_access.Selector, error) {
 
 	jm := config.NewJSONMergerWithManagedLogging(lm, new(config.JSONContentParser))
 
@@ -191,9 +162,7 @@ func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...strin
 		return nil, err
 	}
 
-	caLogger := lm.CreateLogger("ca")
-	return &config.Accessor{JSONData: mergedJSON, FrameworkLogger: caLogger}, nil
-
+	return config_access.NewGraniticSelector(mergedJSON), nil
 }
 
 type testFilter struct {

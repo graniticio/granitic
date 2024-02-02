@@ -6,7 +6,7 @@ package facility
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/facility/httpserver"
 	"github.com/graniticio/granitic/v3/facility/logger"
 	"github.com/graniticio/granitic/v3/facility/querymanager"
@@ -52,7 +52,7 @@ func NewFacilitiesInitialisor(cc *ioc.ComponentContainer, flm *logging.Component
 // corresponding Builder to initialise and configure them.
 type FacilitiesInitialisor struct {
 	// Access to the merged view of application configuration.
-	ConfigAccessor *config.Accessor
+	ConfigAccessor config_access.Selector
 
 	//A ComponentLoggerManager able to create Loggers for built-in Granitic components.
 	FrameworkLoggingManager *logging.ComponentLoggerManager
@@ -106,7 +106,7 @@ func (fi *FacilitiesInitialisor) buildEnabledFacilities() error {
 
 // Initialise creates a Builder for each of the built-in Granitic facilities and then
 // builds those facilities that have been enabled by the user.
-func (fi *FacilitiesInitialisor) Initialise(ca *config.Accessor) error {
+func (fi *FacilitiesInitialisor) Initialise(ca config_access.Selector) error {
 	fi.ConfigAccessor = ca
 
 	fc, err := ca.ObjectVal("Facilities")
@@ -152,7 +152,7 @@ func (fi *FacilitiesInitialisor) Initialise(ca *config.Accessor) error {
 	return err
 }
 
-func (fi *FacilitiesInitialisor) handleDisabledApplicationLogging(ca *config.Accessor) error {
+func (fi *FacilitiesInitialisor) handleDisabledApplicationLogging(ca config_access.Selector) error {
 
 	logger.AddRuntimeCommandsForFrameworkLogging(ca, fi.FrameworkLoggingManager, fi.container)
 

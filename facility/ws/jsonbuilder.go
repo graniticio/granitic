@@ -6,7 +6,7 @@ package ws
 import (
 	"errors"
 	"fmt"
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
@@ -25,7 +25,7 @@ type JSONFacilityBuilder struct {
 }
 
 // BuildAndRegister implements FacilityBuilder.BuildAndRegister
-func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error {
+func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) error {
 
 	wc, err := buildAndRegisterWsCommon(lm, ca, cn)
 
@@ -37,7 +37,7 @@ func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 	cn.WrapAndAddProto(jsonUnmarshallerComponentName, um)
 
 	rw := new(ws.MarshallingResponseWriter)
-	ca.Populate("JSONWs.ResponseWriter", rw)
+	config_access.Populate("JSONWs.ResponseWriter", rw, ca.Config())
 	cn.WrapAndAddProto(jsonResponseWriterComponentName, rw)
 
 	rw.StatusDeterminer = wc.StatusDeterminer
@@ -66,7 +66,7 @@ func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 				return errors.New(m)
 			}
 
-			ca.Populate("JSONWs.ResponseWrapper", wrap)
+			config_access.Populate("JSONWs.ResponseWrapper", wrap, ca.Config())
 			rw.ResponseWrapper = wrap
 		} else {
 			return err
@@ -77,7 +77,7 @@ func (fb *JSONFacilityBuilder) BuildAndRegister(lm *logging.ComponentLoggerManag
 	if !cn.ModifierExists(jsonResponseWriterComponentName, "MarshalingWriter") {
 
 		mw := new(json.MarshalingWriter)
-		ca.Populate("JSONWs.Marshal", mw)
+		config_access.Populate("JSONWs.Marshal", mw, ca.Config())
 		rw.MarshalingWriter = mw
 	}
 

@@ -72,7 +72,7 @@ change the port on which your application's HTTP server listens on, you could ad
 package facility
 
 import (
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
 )
@@ -82,7 +82,7 @@ import (
 type Builder interface {
 	//BuildAndRegister constructs the components that together constitute the facility and stores them in the IoC
 	// container.
-	BuildAndRegister(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) error
+	BuildAndRegister(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) error
 
 	//FacilityName returns the facility's unique name. Used to check whether the facility is enabled in configuration.
 	FacilityName() string

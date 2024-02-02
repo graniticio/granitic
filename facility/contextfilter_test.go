@@ -2,6 +2,7 @@ package facility
 
 import (
 	"context"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
@@ -155,7 +156,7 @@ func (npf namedPrioritisedFilter) Extract(ctx context.Context) logging.FilteredC
 	return npf.contents
 }
 
-func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...string) (*config.Accessor, error) {
+func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...string) (config_access.Selector, error) {
 
 	jm := config.NewJSONMergerWithManagedLogging(lm, new(config.JSONContentParser))
 
@@ -183,7 +184,6 @@ func configAccessor(lm *logging.ComponentLoggerManager, additionalFiles ...strin
 		return nil, err
 	}
 
-	caLogger := lm.CreateLogger("ca")
-	return &config.Accessor{JSONData: mergedJSON, FrameworkLogger: caLogger}, nil
+	return config_access.NewGraniticSelector(mergedJSON), nil
 
 }

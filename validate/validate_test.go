@@ -6,6 +6,7 @@ package validate
 import (
 	"context"
 	"fmt"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/ioc"
 	"github.com/graniticio/granitic/v3/logging"
@@ -34,7 +35,7 @@ func TestPathParsing(t *testing.T) {
 
 }
 
-func LoadTestConfig() *config.Accessor {
+func LoadTestConfig() config_access.Selector {
 
 	cfp := filepath.Join("validate", "validation.json")
 
@@ -43,7 +44,8 @@ func LoadTestConfig() *config.Accessor {
 
 	mergedJSON, _ := jsonMerger.LoadAndMergeConfig([]string{cFile})
 
-	return &config.Accessor{JSONData: mergedJSON, FrameworkLogger: new(logging.ConsoleErrorLogger)}
+	return config_access.NewGraniticSelector(mergedJSON)
+
 }
 
 func TestConfigParsing(t *testing.T) {
@@ -75,7 +77,7 @@ func validatorAndUser(t *testing.T) (*RuleValidator, *User) {
 	test.ExpectBool(t, ca.PathExists("profileValidator"), true)
 
 	rm := new(UnparsedRuleManager)
-	ca.Populate("ruleManager", rm)
+	config_access.Populate("ruleManager", rm, ca.Config())
 
 	ov := new(RuleValidator)
 	ov.RuleManager = rm
@@ -83,7 +85,7 @@ func validatorAndUser(t *testing.T) (*RuleValidator, *User) {
 	ov.DefaultErrorCode = "DEFAULT"
 	ov.Log = new(logging.ConsoleErrorLogger)
 
-	ca.Populate("profileValidator", ov)
+	config_access.Populate("profileValidator", ov, ca.Config())
 
 	err := ov.StartComponent()
 

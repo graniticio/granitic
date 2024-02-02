@@ -6,6 +6,7 @@ package ioc
 import (
 	"errors"
 	"fmt"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/config"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/logging"
@@ -28,7 +29,7 @@ type ComponentLookup interface {
 }
 
 // NewComponentContainer creates a new instance of a Granitic IoC container.
-func NewComponentContainer(logm *logging.ComponentLoggerManager, ca *config.Accessor, sys *instance.System) *ComponentContainer {
+func NewComponentContainer(logm *logging.ComponentLoggerManager, ca config_access.Selector, sys *instance.System) *ComponentContainer {
 
 	cc := new(ComponentContainer)
 	cc.protoComponents = make(map[string]*ProtoComponent)
@@ -57,7 +58,7 @@ type ComponentContainer struct {
 	allComponents      map[string]*Component
 	protoComponents    map[string]*ProtoComponent
 	FrameworkLogger    logging.Logger
-	configAccessor     *config.Accessor
+	configAccessor     config_access.Selector
 	byLifecycleSupport map[LifecycleSupport][]*Component
 	modifiers          map[string]map[string]string
 	Lifecycle          *LifecycleManager
@@ -272,7 +273,9 @@ func (cc *ComponentContainer) resolveDependenciesAndConfig() error {
 
 			target := targetProto.Component.Instance
 
-			if err := cc.configAccessor.SetField(fieldName, configPath, target); err != nil {
+			conf := cc.configAccessor.Config()
+
+			if err := config_access.SetField(fieldName, configPath, target, conf); err != nil {
 
 				if _, found := err.(config.MissingPathError); found && targetProto.HasDefaultValue(fieldName) {
 

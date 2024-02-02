@@ -56,7 +56,7 @@ Refer to https://granitic.io/ref/xml-web-services for more details.
 package ws
 
 import (
-	"github.com/graniticio/granitic/v3/config"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/facility/httpserver"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
@@ -78,11 +78,11 @@ func offerAbnormalStatusWriter(arw ws.AbnormalStatusWriter, cc *ioc.ComponentCon
 	}
 }
 
-func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.Accessor, cn *ioc.ComponentContainer) (*wsCommon, error) {
+func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca config_access.Selector, cn *ioc.ComponentContainer) (*wsCommon, error) {
 
 	scd := new(ws.GraniticHTTPStatusCodeDeterminer)
 
-	if err := ca.Populate("WS.HTTPStatus", scd); err != nil {
+	if err := config_access.Populate("WS.HTTPStatus", scd, ca.Config()); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +93,7 @@ func buildAndRegisterWsCommon(lm *logging.ComponentLoggerManager, ca *config.Acc
 
 	feg := new(ws.FrameworkErrorGenerator)
 
-	if err := ca.Populate("FrameworkServiceErrors", feg); err != nil {
+	if err := config_access.Populate("FrameworkServiceErrors", feg, ca.Config()); err != nil {
 		return nil, err
 	}
 	cn.WrapAndAddProto(wsFrameworkErrorGenerator, feg)
