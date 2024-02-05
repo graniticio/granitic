@@ -17,7 +17,7 @@ that contains your comp-def and config directories).
 It will then look for component definitions and default configuration values in the following places:
 
   * Your Granitic installation (for built-in Granitic facilities)
-  * Any dependencies from your go.mod.old file that define valid Granitic 'external facilities'
+  * Any dependencies from your go.mod file that define valid Granitic 'external facilities'
   * Your project's comp-def and config directories
 
 
@@ -76,7 +76,7 @@ func main() {
 	}
 
 	// Locate a valid Granitic installation
-	// Find go.mod.old dependencies with valid external facilities definitions
+	// Find go.mod dependencies with valid external facilities definitions
 	// Gather configuration files
 	// Gather component definition files
 	// Merge configuration and encrypt to disk

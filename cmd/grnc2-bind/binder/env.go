@@ -26,14 +26,14 @@ func LocateFacilityConfig(log logging.Logger) (string, error) {
 	var graniticPath string
 	var err error
 
-	notFound := fmt.Errorf("unable to find a Granitic installation - checked go.mod.old file, %s environment variable and standard checkout location under %s", graniticHomeEnvVar, goPathEnvVar)
+	notFound := fmt.Errorf("unable to find a Granitic installation - checked go.mod file, %s environment variable and standard checkout location under %s", graniticHomeEnvVar, goPathEnvVar)
 
 	log.LogDebugf("Looking for an installation of Granitic")
 
 	if modPath, okay := installationFromModule(log); okay {
 
-		// If the project has a go.mod.old file, try and work out where Granitic
-		log.LogDebugf("Using location from go.mod.old file")
+		// If the project has a go.mod file, try and work out where Granitic
+		log.LogDebugf("Using location from go.mod file")
 
 		graniticPath = modPath
 	} else if envPath := os.Getenv(graniticHomeEnvVar); envPath != "" {
@@ -108,7 +108,7 @@ func installationFromModule(log logging.Logger) (string, bool) {
 	var f *os.File
 	var err error
 
-	if f, err = os.Open("go.mod.old"); err != nil { // os.Open defaults to read only
+	if f, err = os.Open("go.mod"); err != nil { // os.Open defaults to read only
 
 		fmt.Println("Failed to open")
 		return "", false
@@ -141,7 +141,7 @@ func installationFromModule(log logging.Logger) (string, bool) {
 	}
 
 	if replacePath != "" {
-		log.LogDebugf("Found a replace path for Granitic in go.mod.old: %s", replacePath)
+		log.LogDebugf("Found a replace path for Granitic in go.mod: %s", replacePath)
 		return replacePath, true
 	}
 
@@ -152,7 +152,7 @@ func installationFromModule(log logging.Logger) (string, bool) {
 
 		fullVersion := fmt.Sprintf("%s@%s", majorVersion, requiredVersion)
 
-		log.LogDebugf("Found a required version for Granitic in go.mod.old: %s", fullVersion)
+		log.LogDebugf("Found a required version for Granitic in go.mod: %s", fullVersion)
 
 		if goPath := os.Getenv(goPathEnvVar); goPath != "" {
 
