@@ -90,7 +90,7 @@ const JSONPathSeparator string = "."
 
 // Used by code that needs to know what type of JSON data structure resides at a particular path
 // before operating on it.
-const (
+/*const (
 	Unset       = -2
 	JSONUnknown = -1
 	JSONString  = 1
@@ -114,7 +114,7 @@ func JSONType(value interface{}) int {
 	default:
 		return JSONUnknown
 	}
-}
+}*/
 
 // MissingPathError indicates that the a problem was caused by there being no value at the supplied
 // config path

@@ -657,12 +657,12 @@ func (b *Binder) writeMapContents(w *bufio.Writer, iName string, fName string, c
 
 func (b *Binder) asGoInit(v interface{}) (string, bool, error) {
 
-	switch config.JSONType(v) {
-	case config.JSONMap:
+	switch config_access.ConfigType(v) {
+	case config_access.ConfigMap:
 
 		s, err := b.asGoMapInit(v)
 		return s, true, err
-	case config.JSONArray:
+	case config_access.ConfigArray:
 
 		s, err := b.asGoArrayInit(v)
 
@@ -717,7 +717,7 @@ func (b *Binder) asGoArrayInit(v interface{}) (string, error) {
 
 func (b *Binder) assessMapValueType(a map[string]interface{}) (string, error) {
 
-	var currentType = config.Unset
+	var currentType = config_access.ConfigUnset
 	var sampleVal interface{}
 
 	if len(a) == 0 {
@@ -726,14 +726,14 @@ func (b *Binder) assessMapValueType(a map[string]interface{}) (string, error) {
 
 	for _, v := range a {
 
-		newType := config.JSONType(v)
+		newType := config_access.ConfigType(v)
 		sampleVal = v
 
-		if newType == config.JSONMap {
+		if newType == config_access.ConfigMap {
 			return "", fmt.Errorf("this tool does not support nested maps/objects as component values")
 		}
 
-		if currentType == config.Unset {
+		if currentType == config_access.ConfigUnset {
 			currentType = newType
 			continue
 		}
@@ -743,7 +743,7 @@ func (b *Binder) assessMapValueType(a map[string]interface{}) (string, error) {
 		}
 	}
 
-	if currentType == config.JSONArray {
+	if currentType == config_access.ConfigArray {
 
 		var at string
 		var err error
@@ -763,7 +763,7 @@ func (b *Binder) assessMapValueType(a map[string]interface{}) (string, error) {
 
 func (b *Binder) assessArrayType(a []interface{}) (string, error) {
 
-	var currentType = config.Unset
+	var currentType = config_access.ConfigUnset
 
 	if len(a) == 0 {
 		return "", fmt.Errorf("this tool does not support zero-length (empty) arrays as component values as the type can't be determined")
@@ -771,13 +771,13 @@ func (b *Binder) assessArrayType(a []interface{}) (string, error) {
 
 	for _, v := range a {
 
-		newType := config.JSONType(v)
+		newType := config_access.ConfigType(v)
 
-		if newType == config.JSONMap || newType == config.JSONArray {
+		if newType == config_access.ConfigMap || newType == config_access.ConfigArray {
 			return "", fmt.Errorf("This tool does not support multi-dimensional arrays or object arrays as component values")
 		}
 
-		if currentType == config.Unset {
+		if currentType == config_access.ConfigUnset {
 			currentType = newType
 			continue
 		}

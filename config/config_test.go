@@ -25,29 +25,6 @@ type SimpleConfig struct {
 	StringArrayMap map[string][]string
 }
 
-func TestTypeDetection(t *testing.T) {
-
-	if JSONType("") != JSONString {
-		t.FailNow()
-	}
-
-	if JSONType(true) != JSONBool {
-		t.FailNow()
-	}
-
-	if JSONType(make(map[string]interface{})) != JSONMap {
-		t.FailNow()
-	}
-
-	if JSONType([]interface{}{}) != JSONArray {
-		t.FailNow()
-	}
-
-	if JSONType(1) != JSONUnknown {
-		t.FailNow()
-	}
-}
-
 func LoadConfigFromFile(f string) config_access.Selector {
 
 	osp := filepath.Join("config", f)

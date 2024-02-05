@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	config_access "github.com/graniticio/config-access"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/logging"
 	"net/http"
@@ -227,31 +228,6 @@ func (jm *JSONMerger) loadFromURL(url string) ([]byte, ContentParser, error) {
 
 func (jm *JSONMerger) merge(base, additional map[string]interface{}) map[string]interface{} {
 
-	for key, value := range additional {
+	return config_access.Merge(base, additional, jm.MergeArrays)
 
-		if existingEntry, ok := base[key]; ok {
-
-			existingEntryType := JSONType(existingEntry)
-			newEntryType := JSONType(value)
-
-			if existingEntryType == JSONMap && newEntryType == JSONMap {
-				jm.merge(existingEntry.(map[string]interface{}), value.(map[string]interface{}))
-			} else if jm.MergeArrays && existingEntryType == JSONArray && newEntryType == JSONArray {
-				base[key] = jm.mergeArrays(existingEntry.([]interface{}), value.([]interface{}))
-			} else {
-				base[key] = value
-			}
-		} else {
-			jm.Logger.LogTracef("Adding %s", key)
-
-			base[key] = value
-		}
-
-	}
-
-	return base
-}
-
-func (jm *JSONMerger) mergeArrays(a []interface{}, b []interface{}) []interface{} {
-	return append(a, b...)
 }

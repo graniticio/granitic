@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	config_access "github.com/graniticio/config-access"
-	"github.com/graniticio/granitic/v3/config"
 	ge "github.com/graniticio/granitic/v3/grncerror"
 	"github.com/graniticio/granitic/v3/instance"
 	"github.com/graniticio/granitic/v3/ioc"
@@ -82,7 +81,7 @@ func (fb *FacilityBuilder) loadMessagesFromConfig(dPath string, ca config_access
 
 	i := ca.Value(dPath)
 
-	if config.JSONType(i) != config.JSONArray {
+	if config_access.ConfigType(i) != config_access.ConfigArray {
 		e := fmt.Errorf("couldn't load error messages from config path %s. Make sure the path exists in your configuration and that %s is an array of string arrays ([][]string)", dPath, dPath)
 		return nil, e
 	}
